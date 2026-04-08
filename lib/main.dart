@@ -51,7 +51,7 @@ Future<void> _initializeAppDependencies() async {
   await firebaseService.initialize();
 
   final String? remoteUrl = firebaseService.remoteConfig.baseUrlOrNull;
-  final String fallbackUrl = 'http://localhost:8080';
+  final String fallbackUrl = 'http://10.0.2.2:8080';
 
   final String finalBaseUrl = remoteUrl ?? fallbackUrl;
 

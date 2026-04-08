@@ -15,7 +15,7 @@ GoRouter router(Ref ref) {
 
     ///TODO : 작업 완료 후 제거하여야 합니다
     initialLocation: '/user-permission',
-    // initialLocation: '/geofence',
+    // initialLocation: '/terms-consent',
     redirect: (context, state) => RouterLogic.handleRedirect(ref, state),
     routes: appRoutes,
     errorBuilder: (_, __) => const Center(child: Text("Page Not Found")),

@@ -1,4 +1,4 @@
-import 'package:iamhere/terms/model/service/dto/terms_type.dart';
+import 'package:iamhere/terms/service/dto/terms_type.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'terms_list_request_dto.g.dart';
