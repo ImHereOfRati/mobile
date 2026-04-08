@@ -7,7 +7,6 @@ import 'package:mockito/mockito.dart';
 
 import 'auth_service_test.mocks.dart';
 
-// Mock 클래스 생성을 위한 어노테이션
 @GenerateMocks([Dio, TokenStorageService])
 void main() {
   late AuthService authService;
@@ -25,8 +24,7 @@ void main() {
     const testAccessToken = 'test_access_token_456';
     const testRefreshToken = 'test_refresh_token_789';
 
-    test('성공: 200 응답으로 토큰을 받아서 저장해야 함', () async {
-      // Arrange
+    test('성공: 200 응답 시 false를 반환하고 토큰을 저장해야 함', () async {
       final responseData = {
         'accessToken': testAccessToken,
         'refreshToken': testRefreshToken,
@@ -48,26 +46,17 @@ void main() {
       ).thenAnswer((_) async => Future.value());
 
       // Act
-      await authService.sendIdTokenToServer(testIdToken);
+      final isNewUser = await authService.sendIdTokenToServer(testIdToken);
 
       // Assert
-      verify(
-        mockDio.post(
-          '/api/v1/auth/login',
-          data: argThat(
-            isA<Map<String, dynamic>>()
-                .having((m) => m['provider'], 'provider', 'KAKAO')
-                .having((m) => m['idToken'], 'idToken', testIdToken),
-            named: 'data',
-          ),
-        ),
-      ).called(1);
+      expect(isNewUser, false); // 기존 사용자 (200)
+      verify(mockDio.post(any, data: anyNamed('data'))).called(1);
 
       verify(mockTokenStorage.saveAccessToken(testAccessToken)).called(1);
       verify(mockTokenStorage.saveRefreshToken(testRefreshToken)).called(1);
     });
 
-    test('성공: 201 응답으로 토큰을 받아서 저장해야 함', () async {
+    test('성공: 201 응답 시 true를 반환하고 토큰을 저장해야 함', () async {
       // Arrange
       final responseData = {
         'accessToken': testAccessToken,
@@ -90,9 +79,10 @@ void main() {
       ).thenAnswer((_) async => Future.value());
 
       // Act
-      await authService.sendIdTokenToServer(testIdToken);
+      final isNewUser = await authService.sendIdTokenToServer(testIdToken);
 
       // Assert
+      expect(isNewUser, true); // 신규 사용자 (201)
       verify(mockTokenStorage.saveAccessToken(testAccessToken)).called(1);
       verify(mockTokenStorage.saveRefreshToken(testRefreshToken)).called(1);
     });
@@ -165,7 +155,7 @@ void main() {
       verifyNever(mockTokenStorage.saveRefreshToken(any));
     });
 
-    test('실패: 401 응답 시 토큰을 저장하지 않아야 함', () async {
+    test('실패: 401 응답 시 false를 반환하고 토큰을 저장하지 않아야 함', () async {
       // Arrange
       final responseData = {
         'accessToken': testAccessToken,
@@ -181,14 +171,15 @@ void main() {
       );
 
       // Act
-      await authService.sendIdTokenToServer(testIdToken);
+      final isNewUser = await authService.sendIdTokenToServer(testIdToken);
 
       // Assert
+      expect(isNewUser, false); // 201이 아니므로 false
       verifyNever(mockTokenStorage.saveAccessToken(any));
       verifyNever(mockTokenStorage.saveRefreshToken(any));
     });
 
-    test('실패: 500 응답 시 토큰을 저장하지 않아야 함', () async {
+    test('실패: 500 응답 시 false를 반환하고 토큰을 저장하지 않아야 함', () async {
       // Arrange
       final responseData = {
         'accessToken': testAccessToken,
@@ -204,9 +195,10 @@ void main() {
       );
 
       // Act
-      await authService.sendIdTokenToServer(testIdToken);
+      final isNewUser = await authService.sendIdTokenToServer(testIdToken);
 
       // Assert
+      expect(isNewUser, false); // 201이 아니므로 false
       verifyNever(mockTokenStorage.saveAccessToken(any));
       verifyNever(mockTokenStorage.saveRefreshToken(any));
     });

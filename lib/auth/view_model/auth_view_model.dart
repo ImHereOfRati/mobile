@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:iamhere/auth/model/login_result.dart';
 import 'package:iamhere/auth/service/auth_service.dart';
 import 'package:iamhere/auth/view_model/auth_view_model_interface.dart';
 import 'package:iamhere/common/result/result_message.dart';
@@ -16,14 +17,15 @@ class AuthViewModel implements AuthViewModelInterface {
   AuthViewModel(this._authService, this._fcmTokenService);
 
   @override
-  Future<Result<ResultMessage>> handleKakaoLogin() async {
+  Future<Result<LoginResult>> handleKakaoLogin() async {
     String? idToken;
     var result = await _doUserKakaoLogin();
     switch (result) {
       case Success(data: var d):
         idToken = d;
-        await _authService.sendIdTokenToServer(idToken!);
-        return Success(ResultMessage.kakaoAuthSuccess);
+        final isNewUser = await _authService.sendIdTokenToServer(idToken!);
+        final loginResult = isNewUser ? LoginResult.newUser : LoginResult.existingUser;
+        return Success(loginResult);
       case Failure():
         return Failure(ResultMessage.kakaoAuthFail.toString());
     }

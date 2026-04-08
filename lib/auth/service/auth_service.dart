@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/auth/service/auth_service_interface.dart';
-import 'package:iamhere/auth/service/dto/login_request_dto.dart';
+import 'package:iamhere/auth/service/dto/oauth_request_dto.dart';
 import 'package:iamhere/auth/service/token_storage_service.dart';
 import 'package:iamhere/common/result/error_analyst.dart';
 import 'package:iamhere/common/result/result_message.dart';
@@ -11,19 +11,19 @@ class AuthService implements AuthServiceInterface {
   final Dio _dio;
   final TokenStorageService _tokenStorage;
 
-  final _loginApi = '/api/v1/auth/login';
+  final _loginApi = '/api/user/auth/login';
 
   AuthService(this._dio, this._tokenStorage);
 
   @override
-  sendIdTokenToServer(String idToken) async {
+  Future<bool> sendIdTokenToServer(String idToken) async {
     try {
       final response = await _dio.post(
         _loginApi,
-        data: LoginReqeustDto(provider: 'KAKAO', idToken: idToken).toJson(),
+        data: OAuthRequestDto(provider: 'KAKAO', idToken: idToken),
       );
 
-      // 서버 응답에서 JWT 토큰 추출 및 저장
+      // 200, 201 응답만 처리
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
         final accessToken = data['accessToken'] as String?;
@@ -36,7 +36,13 @@ class AuthService implements AuthServiceInterface {
         if (refreshToken != null) {
           await _tokenStorage.saveRefreshToken(refreshToken);
         }
+
+        // 상태 반환: 201이면 신규 사용자(true), 200이면 기존 사용자(false)
+        return response.statusCode == 201;
       }
+
+      // 기타 상태 코드는 false 반환 (기존 사용자로 간주)
+      return false;
     } on DioException catch (e, stack) {
       ErrorAnalyst.log(ResultMessage.dioException.toString(), stack);
       throw Exception(ResultMessage.dioException);

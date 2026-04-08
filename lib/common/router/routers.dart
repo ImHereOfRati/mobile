@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/auth/view/auth_view.dart';
+import 'package:iamhere/auth/view/terms_consent_view.dart';
 import 'package:iamhere/auth/view_model/auth_view_model.dart';
 import 'package:iamhere/common/view_component/default_view.dart';
 import 'package:iamhere/contact/view/contact_view.dart';
@@ -25,6 +26,14 @@ final List<RouteBase> appRoutes = [
   GoRoute(
     path: '/auth',
     builder: (context, state) => AuthView(getIt<AuthViewModel>()),
+  ),
+  GoRoute(
+    path: '/terms-consent',
+    pageBuilder: (context, state) => buildPageWithSimpleTransition(
+      context: context,
+      state: state,
+      child: const TermsConsentView(),
+    ),
   ),
   ShellRoute(
     builder: (context, state, child) => DefaultView(child: child),
