@@ -1,16 +1,18 @@
 import 'package:get_it/get_it.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/geofence/repository/geofence_local_repository.dart';
+import 'package:iamhere/geofence/repository/geofence_local_repository_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'geofence_list_view_model.g.dart';
 
 @riverpod
 class GeofenceListViewModel extends _$GeofenceListViewModel {
-  final _geofenceRepository = GetIt.I<GeofenceLocalRepository>();
+  late GeofenceLocalRepository _geofenceRepository;
 
   @override
   Future<List<GeofenceEntity>> build() async {
+    _geofenceRepository = ref.watch(geofenceLocalRepositoryProvider);
     return await _geofenceRepository.findAll();
   }
 

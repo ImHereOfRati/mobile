@@ -1,51 +1,38 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/common/result/result.dart';
 import 'package:iamhere/geofence/model/message_send_request.dart';
 import 'package:iamhere/geofence/model/multiple_message_send_request.dart';
+import 'package:iamhere/geofence/service/notification_service.dart';
+import 'package:injectable/injectable.dart';
 
+/// SMS sending service with proper dependency injection and error handling
+@lazySingleton
 class SmsService {
-  final Ref ref;
-  SmsService({required this.ref});
+  final Dio _dio;
+  final NotificationService _notificationService;
 
-  final _sendToMeApiPath = '/api/v1/notification/self';
-  final _sendSmsToSingleApiPath = '/api/v1/message/send';
-  final _sendSmsToMultiApiPath = '/api/v1/message/multipleSend';
+  static const _sendSmsToSingleApiPath = '/api/v1/message/send';
+  static const _sendSmsToMultiApiPath = '/api/v1/message/multipleSend';
 
-  /// FCM 관련 요청 로직
-  Future<void> sendNotificationToMe() async {
-    try {
-      final dio = getIt.get<Dio>();
-      final response = await dio.post(_sendToMeApiPath);
+  SmsService(this._dio, this._notificationService);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        debugPrint('FCM 알림 요청 성공');
-      } else {
-        debugPrint('FCM 알림 요청 실패: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('FCM 알림 요청 중 오류 발생: $e');
-    }
-  }
-
-  /// SMS 발송을 서버에 자동으로 요청합니다
-  Future<bool> sendSms({
+  /// Send SMS to one or more recipients
+  /// Returns Result<void> indicating success or failure
+  Future<Result<void>> sendSms({
     required List<String> phoneNumbers,
     required String message,
   }) async {
     try {
       if (phoneNumbers.isEmpty) {
-        return false;
+        return Failure('No phone numbers provided');
       }
 
-      // 전화번호에서 숫자만 추출
-      List<String> cleanPhoneNumbers = _extractOnlyNumberFromPhoneNumber(
-        phoneNumbers,
-      );
+      final cleanPhoneNumbers = _extractOnlyNumberFromPhoneNumber(phoneNumbers);
 
       if (cleanPhoneNumbers.isEmpty) {
-        return false;
+        return Failure('No valid phone numbers after cleaning');
       }
 
       if (cleanPhoneNumbers.length == 1) {
@@ -60,43 +47,26 @@ class SmsService {
         );
       }
     } catch (e) {
-      debugPrint('SMS 전송 실패: $e');
-      return false;
+      log('Error sending SMS: $e');
+      return Failure('Error sending SMS: $e');
     }
   }
 
-  Future<List<String>> validateAndExtractPhoneNumber(
-    List<String> phoneNumbers,
-  ) async {
-    if (phoneNumbers.isEmpty) {
-      return [];
-    }
-    List<String> cleanPhoneNumbers = _extractOnlyNumberFromPhoneNumber(
-      phoneNumbers,
-    );
-    if (cleanPhoneNumbers.isEmpty) {
-      return [];
-    }
-
-    return cleanPhoneNumbers;
-  }
-
+  /// Extract and clean phone numbers (digits only)
   List<String> _extractOnlyNumberFromPhoneNumber(List<String> phoneNumbers) {
-    final cleanPhoneNumbers = phoneNumbers
+    return phoneNumbers
         .map((phone) => phone.replaceAll(RegExp(r'[^\d]'), ''))
         .where((phone) => phone.isNotEmpty)
         .toList();
-    return cleanPhoneNumbers;
   }
 
-  Future<bool> _sendSingleSms({
+  /// Send SMS to a single recipient
+  Future<Result<void>> _sendSingleSms({
     required String phoneNumber,
     required String message,
   }) async {
-    final dio = getIt.get<Dio>();
-
     try {
-      final response = await dio.post(
+      final response = await _dio.post(
         _sendSmsToSingleApiPath,
         data: MessageSendRequest(
           message: message,
@@ -104,54 +74,59 @@ class SmsService {
         ).toJson(),
       );
 
-      final httpStatusCode = response.statusCode;
+      final isSuccess = (response.statusCode == 200 || response.statusCode == 201);
 
-      final isSuccess = (httpStatusCode == 200 || httpStatusCode == 201);
-
-      // SMS 전송 성공 시 FCM 알림 전송
-      if (isSuccess) {
-        await sendNotificationToMe();
+      if (!isSuccess) {
+        return Failure('SMS send failed with status ${response.statusCode}');
       }
 
-      return isSuccess;
+      // Send FCM notification on success
+      final notificationResult = await _notificationService.sendNotificationToMe();
+      if (notificationResult is Failure) {
+        log('Warning: SMS sent but FCM notification failed');
+      }
+
+      return Success(null);
     } catch (e) {
-      debugPrint("서버를 통한 메시지 요청 시도 실패");
-      return false;
+      log('Error sending single SMS: $e');
+      return Failure('Error sending SMS: $e');
     }
   }
 
-  Future<bool> _sendMultiSms({
+  /// Send SMS to multiple recipients
+  Future<Result<void>> _sendMultiSms({
     required List<String> phoneNumbers,
     required String message,
   }) async {
-    final dio = getIt.get<Dio>();
-
-    final List<MessageSendRequest> requests = [];
-    for (var phoneNumber in phoneNumbers) {
-      requests.add(
-        MessageSendRequest(message: message, receiverNumber: phoneNumber),
-      );
-    }
-
     try {
-      final response = await dio.post(
+      final requests = phoneNumbers
+          .map((phone) => MessageSendRequest(
+            message: message,
+            receiverNumber: phone,
+          ))
+          .toList();
+
+      final response = await _dio.post(
         _sendSmsToMultiApiPath,
         data: MultipleMessageSendRequest(requests: requests).toJson(),
       );
 
-      final httpStatusCode = response.statusCode;
+      final isSuccess = (response.statusCode == 200 || response.statusCode == 201);
 
-      final isSuccess = (httpStatusCode == 200 || httpStatusCode == 201);
-
-      // SMS 전송 성공 시 FCM 알림 전송
-      if (isSuccess) {
-        await sendNotificationToMe();
+      if (!isSuccess) {
+        return Failure('SMS send failed with status ${response.statusCode}');
       }
 
-      return isSuccess;
+      // Send FCM notification on success
+      final notificationResult = await _notificationService.sendNotificationToMe();
+      if (notificationResult is Failure) {
+        log('Warning: SMS sent but FCM notification failed');
+      }
+
+      return Success(null);
     } catch (e) {
-      debugPrint("서버를 통한 메시지 요청 시도 실패");
-      return false;
+      log('Error sending multi SMS: $e');
+      return Failure('Error sending SMS: $e');
     }
   }
 }
