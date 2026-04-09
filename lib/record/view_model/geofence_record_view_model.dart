@@ -1,23 +1,25 @@
 import 'package:get_it/get_it.dart';
 import 'package:iamhere/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/record/repository/geofence_record_local_repository.dart';
+import 'package:iamhere/record/repository/geofence_record_local_repository_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'geofence_record_view_model.g.dart';
 
 @riverpod
 class GeofenceRecordViewModel extends _$GeofenceRecordViewModel {
-  final repository = GetIt.I<GeofenceRecordLocalRepository>();
+  late final GeofenceRecordLocalRepository _repository;
 
   @override
   Future<List<GeofenceRecordEntity>> build() async {
-    return await repository.findAllOrderByCreatedAtDesc();
+    _repository = ref.watch(geofenceRecordLocalRepositoryProvider);
+    return await _repository.findAllOrderByCreatedAtDesc();
   }
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      return await repository.findAllOrderByCreatedAtDesc();
+      return await _repository.findAllOrderByCreatedAtDesc();
     });
   }
 }

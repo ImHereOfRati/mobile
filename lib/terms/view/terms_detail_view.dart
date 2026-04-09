@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iamhere/terms/service/terms_list_request_service.dart';
-import 'package:iamhere/terms/service/terms_version_response.dart';
 import 'package:get_it/get_it.dart';
+import 'package:iamhere/terms/service/terms_list_request_service.dart';
+import 'package:iamhere/terms/service/dto/terms_version_response.dart';
 
-class TermsDetailView extends ConsumerWidget {
+class TermsDetailView extends ConsumerStatefulWidget {
   final int termDefinitionId;
 
   const TermsDetailView({
@@ -13,107 +13,123 @@ class TermsDetailView extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder<TermsVersionResponse>(
-      future: GetIt.I<TermsListRequestService>()
-          .requestTermsDetail(termDefinitionId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            appBar: AppBar(),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
+  ConsumerState<TermsDetailView> createState() => _TermsDetailViewState();
+}
 
-        if (snapshot.hasError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('약관')),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        size: 64, color: Colors.red),
-                    const SizedBox(height: 16),
-                    const Text(
-                      '약관을 불러올 수 없습니다',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('뒤로 가기'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
+class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
+  late final TermsListRequestService _service;
+  late Future<TermsVersionResponse> _termDetailFuture;
 
-        final terms = snapshot.data!;
-        return _buildTermsContent(context, terms);
-      },
+  @override
+  void initState() {
+    super.initState();
+    _service = GetIt.instance<TermsListRequestService>();
+    _termDetailFuture = _service.requestTermsDetail(widget.termDefinitionId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('약관 상세'),
+        centerTitle: true,
+      ),
+      body: FutureBuilder<TermsVersionResponse>(
+        future: _termDetailFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return _buildErrorState(context);
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(child: Text('약관 정보를 불러올 수 없습니다'));
+          }
+
+          final termsVersion = snapshot.data!;
+          return _buildContent(context, termsVersion);
+        },
+      ),
     );
   }
 
-  Widget _buildTermsContent(
-    BuildContext context,
-    TermsVersionResponse terms,
-  ) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('약관'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Version and effective date info
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'v${terms.version}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '시행: ${terms.effectiveDate.year}.${terms.effectiveDate.month.toString().padLeft(2, '0')}.${terms.effectiveDate.day.toString().padLeft(2, '0')}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Divider
-            Divider(color: Colors.grey[300]),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            // Terms content
-            Text(
-              terms.content,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.6,
-                    color: Colors.grey[800],
-                  ),
+            const Text(
+              '약관을 불러올 수 없습니다',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '네트워크 연결을 확인하고 다시 시도해주세요',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _termDetailFuture =
+                      _service.requestTermsDetail(widget.termDefinitionId);
+                });
+              },
+              child: const Text('다시 시도'),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, TermsVersionResponse termsVersion) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Version info
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'v${termsVersion.version}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  termsVersion.effectiveDate,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Text(
+            termsVersion.content,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              height: 1.6,
+            ),
+          ),
+        ],
       ),
     );
   }

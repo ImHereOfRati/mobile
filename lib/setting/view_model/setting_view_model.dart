@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:iamhere/user_permission/service/permission_service_interface.dart';
+import 'package:iamhere/user_permission/service/permission_service_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -14,10 +15,8 @@ class SettingViewModel extends _$SettingViewModel {
 
   @override
   Future<SettingViewModelState> build() async {
-    _fcmService = GetIt.I<PermissionServiceInterface>(instanceName: 'fcmAlert');
-    _locationService = GetIt.I<PermissionServiceInterface>(
-      instanceName: 'location',
-    );
+    _fcmService = ref.watch(fcmAlertPermissionServiceProvider);
+    _locationService = ref.watch(locationPermissionServiceProvider);
 
     return _fetchInitialState();
   }

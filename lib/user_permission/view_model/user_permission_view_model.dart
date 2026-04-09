@@ -6,6 +6,7 @@ import 'package:iamhere/user_permission/model/items/sms_permission_item.dart';
 import 'package:iamhere/user_permission/model/permission_item.dart';
 import 'package:iamhere/user_permission/model/permission_state.dart';
 import 'package:iamhere/user_permission/service/permission_service_interface.dart';
+import 'package:iamhere/user_permission/service/permission_service_provider.dart';
 import 'package:iamhere/user_permission/view_model/permissions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -61,11 +62,11 @@ class UserPermissionViewModel extends _$UserPermissionViewModel {
 
   PermissionServiceInterface _getProperPermissionService(PermissionItem item) {
     if (item is FcmAlertPermissionItem) {
-      return getIt<PermissionServiceInterface>(instanceName: 'fcmAlert');
+      return ref.watch(fcmAlertPermissionServiceProvider);
     } else if (item is LocationPermissionItem) {
-      return getIt<PermissionServiceInterface>(instanceName: 'location');
+      return ref.watch(locationPermissionServiceProvider);
     } else if (item is ContactPermissionItem) {
-      return getIt<PermissionServiceInterface>(instanceName: 'contact');
+      return ref.watch(contactPermissionServiceProvider);
     } else {
       throw ArgumentError('Unknown permission item type: ${item.runtimeType}');
     }

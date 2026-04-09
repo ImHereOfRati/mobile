@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/common/view_component/widgets/page_title.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/geofence/service/geofence_monitoring_service.dart';
+import 'package:iamhere/geofence/service/geofence_orchestrator.dart';
 import 'package:iamhere/geofence/view_model/geofence_list_view_model.dart';
 import 'package:iamhere/geofence/view_model/geofence_view_model.dart';
 import 'package:iamhere/user_permission/model/permission_state.dart';
@@ -44,7 +44,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     if (hasActiveGeofence) {
       try {
         final monitoringService = ref.read(
-          geofenceMonitoringServiceProvider.notifier,
+          geofenceOrchestratorProvider.notifier,
         );
         await monitoringService.startMonitoring();
       } catch (e) {
@@ -54,7 +54,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
       // 활성화된 지오펜스가 없으면 모니터링 중지
       try {
         final monitoringService = ref.read(
-          geofenceMonitoringServiceProvider.notifier,
+          geofenceOrchestratorProvider.notifier,
         );
         await monitoringService.stopMonitoring();
       } catch (e) {
