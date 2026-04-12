@@ -5,12 +5,15 @@ import 'package:iamhere/user_permission/model/permission_item.dart';
 import 'package:iamhere/user_permission/view_model/user_permission_view_model.dart';
 
 /// 라우팅 플로우:
-/// 1. 필수 권한 확인 → 권한 없으면 권한 요청 페이지로 이동
-/// 2. 인증 상태 확인 → 미인증이면 로그인 페이지로 이동
-/// 3. 온보딩 완료 후 메인 페이지(Geofence)로 이동
+/// 1. 스플래시(/) → 상태 확인 후 분기
+/// 2. 필수 권한 없음 → /user-permission
+/// 3. 미인증 → /auth
+/// 4. 인증 완료 + 온보딩 페이지 → /geofence (재진입 사용자)
+/// 5. 인증 완료 + 로그인 직후 → /terms-consent (auth_view가 직접 이동)
 class RouterLogic {
   static const _permissionPage = '/user-permission';
   static const _authPage = '/auth';
+  static const _termsConsentPage = '/terms-consent';
   static const _geofencePage = '/geofence';
 
   static String? handleRedirect(Ref ref, GoRouterState state) {
@@ -36,22 +39,26 @@ class RouterLogic {
     final permissionPath = _checkPermission(permissions, state);
     if (permissionPath != null) return permissionPath;
 
-    // 2. 인증 상태 확인
+    // 2. 인증 상태 확인 (/auth에서는 redirect 없음)
     final authPath = _checkAuthState(isAuth, state);
     if (authPath != null) return authPath;
 
-    return _routeToGeofencePage(state);
+    // 3. 약관 동의 페이지는 인증 후 자유롭게 체류 가능
+    if (state.matchedLocation == _termsConsentPage) return null;
+
+    // 4. 인증된 상태에서 스플래시 또는 권한 페이지에 있으면 메인으로 이동
+    return _routeFromOnboarding(state);
   }
 
   static String? _checkPermission(
     List<PermissionItem>? permissions,
     GoRouterState state,
   ) {
-    final allRequiredPermissionsAreGranted =
+    final allGranted =
         permissions?.where((e) => e.isRequired).every((e) => e.isGranted) ??
         false;
 
-    if (!allRequiredPermissionsAreGranted) {
+    if (!allGranted && state.matchedLocation != _permissionPage) {
       return _permissionPage;
     }
     return null;
@@ -64,10 +71,8 @@ class RouterLogic {
     return null;
   }
 
-  static String? _routeToGeofencePage(GoRouterState state) {
-    final isOnboarding =
-        state.matchedLocation == _permissionPage ||
-        state.matchedLocation == _authPage;
+  static String? _routeFromOnboarding(GoRouterState state) {
+    final isOnboarding = state.matchedLocation == _permissionPage;
 
     if (isOnboarding) return _geofencePage;
     return null;

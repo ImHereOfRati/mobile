@@ -1,11 +1,10 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:riverpod_annotation/riverpod_annotation.dart'; // ❌ 제거: 표준 Provider 사용
+import 'package:iamhere/contact/view_model/contact_view_model.dart';
+import 'package:iamhere/contact/view_model/contact_view_model_interface.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'contact_view_model.dart';
-import 'contact_view_model_interface.dart';
+part 'contact_view_model_provider.g.dart';
 
-final contactViewModelInterfaceProvider = Provider<ContactViewModelInterface>((
-  ref,
-) {
+@riverpod
+ContactViewModelInterface contactViewModelInterface(Ref ref) {
   return ref.watch(contactViewModelProvider.notifier);
-});
+}

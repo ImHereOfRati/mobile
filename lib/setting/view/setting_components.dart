@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/shared/component/view_component/widgets/section_title.dart';
 
 class SettingSectionHeader extends StatelessWidget {
   final String title;
-
   const SettingSectionHeader({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
-      child: SectionTitle(title: title),
+      padding: EdgeInsets.only(left: 4.w, bottom: 8.h),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontFamily: 'BMHANNAAir',
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF6E6E73),
+          letterSpacing: -0.12,
+        ),
+      ),
     );
   }
 }
@@ -32,25 +39,48 @@ class SettingItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          color: isDestructive ? Colors.red : Colors.black,
+    final textColor = isDestructive
+        ? const Color(0xFFFF3B30)
+        : Theme.of(context).colorScheme.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 13.h),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 16.sp,
+                  color: textColor,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+            if (trailingText != null)
+              Text(
+                trailingText!,
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 14.sp,
+                  color: const Color(0xFF0071E3),
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.224,
+                ),
+              )
+            else if (onTap != null)
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: Color(0xFFD2D2D7),
+              ),
+          ],
         ),
       ),
-      trailing: trailingText != null
-          ? Text(
-              trailingText!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF48D1CC), // Primary Color
-                fontWeight: FontWeight.w500,
-              ),
-            )
-          : const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-      onTap: onTap,
     );
   }
 }

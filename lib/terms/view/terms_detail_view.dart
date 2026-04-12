@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:iamhere/terms/service/terms_list_request_service.dart';
-
-import '../service/terms_version_response.dart';
+import 'package:iamhere/terms/service/terms_version_response.dart';
 
 class TermsDetailView extends ConsumerStatefulWidget {
   final int termDefinitionId;
-
   const TermsDetailView({super.key, required this.termDefinitionId});
 
   @override
@@ -16,70 +15,88 @@ class TermsDetailView extends ConsumerStatefulWidget {
 
 class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
   late final TermsListRequestService _service;
-  late Future<TermsVersionResponse> _termDetailFuture;
+  late Future<TermsVersionResponse> _future;
 
   @override
   void initState() {
     super.initState();
     _service = GetIt.instance<TermsListRequestService>();
-    _termDetailFuture = _service.requestTermsDetail(widget.termDefinitionId);
+    _future = _service.requestTermsDetail(widget.termDefinitionId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('약관 상세'), centerTitle: true),
+      backgroundColor: const Color(0xFFF5F5F7),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF5F5F7),
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          '약관 상세',
+          style: TextStyle(
+            fontFamily: 'GmarketSans',
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF1D1D1F),
+            letterSpacing: -0.374,
+          ),
+        ),
+      ),
       body: FutureBuilder<TermsVersionResponse>(
-        future: _termDetailFuture,
+        future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFF0071E3)),
+            );
           }
-
-          if (snapshot.hasError) {
-            return _buildErrorState(context);
+          if (snapshot.hasError || !snapshot.hasData) {
+            return _buildError();
           }
-
-          if (!snapshot.hasData) {
-            return const Center(child: Text('약관 정보를 불러올 수 없습니다'));
-          }
-
-          final termsVersion = snapshot.data!;
-          return _buildContent(context, termsVersion);
+          return _buildContent(snapshot.data!);
         },
       ),
     );
   }
 
-  Widget _buildErrorState(BuildContext context) {
+  Widget _buildError() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.r),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            const Text(
+            const Icon(Icons.wifi_off_rounded, size: 56, color: Color(0xFF6E6E73)),
+            SizedBox(height: 20.h),
+            Text(
               '약관을 불러올 수 없습니다',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontFamily: 'GmarketSans',
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1D1D1F),
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8.h),
+            Text(
               '네트워크 연결을 확인하고 다시 시도해주세요',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(
+                fontFamily: 'BMHANNAAir',
+                fontSize: 14.sp,
+                color: const Color(0xFF6E6E73),
+              ),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _termDetailFuture = _service.requestTermsDetail(
-                    widget.termDefinitionId,
-                  );
-                });
-              },
-              child: const Text('다시 시도'),
+            SizedBox(height: 28.h),
+            TextButton(
+              onPressed: () => setState(() {
+                _future = _service.requestTermsDetail(widget.termDefinitionId);
+              }),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF0071E3),
+              ),
+              child: Text('다시 시도 →', style: TextStyle(fontSize: 14.sp)),
             ),
           ],
         ),
@@ -87,43 +104,69 @@ class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    TermsVersionResponse termsVersion,
-  ) {
+  Widget _buildContent(TermsVersionResponse data) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(20.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Version info
-          Padding(
-            padding: const EdgeInsets.only(bottom: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // 버전 카드
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
               children: [
                 Text(
-                  'v${termsVersion.version}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
+                  'v${data.version}',
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF0071E3),
+                    letterSpacing: -0.2,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(width: 10.w),
                 Text(
-                  termsVersion.effectiveDate.toString(),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  data.effectiveDate.toString(),
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 12.sp,
+                    color: const Color(0xFF6E6E73),
+                    letterSpacing: -0.12,
+                  ),
                 ),
               ],
             ),
           ),
-          // Content
-          Text(
-            termsVersion.content,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(height: 1.6),
+          SizedBox(height: 20.h),
+          // 본문
+          Container(
+            padding: EdgeInsets.all(20.r),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0A000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              data.content,
+              style: TextStyle(
+                fontFamily: 'BMHANNAAir',
+                fontSize: 15.sp,
+                color: const Color(0xFF1D1D1F),
+                letterSpacing: -0.3,
+                height: 1.6,
+              ),
+            ),
           ),
         ],
       ),

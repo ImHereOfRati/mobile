@@ -1,46 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/shared/component/view_component/widgets/black_button.dart';
 
-/// 권한 설정 완료 페이지 위젯
 class FinishPage extends StatelessWidget {
   final VoidCallback onFinish;
-
   const FinishPage({super.key, required this.onFinish});
-
-  final _finishTitle = '모든 준비가 완료되었어요!';
-  final _finishDescription = '이제 ImHere의 모든 기능을\n자유롭게 이용해보세요.';
-  final _buttonMessage = 'ImHere 시작하기';
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(32.0),
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(),
-          Icon(
-            Icons.check_circle_rounded,
-            size: 100,
-            color: Theme.of(context).primaryColor,
-          ),
+          const Spacer(flex: 2),
+          _buildContent(),
+          const Spacer(flex: 3),
+          _buildButton(),
           SizedBox(height: 32.h),
-          Text(
-            _finishTitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 26.h, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            _finishDescription,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16.h, color: Colors.grey, height: 1.5),
-          ),
-          const Spacer(),
-          BlackButton(onPressed: onFinish, message: _buttonMessage),
-          SizedBox(height: 16.h),
         ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 56.r,
+          height: 56.r,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0071E3),
+            borderRadius: BorderRadius.circular(14.r),
+          ),
+          child: Icon(Icons.check_rounded, size: 30.r, color: Colors.white),
+        ),
+        SizedBox(height: 20.h),
+        Text(
+          '모든 준비가\n완료되었어요!',
+          style: TextStyle(
+            fontFamily: 'GmarketSans',
+            fontSize: 34.sp,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF1D1D1F),
+            letterSpacing: -0.4,
+            height: 1.10,
+          ),
+        ),
+        SizedBox(height: 12.h),
+        Text(
+          '이제 ImHere의 모든 기능을\n자유롭게 이용해보세요.',
+          style: TextStyle(
+            fontFamily: 'BMHANNAAir',
+            fontSize: 17.sp,
+            color: const Color(0xFF6E6E73),
+            letterSpacing: -0.374,
+            height: 1.47,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildButton() {
+    return SizedBox(
+      height: 50.h,
+      child: ElevatedButton(
+        onPressed: onFinish,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF1D1D1F),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+        ),
+        child: Text(
+          'ImHere 시작하기',
+          style: TextStyle(
+            fontFamily: 'BMHANNAAir',
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.374,
+          ),
+        ),
       ),
     );
   }

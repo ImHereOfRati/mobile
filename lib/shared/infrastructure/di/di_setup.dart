@@ -10,7 +10,7 @@ final getIt = GetIt.instance;
   preferRelativeImports: true, // 생성된 코드에서 상대 경로 사용
   asExtension: true, // getIt.init() 처럼 확장 함수 형태로 생성
 )
-Future<void> configureDependencies({required String baseUrl}) async {
+Future<void> enrollBaseUrlGlobally({required String baseUrl}) async {
   getIt.registerSingleton<String>(baseUrl, instanceName: "baseUrl");
   await getIt.init();
 }

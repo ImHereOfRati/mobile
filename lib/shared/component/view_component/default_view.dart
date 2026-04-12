@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -7,138 +8,142 @@ import 'package:iamhere/router/router_provider.dart';
 class DefaultView extends ConsumerWidget {
   final Widget child;
 
-  final String _appTitle = 'Imhere';
-
-  static final List<String> tabs = [
+  static final List<String> _tabs = [
     '/geofence',
     '/contact',
     '/record',
     '/setting',
   ];
 
+  static const _tabIcons = [
+    (Icons.location_on_outlined, Icons.location_on, '지오펜스'),
+    (Icons.people_outline, Icons.people, '연락처'),
+    (Icons.history_outlined, Icons.history, '기록'),
+    (Icons.settings_outlined, Icons.settings, '설정'),
+  ];
+
   const DefaultView({super.key, required this.child});
 
-  int _calculateSelectedIndex(BuildContext context) {
+  int _selectedIndex(BuildContext context) {
     final location = GoRouter.of(context).state.uri.toString();
-    return tabs.indexWhere((path) => location.startsWith(path));
+    final idx = _tabs.indexWhere((p) => location.startsWith(p));
+    return idx < 0 ? 0 : idx;
   }
 
-  void _onItemTapped(BuildContext context, int index) {
-    if (index >= 0 && index < tabs.length) {
-      context.go(tabs[index]); // go_router를 사용하여 상태(URL) 변경
-    }
+  void _onTap(BuildContext context, WidgetRef ref, int index) {
+    HapticFeedback.lightImpact();
+    context.go(_tabs[index]);
+  }
+
+  bool _showFab(BuildContext context) {
+    final loc = GoRouter.of(context).state.uri.toString();
+    return loc == '/geofence' || loc == '/record';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final routerConfig = ref.watch(routerProvider);
-    final theme = Theme.of(context);
-    final selectedIndex = _calculateSelectedIndex(context);
+    final router = ref.watch(routerProvider);
+    final selectedIndex = _selectedIndex(context);
 
     return Scaffold(
-      appBar: _buildAppBar(context, theme),
-      body: _buildBodyWithPadding(context, child),
-      bottomNavigationBar: _buildBottomNavigationBar(
-        context,
-        selectedIndex,
-        _onItemTapped,
-      ),
-      floatingActionButton: _shouldShowFab(context)
-          ? FloatingActionButton(
-              shape: const CircleBorder(),
-              child: Icon(
-                Icons.add_rounded,
-                color: theme.colorScheme.surface,
-                size: 28.sp, // 반응형 크기 적용
-              ),
-              onPressed: () {
-                routerConfig.go("/geofence/enroll");
-              },
-            )
+      backgroundColor: const Color(0xFFF5F5F7),
+      appBar: _buildAppBar(context),
+      body: child,
+      bottomNavigationBar: _buildBottomNav(context, ref, selectedIndex),
+      floatingActionButton: _showFab(context)
+          ? _buildFab(context, router)
           : null,
     );
   }
 
-  bool _shouldShowFab(BuildContext context) {
-    final location = GoRouter.of(context).state.uri.toString();
-    // 정확히 '/geofence' 또는 '/record' 일 때만 FAB 표시
-    return location == '/geofence' || location == '/record';
-  }
-
-  // ********** AppBar 관련 위젯 **********
-
-  PreferredSize _buildAppBar(BuildContext context, ThemeData theme) {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(kToolbarHeight),
-      child: AppBar(
-        centerTitle: false,
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
-        scrolledUnderElevation: 0,
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        title: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.w), // 15px 가로 패딩
-          child: _buildImHereAsTitle(context, theme),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImHereAsTitle(BuildContext context, ThemeData theme) {
-    return Text(
-      _appTitle,
-      style: theme.textTheme.headlineLarge?.copyWith(
-        fontSize: 35.sp, // 반응형 폰트 크기
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  // ********** Body 및 Navigation Bar **********
-
-  Padding _buildBodyWithPadding(BuildContext context, Widget bodyWidget) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 15.w),
-      child: Column(
-        children: [
-          const Divider(height: 1, thickness: 0.5, color: Colors.grey),
-          Expanded(child: bodyWidget),
-        ],
-      ),
-    );
-  }
-
-  BottomNavigationBar _buildBottomNavigationBar(
-    BuildContext context,
-    int currentIndex,
-    Function(BuildContext, int) onTap,
-  ) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      enableFeedback: false,
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.white,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(0.5),
+        child: Container(height: 0.5, color: const Color(0xFFD2D2D7)),
+      ),
+      title: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.w),
+        child: Text(
+          'ImHere',
+          style: TextStyle(
+            fontFamily: 'GmarketSans',
+            fontSize: 22.sp,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF1D1D1F),
+            letterSpacing: -0.3,
+          ),
+        ),
+      ),
+    );
+  }
 
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.location_on_outlined),
-          label: '지오펜스',
+  Widget _buildBottomNav(BuildContext context, WidgetRef ref, int selectedIndex) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: Color(0xFFD2D2D7), width: 0.5),
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.people_outline_outlined),
-          label: '연락처',
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 56.h,
+          child: Row(
+            children: List.generate(_tabs.length, (i) {
+              final selected = i == selectedIndex;
+              final tab = _tabIcons[i];
+              return Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _onTap(context, ref, i),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        selected ? tab.$2 : tab.$1,
+                        size: 22.r,
+                        color: selected
+                            ? const Color(0xFF0071E3)
+                            : const Color(0xFF6E6E73),
+                      ),
+                      SizedBox(height: 3.h),
+                      Text(
+                        tab.$3,
+                        style: TextStyle(
+                          fontFamily: 'BMHANNAAir',
+                          fontSize: 10.sp,
+                          color: selected
+                              ? const Color(0xFF0071E3)
+                              : const Color(0xFF6E6E73),
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.history_outlined),
-          label: '기록',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings_outlined),
-          label: '설정',
-        ),
-      ],
-      currentIndex: currentIndex,
-      onTap: (index) => onTap(context, index),
+      ),
+    );
+  }
+
+  Widget _buildFab(BuildContext context, router) {
+    return FloatingActionButton(
+      onPressed: () => router.go('/geofence/enroll'),
+      backgroundColor: const Color(0xFF0071E3),
+      foregroundColor: Colors.white,
+      elevation: 2,
+      shape: const CircleBorder(),
+      child: Icon(Icons.add_rounded, size: 26.r),
     );
   }
 }

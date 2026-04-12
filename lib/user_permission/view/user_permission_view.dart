@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/user_permission/view_model/user_permission_view_model.dart';
 
@@ -26,10 +27,7 @@ class _UserPermissionViewState extends ConsumerState<UserPermissionView> {
   }
 
   void _onFinish() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("메인 페이지로 이동합니다!")));
-    context.go('/geofence');
+    context.go('/auth');
   }
 
   @override
@@ -38,41 +36,49 @@ class _UserPermissionViewState extends ConsumerState<UserPermissionView> {
 
     return asyncPermissionState.when(
       loading: () => const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: Color(0xFFF5F5F7),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF0071E3)),
+        ),
       ),
-      error: (error, stack) =>
-          Scaffold(body: Center(child: Text('초기화 오류: $error'))),
+      error: (error, _) => Scaffold(
+        backgroundColor: const Color(0xFFF5F5F7),
+        body: Center(
+          child: Text(
+            '초기화 오류: $error',
+            style: const TextStyle(
+              fontFamily: 'BMHANNAAir',
+              color: Color(0xFF1D1D1F),
+            ),
+          ),
+        ),
+      ),
       data: (permissionItems) {
-        int _totalPages = permissionItems.length + 2;
+        final totalPages = permissionItems.length + 2;
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFFF5F5F7),
           body: SafeArea(
             child: Column(
               children: [
-                _buildLinearProgressIndicator(_totalPages),
-
+                _buildProgressBar(totalPages),
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _totalPages,
-                    onPageChanged: (index) {
-                      setState(() => _currentPage = index);
-                    },
+                    itemCount: totalPages,
+                    onPageChanged: (index) =>
+                        setState(() => _currentPage = index),
                     itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return IntroPage(onNext: _nextPage);
-                      } else if (index == _totalPages - 1) {
+                      if (index == 0) return IntroPage(onNext: _nextPage);
+                      if (index == totalPages - 1) {
                         return FinishPage(onFinish: _onFinish);
-                      } else {
-                        return PermissionPage(
-                          pageIndex: _currentPage,
-                          item: permissionItems[index - 1],
-                          onNext: _nextPage,
-                        );
                       }
+                      return PermissionPage(
+                        pageIndex: _currentPage,
+                        item: permissionItems[index - 1],
+                        onNext: _nextPage,
+                      );
                     },
                   ),
                 ),
@@ -84,12 +90,17 @@ class _UserPermissionViewState extends ConsumerState<UserPermissionView> {
     );
   }
 
-  LinearProgressIndicator _buildLinearProgressIndicator(int _totalPages) {
-    return LinearProgressIndicator(
-      value: _totalPages > 0 ? (_currentPage + 1) / _totalPages : 0,
-      backgroundColor: Colors.grey[100],
-      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF48D1CC)),
-      minHeight: 4,
+  Widget _buildProgressBar(int totalPages) {
+    final progress = totalPages > 0 ? (_currentPage + 1) / totalPages : 0.0;
+
+    return Container(
+      height: 3.h,
+      color: const Color(0xFFE5E5EA),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: progress,
+        child: Container(color: const Color(0xFF0071E3)),
+      ),
     );
   }
 }

@@ -1,50 +1,50 @@
 import 'package:flutter/material.dart';
 
-// ── Apple Design Tokens ──────────────────────────────────────────
-const _appleBlue = Color(0xFF0071E3);
-const _appleDark = Color(0xFF1D1D1F);
-const _appleGray = Color(0xFFF5F5F7);
-const _appleSecondaryText = Color(0xFF6E6E73);
+// ── Apple Dark Design Tokens ─────────────────────────────────────
+const _appleBlue = Color(0xFF0A84FF); // Blue on dark bg (brighter)
+const _darkBg = Color(0xFF000000);
+const _darkSurface = Color(0xFF1C1C1E);
+const _darkText = Color(0xFFFFFFFF);
+const _darkSecondaryText = Color(0xFF8E8E93);
+const _darkDivider = Color(0xFF38383A);
 
-final ThemeData lightTheme = ThemeData(
+final ThemeData darkTheme = ThemeData(
   useMaterial3: true,
-  brightness: Brightness.light,
-  scaffoldBackgroundColor: _appleGray,
+  brightness: Brightness.dark,
+  scaffoldBackgroundColor: _darkBg,
   splashColor: Colors.transparent,
   highlightColor: Colors.transparent,
 
   colorScheme: const ColorScheme(
-    brightness: Brightness.light,
+    brightness: Brightness.dark,
     primary: _appleBlue,
     onPrimary: Colors.white,
-    secondary: _appleDark,
+    secondary: Color(0xFF636366),
     onSecondary: Colors.white,
-    surface: Colors.white,
-    onSurface: _appleDark,
-    error: Color(0xFFFF3B30),
+    surface: _darkSurface,
+    onSurface: _darkText,
+    error: Color(0xFFFF453A),
     onError: Colors.white,
   ),
 
   appBarTheme: const AppBarTheme(
     backgroundColor: Colors.transparent,
-    foregroundColor: _appleDark,
+    foregroundColor: _darkText,
     elevation: 0,
     scrolledUnderElevation: 0,
     centerTitle: false,
   ),
 
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-    backgroundColor: Colors.white,
+    backgroundColor: _darkSurface,
     selectedItemColor: _appleBlue,
-    unselectedItemColor: _appleSecondaryText,
+    unselectedItemColor: _darkSecondaryText,
     elevation: 0,
     type: BottomNavigationBarType.fixed,
-    showSelectedLabels: true,
-    showUnselectedLabels: true,
   ),
 
   dividerTheme: const DividerThemeData(
-    color: Color(0xFFD2D2D7),
+    color: _darkDivider,
     thickness: 0.5,
   ),
 
@@ -54,7 +54,7 @@ final ThemeData lightTheme = ThemeData(
       return Colors.transparent;
     }),
     checkColor: WidgetStateProperty.all(Colors.white),
-    side: const BorderSide(color: Color(0xFFD2D2D7), width: 1.5),
+    side: const BorderSide(color: _darkDivider, width: 1.5),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
   ),
 
@@ -77,112 +77,79 @@ final ThemeData lightTheme = ThemeData(
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
       foregroundColor: _appleBlue,
-      textStyle: const TextStyle(
-        fontFamily: 'BMHANNAAir',
-        fontSize: 14,
-        letterSpacing: -0.2,
-      ),
     ),
   ),
 
-  inputDecorationTheme: InputDecorationTheme(
-    filled: true,
-    fillColor: Colors.white,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(11),
-      borderSide: const BorderSide(color: Color(0xFFD2D2D7), width: 1),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(11),
-      borderSide: const BorderSide(color: Color(0xFFD2D2D7), width: 1),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(11),
-      borderSide: const BorderSide(color: _appleBlue, width: 2),
-    ),
-  ),
-
-  // ── Typography ──
   fontFamily: 'BMHANNAAir',
   textTheme: const TextTheme(
-    // Display Hero: 40sp, GmarketSans Bold — Section headings
     displayLarge: TextStyle(
       fontFamily: 'GmarketSans',
       fontWeight: FontWeight.w700,
-      color: Colors.white,
+      color: _darkText,
       fontSize: 40,
       letterSpacing: -0.5,
       height: 1.10,
     ),
-    // Section Heading: 28sp
     displayMedium: TextStyle(
       fontFamily: 'GmarketSans',
       fontWeight: FontWeight.w700,
-      color: _appleDark,
+      color: _darkText,
       fontSize: 28,
       letterSpacing: -0.3,
       height: 1.14,
     ),
-    // Tile Heading: 21sp
     displaySmall: TextStyle(
       fontFamily: 'GmarketSans',
       fontWeight: FontWeight.w500,
-      color: _appleDark,
+      color: _darkText,
       fontSize: 21,
       letterSpacing: -0.2,
       height: 1.19,
     ),
-    // headlineLarge → Auth / Splash title 34sp
     headlineLarge: TextStyle(
       fontFamily: 'GmarketSans',
       fontWeight: FontWeight.w700,
-      color: _appleDark,
+      color: _darkText,
       fontSize: 34,
       letterSpacing: -0.4,
       height: 1.10,
     ),
-    // headlineMedium → Page section title 22sp
     headlineMedium: TextStyle(
       fontFamily: 'GmarketSans',
       fontWeight: FontWeight.w700,
-      color: _appleDark,
+      color: _darkText,
       fontSize: 22,
       letterSpacing: -0.3,
       height: 1.14,
     ),
-    // headlineSmall → Card title 17sp semibold
     headlineSmall: TextStyle(
       fontFamily: 'BMHANNAAir',
       fontWeight: FontWeight.w700,
-      color: _appleDark,
+      color: _darkText,
       fontSize: 17,
       letterSpacing: -0.374,
       height: 1.24,
     ),
-    // bodyLarge → Standard 17sp
     bodyLarge: TextStyle(
       fontFamily: 'BMHANNAAir',
       fontSize: 17,
-      color: _appleDark,
+      color: _darkText,
       fontWeight: FontWeight.w400,
       letterSpacing: -0.374,
       height: 1.47,
     ),
-    // bodyMedium → Secondary 14sp
     bodyMedium: TextStyle(
       fontFamily: 'BMHANNAAir',
       fontSize: 14,
-      color: _appleSecondaryText,
+      color: _darkSecondaryText,
       fontWeight: FontWeight.w400,
       letterSpacing: -0.224,
       height: 1.43,
     ),
-    // bodySmall → Caption 12sp
     bodySmall: TextStyle(
       fontFamily: 'BMHANNAAir',
       fontSize: 12,
-      color: _appleSecondaryText,
+      color: _darkSecondaryText,
       fontWeight: FontWeight.w400,
       letterSpacing: -0.12,
       height: 1.33,
