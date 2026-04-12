@@ -66,7 +66,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
             child: Text(
               "등록된 친구가 없습니다.\n위 버튼을 눌러 연락처를 불러오세요.",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+              style: TextStyle(fontSize: 16.sp, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
             ),
           );
         }
@@ -109,22 +109,18 @@ class _ContactViewState extends ConsumerState<ContactView> {
       }
     }
 
-    return Container(
-      height: 60.h,
-      decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
-        borderRadius: BorderRadius.all(Radius.circular(50.r)),
-      ),
-      child: Center(
-        child: TextButton(
-          onPressed: onPressed,
-          child: Text(
-            "폰에서 친구 연락처 불러오기",
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: Theme.of(context).colorScheme.surface,
-              fontWeight: FontWeight.bold,
-              fontSize: 18.sp,
-            ),
+    return SizedBox(
+      width: double.infinity,
+      height: 52.h,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        child: Text(
+          "폰에서 친구 연락처 불러오기",
+          style: TextStyle(
+            fontFamily: 'BMHANNAAir',
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w400,
+            letterSpacing: -0.374,
           ),
         ),
       ),

@@ -199,7 +199,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
                       err.toString(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
                         fontSize: 14.sp,
                       ),
                     ),
@@ -227,14 +227,14 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.location_off, size: 64.sp, color: Colors.grey),
+                      Icon(Icons.location_off, size: 64.sp, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
                       SizedBox(height: 16.h),
                       Text(
                         '등록된 지오펜스가 없습니다',
                         style: TextStyle(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[700],
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                       SizedBox(height: 8.h),
@@ -243,7 +243,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
                         ),
                       ),
                     ],
@@ -287,7 +287,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
         // 높이를 40px 기준으로 반응형 설정
         height: 40.h,
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.all(
             // radius를 20px 기준으로 반응형 설정
             Radius.circular(20.r),
@@ -315,7 +315,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     return Text(
       descriptionMessageWhenPermissionGood,
       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.onPrimary,
         fontWeight: FontWeight.bold,
         fontSize: 16.sp,
       ),

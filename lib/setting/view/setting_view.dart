@@ -122,7 +122,7 @@ class SettingView extends ConsumerWidget {
               fontFamily: 'BMHANNAAir',
               fontSize: 12.sp,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF6E6E73),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
               letterSpacing: -0.12,
             ),
           ),
@@ -142,7 +142,7 @@ class SettingView extends ConsumerWidget {
                       height: 0.5,
                       thickness: 0.5,
                       indent: 16.w,
-                      color: const Color(0xFFD2D2D7),
+                      color: Theme.of(context).dividerTheme.color,
                     ),
                 ],
               );
@@ -211,7 +211,7 @@ class SettingView extends ConsumerWidget {
             style: TextStyle(
               fontFamily: 'BMHANNAAir',
               fontSize: 12.sp,
-              color: const Color(0xFF6E6E73),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
               letterSpacing: -0.12,
             ),
           ),
@@ -221,7 +221,7 @@ class SettingView extends ConsumerWidget {
             style: TextStyle(
               fontFamily: 'BMHANNAAir',
               fontSize: 12.sp,
-              color: const Color(0xFF6E6E73),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
               letterSpacing: -0.12,
             ),
           ),

@@ -28,12 +28,15 @@ class PageTitle extends StatefulWidget {
 class _PageTitleState extends State<PageTitle> {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Expanded(
       flex: widget.expandedWidgetFlex,
       child: Padding(
         padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               widget.pageTitle,
@@ -41,7 +44,7 @@ class _PageTitleState extends State<PageTitle> {
                 fontFamily: 'GmarketSans',
                 fontSize: 22.sp,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1D1D1F),
+                color: colorScheme.onSurface,
                 letterSpacing: -0.3,
                 height: 1.14,
               ),
@@ -52,7 +55,7 @@ class _PageTitleState extends State<PageTitle> {
               style: TextStyle(
                 fontFamily: 'BMHANNAAir',
                 fontSize: 13.sp,
-                color: const Color(0xFF6E6E73),
+                color: colorScheme.onSurface.withValues(alpha: 0.55),
                 letterSpacing: -0.2,
                 height: 1.43,
               ),
@@ -63,7 +66,7 @@ class _PageTitleState extends State<PageTitle> {
               style: TextStyle(
                 fontFamily: 'BMHANNAAir',
                 fontSize: 13.sp,
-                color: const Color(0xFF0071E3),
+                color: colorScheme.primary,
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.2,
               ),

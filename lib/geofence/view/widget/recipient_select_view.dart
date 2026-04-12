@@ -66,7 +66,7 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
                 Text(
                   err.toString(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55), fontSize: 14.sp),
                 ),
               ],
             ),
@@ -89,14 +89,14 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   SizedBox(height: 8.h),
                   Text(
                     '먼저 연락처 탭에서\n친구를 추가해주세요',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 14.sp, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55)),
                   ),
                   SizedBox(height: 24.h),
                   ElevatedButton.icon(
@@ -128,9 +128,9 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+                    bottom: BorderSide(color: Theme.of(context).dividerTheme.color ?? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2), width: 1),
                   ),
                 ),
                 child: Row(
@@ -154,9 +154,9 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Theme.of(context).colorScheme.surface,
                   border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+                    bottom: BorderSide(color: Theme.of(context).dividerTheme.color ?? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2), width: 1),
                   ),
                 ),
                 child: Row(
@@ -188,7 +188,7 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
                       '${recipientState.selectedCount} / ${contacts.length}',
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: Colors.grey[600],
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
                       ),
                     ),
                   ],

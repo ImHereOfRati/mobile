@@ -15,7 +15,7 @@ class SettingSectionHeader extends StatelessWidget {
           fontFamily: 'BMHANNAAir',
           fontSize: 12.sp,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF6E6E73),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
           letterSpacing: -0.12,
         ),
       ),
@@ -73,10 +73,10 @@ class SettingItem extends StatelessWidget {
                 ),
               )
             else if (onTap != null)
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 size: 18,
-                color: Color(0xFFD2D2D7),
+                color: Theme.of(context).dividerTheme.color,
               ),
           ],
         ),

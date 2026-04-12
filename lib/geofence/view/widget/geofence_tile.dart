@@ -21,7 +21,7 @@ class GeofenceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color tileBackgroundColor = _getBackgroundColor();
+    Color tileBackgroundColor = _getBackgroundColor(context);
 
     return GestureDetector(
       onLongPress: onLongPress,
@@ -108,7 +108,7 @@ class GeofenceTile extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
         fontWeight: FontWeight.bold,
         fontSize: 25.sp,
-        color: Colors.black, // 텍스트 색상 명시
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -128,10 +128,11 @@ class GeofenceTile extends StatelessWidget {
     );
   }
 
-  Color _getBackgroundColor() {
-    final Color tileBackgroundColor = isToggleOn
-        ? const Color(0xFFE8F6F6)
-        : Colors.white;
-    return tileBackgroundColor;
+  Color _getBackgroundColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isToggleOn) {
+      return isDark ? const Color(0xFF1A2E2E) : const Color(0xFFE8F6F6);
+    }
+    return Theme.of(context).colorScheme.surface;
   }
 }

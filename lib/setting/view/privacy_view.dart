@@ -20,7 +20,7 @@ class PrivacyView extends StatelessWidget {
     return Text(
       _decidePageContents(),
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: Colors.grey[800],
+        color: Theme.of(context).colorScheme.onSurface,
         height: 1.5,
         fontSize: 18.sp,
       ),

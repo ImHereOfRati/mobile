@@ -42,7 +42,7 @@ class DefaultView extends ConsumerWidget {
     final selectedIndex = _selectedIndex(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: _buildAppBar(context),
       body: child,
       bottomNavigationBar: _buildBottomNav(context, ref, selectedIndex),
@@ -53,15 +53,16 @@ class DefaultView extends ConsumerWidget {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       elevation: 0,
       scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
       titleSpacing: 0,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(0.5),
-        child: Container(height: 0.5, color: const Color(0xFFD2D2D7)),
+        child: Container(height: 0.5, color: Theme.of(context).dividerTheme.color),
       ),
       title: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -71,7 +72,7 @@ class DefaultView extends ConsumerWidget {
             fontFamily: 'GmarketSans',
             fontSize: 22.sp,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF1D1D1F),
+            color: colorScheme.onSurface,
             letterSpacing: -0.3,
           ),
         ),
@@ -80,11 +81,18 @@ class DefaultView extends ConsumerWidget {
   }
 
   Widget _buildBottomNav(BuildContext context, WidgetRef ref, int selectedIndex) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final dividerColor = Theme.of(context).dividerTheme.color ?? const Color(0xFFD2D2D7);
+    final selectedColor = colorScheme.primary;
+    final unselectedColor =
+        Theme.of(context).bottomNavigationBarTheme.unselectedItemColor ??
+            const Color(0xFF6E6E73);
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
         border: Border(
-          top: BorderSide(color: Color(0xFFD2D2D7), width: 0.5),
+          top: BorderSide(color: dividerColor, width: 0.5),
         ),
       ),
       child: SafeArea(
@@ -105,9 +113,7 @@ class DefaultView extends ConsumerWidget {
                       Icon(
                         selected ? tab.$2 : tab.$1,
                         size: 22.r,
-                        color: selected
-                            ? const Color(0xFF0071E3)
-                            : const Color(0xFF6E6E73),
+                        color: selected ? selectedColor : unselectedColor,
                       ),
                       SizedBox(height: 3.h),
                       Text(
@@ -115,9 +121,7 @@ class DefaultView extends ConsumerWidget {
                         style: TextStyle(
                           fontFamily: 'BMHANNAAir',
                           fontSize: 10.sp,
-                          color: selected
-                              ? const Color(0xFF0071E3)
-                              : const Color(0xFF6E6E73),
+                          color: selected ? selectedColor : unselectedColor,
                           letterSpacing: -0.1,
                         ),
                       ),

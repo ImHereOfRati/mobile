@@ -17,7 +17,7 @@ class ContactTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: _contactBoxDecoration(),
+      decoration: _contactBoxDecoration(context),
       width: 1.sw,
       height: 80.h,
       padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -44,9 +44,9 @@ class ContactTile extends StatelessWidget {
     );
   }
 
-  BoxDecoration _contactBoxDecoration() {
+  BoxDecoration _contactBoxDecoration(BuildContext context) {
     return BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.all(Radius.circular(20.r)),
       boxShadow: [
         BoxShadow(
@@ -65,7 +65,7 @@ class ContactTile extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
         fontWeight: FontWeight.bold,
         fontSize: 20.sp,
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }

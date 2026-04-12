@@ -35,6 +35,7 @@ class RecordView extends ConsumerWidget {
     final pageDescription = "자동으로 전송된 기록";
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 1. 페이지 타이틀 (flex: 1)
         PageTitle(
@@ -46,7 +47,7 @@ class RecordView extends ConsumerWidget {
             loading: () => "로딩 중...",
             error: (_, __) => "오류",
           ),
-          expandedWidgetFlex: 1,
+          expandedWidgetFlex: 2,
         ),
 
         // 2. 기록 리스트 (ListView.builder 사용, flex: 4)
@@ -54,10 +55,10 @@ class RecordView extends ConsumerWidget {
           flex: 4,
           child: recordsAsyncValue.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => _buildToShowErrorWidget(err, ref),
+            error: (err, stack) => _buildToShowErrorWidget(context, err, ref),
             data: (records) {
               if (records.isEmpty) {
-                return _buildToShowDataIsEmptyWidget();
+                return _buildToShowDataIsEmptyWidget(context);
               }
               return _buildToShowRecordToUserWidget(records);
             },
@@ -69,7 +70,7 @@ class RecordView extends ConsumerWidget {
 
   ListView _buildToShowRecordToUserWidget(List<GeofenceRecordEntity> records) {
     return ListView.builder(
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       itemCount: records.length,
       itemBuilder: (context, index) {
         final record = records[index];
@@ -87,33 +88,33 @@ class RecordView extends ConsumerWidget {
     );
   }
 
-  Center _buildToShowDataIsEmptyWidget() {
+  Center _buildToShowDataIsEmptyWidget(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history, size: 64.sp, color: Colors.grey),
+          Icon(Icons.history, size: 64.sp, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
           SizedBox(height: 16.h),
           Text(
             '전송된 기록이 없습니다',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[700],
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           SizedBox(height: 8.h),
           Text(
             '지오펜스에 진입하면\n자동으로 기록이 저장됩니다',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 14.sp, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55)),
           ),
         ],
       ),
     );
   }
 
-  Center _buildToShowErrorWidget(Object err, WidgetRef ref) {
+  Center _buildToShowErrorWidget(BuildContext context, Object err, WidgetRef ref) {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(20.w),
@@ -130,7 +131,7 @@ class RecordView extends ConsumerWidget {
             Text(
               err.toString(),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55), fontSize: 14.sp),
             ),
             SizedBox(height: 16.h),
             ElevatedButton(

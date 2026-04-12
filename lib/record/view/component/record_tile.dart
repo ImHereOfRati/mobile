@@ -26,7 +26,7 @@ class RecordTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color mainColor = Color(0xFF66C8C8);
-    const Color tileBackgroundColor = Colors.white;
+    final tileBackgroundColor = Theme.of(context).colorScheme.surface;
 
     /**
      * 구성
@@ -47,7 +47,8 @@ class RecordTile extends StatelessWidget {
           children: [
             buildTop(mainColor, context),
             SizedBox(height: 8.h),
-            buildTimeStamp(),
+            buildTimeStamp(context),
+            SizedBox(height: 6.h),
             buildMessageTile(context),
             Divider(
               thickness: 1,
@@ -62,6 +63,7 @@ class RecordTile extends StatelessWidget {
   }
 
   Row buildTop(Color mainColor, BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -73,7 +75,7 @@ class RecordTile extends StatelessWidget {
               locationName,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: onSurface,
                 fontSize: 20.sp,
               ),
             ),
@@ -84,10 +86,11 @@ class RecordTile extends StatelessWidget {
     );
   }
 
-  Row buildTimeStamp() {
+  Row buildTimeStamp(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     TextStyle style = TextStyle(
-      fontSize: 14.sp, // 폰트 크기
-      color: Colors.black87,
+      fontSize: 14.sp,
+      color: onSurface.withValues(alpha: 0.75),
     );
     return Row(
       children: [
@@ -98,12 +101,13 @@ class RecordTile extends StatelessWidget {
   }
 
   Text buildMessageTile(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Text(
       message,
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-        fontSize: 18.sp, // 폰트 크기
+        fontSize: 18.sp,
         fontWeight: FontWeight.w600,
-        color: Colors.black,
+        color: onSurface,
       ),
     );
   }

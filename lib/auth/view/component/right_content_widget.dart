@@ -19,7 +19,7 @@ Widget rightContentWidget({
         width: 18.w * length,
         height: 30.h,
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(35.0),
         ),
         child: Center(

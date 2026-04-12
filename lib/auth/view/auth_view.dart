@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/auth/model/login_result.dart';
 import 'package:iamhere/auth/service/auth_state_provider.dart';
 import 'package:iamhere/auth/view/component/login_button.dart';
 import 'package:iamhere/auth/view/component/login_button_info.dart';
 import 'package:iamhere/auth/view_model/auth_view_model.dart';
-import 'package:iamhere/router/app_routes.dart';
 import 'package:iamhere/shared/base/result/result.dart';
 
 const _permissionItems = [
@@ -32,16 +32,16 @@ class _AuthViewState extends ConsumerState<AuthView> {
     if (!mounted) return;
     result.handle(
       context: context,
-      onSuccess: (_) => _onLoginSuccess(),
+      onSuccess: (loginResult) => _onLoginSuccess(loginResult),
       showSnackBar: false,
     );
   }
 
-  Future<void> _onLoginSuccess() async {
+  Future<void> _onLoginSuccess(LoginResult loginResult) async {
     await widget._authViewModel.requestFCMTokenAndSendToServer();
     if (!mounted) return;
     ref.invalidate(authStateProvider);
-    AppRoutes.goToTermsConsent(context);
+    loginResult.navigate(context);
   }
 
   // ── 빌드 ─────────────────────────────────────────────────────────

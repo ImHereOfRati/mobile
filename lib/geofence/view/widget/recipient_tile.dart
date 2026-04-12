@@ -16,26 +16,23 @@ class RecipientTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-        decoration: _recipientDecoration(),
+        decoration: _recipientDecoration(context),
         child: Row(
           children: [
-            // 체크박스
             Checkbox(value: isSelected, onChanged: (_) => onTap()),
             SizedBox(width: 12.w),
-            // 아이콘
-            _buildCircleAvatar(),
+            _buildCircleAvatar(colorScheme),
             SizedBox(width: 16.w),
-            // 이름과 전화번호
-            buildNameAndNumber(),
-            // 선택 표시
+            buildNameAndNumber(colorScheme),
             if (isSelected)
               Icon(
                 Icons.check_circle,
-                color: Theme.of(context).primaryColor,
+                color: colorScheme.primary,
                 size: 24.sp,
               ),
           ],
@@ -44,22 +41,26 @@ class RecipientTile extends StatelessWidget {
     );
   }
 
-  CircleAvatar _buildCircleAvatar() {
+  CircleAvatar _buildCircleAvatar(ColorScheme colorScheme) {
     return CircleAvatar(
       radius: 24.r,
-      backgroundColor: isSelected ? Colors.blue[200] : Colors.grey[300],
+      backgroundColor: isSelected
+          ? colorScheme.primary.withValues(alpha: 0.25)
+          : colorScheme.onSurface.withValues(alpha: 0.15),
       child: Text(
         contact.name.isNotEmpty ? contact.name[0] : '?',
         style: TextStyle(
           fontSize: 18.sp,
           fontWeight: FontWeight.bold,
-          color: isSelected ? Colors.blue[700] : Colors.grey[700],
+          color: isSelected
+              ? colorScheme.primary
+              : colorScheme.onSurface.withValues(alpha: 0.7),
         ),
       ),
     );
   }
 
-  Expanded buildNameAndNumber() {
+  Expanded buildNameAndNumber(ColorScheme colorScheme) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,23 +70,32 @@ class RecipientTile extends StatelessWidget {
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.blue[900] : Colors.black,
+              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
             ),
           ),
           SizedBox(height: 4.h),
           Text(
             contact.number,
-            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: colorScheme.onSurface.withValues(alpha: 0.55),
+            ),
           ),
         ],
       ),
     );
   }
 
-  BoxDecoration _recipientDecoration() {
+  BoxDecoration _recipientDecoration(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return BoxDecoration(
-      color: isSelected ? Colors.blue[50] : null,
-      border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1)),
+      color: isSelected ? colorScheme.primary.withValues(alpha: 0.08) : null,
+      border: Border(
+        bottom: BorderSide(
+          color: Theme.of(context).dividerTheme.color ?? colorScheme.onSurface.withValues(alpha: 0.12),
+          width: 1,
+        ),
+      ),
     );
   }
 }
