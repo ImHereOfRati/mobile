@@ -2,13 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:iamhere/auth/service/token_storage_service.dart';
 
 import '../../base/result/error_analyst.dart';
+import 'api_config.dart';
 import 'pending_request.dart';
 import 'token_refresher.dart';
-
-const List<String> _publicEndpoints = [
-  '/api/v1/auth/login',
-  '/api/v1/auth/reissue',
-];
 
 class DioAuthInterceptor extends Interceptor {
   final TokenStorageService _tokenStorage;
@@ -23,9 +19,9 @@ class DioAuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    if (_publicEndpoints.any((path) => options.path.contains(path))) {
-      return handler.next(options);
-    }
+    final requiresAuth = options.extra['requiresAuth'] as bool? ?? true;
+    if (!requiresAuth) return handler.next(options);
+
     final token = await _tokenStorage.getAccessToken();
     if (token != null) options.headers['Authorization'] = 'Bearer $token';
     handler.next(options);
@@ -35,7 +31,7 @@ class DioAuthInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     ErrorAnalyst.log(err.toString(), err.stackTrace);
     if (err.response?.statusCode != 401) return handler.next(err);
-    if (err.requestOptions.path.contains('/reissue')) {
+    if (err.requestOptions.path.contains(ApiConfig.authReissuePath)) {
       _forceLogout(err, handler);
       return;
     }

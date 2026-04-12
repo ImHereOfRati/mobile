@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:iamhere/shared/infrastructure/dio/api_config.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/fcm_token.dart';
@@ -11,14 +12,12 @@ class FcmTokenRepository {
 
   FcmTokenRepository(this._dio);
 
-  final _fcmTokenEnrollApi = '/api/v1/notification/enroll';
-
   Future<bool> enrollFcmToken(String fcmToken) async {
     try {
       final request = FcmToken(fcmToken: fcmToken);
 
       final response = await _dio.post(
-        _fcmTokenEnrollApi,
+        ApiConfig.fcmEnrollPath,
         data: request.toJson(),
       );
 

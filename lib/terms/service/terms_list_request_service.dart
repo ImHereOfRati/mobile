@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:iamhere/shared/base/api_response/api_response.dart';
+import 'package:iamhere/shared/infrastructure/dio/api_config.dart';
 import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/service/terms_version_response.dart';
 import 'package:injectable/injectable.dart';
@@ -11,12 +12,10 @@ class TermsListRequestService {
 
   TermsListRequestService(this._dio);
 
-  static const _basePath = '/api/user/terms';
-
   Future<APIResponse<PageResponse<TermsListRequestDto>>>
   requestTermsList() async {
     try {
-      final response = await _dio.get(_basePath);
+      final response = await _dio.get(ApiConfig.termsListPath);
 
       if (response.statusCode == 200) {
         return APIResponse<PageResponse<TermsListRequestDto>>.fromJson(
@@ -41,7 +40,7 @@ class TermsListRequestService {
 
   Future<TermsVersionResponse> requestTermsDetail(int termDefinitionId) async {
     try {
-      final path = '$_basePath/version/$termDefinitionId';
+      final path = ApiConfig.termsVersionPath(termDefinitionId);
       final response = await _dio.get(path);
 
       if (response.statusCode == 200) {

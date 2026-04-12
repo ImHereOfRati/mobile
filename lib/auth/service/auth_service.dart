@@ -4,6 +4,7 @@ import 'package:iamhere/auth/service/dto/oauth_request_dto.dart';
 import 'package:iamhere/auth/service/token_storage_service.dart';
 import 'package:iamhere/shared/base/result/error_analyst.dart';
 import 'package:iamhere/shared/base/result/result_message.dart';
+import 'package:iamhere/shared/infrastructure/dio/api_config.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -11,16 +12,15 @@ class AuthService implements AuthServiceInterface {
   final Dio _dio;
   final TokenStorageService _tokenStorage;
 
-  final _loginApi = '/api/user/auth/login';
-
   AuthService(this._dio, this._tokenStorage);
 
   @override
   Future<bool> sendIdTokenToServer(String idToken) async {
     try {
       final response = await _dio.post(
-        _loginApi,
+        ApiConfig.authLoginPath,
         data: OAuthRequestDto(provider: 'KAKAO', idToken: idToken),
+        options: ApiConfig.publicOptions,
       );
 
       // 200, 201 응답만 처리

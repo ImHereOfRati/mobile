@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/auth/service/token_storage_service.dart';
 
+import 'api_config.dart';
+
 class TokenRefresher {
   final TokenStorageService _tokenStorage;
   final String _baseUrl;
-  static const String _tokenReissueEndPoint = '/api/v1/auth/reissue';
 
   TokenRefresher(this._tokenStorage, this._baseUrl);
 
@@ -13,8 +14,16 @@ class TokenRefresher {
     if (refreshToken == null) return null;
 
     try {
-      final dio = Dio(BaseOptions(baseUrl: _baseUrl, headers: {'Content-Type': 'application/json'}));
-      final response = await dio.post(_tokenReissueEndPoint, data: {'refreshToken': refreshToken});
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: _baseUrl,
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+      final response = await dio.post(
+        ApiConfig.authReissuePath,
+        data: {'refreshToken': refreshToken},
+      );
       return await _saveTokens(response);
     } catch (_) {
       return null;
