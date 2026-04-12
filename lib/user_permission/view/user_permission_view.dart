@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
+import 'package:iamhere/router/app_routes.dart';
 import 'package:iamhere/user_permission/view_model/user_permission_view_model.dart';
 
 import 'widgets/finish_page.dart';
@@ -27,7 +27,7 @@ class _UserPermissionViewState extends ConsumerState<UserPermissionView> {
   }
 
   void _onFinish() {
-    context.go('/auth');
+    AppRoutes.goToAuth(context);
   }
 
   @override

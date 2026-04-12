@@ -5,6 +5,7 @@ import 'package:iamhere/contact/view/contact_view.dart';
 import 'package:iamhere/geofence/view/geofence_enroll_view.dart';
 import 'package:iamhere/geofence/view/geofence_view.dart';
 import 'package:iamhere/record/view/record_view.dart';
+import 'package:iamhere/router/app_routes.dart';
 import 'package:iamhere/setting/view/setting_view.dart';
 import 'package:iamhere/shared/component/view_component/default_view.dart';
 import 'package:iamhere/shared/infrastructure/di/di_setup.dart';
@@ -17,7 +18,7 @@ import 'custom_page_transition/simple_transition.dart';
 
 final List<RouteBase> appRoutes = [
   GoRoute(
-    path: '/user-permission',
+    path: AppRoutes.userPermission,
     pageBuilder: (context, state) => buildPageWithSimpleTransition(
       context: context,
       state: state,
@@ -25,11 +26,11 @@ final List<RouteBase> appRoutes = [
     ),
   ),
   GoRoute(
-    path: '/auth',
+    path: AppRoutes.auth,
     builder: (context, state) => AuthView(getIt<AuthViewModel>()),
   ),
   GoRoute(
-    path: '/terms-consent',
+    path: AppRoutes.termsConsent,
     pageBuilder: (context, state) => buildPageWithSimpleTransition(
       context: context,
       state: state,
@@ -50,7 +51,7 @@ final List<RouteBase> appRoutes = [
     builder: (context, state, child) => DefaultView(child: child),
     routes: [
       GoRoute(
-        path: '/geofence',
+        path: AppRoutes.geofence,
         pageBuilder: (context, state) => buildPageWithSimpleTransition(
           context: context,
           state: state,
@@ -58,7 +59,7 @@ final List<RouteBase> appRoutes = [
         ),
         routes: [
           GoRoute(
-            path: '/enroll',
+            path: 'enroll',
             pageBuilder: (context, state) => buildPageWithBottomUpTransition(
               context: context,
               state: state,
@@ -68,7 +69,7 @@ final List<RouteBase> appRoutes = [
         ],
       ),
       GoRoute(
-        path: '/contact',
+        path: AppRoutes.contact,
         pageBuilder: (context, state) => buildPageWithSimpleTransition(
           context: context,
           state: state,
@@ -76,7 +77,7 @@ final List<RouteBase> appRoutes = [
         ),
       ),
       GoRoute(
-        path: '/record',
+        path: AppRoutes.record,
         pageBuilder: (context, state) => buildPageWithSimpleTransition(
           context: context,
           state: state,
@@ -84,7 +85,7 @@ final List<RouteBase> appRoutes = [
         ),
       ),
       GoRoute(
-        path: '/setting',
+        path: AppRoutes.setting,
         pageBuilder: (context, state) => buildPageWithSimpleTransition(
           context: context,
           state: state,

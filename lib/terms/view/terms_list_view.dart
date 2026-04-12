@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
+import 'package:iamhere/router/app_routes.dart';
 import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/view_model/terms_agreement_notifier.dart';
 import 'package:iamhere/terms/view_model/terms_agreement_provider.dart';
@@ -123,9 +123,7 @@ class TermsListView extends ConsumerWidget {
     TermsListRequestDto term,
   ) {
     final isAgreed = ref.watch(
-      termsAgreementProvider.select(
-        (m) => m[term.termDefinitionId] ?? false,
-      ),
+      termsAgreementProvider.select((m) => m[term.termDefinitionId] ?? false),
     );
 
     return Padding(
@@ -208,7 +206,7 @@ class TermsListView extends ConsumerWidget {
                   ),
                 GestureDetector(
                   onTap: () =>
-                      context.push('/terms-detail/${term.termDefinitionId}'),
+                      AppRoutes.pushTermsDetail(context, term.termDefinitionId),
                   child: const Icon(
                     Icons.chevron_right,
                     color: Color(0xFFD2D2D7),
@@ -223,18 +221,12 @@ class TermsListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionArea(
-    BuildContext context,
-    WidgetRef ref,
-    bool allAgreed,
-  ) {
+  Widget _buildActionArea(BuildContext context, WidgetRef ref, bool allAgreed) {
     return Container(
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 32.h),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Color(0xFFD2D2D7), width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: Color(0xFFD2D2D7), width: 0.5)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -256,7 +248,9 @@ class TermsListView extends ConsumerWidget {
             width: double.infinity,
             height: 50.h,
             child: ElevatedButton(
-              onPressed: allAgreed ? () => context.go('/geofence') : null,
+              onPressed: allAgreed
+                  ? () => AppRoutes.goToGeofence(context)
+                  : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: allAgreed
                     ? const Color(0xFF1D1D1F)

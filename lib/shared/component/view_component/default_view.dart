@@ -3,17 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iamhere/router/app_routes.dart';
 import 'package:iamhere/router/router_provider.dart';
 
 class DefaultView extends ConsumerWidget {
   final Widget child;
 
-  static final List<String> _tabs = [
-    '/geofence',
-    '/contact',
-    '/record',
-    '/setting',
-  ];
+  static final List<String> _tabs = AppRoutes.mainTabs;
 
   static const _tabIcons = [
     (Icons.location_on_outlined, Icons.location_on, '지오펜스'),
@@ -37,7 +33,7 @@ class DefaultView extends ConsumerWidget {
 
   bool _showFab(BuildContext context) {
     final loc = GoRouter.of(context).state.uri.toString();
-    return loc == '/geofence' || loc == '/record';
+    return loc == AppRoutes.geofence || loc == AppRoutes.record;
   }
 
   @override

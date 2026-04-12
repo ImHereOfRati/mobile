@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:iamhere/auth/model/login_result.dart';
 import 'package:iamhere/auth/service/auth_service.dart';
 import 'package:iamhere/auth/view_model/auth_view_model.dart';
 import 'package:iamhere/fcm/service/fcm_token_service.dart';
@@ -35,7 +36,7 @@ void main() {
       const testToken = 'test_id_token';
       when(
         mockAuthService.sendIdTokenToServer(testToken),
-      ).thenAnswer((_) async => false); // 기존 사용자
+      ).thenAnswer((_) async => LoginResult.existingUser); // 기존 사용자
 
       // Act
       // Note: handleKakaoLogin은 _doUserKakaoLogin 호출이 필요하므로
@@ -49,7 +50,7 @@ void main() {
       const testToken = 'test_id_token';
       when(
         mockAuthService.sendIdTokenToServer(testToken),
-      ).thenAnswer((_) async => true); // 신규 사용자
+      ).thenAnswer((_) async => LoginResult.newUser); // 신규 사용자
 
       // Act
       // Note: handleKakaoLogin은 _doUserKakaoLogin 호출이 필요하므로
@@ -186,7 +187,7 @@ void main() {
       const testToken = 'test_id_token';
       when(
         mockAuthService.sendIdTokenToServer(testToken),
-      ).thenAnswer((_) async => false); // 기존 사용자 반환
+      ).thenAnswer((_) async => LoginResult.existingUser); // 기존 사용자 반환
 
       // Act
       final isNewUser = await mockAuthService.sendIdTokenToServer(testToken);

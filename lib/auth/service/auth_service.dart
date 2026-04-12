@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/auth/model/login_result.dart';
 import 'package:iamhere/auth/service/auth_service_interface.dart';
+import 'package:iamhere/auth/service/dto/auth_response_dto.dart';
 import 'package:iamhere/auth/service/dto/oauth_request_dto.dart';
 import 'package:iamhere/auth/service/token_storage_service.dart';
+import 'package:iamhere/shared/base/api_response/api_response.dart';
 import 'package:iamhere/shared/base/result/error_analyst.dart';
 import 'package:iamhere/shared/base/result/result_message.dart';
 import 'package:iamhere/shared/infrastructure/dio/api_config.dart';
@@ -15,37 +18,50 @@ class AuthService implements AuthServiceInterface {
   AuthService(this._dio, this._tokenStorage);
 
   @override
-  Future<bool> sendIdTokenToServer(String idToken) async {
+  Future<LoginResult> sendIdTokenToServer(String idToken) async {
     try {
-      final response = await _dio.post(
-        ApiConfig.authLoginPath,
-        data: OAuthRequestDto(provider: 'KAKAO', idToken: idToken),
-        options: ApiConfig.publicOptions,
-      );
+      final response = await _requestAuthenticationToServer(idToken);
 
-      // 200, 201 응답만 처리
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-        final accessToken = data['accessToken'] as String?;
-        final refreshToken = data['refreshToken'] as String?;
+      final tokens = _parseToken(response);
 
-        if (accessToken != null) {
-          await _tokenStorage.saveAccessToken(accessToken);
-        }
+      final (:code, :access, :refresh) = tokens;
 
-        if (refreshToken != null) {
-          await _tokenStorage.saveRefreshToken(refreshToken);
-        }
+      await _tokenStorage.saveAccessToken(access);
+      await _tokenStorage.saveRefreshToken(refresh);
 
-        // 상태 반환: 201이면 신규 사용자(true), 200이면 기존 사용자(false)
-        return response.statusCode == 201;
-      }
-
-      // 기타 상태 코드는 false 반환 (기존 사용자로 간주)
-      return false;
+      return code == 201 ? LoginResult.newUser : LoginResult.existingUser;
     } on DioException catch (e, stack) {
       ErrorAnalyst.log(ResultMessage.dioException.toString(), stack);
       throw Exception(ResultMessage.dioException);
     }
+  }
+
+  Future<Response<dynamic>> _requestAuthenticationToServer(
+    String idToken,
+  ) async {
+    return await _dio.post(
+      ApiConfig.authLoginPath,
+      data: OAuthRequestDto(provider: 'KAKAO', idToken: idToken),
+      options: ApiConfig.publicOptions,
+    );
+  }
+
+  ({int code, String access, String refresh}) _parseToken(Response response) {
+    final apiResponse = APIResponse<AuthResponseDto>.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) => AuthResponseDto.fromJson(json as Map<String, dynamic>),
+    );
+
+    if (apiResponse.code != 200 && apiResponse.code != 201) {
+      throw Exception(apiResponse.message ?? ResultMessage.serverError);
+    }
+
+    final authData = apiResponse.data;
+
+    return (
+      code: apiResponse.code,
+      access: authData.accessToken,
+      refresh: authData.refreshToken,
+    );
   }
 }
