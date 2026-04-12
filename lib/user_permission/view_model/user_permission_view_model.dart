@@ -1,8 +1,6 @@
-import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/user_permission/model/items/contact_permission_item.dart';
 import 'package:iamhere/user_permission/model/items/fcm_permision_item.dart';
 import 'package:iamhere/user_permission/model/items/location_permission_item.dart';
-import 'package:iamhere/user_permission/model/items/sms_permission_item.dart';
 import 'package:iamhere/user_permission/model/permission_item.dart';
 import 'package:iamhere/user_permission/model/permission_state.dart';
 import 'package:iamhere/user_permission/service/permission_service_interface.dart';

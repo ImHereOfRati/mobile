@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/common/view_component/widgets/page_title.dart';
 import 'package:iamhere/contact/view/component/contact_tile.dart';
 import 'package:iamhere/contact/view_model/contact.dart';
 import 'package:iamhere/contact/view_model/contact_view_model.dart';
 import 'package:iamhere/contact/view_model/contact_view_model_provider.dart';
+import 'package:iamhere/shared/component/view_component/widgets/page_title.dart';
 
 class ContactView extends ConsumerStatefulWidget {
   const ContactView({super.key});

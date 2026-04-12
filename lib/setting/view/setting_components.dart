@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/common/view_component/widgets/section_title.dart';
+import 'package:iamhere/shared/component/view_component/widgets/section_title.dart';
 
 class SettingSectionHeader extends StatelessWidget {
   final String title;

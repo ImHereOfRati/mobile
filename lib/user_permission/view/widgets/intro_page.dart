@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/common/view_component/widgets/black_button.dart';
+import 'package:iamhere/shared/component/view_component/widgets/black_button.dart';
 
 class IntroPage extends StatelessWidget {
   final VoidCallback onNext;

@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:get_it/get_it.dart';
-import 'package:iamhere/common/result/result.dart';
 import 'package:iamhere/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/geofence/service/contact_resolution_service.dart';
 import 'package:iamhere/geofence/service/deduplication_service.dart';
@@ -10,6 +9,7 @@ import 'package:iamhere/geofence/service/geofence_checking_service.dart';
 import 'package:iamhere/geofence/service/location_monitoring_service.dart';
 import 'package:iamhere/geofence/service/record_service.dart';
 import 'package:iamhere/geofence/service/sms_notification_service.dart';
+import 'package:iamhere/shared/base/result/result.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'geofence_orchestrator.g.dart';
@@ -42,11 +42,9 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
       _setupServices();
 
       // Start location monitoring
-      await _locationService.startLocationMonitoring(
-        (Position position) async {
-          await _checkGeofences(position);
-        },
-      );
+      await _locationService.startLocationMonitoring((Position position) async {
+        await _checkGeofences(position);
+      });
 
       log('Geofence monitoring orchestration started');
     } catch (e) {
@@ -66,8 +64,7 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
   Future<void> _checkGeofences(Position currentPosition) async {
     try {
       final allGeofences = await _geofenceRepository.findAll();
-      final activeGeofences =
-          allGeofences.where((g) => g.isActive).toList();
+      final activeGeofences = allGeofences.where((g) => g.isActive).toList();
 
       for (final geofence in activeGeofences) {
         // Skip if already triggered (deduplication)
@@ -85,11 +82,11 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
           }
 
           // Resolve contacts and send SMS
-          final recipients =
-              await _contactResolver.resolveContacts(geofence);
+          final recipients = await _contactResolver.resolveContacts(geofence);
           if (recipients.isNotEmpty) {
-            final phoneNumbers =
-                _contactResolver.extractPhoneNumbers(recipients);
+            final phoneNumbers = _contactResolver.extractPhoneNumbers(
+              recipients,
+            );
             final result = await _smsNotifier.sendSmsToRecipients(
               phoneNumbers: phoneNumbers,
               message: geofence.message,

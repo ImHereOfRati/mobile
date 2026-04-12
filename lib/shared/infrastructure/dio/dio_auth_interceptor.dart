@@ -1,11 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/auth/service/token_storage_service.dart';
-import 'package:iamhere/common/result/error_analyst.dart';
 
+import '../../base/result/error_analyst.dart';
 import 'pending_request.dart';
 import 'token_refresher.dart';
 
-const List<String> _publicEndpoints = ['/api/v1/auth/login', '/api/v1/auth/reissue'];
+const List<String> _publicEndpoints = [
+  '/api/v1/auth/login',
+  '/api/v1/auth/reissue',
+];
 
 class DioAuthInterceptor extends Interceptor {
   final TokenStorageService _tokenStorage;
@@ -16,7 +19,10 @@ class DioAuthInterceptor extends Interceptor {
   DioAuthInterceptor(this._tokenStorage, this._refresher, this._retrier);
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     if (_publicEndpoints.any((path) => options.path.contains(path))) {
       return handler.next(options);
     }
@@ -36,7 +42,10 @@ class DioAuthInterceptor extends Interceptor {
     _handleUnauthorized(err, handler);
   }
 
-  void _handleUnauthorized(DioException err, ErrorInterceptorHandler handler) async {
+  void _handleUnauthorized(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     if (_isRefreshing) {
       _retrier.addToQueue(err.requestOptions, handler);
       return;

@@ -1,6 +1,6 @@
-import 'package:iamhere/common/database/local_database_service.dart';
 import 'package:iamhere/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/record/repository/geofence_record_repository.dart';
+import 'package:iamhere/shared/infrastructure/database/local_database_service.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton

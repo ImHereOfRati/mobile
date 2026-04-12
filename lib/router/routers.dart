@@ -1,13 +1,13 @@
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/auth/view/auth_view.dart';
 import 'package:iamhere/auth/view_model/auth_view_model.dart';
-import 'package:iamhere/common/view_component/default_view.dart';
 import 'package:iamhere/contact/view/contact_view.dart';
-import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/geofence/view/geofence_enroll_view.dart';
 import 'package:iamhere/geofence/view/geofence_view.dart';
 import 'package:iamhere/record/view/record_view.dart';
 import 'package:iamhere/setting/view/setting_view.dart';
+import 'package:iamhere/shared/component/view_component/default_view.dart';
+import 'package:iamhere/shared/infrastructure/di/di_setup.dart';
 import 'package:iamhere/terms/view/terms_detail_view.dart';
 import 'package:iamhere/terms/view/terms_list_view.dart';
 import 'package:iamhere/user_permission/view/user_permission_view.dart';

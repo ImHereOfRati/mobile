@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:iamhere/auth/model/login_result.dart';
 import 'package:iamhere/auth/service/auth_service.dart';
 import 'package:iamhere/auth/view_model/auth_view_model_interface.dart';
-import 'package:iamhere/common/result/result_message.dart';
-import 'package:iamhere/common/result/result.dart';
 import 'package:iamhere/fcm/service/fcm_token_service.dart';
+import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/shared/base/result/result_message.dart';
 import 'package:injectable/injectable.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
@@ -24,7 +24,9 @@ class AuthViewModel implements AuthViewModelInterface {
       case Success(data: var d):
         idToken = d;
         final isNewUser = await _authService.sendIdTokenToServer(idToken!);
-        final loginResult = isNewUser ? LoginResult.newUser : LoginResult.existingUser;
+        final loginResult = isNewUser
+            ? LoginResult.newUser
+            : LoginResult.existingUser;
         return Success(loginResult);
       case Failure():
         return Failure(ResultMessage.kakaoAuthFail.toString());

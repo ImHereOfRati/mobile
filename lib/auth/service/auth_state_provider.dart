@@ -1,5 +1,5 @@
 import 'package:iamhere/auth/service/token_storage_service.dart';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/shared/infrastructure/di/di_setup.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth_state_provider.g.dart';

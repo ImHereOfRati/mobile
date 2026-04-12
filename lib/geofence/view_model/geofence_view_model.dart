@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:get_it/get_it.dart';
-import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/geofence/repository/geofence_local_repository_provider.dart';

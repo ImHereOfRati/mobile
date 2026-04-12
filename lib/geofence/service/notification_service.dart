@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:iamhere/common/result/result.dart';
+import 'package:iamhere/shared/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 /// FCM notification service - separate from SMS

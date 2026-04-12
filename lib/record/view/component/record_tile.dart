@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/common/util/date_time_formatter.dart';
 import 'package:iamhere/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/record/view/component/device_tile.dart';
+import 'package:iamhere/shared/util/date_time_formatter.dart';
 
 import 'target_tile.dart';
 

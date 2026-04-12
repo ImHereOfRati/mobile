@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:iamhere/terms/model/terms_list_request_dto.dart';
+import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/service/terms_list_request_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,12 +13,16 @@ class TermsListViewModel extends _$TermsListViewModel {
   @override
   Future<List<TermsListRequestDto>> build() async {
     _service = GetIt.instance<TermsListRequestService>();
-    return await _service.requestTermsList();
+    final apiResponse = await _service.requestTermsList();
+    return apiResponse.data.content;
   }
 
   /// Refresh terms list
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _service.requestTermsList());
+    state = await AsyncValue.guard(() async {
+      final apiResponse = await _service.requestTermsList();
+      return apiResponse.data.content;
+    });
   }
 }

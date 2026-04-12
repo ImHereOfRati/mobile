@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // ✅ ScreenUtil import
-import 'package:iamhere/common/util/phone_number_formatter.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/shared/util/phone_number_formatter.dart'; // ✅ ScreenUtil import
 
 class ContactTile extends StatelessWidget {
   final String contactName;
