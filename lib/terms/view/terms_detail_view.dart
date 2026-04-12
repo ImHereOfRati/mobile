@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:iamhere/terms/service/terms_list_request_service.dart';
-import 'package:iamhere/terms/service/dto/terms_version_response.dart';
+
+import '../service/terms_version_response.dart';
 
 class TermsDetailView extends ConsumerStatefulWidget {
   final int termDefinitionId;
 
-  const TermsDetailView({
-    super.key,
-    required this.termDefinitionId,
-  });
+  const TermsDetailView({super.key, required this.termDefinitionId});
 
   @override
   ConsumerState<TermsDetailView> createState() => _TermsDetailViewState();
@@ -30,10 +28,7 @@ class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('약관 상세'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('약관 상세'), centerTitle: true),
       body: FutureBuilder<TermsVersionResponse>(
         future: _termDetailFuture,
         builder: (context, snapshot) {
@@ -79,8 +74,9 @@ class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  _termDetailFuture =
-                      _service.requestTermsDetail(widget.termDefinitionId);
+                  _termDetailFuture = _service.requestTermsDetail(
+                    widget.termDefinitionId,
+                  );
                 });
               },
               child: const Text('다시 시도'),
@@ -91,7 +87,10 @@ class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
     );
   }
 
-  Widget _buildContent(BuildContext context, TermsVersionResponse termsVersion) {
+  Widget _buildContent(
+    BuildContext context,
+    TermsVersionResponse termsVersion,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -113,11 +112,8 @@ class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  termsVersion.effectiveDate,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  termsVersion.effectiveDate.toString(),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),
@@ -125,9 +121,9 @@ class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
           // Content
           Text(
             termsVersion.content,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              height: 1.6,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(height: 1.6),
           ),
         ],
       ),

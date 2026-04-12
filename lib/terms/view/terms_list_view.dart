@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/view_model/terms_agreement_notifier.dart';
+import 'package:iamhere/terms/view_model/terms_agreement_provider.dart'
+    hide termsAgreementProvider;
 import 'package:iamhere/terms/view_model/terms_list_view_model.dart';
 
 class TermsListView extends ConsumerWidget {
@@ -14,10 +16,7 @@ class TermsListView extends ConsumerWidget {
     final termsAsync = ref.watch(termsListViewModelProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('약관 동의'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('약관 동의'), centerTitle: true),
       body: termsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _buildErrorState(context, ref),
@@ -63,10 +62,13 @@ class TermsListView extends ConsumerWidget {
     WidgetRef ref,
     List<TermsListRequestDto> terms,
   ) {
-    final requiredTermIds =
-        terms.where((term) => term.isRequired).map((term) => term.termDefinitionId).toList();
-    final allRequiredAgreed =
-        ref.watch(allRequiredTermsAgreedProvider(requiredTermIds));
+    final requiredTermIds = terms
+        .where((term) => term.isRequired)
+        .map((term) => term.termDefinitionId)
+        .toList();
+    final allRequiredAgreed = ref.watch(
+      allRequiredTermsAgreedProvider(requiredTermIds),
+    );
 
     return Column(
       children: [
@@ -125,7 +127,10 @@ class TermsListView extends ConsumerWidget {
               ),
               if (term.isRequired)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.red[100],
                     borderRadius: BorderRadius.circular(4),

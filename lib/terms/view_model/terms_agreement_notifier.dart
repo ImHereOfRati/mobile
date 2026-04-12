@@ -20,6 +20,11 @@ class TermsAgreementNotifier extends _$TermsAgreementNotifier {
     state = Map.from(_agreedTerms);
   }
 
+  /// Check if a specific term is agreed
+  bool isTermAgreed(int termDefinitionId) {
+    return _agreedTerms[termDefinitionId] ?? false;
+  }
+
   /// Check if all required terms are agreed
   /// Pass list of required term IDs
   bool allRequiredTermsAgreed(List<int> requiredTermIds) {

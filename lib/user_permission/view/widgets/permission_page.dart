@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/common/view_component/widgets/black_button.dart';
+import 'package:iamhere/shared/component/view_component/widgets/black_button.dart';
 import 'package:iamhere/user_permission/view_model/user_permission_view_model.dart';
 
 import '../../model/permission_item.dart';

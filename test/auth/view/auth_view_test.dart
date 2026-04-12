@@ -8,8 +8,8 @@ import 'package:iamhere/auth/service/token_storage_service.dart';
 import 'package:iamhere/auth/view/auth_view.dart';
 import 'package:iamhere/auth/view/component/login_button.dart';
 import 'package:iamhere/auth/view_model/auth_view_model.dart';
-import 'package:iamhere/common/result/result.dart';
-import 'package:iamhere/common/result/result_message.dart';
+import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/shared/base/result/result_message.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -20,19 +20,17 @@ void main() {
   late MockAuthViewModel mockAuthViewModel;
   late MockTokenStorageService mockTokenStorageService;
 
-  provideDummy<Result<LoginResult>>(
-      Success(LoginResult.existingUser)
-  );
-  provideDummy<Result<ResultMessage>>(
-      Success(ResultMessage.kakaoAuthSuccess)
-  );
+  provideDummy<Result<LoginResult>>(Success(LoginResult.existingUser));
+  provideDummy<Result<ResultMessage>>(Success(ResultMessage.kakaoAuthSuccess));
 
   setUp(() async {
     mockAuthViewModel = MockAuthViewModel();
     mockTokenStorageService = MockTokenStorageService();
 
     await GetIt.instance.reset();
-    GetIt.instance.registerSingleton<TokenStorageService>(mockTokenStorageService);
+    GetIt.instance.registerSingleton<TokenStorageService>(
+      mockTokenStorageService,
+    );
   });
 
   tearDown(() async {
@@ -44,9 +42,7 @@ void main() {
       child: ScreenUtilInit(
         designSize: const Size(402, 874),
         builder: (context, child) {
-          return MaterialApp(
-            home: AuthView(mockAuthViewModel),
-          );
+          return MaterialApp(home: AuthView(mockAuthViewModel));
         },
       ),
     );
@@ -66,7 +62,9 @@ void main() {
       expect(find.byType(LoginButton), findsOneWidget); // 로그인 버튼 확인
     });
 
-    testWidgets('로그인 버튼을 누르면 handleKakaoLogin이 호출되어야 한다', (WidgetTester tester) async {
+    testWidgets('로그인 버튼을 누르면 handleKakaoLogin이 호출되어야 한다', (
+      WidgetTester tester,
+    ) async {
       // given (시나리오 설정)
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 3.0;
@@ -75,16 +73,19 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       // 기존 사용자 로그인 응답
-      when(mockAuthViewModel.handleKakaoLogin())
-          .thenAnswer((_) async => Success(LoginResult.existingUser));
+      when(
+        mockAuthViewModel.handleKakaoLogin(),
+      ).thenAnswer((_) async => Success(LoginResult.existingUser));
 
       // FCM 토큰 전송 (기존 사용자에게만)
-      when(mockAuthViewModel.requestFCMTokenAndSendToServer())
-          .thenAnswer((_) async => Success(ResultMessage.fcmTokenServerSuccess));
+      when(
+        mockAuthViewModel.requestFCMTokenAndSendToServer(),
+      ).thenAnswer((_) async => Success(ResultMessage.fcmTokenServerSuccess));
 
       // 토큰 저장소
-      when(mockTokenStorageService.getAccessToken())
-          .thenAnswer((_) async => 'mock_access_token');
+      when(
+        mockTokenStorageService.getAccessToken(),
+      ).thenAnswer((_) async => 'mock_access_token');
 
       // when (화면 빌드 및 버튼 탭)
       await tester.pumpWidget(createWidgetUnderTest());

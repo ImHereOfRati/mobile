@@ -1,7 +1,7 @@
 import 'dart:developer';
 
-import 'package:iamhere/common/result/result.dart';
 import 'package:iamhere/geofence/service/sms_service.dart';
+import 'package:iamhere/shared/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 /// SMS notification sending service

@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/common/database/local_database_exception.dart';
-import 'package:iamhere/common/database/local_database_properties.dart';
-import 'package:iamhere/common/database/local_database_service.dart';
 import 'package:iamhere/contact/repository/contact_entity.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/record/repository/geofence_record_entity.dart';
+import 'package:iamhere/shared/infrastructure/database/local_database_exception.dart';
+import 'package:iamhere/shared/infrastructure/database/local_database_properties.dart';
+import 'package:iamhere/shared/infrastructure/database/local_database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {

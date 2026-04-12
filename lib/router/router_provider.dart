@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/auth/service/auth_state_provider.dart';
-import 'package:iamhere/common/router/routers.dart';
+import 'package:iamhere/router/routers.dart';
 import 'package:iamhere/user_permission/view_model/user_permission_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

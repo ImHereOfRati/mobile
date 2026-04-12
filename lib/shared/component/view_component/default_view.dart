@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/common/router/router_provider.dart';
+import 'package:iamhere/router/router_provider.dart';
 
 class DefaultView extends ConsumerWidget {
   final Widget child;

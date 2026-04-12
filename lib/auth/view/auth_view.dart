@@ -9,8 +9,8 @@ import 'package:iamhere/auth/view/component/login_button.dart';
 import 'package:iamhere/auth/view/component/login_button_info.dart';
 import 'package:iamhere/auth/view/component/right_content_widget.dart';
 import 'package:iamhere/auth/view_model/auth_view_model.dart';
-import 'package:iamhere/common/result/result.dart';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/shared/infrastructure/di/di_setup.dart';
 
 class AuthView extends ConsumerStatefulWidget {
   final AuthViewModel _authViewModel;

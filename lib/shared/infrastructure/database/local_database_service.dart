@@ -1,8 +1,8 @@
-import 'package:iamhere/common/database/local_database_exception.dart';
-import 'package:iamhere/common/database/local_database_properties.dart';
 import 'package:iamhere/contact/repository/contact_entity.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/record/repository/geofence_record_entity.dart';
+import 'package:iamhere/shared/infrastructure/database/local_database_exception.dart';
+import 'package:iamhere/shared/infrastructure/database/local_database_properties.dart';
 import 'package:injectable/injectable.dart';
 import 'package:sqflite/sqflite.dart';
 

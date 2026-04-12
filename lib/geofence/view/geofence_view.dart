@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/common/view_component/widgets/page_title.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/geofence/service/geofence_orchestrator.dart';
 import 'package:iamhere/geofence/view_model/geofence_list_view_model.dart';
 import 'package:iamhere/geofence/view_model/geofence_view_model.dart';
+import 'package:iamhere/shared/component/view_component/widgets/page_title.dart';
 import 'package:iamhere/user_permission/model/permission_state.dart';
 
 import 'widget/geofence_tile.dart';

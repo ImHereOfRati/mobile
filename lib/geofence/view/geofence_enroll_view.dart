@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/common/view_component/widgets/primary_button.dart';
-import 'package:iamhere/common/view_component/widgets/section_title.dart';
-import 'package:iamhere/common/view_component/widgets/select_button.dart';
-import 'package:iamhere/common/view_component/widgets/text_input_field.dart';
 import 'package:iamhere/contact/view_model/contact.dart';
 import 'package:iamhere/geofence/view/widget/radius_button.dart';
 import 'package:iamhere/geofence/view/widget/radius_info_callout.dart';
 import 'package:iamhere/geofence/view_model/geofence_enroll_view_model.dart';
 import 'package:iamhere/geofence/view_model/geofence_list_view_model.dart';
+import 'package:iamhere/shared/component/view_component/widgets/primary_button.dart';
+import 'package:iamhere/shared/component/view_component/widgets/section_title.dart';
+import 'package:iamhere/shared/component/view_component/widgets/select_button.dart';
+import 'package:iamhere/shared/component/view_component/widgets/text_input_field.dart';
 
 import 'widget/map_select_view.dart';
 import 'widget/recipient_select_view.dart';
@@ -199,12 +199,9 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
             ),
 
             // 반경에 따른 안내 메시지
+            if (formState.radiusInfoMessage.isNotEmpty) SizedBox(height: 12.h),
             if (formState.radiusInfoMessage.isNotEmpty)
-              SizedBox(height: 12.h),
-            if (formState.radiusInfoMessage.isNotEmpty)
-              RadiusInfoCallout(
-                message: formState.radiusInfoMessage,
-              ),
+              RadiusInfoCallout(message: formState.radiusInfoMessage),
 
             // 3. 알림 메시지 설정
             SizedBox(height: 16.h),

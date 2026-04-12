@@ -1,10 +1,10 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:iamhere/common/result/result.dart';
 import 'package:iamhere/geofence/model/message_send_request.dart';
 import 'package:iamhere/geofence/model/multiple_message_send_request.dart';
 import 'package:iamhere/geofence/service/notification_service.dart';
+import 'package:iamhere/shared/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 /// SMS sending service with proper dependency injection and error handling
@@ -74,14 +74,16 @@ class SmsService {
         ).toJson(),
       );
 
-      final isSuccess = (response.statusCode == 200 || response.statusCode == 201);
+      final isSuccess =
+          (response.statusCode == 200 || response.statusCode == 201);
 
       if (!isSuccess) {
         return Failure('SMS send failed with status ${response.statusCode}');
       }
 
       // Send FCM notification on success
-      final notificationResult = await _notificationService.sendNotificationToMe();
+      final notificationResult = await _notificationService
+          .sendNotificationToMe();
       if (notificationResult is Failure) {
         log('Warning: SMS sent but FCM notification failed');
       }
@@ -100,10 +102,10 @@ class SmsService {
   }) async {
     try {
       final requests = phoneNumbers
-          .map((phone) => MessageSendRequest(
-            message: message,
-            receiverNumber: phone,
-          ))
+          .map(
+            (phone) =>
+                MessageSendRequest(message: message, receiverNumber: phone),
+          )
           .toList();
 
       final response = await _dio.post(
@@ -111,14 +113,16 @@ class SmsService {
         data: MultipleMessageSendRequest(requests: requests).toJson(),
       );
 
-      final isSuccess = (response.statusCode == 200 || response.statusCode == 201);
+      final isSuccess =
+          (response.statusCode == 200 || response.statusCode == 201);
 
       if (!isSuccess) {
         return Failure('SMS send failed with status ${response.statusCode}');
       }
 
       // Send FCM notification on success
-      final notificationResult = await _notificationService.sendNotificationToMe();
+      final notificationResult = await _notificationService
+          .sendNotificationToMe();
       if (notificationResult is Failure) {
         log('Warning: SMS sent but FCM notification failed');
       }

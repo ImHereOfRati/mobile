@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:iamhere/auth/service/auth_service_interface.dart';
 import 'package:iamhere/auth/service/dto/oauth_request_dto.dart';
 import 'package:iamhere/auth/service/token_storage_service.dart';
-import 'package:iamhere/common/result/error_analyst.dart';
-import 'package:iamhere/common/result/result_message.dart';
+import 'package:iamhere/shared/base/result/error_analyst.dart';
+import 'package:iamhere/shared/base/result/result_message.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton

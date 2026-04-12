@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:injectable/injectable.dart';
-import 'package:iamhere/common/api_response/api_response.dart';
+import 'package:iamhere/shared/base/api_response/api_response.dart';
 import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/service/terms_version_response.dart';
+import 'package:injectable/injectable.dart';
 
 @lazySingleton
 class TermsListRequestService {

@@ -1,14 +1,23 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iamhere/terms/view_model/terms_agreement_notifier.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-/// Provider for terms agreement state
-final termsAgreementProvider =
-    StateNotifierProvider<TermsAgreementNotifier, Map<int, bool>>((ref) {
-  return ref.watch(termsAgreementNotifierProvider.notifier);
-});
+part 'terms_agreement_provider.g.dart';
 
-/// Provider to check if all required terms are agreed
-final allRequiredTermsAgreedProvider = Provider.family<bool, List<int>>((ref, requiredTermIds) {
-  final notifier = ref.watch(termsAgreementNotifierProvider.notifier);
-  return notifier.allRequiredTermsAgreed(requiredTermIds);
-});
+@riverpod
+class TermsAgreement extends _$TermsAgreement {
+  @override
+  Map<int, bool> build() {
+    return {};
+  }
+
+  void toggleTerm(int id) {
+    state = {...state, id: !(state[id] ?? false)};
+  }
+}
+
+@riverpod
+bool allRequiredTermsAgreed(Ref ref, List<int> requiredTermIds) {
+  final agreementMap = ref.watch(termsAgreementProvider);
+
+  if (requiredTermIds.isEmpty) return false;
+  return requiredTermIds.every((id) => agreementMap[id] ?? false);
+}

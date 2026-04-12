@@ -1,6 +1,6 @@
 import 'package:iamhere/auth/model/login_result.dart';
-import 'package:iamhere/common/result/result_message.dart';
-import 'package:iamhere/common/result/result.dart';
+import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/shared/base/result/result_message.dart';
 
 abstract class AuthViewModelInterface {
   /// 카카오 로그인 처리

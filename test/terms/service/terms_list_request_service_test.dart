@@ -1,10 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/common/api_response/api_response.dart';
-import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/service/dto/terms_type.dart';
 import 'package:iamhere/terms/service/terms_list_request_service.dart';
-import 'package:iamhere/terms/service/terms_version_response.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -46,7 +43,7 @@ void main() {
           'number': 0,
           'size': 20,
           'last': true,
-        }
+        },
       };
 
       when(mockDio.get('/api/user/terms')).thenAnswer(
@@ -85,24 +82,18 @@ void main() {
       );
 
       // Act & Assert
-      expect(
-        () => termsService.requestTermsList(),
-        throwsException,
-      );
+      expect(() => termsService.requestTermsList(), throwsException);
     });
 
     test('실패: Dio 예외 발생 시 예외를 전파해야 함', () async {
       // Arrange
       final requestOptions = RequestOptions(path: '/api/user/terms');
-      when(mockDio.get('/api/user/terms')).thenThrow(
-        DioException(requestOptions: requestOptions),
-      );
+      when(
+        mockDio.get('/api/user/terms'),
+      ).thenThrow(DioException(requestOptions: requestOptions));
 
       // Act & Assert
-      expect(
-        () => termsService.requestTermsList(),
-        throwsException,
-      );
+      expect(() => termsService.requestTermsList(), throwsException);
     });
   });
 
@@ -120,7 +111,9 @@ void main() {
         (_) async => Response(
           data: responseData,
           statusCode: 200,
-          requestOptions: RequestOptions(path: '/api/user/terms/version/$termId'),
+          requestOptions: RequestOptions(
+            path: '/api/user/terms/version/$termId',
+          ),
         ),
       );
 
@@ -144,30 +137,28 @@ void main() {
         (_) async => Response(
           data: {},
           statusCode: 404,
-          requestOptions: RequestOptions(path: '/api/user/terms/version/$termId'),
+          requestOptions: RequestOptions(
+            path: '/api/user/terms/version/$termId',
+          ),
         ),
       );
 
       // Act & Assert
-      expect(
-        () => termsService.requestTermsDetail(termId),
-        throwsException,
-      );
+      expect(() => termsService.requestTermsDetail(termId), throwsException);
     });
 
     test('실패: Dio 예외 발생 시 예외를 전파해야 함', () async {
       // Arrange
       const termId = 1;
-      final requestOptions = RequestOptions(path: '/api/user/terms/version/$termId');
-      when(mockDio.get('/api/user/terms/version/$termId')).thenThrow(
-        DioException(requestOptions: requestOptions),
+      final requestOptions = RequestOptions(
+        path: '/api/user/terms/version/$termId',
       );
+      when(
+        mockDio.get('/api/user/terms/version/$termId'),
+      ).thenThrow(DioException(requestOptions: requestOptions));
 
       // Act & Assert
-      expect(
-        () => termsService.requestTermsDetail(termId),
-        throwsException,
-      );
+      expect(() => termsService.requestTermsDetail(termId), throwsException);
     });
   });
 }
