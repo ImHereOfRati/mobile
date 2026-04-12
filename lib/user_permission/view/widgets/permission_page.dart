@@ -1,23 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/user_permission/model/permission_item.dart';
-import 'package:iamhere/user_permission/view_model/user_permission_view_model.dart';
 
-class PermissionPage extends ConsumerWidget {
-  final int pageIndex;
+class PermissionPage extends StatelessWidget {
   final PermissionItem item;
   final VoidCallback onNext;
 
   const PermissionPage({
     super.key,
-    required this.pageIndex,
     required this.item,
     required this.onNext,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Column(
@@ -27,7 +23,7 @@ class PermissionPage extends ConsumerWidget {
           _buildHeader(),
           SizedBox(height: 28.h),
           Expanded(child: _buildDescription()),
-          _buildButtons(context, ref),
+          _buildButtons(context),
           SizedBox(height: 32.h),
         ],
       ),
@@ -162,65 +158,29 @@ class PermissionPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildButtons(BuildContext context, WidgetRef ref) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          height: 50.h,
-          child: ElevatedButton(
-            onPressed: () async {
-              await ref
-                  .read(userPermissionViewModelProvider.notifier)
-                  .requestPermission(pageIndex - 1);
-              onNext();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0071E3),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-            ),
-            child: Text(
-              '허용하기',
-              style: TextStyle(
-                fontFamily: 'BMHANNAAir',
-                fontSize: 17.sp,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.374,
-              ),
-            ),
+  Widget _buildButtons(BuildContext context) {
+    return SizedBox(
+      height: 50.h,
+      child: ElevatedButton(
+        onPressed: onNext,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF0071E3),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.r),
           ),
         ),
-        SizedBox(height: 12.h),
-        Center(
-          child: TextButton(
-            onPressed: item.isRequired
-                ? () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('원활한 서비스 이용을 위해 필수 권한입니다.'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    )
-                : onNext,
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF6E6E73),
-            ),
-            child: Text(
-              item.isRequired ? '건너뛰기 (권장하지 않음)' : '나중에',
-              style: TextStyle(
-                fontFamily: 'BMHANNAAir',
-                fontSize: 14.sp,
-                letterSpacing: -0.224,
-                decoration: TextDecoration.underline,
-                decorationColor: const Color(0xFF6E6E73),
-              ),
-            ),
+        child: Text(
+          '다음',
+          style: TextStyle(
+            fontFamily: 'BMHANNAAir',
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.374,
           ),
         ),
-      ],
+      ),
     );
   }
 }

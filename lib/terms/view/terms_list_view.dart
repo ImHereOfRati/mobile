@@ -249,7 +249,7 @@ class TermsListView extends ConsumerWidget {
             height: 50.h,
             child: ElevatedButton(
               onPressed: allAgreed
-                  ? () => AppRoutes.goToGeofence(context)
+                  ? () => AppRoutes.goToUserPermission(context)
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: allAgreed

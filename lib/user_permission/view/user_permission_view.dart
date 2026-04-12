@@ -27,7 +27,7 @@ class _UserPermissionViewState extends ConsumerState<UserPermissionView> {
   }
 
   void _onFinish() {
-    AppRoutes.goToAuth(context);
+    AppRoutes.goToGeofence(context);
   }
 
   @override
@@ -75,7 +75,6 @@ class _UserPermissionViewState extends ConsumerState<UserPermissionView> {
                         return FinishPage(onFinish: _onFinish);
                       }
                       return PermissionPage(
-                        pageIndex: _currentPage,
                         item: permissionItems[index - 1],
                         onNext: _nextPage,
                       );
