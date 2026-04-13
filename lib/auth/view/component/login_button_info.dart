@@ -18,7 +18,7 @@ class LoginButtonInfo {
 class LoginInfoData {
   static const kakao = LoginButtonInfo(
     backgroundColor: Color(0xFFFEE500),
-    description: "Kakao 로그인",
-    assetAddress: "assets/images/kakaotalk_ballon.png",
+    description: '카카오 로그인',
+    assetAddress: 'assets/images/kakaotalk_ballon.png',
   );
 }

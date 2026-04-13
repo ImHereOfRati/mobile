@@ -100,7 +100,7 @@ class _AuthViewState extends ConsumerState<AuthView> {
         fontFamily: 'GmarketSans',
         fontSize: 52.sp,
         fontWeight: FontWeight.w700,
-        color: _cs.onSurface,
+        color: _cs.primary,
         letterSpacing: -0.5,
         height: 1.07,
       ),
@@ -109,7 +109,7 @@ class _AuthViewState extends ConsumerState<AuthView> {
 
   Widget _buildHeroSubtitle() {
     return Text(
-      '정해진 장소를 지나면\n친구에게 자동으로 문자를 보내드릴게요.',
+      '정해진 장소를 지나면\n친구에게 자동으로 연락을 보내드릴게요.',
       style: TextStyle(
         fontFamily: 'BMHANNAAir',
         fontSize: 17.sp,
@@ -145,7 +145,7 @@ class _AuthViewState extends ConsumerState<AuthView> {
       '앱 사용에 필요한 권한',
       style: TextStyle(
         fontFamily: 'BMHANNAAir',
-        fontSize: 12.sp,
+        fontSize: 14.sp,
         color: _cs.onSurface.withValues(alpha: 0.5),
         letterSpacing: -0.12,
       ),
@@ -218,7 +218,7 @@ class _AuthViewState extends ConsumerState<AuthView> {
         '내 위치는 기기 안에서만 처리돼요.\n외부 서버로는 전송되지 않아요.',
         style: TextStyle(
           fontFamily: 'BMHANNAAir',
-          fontSize: 13.sp,
+          fontSize: 14.sp,
           color: _cs.onSurface.withValues(alpha: 0.85),
           letterSpacing: -0.2,
           height: 1.55,

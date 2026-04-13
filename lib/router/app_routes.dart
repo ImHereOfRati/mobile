@@ -19,6 +19,7 @@ class AppRoutes {
   static const String geofence = '/geofence';
   static const String geofenceEnroll = '/geofence/enroll';
   static const String contact = '/contact';
+  static const String contactAdd = '/contact/add';
   static const String record = '/record';
   static const String setting = '/setting';
 
@@ -36,6 +37,7 @@ class AppRoutes {
   static void goToAuth(BuildContext context) => context.go(auth);
   static void goToTermsConsent(BuildContext context) =>
       context.go(termsConsent);
+  static void goToContactAdd(BuildContext context) => context.push(contactAdd);
   static void goToGeofence(BuildContext context) => context.go(geofence);
   static void pushTermsDetail(BuildContext context, int termDefinitionId) =>
       context.push(termsDetail(termDefinitionId));

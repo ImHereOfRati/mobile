@@ -5,6 +5,7 @@ import 'package:iamhere/auth/view/component/login_button_info.dart';
 class LoginButton extends StatelessWidget {
   final LoginButtonInfo buttonInfo;
   final VoidCallback onPressed;
+
   const LoginButton({
     super.key,
     required this.buttonInfo,
@@ -13,66 +14,42 @@ class LoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color borderColor = borderColorSelector();
-
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: buildLoginButtonStyle(borderColor),
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            loginButtonIcon(),
-            SizedBox(width: 20.w),
-            providerDescription(context),
-            SizedBox(width: 5.w),
-          ],
+    return SizedBox(
+      width: double.infinity,
+      height: 54.h,
+      child: Material(
+        color: buttonInfo.backgroundColor,
+        borderRadius: BorderRadius.circular(12.r),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12.r),
+          splashColor: Colors.black.withValues(alpha: 0.06),
+          highlightColor: Colors.black.withValues(alpha: 0.04),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                buttonInfo.assetAddress,
+                width: 22.r,
+                height: 22.r,
+                fit: BoxFit.contain,
+              ),
+              Padding(padding: EdgeInsets.all(8.0)),
+              Text(
+                buttonInfo.description,
+                style: TextStyle(
+                  fontFamily: 'GmarketSans',
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF191919),
+                  letterSpacing: -0.3,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  Image loginButtonIcon() {
-    return Image.asset(buttonInfo.assetAddress, width: 30.w, height: 30.h);
-  }
-
-  Text providerDescription(BuildContext context) {
-    return Text(
-      buttonInfo.description,
-      style: Theme.of(
-        context,
-      ).textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
-    );
-  }
-
-  ButtonStyle buildLoginButtonStyle(Color borderColor) {
-    final width = 350.w;
-    final height = 50.h;
-
-    return ElevatedButton.styleFrom(
-      minimumSize: Size(width, height), // 최소 크기도 38.4로 설정
-      maximumSize: Size(width, height),
-      padding: EdgeInsets.zero,
-      elevation: 0,
-      backgroundColor: buttonInfo.backgroundColor,
-
-      shape: buildRoundedRectangleBorder(borderColor),
-    );
-  }
-
-  RoundedRectangleBorder buildRoundedRectangleBorder(Color borderColor) {
-    return RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(35.0),
-      side: BorderSide(
-        color: borderColor,
-        width: buttonInfo.border ? 1.0 : 0.0,
-      ),
-    );
-  }
-
-  Color borderColorSelector() {
-    return buttonInfo.border
-        ? Colors.grey.shade400
-        : buttonInfo.backgroundColor;
   }
 }

@@ -1,23 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
-import 'package:iamhere/terms/service/terms_list_request_service.dart';
-import 'package:iamhere/terms/service/terms_version_response.dart';
+import 'package:iamhere/shared/base/api_response/api_response.dart';
+import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
+import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
+import 'package:iamhere/terms/service/dto/terms_version_response_dto.dart';
+import 'package:iamhere/terms/service/terms_request_service.dart';
 import 'package:iamhere/terms/view/terms_detail_view.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import 'terms_detail_view_test.mocks.dart';
 
-@GenerateMocks([TermsListRequestService])
+@GenerateMocks([TermsRequestService])
 void main() {
-  late MockTermsListRequestService mockTermsService;
+  late MockTermsRequestService mockTermsService;
 
   setUp(() async {
-    mockTermsService = MockTermsListRequestService();
+    mockTermsService = MockTermsRequestService();
     await GetIt.instance.reset();
-    GetIt.instance.registerSingleton<TermsListRequestService>(mockTermsService);
+    GetIt.instance.registerSingleton<TermsRequestService>(mockTermsService);
   });
 
   tearDown(() async {
@@ -29,6 +34,9 @@ void main() {
       designSize: const Size(402, 874),
       builder: (context, child) {
         return MaterialApp(
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: ThemeMode.system,
           home: TermsDetailView(termDefinitionId: termDefinitionId),
         );
       },
@@ -36,18 +44,22 @@ void main() {
   }
 
   group('TermsDetailView Widget Tests', () {
-    testWidgets('TermsDetailView 생성 테스트',
-        (WidgetTester tester) async {
+    testWidgets('TermsDetailView 생성 테스트', (WidgetTester tester) async {
       // Arrange
-      final termContent = TermsVersionResponse(
+      final termDto = TermsVersionResponseDto(
         version: '1.0',
         content: '테스트 약관 내용',
         effectiveDate: DateTime(2024, 1, 1),
       );
-
-      when(mockTermsService.requestTermsDetail(1)).thenAnswer(
-        (_) async => termContent,
+      final apiResponse = APIResponse<TermsVersionResponseDto>(
+        code: 200,
+        message: 'OK',
+        data: termDto,
       );
+
+      when(
+        mockTermsService.requestTermsDetail(1),
+      ).thenAnswer((_) async => apiResponse);
 
       // Act
       tester.view.physicalSize = const Size(1080, 2400);
@@ -60,6 +72,70 @@ void main() {
       // Assert - 위젯이 생성되어야 함
       expect(find.byType(TermsDetailView), findsOneWidget);
     });
+
+    testWidgets('로딩 중 CircularProgressIndicator 표시 테스트',
+        (WidgetTester tester) async {
+      // Arrange — Completer를 사용해 영구적으로 pending 상태 유지 (타이머 없음)
+      final completer = Completer<APIResponse<TermsVersionResponseDto>>();
+
+      when(mockTermsService.requestTermsDetail(1))
+          .thenAnswer((_) => completer.future);
+
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(1));
+      await tester.pump();
+
+      // Assert
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // 테스트 종료 전 completer를 완료시켜 pending future 해제
+      completer.complete(
+        APIResponse(
+          code: 200,
+          message: 'OK',
+          data: TermsVersionResponseDto(
+            version: '1.0',
+            content: '내용',
+            effectiveDate: DateTime(2024),
+          ),
+        ),
+      );
+    });
+
+    testWidgets('약관 내용 렌더링 테스트', (WidgetTester tester) async {
+      // Arrange
+      const content = '제1조 (목적) 본 약관은...';
+      final termDto = TermsVersionResponseDto(
+        version: '1.0',
+        content: content,
+        effectiveDate: DateTime(2024, 1, 1),
+      );
+      final apiResponse = APIResponse<TermsVersionResponseDto>(
+        code: 200,
+        message: 'OK',
+        data: termDto,
+      );
+
+      when(mockTermsService.requestTermsDetail(1))
+          .thenAnswer((_) async => apiResponse);
+
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(1));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text(content), findsOneWidget);
+    });
   });
 
   group('TermsVersionResponse Unit Tests', () {
@@ -70,7 +146,7 @@ void main() {
       const content = '[약관 내용]';
 
       // Act
-      final response = TermsVersionResponse(
+      final response = TermsVersionResponseDto(
         version: version,
         content: content,
         effectiveDate: effectiveDate,
@@ -84,7 +160,7 @@ void main() {
 
     test('TermsVersionResponse JSON 직렬화 테스트', () {
       // Arrange
-      final response = TermsVersionResponse(
+      final response = TermsVersionResponseDto(
         version: '1.0',
         content: '약관 내용',
         effectiveDate: DateTime(2024, 1, 1),
@@ -108,7 +184,7 @@ void main() {
       };
 
       // Act
-      final response = TermsVersionResponse.fromJson(json);
+      final response = TermsVersionResponseDto.fromJson(json);
 
       // Assert
       expect(response.version, '2.0');

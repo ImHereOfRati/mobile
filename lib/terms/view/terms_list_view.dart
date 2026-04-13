@@ -15,75 +15,124 @@ class TermsListView extends ConsumerWidget {
     final termsAsync = ref.watch(termsListViewModelProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F5F7),
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          '약관 동의',
-          style: TextStyle(
-            fontFamily: 'GmarketSans',
-            fontSize: 17.sp,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF1D1D1F),
-            letterSpacing: -0.374,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: termsAsync.when(
+          loading: () => Center(
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
+          error: (_, __) => _buildErrorState(context, ref),
+          data: (terms) => _buildBody(context, ref, terms),
         ),
-      ),
-      body: termsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF0071E3)),
-        ),
-        error: (_, __) => _buildErrorState(ref),
-        data: (terms) => _buildContent(context, ref, terms),
       ),
     );
   }
 
-  Widget _buildErrorState(WidgetRef ref) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(24.r),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    List<TermsListRequestDto> terms,
+  ) {
+    final termIds = terms.map((t) => t.termDefinitionId).toList();
+    final requiredIds = terms
+        .where((t) => t.isRequired)
+        .map((t) => t.termDefinitionId)
+        .toList();
+
+    final agreedMap = ref.watch(termsAgreementProvider);
+    final isAllAgreed = agreedMap.length == terms.length && terms.isNotEmpty;
+    final allRequiredAgreed = ref.watch(
+      allRequiredTermsAgreedProvider(requiredIds),
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            children: [
+              SizedBox(height: 52.h),
+              _buildHeader(context),
+              SizedBox(height: 40.h),
+              _buildAllAgreeBox(context, ref, termIds, isAllAgreed),
+              SizedBox(height: 24.h),
+              ...terms.map((term) => _buildTermItem(context, ref, term)),
+            ],
+          ),
+        ),
+        _buildBottomAction(context, ref, allRequiredAgreed),
+      ],
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Text(
+          'Imhere',
+          style: TextStyle(
+            fontFamily: 'GmarketSans',
+            fontSize: 42.sp,
+            fontWeight: FontWeight.w900,
+            color: cs.primary,
+            letterSpacing: -1.0,
+          ),
+        ),
+        SizedBox(height: 24.h),
+        Text(
+          '환영합니다!',
+          style: TextStyle(
+            fontFamily: 'GmarketSans',
+            fontSize: 22.sp,
+            fontWeight: FontWeight.w700,
+            color: cs.onSurface,
+          ),
+        ),
+        SizedBox(height: 12.h),
+        Text(
+          '서비스를 시작하기 위해\n약관 동의가 필요해요',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'BMHANNAAir',
+            fontSize: 15.sp,
+            color: cs.onSurface.withValues(alpha: 0.55),
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAllAgreeBox(
+    BuildContext context,
+    WidgetRef ref,
+    List<int> allIds,
+    bool isAllAgreed,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () => ref.read(termsAgreementProvider.notifier).toggleAll(allIds),
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).dividerColor, width: 1.2),
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        child: Row(
           children: [
-            const Icon(
-              Icons.wifi_off_rounded,
-              size: 56,
-              color: Color(0xFF6E6E73),
-            ),
-            SizedBox(height: 20.h),
+            _buildCircleCheckbox(context, isAllAgreed, isMain: true),
+            SizedBox(width: 14.w),
             Text(
-              '약관을 불러올 수 없습니다',
-              style: TextStyle(
-                fontFamily: 'GmarketSans',
-                fontSize: 20.sp,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1D1D1F),
-                letterSpacing: -0.3,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              '네트워크 연결을 확인하고 다시 시도해주세요',
-              textAlign: TextAlign.center,
+              '전체 동의',
               style: TextStyle(
                 fontFamily: 'BMHANNAAir',
-                fontSize: 14.sp,
-                color: const Color(0xFF6E6E73),
-                letterSpacing: -0.224,
-              ),
-            ),
-            SizedBox(height: 28.h),
-            TextButton(
-              onPressed: () => ref.invalidate(termsListViewModelProvider),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF0071E3),
-              ),
-              child: Text(
-                '다시 시도 →',
-                style: TextStyle(fontSize: 14.sp, letterSpacing: -0.2),
+                fontSize: 17.sp,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
               ),
             ),
           ],
@@ -92,173 +141,119 @@ class TermsListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    WidgetRef ref,
-    List<TermsListRequestDto> terms,
-  ) {
-    final requiredIds = terms
-        .where((t) => t.isRequired)
-        .map((t) => t.termDefinitionId)
-        .toList();
-    final allAgreed = ref.watch(allRequiredTermsAgreedProvider(requiredIds));
-
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
-            itemCount: terms.length,
-            itemBuilder: (_, i) => _buildTermCard(context, ref, terms[i]),
-          ),
-        ),
-        _buildActionArea(context, ref, allAgreed),
-      ],
-    );
-  }
-
-  Widget _buildTermCard(
+  Widget _buildTermItem(
     BuildContext context,
     WidgetRef ref,
     TermsListRequestDto term,
   ) {
+    final cs = Theme.of(context).colorScheme;
     final isAgreed = ref.watch(
       termsAgreementProvider.select((m) => m[term.termDefinitionId] ?? false),
     );
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
-      child: GestureDetector(
-        onTap: () => ref
-            .read(termsAgreementProvider.notifier)
-            .toggleAgreement(term.termDefinitionId),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12.r),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => ref
+                .read(termsAgreementProvider.notifier)
+                .toggleAgreement(term.termDefinitionId),
+            child: _buildCircleCheckbox(context, isAgreed),
           ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          SizedBox(width: 12.w),
+          Expanded(
             child: Row(
               children: [
-                // Checkbox
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 22.r,
-                  height: 22.r,
-                  decoration: BoxDecoration(
-                    color: isAgreed
-                        ? const Color(0xFF0071E3)
-                        : Colors.transparent,
-                    border: Border.all(
-                      color: isAgreed
-                          ? const Color(0xFF0071E3)
-                          : const Color(0xFFD2D2D7),
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(5.r),
-                  ),
-                  child: isAgreed
-                      ? Icon(Icons.check, size: 14.r, color: Colors.white)
-                      : null,
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Text(
-                    term.title,
-                    style: TextStyle(
-                      fontFamily: 'BMHANNAAir',
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1D1D1F),
-                      letterSpacing: -0.3,
-                    ),
+                Text(
+                  term.isRequired ? '[필수] ' : '[선택] ',
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: term.isRequired
+                        ? cs.primary
+                        : cs.onSurface.withValues(alpha: 0.45),
                   ),
                 ),
-                if (term.isRequired)
-                  Container(
-                    margin: EdgeInsets.only(right: 8.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 3.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0071E3).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(980.r),
-                    ),
-                    child: Text(
-                      '필수',
-                      style: TextStyle(
-                        fontFamily: 'BMHANNAAir',
-                        fontSize: 11.sp,
-                        color: const Color(0xFF0071E3),
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.1,
-                      ),
-                    ),
-                  ),
-                GestureDetector(
-                  onTap: () =>
-                      AppRoutes.pushTermsDetail(context, term.termDefinitionId),
-                  child: const Icon(
-                    Icons.chevron_right,
-                    color: Color(0xFFD2D2D7),
-                    size: 20,
+                Text(
+                  term.title,
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w500,
+                    color: cs.onSurface,
                   ),
                 ),
               ],
             ),
           ),
-        ),
+          IconButton(
+            onPressed: () =>
+                AppRoutes.pushTermsDetail(context, term.termDefinitionId),
+            icon: Icon(
+              Icons.chevron_right,
+              color: Theme.of(context).dividerColor,
+              size: 20,
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildActionArea(BuildContext context, WidgetRef ref, bool allAgreed) {
+  Widget _buildCircleCheckbox(
+    BuildContext context,
+    bool isChecked, {
+    bool isMain = false,
+  }) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 32.h),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFD2D2D7), width: 0.5)),
+      width: isMain ? 24.r : 22.r,
+      height: isMain ? 24.r : 22.r,
+      decoration: BoxDecoration(
+        color: isChecked ? cs.primary : Colors.transparent,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isChecked ? cs.primary : Theme.of(context).dividerColor,
+          width: 1.5,
+        ),
       ),
+      child: isChecked
+          ? Icon(Icons.check, size: 14.r, color: cs.onPrimary)
+          : null,
+    );
+  }
+
+  Widget _buildBottomAction(
+    BuildContext context,
+    WidgetRef ref,
+    bool allRequiredAgreed,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 32.h),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!allAgreed)
-            Padding(
-              padding: EdgeInsets.only(bottom: 10.h),
-              child: Text(
-                '모든 필수 약관에 동의해주세요',
-                style: TextStyle(
-                  fontFamily: 'BMHANNAAir',
-                  fontSize: 12.sp,
-                  color: const Color(0xFFFF3B30),
-                  letterSpacing: -0.12,
-                ),
-              ),
-            ),
           SizedBox(
             width: double.infinity,
-            height: 50.h,
+            height: 56.h,
             child: ElevatedButton(
-              onPressed: allAgreed
-                  ? () => AppRoutes.goToUserPermission(context)
+              onPressed: allRequiredAgreed
+                  ? () => AppRoutes.goToGeofence(context)
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: allAgreed
-                    ? const Color(0xFF1D1D1F)
-                    : const Color(0xFFD2D2D7),
-                foregroundColor: Colors.white,
+                backgroundColor: allRequiredAgreed
+                    ? cs.primary
+                    : cs.onSurface.withValues(alpha: 0.08),
+                foregroundColor: cs.onPrimary,
+                disabledBackgroundColor: cs.onSurface.withValues(alpha: 0.08),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(16.r),
                 ),
               ),
               child: Text(
@@ -266,11 +261,51 @@ class TermsListView extends ConsumerWidget {
                 style: TextStyle(
                   fontFamily: 'BMHANNAAir',
                   fontSize: 17.sp,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.374,
+                  fontWeight: FontWeight.w700,
+                  color: allRequiredAgreed
+                      ? cs.onPrimary
+                      : cs.onSurface.withValues(alpha: 0.3),
                 ),
               ),
             ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            '선택 항목은 동의하지 않아도 이용 가능해요',
+            style: TextStyle(
+              fontFamily: 'BMHANNAAir',
+              fontSize: 13.sp,
+              color: cs.onSurface.withValues(alpha: 0.45),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 48,
+            color: Theme.of(context).dividerColor,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            '약관 정보를 불러오지 못했습니다.',
+            style: TextStyle(
+              fontFamily: 'BMHANNAAir',
+              fontSize: 15.sp,
+              color: cs.onSurface,
+            ),
+          ),
+          TextButton(
+            onPressed: () => ref.invalidate(termsListViewModelProvider),
+            child: const Text('다시 시도'),
           ),
         ],
       ),

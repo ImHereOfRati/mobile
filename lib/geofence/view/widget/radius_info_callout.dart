@@ -3,35 +3,30 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class RadiusInfoCallout extends StatelessWidget {
   final String message;
-  final IconData icon;
 
-  const RadiusInfoCallout({
-    super.key,
-    required this.message,
-    this.icon = Icons.info_outline,
-  });
+  const RadiusInfoCallout({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20.sp),
-          SizedBox(width: 12.w),
-          Expanded(child: Text(message, style: _infoTextStyle())),
-        ],
+      decoration: BoxDecoration(
+        color: cs.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border(
+          left: BorderSide(color: cs.primary, width: 3.w),
+        ),
       ),
-    );
-  }
-
-  TextStyle _infoTextStyle() {
-    return TextStyle(
-      fontSize: 14.sp,
-      color: Color(0xFF2C3E50),
-      height: 1.4,
-      fontWeight: FontWeight.bold,
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      child: Text(
+        message,
+        style: TextStyle(
+          fontFamily: 'BMHANNAAir',
+          fontSize: 13.sp,
+          color: cs.onSurface.withValues(alpha: 0.65),
+          height: 1.4,
+        ),
+      ),
     );
   }
 }

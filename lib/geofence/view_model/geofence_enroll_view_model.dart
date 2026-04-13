@@ -13,13 +13,15 @@ class GeofenceEnrollFormState {
   final String radius;
   final List<Contact> selectedRecipients;
   final String message;
+  final bool isActive;
 
   GeofenceEnrollFormState({
     this.name = '',
     this.selectedLocation,
-    this.radius = '',
+    this.radius = '500',
     this.selectedRecipients = const [],
-    this.message = '',
+    this.message = '안녕하세요! {location}에 도착했습니다.',
+    this.isActive = true,
   });
 
   /// 현재 선택된 반경에 대한 안내 메시지
@@ -35,6 +37,7 @@ class GeofenceEnrollFormState {
     String? radius,
     List<Contact>? selectedRecipients,
     String? message,
+    bool? isActive,
   }) {
     return GeofenceEnrollFormState(
       name: name ?? this.name,
@@ -42,6 +45,7 @@ class GeofenceEnrollFormState {
       radius: radius ?? this.radius,
       selectedRecipients: selectedRecipients ?? this.selectedRecipients,
       message: message ?? this.message,
+      isActive: isActive ?? this.isActive,
     );
   }
 }
@@ -78,6 +82,11 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
     state = state.copyWith(message: message);
   }
 
+  /// 활성화 상태 업데이트
+  void updateIsActive(bool isActive) {
+    state = state.copyWith(isActive: isActive);
+  }
+
   /// 폼 초기화
   void resetForm() {
     state = GeofenceEnrollFormState();
@@ -107,7 +116,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
     final vmInterface = ref.read(geofenceViewModelInterfaceProvider);
     final radius = double.parse(state.radius.trim());
 
-    await vmInterface.saveGeofence(
+    final saved = await vmInterface.saveGeofence(
       name: state.name.trim(),
       lat: state.selectedLocation!.latitude,
       lng: state.selectedLocation!.longitude,
@@ -115,6 +124,11 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
       message: state.message.trim(),
       contactIds: contactIds,
     );
+
+    // 활성화 상태가 true면 토글 적용 (기본 저장값은 false)
+    if (state.isActive && saved.id != null) {
+      await vmInterface.toggleGeofenceActive(saved.id!, true);
+    }
   }
 }
 

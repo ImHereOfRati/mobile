@@ -6,7 +6,7 @@ part 'theme_mode_provider.g.dart';
 @Riverpod(keepAlive: true)
 class AppThemeMode extends _$AppThemeMode {
   @override
-  ThemeMode build() => ThemeMode.light;
+  ThemeMode build() => ThemeMode.system;
 
   void setLight() => state = ThemeMode.light;
   void setDark() => state = ThemeMode.dark;

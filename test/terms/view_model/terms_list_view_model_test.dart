@@ -2,25 +2,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/service/dto/terms_type.dart';
-import 'package:iamhere/terms/service/terms_list_request_service.dart';
+import 'package:iamhere/terms/service/terms_request_service.dart';
 import 'package:iamhere/terms/view_model/terms_list_view_model.dart';
 import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 
 import 'terms_list_view_model_test.mocks.dart';
 
-@GenerateMocks([TermsListRequestService])
+@GenerateMocks([TermsRequestService])
 void main() {
   group('TermsListViewModel', () {
     late ProviderContainer container;
-    late MockTermsListRequestService mockTermsService;
+    late MockTermsRequestService mockTermsService;
 
     setUp(() {
-      mockTermsService = MockTermsListRequestService();
+      mockTermsService = MockTermsRequestService();
       container = ProviderContainer(
         overrides: [
-          // This is a simple approach, but TermsListViewModel uses GetIt
-          // For proper testing, we'd need to override the GetIt instance
+          // Note: Full TermsListViewModel testing requires GetIt mocking
+          // This is a basic structure test
         ],
       );
     });
@@ -31,8 +30,11 @@ void main() {
 
     test('TermsListViewModel이 생성되어야 함', () {
       // Note: Full TermsListViewModel testing requires GetIt mocking
-      // This is a basic structure test
       expect(termsListViewModelProvider, isNotNull);
+    });
+
+    test('MockTermsRequestService가 올바르게 생성되어야 함', () {
+      expect(mockTermsService, isNotNull);
     });
   });
 
@@ -61,15 +63,11 @@ void main() {
       ];
 
       // Act
-      final requiredTerms =
-          testTerms.where((term) => term.isRequired).toList();
+      final requiredTerms = testTerms.where((term) => term.isRequired).toList();
 
       // Assert
       expect(requiredTerms, hasLength(2));
-      expect(
-        requiredTerms.every((term) => term.isRequired),
-        true,
-      );
+      expect(requiredTerms.every((term) => term.isRequired), true);
     });
 
     test('TermsListRequestDto JSON serialization test', () {

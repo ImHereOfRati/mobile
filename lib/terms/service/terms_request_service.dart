@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:iamhere/shared/base/api_response/api_response.dart';
 import 'package:iamhere/shared/infrastructure/dio/api_config.dart';
 import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
-import 'package:iamhere/terms/service/terms_version_response.dart';
+import 'package:iamhere/terms/service/dto/terms_version_response_dto.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
-class TermsListRequestService {
+class TermsRequestService {
   final Dio _dio;
 
-  TermsListRequestService(this._dio);
+  TermsRequestService(this._dio);
 
   Future<APIResponse<PageResponse<TermsListRequestDto>>>
   requestTermsList() async {
@@ -38,13 +38,19 @@ class TermsListRequestService {
     }
   }
 
-  Future<TermsVersionResponse> requestTermsDetail(int termDefinitionId) async {
+  Future<APIResponse<TermsVersionResponseDto>> requestTermsDetail(
+    int termDefinitionId,
+  ) async {
     try {
-      final path = ApiConfig.termsVersionPath(termDefinitionId);
+      final path = ApiConfig.termsVersionPath(termDefinitionId.toString());
       final response = await _dio.get(path);
 
       if (response.statusCode == 200) {
-        return TermsVersionResponse.fromJson(response.data);
+        return APIResponse<TermsVersionResponseDto>.fromJson(
+          response.data,
+          (json) =>
+              TermsVersionResponseDto.fromJson(json as Map<String, dynamic>),
+        );
       }
 
       throw Exception("상세 조회 실패 (ID: $termDefinitionId)");

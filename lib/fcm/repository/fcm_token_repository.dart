@@ -19,6 +19,7 @@ class FcmTokenRepository {
       final response = await _dio.post(
         ApiConfig.fcmEnrollPath,
         data: request.toJson(),
+        options: ApiConfig.authOptions,
       );
 
       if (response.statusCode == 200) {

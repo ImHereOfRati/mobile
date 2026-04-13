@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/terms/service/dto/terms_type.dart';
-import 'package:iamhere/terms/service/terms_list_request_service.dart';
+import 'package:iamhere/terms/service/terms_request_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -9,12 +9,12 @@ import 'terms_list_request_service_test.mocks.dart';
 
 @GenerateMocks([Dio])
 void main() {
-  late TermsListRequestService termsService;
+  late TermsRequestService termsService;
   late MockDio mockDio;
 
   setUp(() {
     mockDio = MockDio();
-    termsService = TermsListRequestService(mockDio);
+    termsService = TermsRequestService(mockDio);
   });
 
   group('TermsListRequestService - requestTermsList', () {
@@ -102,9 +102,13 @@ void main() {
       // Arrange
       const termId = 1;
       final responseData = {
-        'version': '1.0',
-        'content': '[서비스 이용약관]\n\n제1조 목적...',
-        'effectiveDate': '2024-01-01T00:00:00Z',
+        'code': 200,
+        'message': 'OK',
+        'data': {
+          'version': 'v1.0',
+          'content': '[서비스 이용약관]\n\n제1조 목적...',
+          'effectiveDate': '2024-01-01T00:00:00',
+        },
       };
 
       when(mockDio.get('/api/user/terms/version/$termId')).thenAnswer(
@@ -121,11 +125,11 @@ void main() {
       final result = await termsService.requestTermsDetail(termId);
 
       // Assert
-      expect(result.version, '1.0');
-      expect(result.content, contains('서비스 이용약관'));
-      expect(result.effectiveDate.year, 2024);
-      expect(result.effectiveDate.month, 1);
-      expect(result.effectiveDate.day, 1);
+      expect(result.data.version, 'v1.0');
+      expect(result.data.content, contains('서비스 이용약관'));
+      expect(result.data.effectiveDate.year, 2024);
+      expect(result.data.effectiveDate.month, 1);
+      expect(result.data.effectiveDate.day, 1);
 
       verify(mockDio.get('/api/user/terms/version/$termId')).called(1);
     });

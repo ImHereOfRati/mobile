@@ -3,24 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
+import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/service/dto/terms_type.dart';
-import 'package:iamhere/terms/service/terms_list_request_service.dart';
+import 'package:iamhere/terms/service/terms_request_service.dart';
 import 'package:iamhere/terms/view/terms_list_view.dart';
-import 'package:iamhere/terms/view_model/terms_list_view_model.dart';
 import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 
 import 'terms_list_view_test.mocks.dart';
 
-@GenerateMocks([TermsListRequestService])
+@GenerateMocks([TermsRequestService])
 void main() {
-  late MockTermsListRequestService mockTermsService;
+  late MockTermsRequestService mockTermsService;
 
   setUp(() async {
-    mockTermsService = MockTermsListRequestService();
+    mockTermsService = MockTermsRequestService();
     await GetIt.instance.reset();
-    GetIt.instance.registerSingleton<TermsListRequestService>(mockTermsService);
+    GetIt.instance.registerSingleton<TermsRequestService>(mockTermsService);
   });
 
   tearDown(() async {
@@ -32,8 +32,11 @@ void main() {
       child: ScreenUtilInit(
         designSize: const Size(402, 874),
         builder: (context, child) {
-          return const MaterialApp(
-            home: TermsListView(),
+          return MaterialApp(
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: ThemeMode.system,
+            home: const TermsListView(),
           );
         },
       ),
@@ -41,8 +44,7 @@ void main() {
   }
 
   group('TermsListView Widget Tests', () {
-    testWidgets('TermsListView 생성 테스트',
-        (WidgetTester tester) async {
+    testWidgets('TermsListView 생성 테스트', (WidgetTester tester) async {
       // Act
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 3.0;
@@ -82,22 +84,14 @@ void main() {
       ];
 
       // Act
-      final requiredTerms =
-          allTerms.where((term) => term.isRequired).toList();
-      final optionalTerms =
-          allTerms.where((term) => !term.isRequired).toList();
+      final requiredTerms = allTerms.where((term) => term.isRequired).toList();
+      final optionalTerms = allTerms.where((term) => !term.isRequired).toList();
 
       // Assert
       expect(requiredTerms, hasLength(2));
       expect(optionalTerms, hasLength(1));
-      expect(
-        requiredTerms.every((term) => term.isRequired),
-        true,
-      );
-      expect(
-        optionalTerms.every((term) => !term.isRequired),
-        true,
-      );
+      expect(requiredTerms.every((term) => term.isRequired), true);
+      expect(optionalTerms.every((term) => !term.isRequired), true);
     });
 
     test('약관 ID 추출 테스트', () {

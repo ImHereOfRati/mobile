@@ -20,6 +20,22 @@ class TermsAgreementNotifier extends _$TermsAgreementNotifier {
     state = Map.from(_agreedTerms);
   }
 
+  void toggleAll(List<int> allIds) {
+    bool isAllAgreed = true;
+    for (var id in allIds) {
+      if (!(state[id] ?? false)) {
+        isAllAgreed = false;
+        break;
+      }
+    }
+
+    if (isAllAgreed) {
+      state = {}; // 전체 해제
+    } else {
+      state = {for (var id in allIds) id: true}; // 전체 동의
+    }
+  }
+
   /// Check if a specific term is agreed
   bool isTermAgreed(int termDefinitionId) {
     return _agreedTerms[termDefinitionId] ?? false;

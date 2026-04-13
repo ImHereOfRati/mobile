@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/auth/view/auth_view.dart';
 import 'package:iamhere/auth/view_model/auth_view_model.dart';
+import 'package:iamhere/contact/view/add_friend_view.dart';
 import 'package:iamhere/contact/view/contact_view.dart';
 import 'package:iamhere/geofence/view/geofence_enroll_view.dart';
 import 'package:iamhere/geofence/view/geofence_view.dart';
@@ -11,20 +12,19 @@ import 'package:iamhere/shared/component/view_component/default_view.dart';
 import 'package:iamhere/shared/infrastructure/di/di_setup.dart';
 import 'package:iamhere/terms/view/terms_detail_view.dart';
 import 'package:iamhere/terms/view/terms_list_view.dart';
-import 'package:iamhere/user_permission/view/user_permission_view.dart';
 
 import 'custom_page_transition/buttom_up_transition.dart';
 import 'custom_page_transition/simple_transition.dart';
 
 final List<RouteBase> appRoutes = [
-  GoRoute(
-    path: AppRoutes.userPermission,
-    pageBuilder: (context, state) => buildPageWithSimpleTransition(
-      context: context,
-      state: state,
-      child: const UserPermissionView(),
-    ),
-  ),
+  // GoRoute(
+  //   path: AppRoutes.userPermission,
+  //   pageBuilder: (context, state) => buildPageWithSimpleTransition(
+  //     context: context,
+  //     state: state,
+  //     child: const UserPermissionView(),
+  //   ),
+  // ),
   GoRoute(
     path: AppRoutes.auth,
     builder: (context, state) => AuthView(getIt<AuthViewModel>()),
@@ -75,6 +75,16 @@ final List<RouteBase> appRoutes = [
           state: state,
           child: const ContactView(),
         ),
+        routes: [
+          GoRoute(
+            path: 'add',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: const AddFriendView(),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.record,
