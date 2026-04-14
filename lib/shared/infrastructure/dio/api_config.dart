@@ -58,32 +58,6 @@ class ApiConfig {
   /// POST — 다중 SMS 발송
   static const String smsSendMultiPath = '/api/notification/sms/send/multi';
 
-  // ── Admin (CS & Management) ─────────────────────────────────────
-  /// DELETE — 두 유저 간의 친구 관계 강제 삭제
-  static const String adminFriendClearPath = '/api/admin/friends';
-
-  /// DELETE — 특정 친구 요청 강제 삭제
-  static const String adminFriendRequestClearPath =
-      '/api/admin/friends/requests';
-
-  /// POST — 새로운 약관 종류 생성
-  static const String adminTermsDefinitionPath = '/api/admin/terms/definition';
-
-  /// POST — 약관 버전 신규 등록
-  static const String adminTermsVersionPath = '/api/admin/terms/version';
-
-  /// POST — 특정 유저 서비스 이용 차단
-  static String adminUserBlockPath(String email) =>
-      '/api/admin/users/$email/block';
-
-  /// DELETE — 유저 차단 해제
-  static String adminUserUnblockPath(String email) =>
-      '/api/admin/users/$email/block';
-
-  /// DELETE — 유저 강제 로그아웃 (토큰 무효화)
-  static String adminUserForceLogoutPath(String email) =>
-      '/api/admin/users/$email/token';
-
   // ── Options Helpers ─────────────────────────────────────────────
   /// 인증 토큰을 포함하지 않는 요청 (로그인, 재발급 등)
   static Options get publicOptions =>
