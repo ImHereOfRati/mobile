@@ -5,6 +5,7 @@ import 'package:iamhere/geofence/model/message_send_request.dart';
 import 'package:iamhere/geofence/model/multiple_message_send_request.dart';
 import 'package:iamhere/geofence/service/notification_service.dart';
 import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/shared/infrastructure/dio/api_config.dart';
 import 'package:injectable/injectable.dart';
 
 /// SMS sending service with proper dependency injection and error handling
@@ -13,16 +14,13 @@ class SmsService {
   final Dio _dio;
   final NotificationService _notificationService;
 
-  static const _sendSmsToSingleApiPath = '/api/v1/message/send';
-  static const _sendSmsToMultiApiPath = '/api/v1/message/multipleSend';
-
   SmsService(this._dio, this._notificationService);
 
   /// Send SMS to one or more recipients
   /// Returns Result<void> indicating success or failure
   Future<Result<void>> sendSms({
     required List<String> phoneNumbers,
-    required String message,
+    required String location,
   }) async {
     try {
       if (phoneNumbers.isEmpty) {
@@ -38,12 +36,12 @@ class SmsService {
       if (cleanPhoneNumbers.length == 1) {
         return await _sendSingleSms(
           phoneNumber: cleanPhoneNumbers[0],
-          message: message,
+          location: location,
         );
       } else {
         return await _sendMultiSms(
           phoneNumbers: cleanPhoneNumbers,
-          message: message,
+          location: location,
         );
       }
     } catch (e) {
@@ -63,13 +61,13 @@ class SmsService {
   /// Send SMS to a single recipient
   Future<Result<void>> _sendSingleSms({
     required String phoneNumber,
-    required String message,
+    required String location,
   }) async {
     try {
       final response = await _dio.post(
-        _sendSmsToSingleApiPath,
+        ApiConfig.smsArrivalPath,
         data: MessageSendRequest(
-          message: message,
+          location: location,
           receiverNumber: phoneNumber,
         ).toJson(),
       );
@@ -98,18 +96,18 @@ class SmsService {
   /// Send SMS to multiple recipients
   Future<Result<void>> _sendMultiSms({
     required List<String> phoneNumbers,
-    required String message,
+    required String location,
   }) async {
     try {
       final requests = phoneNumbers
           .map(
             (phone) =>
-                MessageSendRequest(message: message, receiverNumber: phone),
+                MessageSendRequest(location: location, receiverNumber: phone),
           )
           .toList();
 
       final response = await _dio.post(
-        _sendSmsToMultiApiPath,
+        ApiConfig.smsMultipleArrivalPath,
         data: MultipleMessageSendRequest(requests: requests).toJson(),
       );
 

@@ -47,6 +47,13 @@ class ApiConfig {
   /// POST — 목적지 도착 알림 발송 (특정 상대방 타겟)
   static const String fcmArrivalPath = '/api/notification/fcm/arrival';
 
+  /// POST - 문자 메시지 발송(단건)
+  static const String smsArrivalPath = '/api/notification/sms/send';
+
+  /// POST - 문자 메시지 발송(여러 건)
+  static const String smsMultipleArrivalPath =
+      '/api/notification/sms/send/multi';
+
   /// POST — 알림 정상 발송 결과 본인 통보용
   static const String fcmDeliveryResultPath =
       '/api/notification/fcm/delivery-result';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/contact/view/component/contact_tile.dart';
-import 'package:iamhere/contact/view_model/contact.dart';
-import 'package:iamhere/contact/view_model/contact_view_model.dart';
+import 'package:iamhere/friend/view/component/contact_tile.dart';
+import 'package:iamhere/friend/view_model/contact.dart';
+import 'package:iamhere/friend/view_model/contact_view_model.dart';
 import 'package:iamhere/router/app_routes.dart';
 
 class ContactView extends ConsumerStatefulWidget {
@@ -21,8 +21,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
     final contacts = contactsAsync.value ?? [];
 
     return contactsAsync.when(
-      loading: () =>
-          const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => Center(
         child: Text(
           '친구 목록 로드 실패',
@@ -52,19 +51,13 @@ class _ContactViewState extends ConsumerState<ContactView> {
         SliverToBoxAdapter(child: _buildTipCard(context)),
 
         // 내 친구 헤더
-        SliverToBoxAdapter(
-          child: _buildFriendHeader(context, contacts.length),
-        ),
+        SliverToBoxAdapter(child: _buildFriendHeader(context, contacts.length)),
 
         // 받은 친구 요청
-        SliverToBoxAdapter(
-          child: _buildFriendRequestRow(context),
-        ),
+        SliverToBoxAdapter(child: _buildFriendRequestRow(context)),
 
         // 새로운 친구 추가하기
-        SliverToBoxAdapter(
-          child: _buildAddFriendButton(context),
-        ),
+        SliverToBoxAdapter(child: _buildAddFriendButton(context)),
 
         if (contacts.isEmpty)
           SliverFillRemaining(
@@ -88,38 +81,37 @@ class _ContactViewState extends ConsumerState<ContactView> {
               child: _buildConsonantHeader(context, consonant),
             ),
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final contact = grouped[consonant]![index];
-                  return Column(
-                    children: [
-                      ContactTile(
-                        key: ValueKey(contact.number),
-                        contactName: contact.name,
-                        phoneNumber: contact.number,
-                        status: '내 기기',
-                        onDelete: () =>
-                            _confirmDelete(context, vm, contact.id!, contact.name),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final contact = grouped[consonant]![index];
+                return Column(
+                  children: [
+                    ContactTile(
+                      key: ValueKey(contact.number),
+                      contactName: contact.name,
+                      phoneNumber: contact.number,
+                      status: '내 기기',
+                      onDelete: () => _confirmDelete(
+                        context,
+                        vm,
+                        contact.id!,
+                        contact.name,
                       ),
-                      Divider(
-                        height: 0.5,
-                        thickness: 0.5,
-                        color: cs.onSurface.withValues(alpha: 0.1),
-                        indent: 20.w,
-                        endIndent: 20.w,
-                      ),
-                    ],
-                  );
-                },
-                childCount: grouped[consonant]!.length,
-              ),
+                    ),
+                    Divider(
+                      height: 0.5,
+                      thickness: 0.5,
+                      color: cs.onSurface.withValues(alpha: 0.1),
+                      indent: 20.w,
+                      endIndent: 20.w,
+                    ),
+                  ],
+                );
+              }, childCount: grouped[consonant]!.length),
             ),
           ],
 
           // 차단/거절한 친구 보기
-          SliverToBoxAdapter(
-            child: _buildBlockedFriendsButton(context),
-          ),
+          SliverToBoxAdapter(child: _buildBlockedFriendsButton(context)),
         ],
 
         SliverToBoxAdapter(child: SizedBox(height: 32.h)),
@@ -251,11 +243,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
             ),
           ),
           const Spacer(),
-          Icon(
-            Icons.play_arrow_rounded,
-            size: 20.r,
-            color: cs.primary,
-          ),
+          Icon(Icons.play_arrow_rounded, size: 20.r, color: cs.primary),
         ],
       ),
     );
@@ -376,17 +364,20 @@ class _ContactViewState extends ConsumerState<ContactView> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              vm.deleteContact(id).then((_) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$name님이 삭제되었습니다.')),
-                );
-              }).catchError((e) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('삭제 실패: ${e.toString()}')),
-                );
-              });
+              vm
+                  .deleteContact(id)
+                  .then((_) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('$name님이 삭제되었습니다.')));
+                  })
+                  .catchError((e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('삭제 실패: ${e.toString()}')),
+                    );
+                  });
             },
             child: Text(
               '삭제',
@@ -400,8 +391,25 @@ class _ContactViewState extends ConsumerState<ContactView> {
 
   // ── 초성 그룹핑 유틸 ─────────────────────────────────────────────────
   static const _consonants = [
-    'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ',
-    'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+    'ㄱ',
+    'ㄲ',
+    'ㄴ',
+    'ㄷ',
+    'ㄸ',
+    'ㄹ',
+    'ㅁ',
+    'ㅂ',
+    'ㅃ',
+    'ㅅ',
+    'ㅆ',
+    'ㅇ',
+    'ㅈ',
+    'ㅉ',
+    'ㅊ',
+    'ㅋ',
+    'ㅌ',
+    'ㅍ',
+    'ㅎ',
   ];
 
   String _getConsonant(String name) {

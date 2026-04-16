@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/contact/view_model/contact.dart';
+import 'package:iamhere/friend/view_model/contact.dart';
 import 'package:iamhere/geofence/view/widget/radius_button.dart';
 import 'package:iamhere/geofence/view/widget/radius_info_callout.dart';
 import 'package:iamhere/geofence/view_model/geofence_enroll_view_model.dart';
 import 'package:iamhere/geofence/view_model/geofence_list_view_model.dart';
 import 'package:iamhere/user_permission/service/concrete/locate_permission_service.dart';
 
+import 'widget/map_select_view.dart';
 import 'widget/recipient_select_view.dart';
 
 class GeofenceEnrollView extends ConsumerStatefulWidget {
@@ -70,9 +71,25 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
     }
     _currentMarker = NMarker(id: 'selected_pin', position: latlng);
     _mapController?.addOverlay(_currentMarker!);
-    ref
-        .read(geofenceEnrollViewModelProvider.notifier)
-        .updateLocation(latlng);
+    ref.read(geofenceEnrollViewModelProvider.notifier).updateLocation(latlng);
+  }
+
+  // ── 지도에서 위치 선택 화면 ───────────────────────────────────────────
+  Future<void> _openMapSelect() async {
+    final formState = ref.read(geofenceEnrollViewModelProvider);
+    final result = await Navigator.of(context).push<NLatLng>(
+      MaterialPageRoute(
+        builder: (_) =>
+            MapSelectView(initialLocation: formState.selectedLocation),
+      ),
+    );
+    if (result != null) {
+      _onMapTapped(result);
+      // 지도 카메라도 선택된 위치로 이동
+      _mapController?.updateCamera(
+        NCameraUpdate.scrollAndZoomTo(target: result, zoom: 15),
+      );
+    }
   }
 
   // ── 수신자 선택 화면 ─────────────────────────────────────────────────
@@ -101,16 +118,16 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
       await ref.read(geofenceEnrollViewModelProvider.notifier).saveGeofence();
       ref.read(geofenceListViewModelProvider.notifier).refresh();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('지오펜스가 등록되었습니다')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('지오펜스가 등록되었습니다')));
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('등록 실패: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('등록 실패: ${e.toString()}')));
       }
     }
   }
@@ -125,10 +142,7 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
       body: Column(
         children: [
           // ── 인라인 지도 ────────────────────────────────────────────
-          SizedBox(
-            height: 260.h,
-            child: _buildInlineMap(formState, cs),
-          ),
+          SizedBox(height: 260.h, child: _buildInlineMap(formState, cs)),
 
           // ── 폼 ────────────────────────────────────────────────────
           Expanded(
@@ -183,15 +197,15 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
                   ),
 
                   SizedBox(height: 20.h),
-                  // 전송할 메시지
-                  _sectionLabel(context, '전송할 메시지'),
+                  // 앱 알림 메시지
+                  _sectionLabel(context, '도착 알림 메시지'),
                   SizedBox(height: 8.h),
                   _buildTextField(
                     context,
                     cs,
                     controller: _messageController,
                     hint: '안녕하세요! {location}에 도착했습니다.',
-                    maxLines: 4,
+                    maxLines: 3,
                   ),
                   SizedBox(height: 6.h),
                   Text(
@@ -202,8 +216,43 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
                       color: cs.onSurface.withValues(alpha: 0.45),
                     ),
                   ),
-                  SizedBox(height: 12.h),
-                  _buildSmsPreviewCard(context, cs),
+                  SizedBox(height: 8.h),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 8.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(color: const Color(0xFFFFCC80)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.sms_outlined,
+                          size: 16.r,
+                          color: const Color(0xFFE65100),
+                        ),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: Text(
+                            '문자 메시지 발송 시에는 적용되지 않아요',
+                            style: TextStyle(
+                              fontFamily: 'BMHANNAAir',
+                              fontSize: 12.sp,
+                              color: const Color(0xFFE65100),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 20.h),
+                  // 전송될 문자 형식
+                  _buildSmsPreviewCard(context, cs, formState),
 
                   SizedBox(height: 20.h),
                   // 위치 알람 활성화
@@ -258,9 +307,7 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
         if (!snapshot.hasData) {
           return Container(
             color: const Color(0xFFD6EAF8),
-            child: Center(
-              child: CircularProgressIndicator(color: cs.primary),
-            ),
+            child: Center(child: CircularProgressIndicator(color: cs.primary)),
           );
         }
 
@@ -324,8 +371,10 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
                 bottom: 12.h,
                 left: 12.w,
                 child: Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
                   decoration: BoxDecoration(
                     color: cs.primary,
                     borderRadius: BorderRadius.circular(20.r),
@@ -333,8 +382,11 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle_outline,
-                          size: 14.r, color: cs.onPrimary),
+                      Icon(
+                        Icons.check_circle_outline,
+                        size: 14.r,
+                        color: cs.onPrimary,
+                      ),
                       SizedBox(width: 4.w),
                       Text(
                         '위치 선택됨',
@@ -349,6 +401,42 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
                   ),
                 ),
               ),
+            // 지도에서 위치 선택하기 버튼
+            Positioned(
+              bottom: 12.h,
+              right: 12.w,
+              child: Material(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(20.r),
+                elevation: 3,
+                child: InkWell(
+                  onTap: _openMapSelect,
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 8.h,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.fullscreen, size: 16.r, color: cs.primary),
+                        SizedBox(width: 4.w),
+                        Text(
+                          '지도에서 위치 선택하기',
+                          style: TextStyle(
+                            fontFamily: 'BMHANNAAir',
+                            fontSize: 12.sp,
+                            color: cs.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         );
       },
@@ -401,22 +489,28 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
             borderRadius: BorderRadius.circular(12.r),
             borderSide: BorderSide.none,
           ),
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 14.w,
+            vertical: 12.h,
+          ),
         ),
       ),
     );
   }
 
   // ── 실제 문자 형식 카드 ──────────────────────────────────────────────
-  Widget _buildSmsPreviewCard(BuildContext context, ColorScheme cs) {
+  Widget _buildSmsPreviewCard(
+    BuildContext context,
+    ColorScheme cs,
+    GeofenceEnrollFormState formState,
+  ) {
+    final locationName = formState.name.isNotEmpty ? formState.name : '{위치 이름}';
+
     return Container(
       decoration: BoxDecoration(
         color: cs.primary.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: cs.primary.withValues(alpha: 0.18),
-        ),
+        border: Border.all(color: cs.primary.withValues(alpha: 0.18)),
       ),
       padding: EdgeInsets.all(14.r),
       child: Column(
@@ -424,12 +518,12 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, size: 16.r,
-                  color: cs.onSurface.withValues(alpha: 0.55)),
+              Icon(
+                Icons.sms_outlined,
+                size: 16.r,
+                color: cs.onSurface.withValues(alpha: 0.55),
+              ),
               SizedBox(width: 6.w),
-              Icon(Icons.bookmark_outlined, size: 16.r,
-                  color: cs.onSurface.withValues(alpha: 0.55)),
-              SizedBox(width: 4.w),
               Text(
                 '실제 문자 형식',
                 style: TextStyle(
@@ -452,15 +546,6 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '[위치 기반 알림 서비스 ImHere]',
-                  style: TextStyle(
-                    fontFamily: 'BMHANNAAir',
-                    fontSize: 12.sp,
-                    color: cs.onSurface.withValues(alpha: 0.55),
-                  ),
-                ),
-                SizedBox(height: 4.h),
                 RichText(
                   text: TextSpan(
                     style: TextStyle(
@@ -469,16 +554,42 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
                       color: cs.onSurface,
                     ),
                     children: [
-                      const TextSpan(text: '홍길동 님이 '),
                       TextSpan(
-                        text: '{위치 이름}',
+                        text: locationName,
                         style: TextStyle(
                           color: cs.primary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const TextSpan(text: '에 도착하였습니다'),
+                      const TextSpan(text: '에 안전하게 도착하였습니다.'),
                     ],
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  '보낸 분 : 홍길동',
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 12.sp,
+                    color: cs.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+                Text(
+                  '시간: 오후 3시 30분',
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 12.sp,
+                    color: cs.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Service by ImHere',
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 11.sp,
+                    color: cs.onSurface.withValues(alpha: 0.45),
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],
@@ -486,7 +597,7 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
           ),
           SizedBox(height: 8.h),
           Text(
-            '※ 이름과 장소는 자동으로 입력되며 변경할 수 없어요',
+            '※ 문자 내용은 서버에서 자동 생성되며 변경할 수 없어요',
             style: TextStyle(
               fontFamily: 'BMHANNAAir',
               fontSize: 11.sp,
@@ -662,7 +773,9 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
                 )
               : Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: 14.w, vertical: 10.h),
+                    horizontal: 14.w,
+                    vertical: 10.h,
+                  ),
                   child: Wrap(
                     spacing: 8.w,
                     runSpacing: 6.h,

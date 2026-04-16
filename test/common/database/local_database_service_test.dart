@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/contact/repository/contact_entity.dart';
+import 'package:iamhere/friend/repository/contact_entity.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/shared/infrastructure/database/local_database_exception.dart';
@@ -70,7 +70,7 @@ void main() {
     });
 
     group('Contact Operations', () {
-      test('should save and retrieve a contact', () async {
+      test('should save and retrieve a friend', () async {
         final contact = ContactEntity(name: 'John', number: '010-1234-5678');
         final saved = await dbService.saveContact(contact);
 
@@ -100,7 +100,7 @@ void main() {
         expect(all[2].name, 'Charlie');
       });
 
-      test('should update an existing contact', () async {
+      test('should update an existing friend', () async {
         final contact = await dbService.saveContact(
           ContactEntity(name: 'John', number: '111'),
         );
@@ -116,7 +116,7 @@ void main() {
       });
 
       test(
-        'should throw LocalDatabaseException when updating contact without ID',
+        'should throw LocalDatabaseException when updating friend without ID',
         () async {
           final contact = ContactEntity(name: 'John', number: '111');
 
@@ -128,7 +128,7 @@ void main() {
       );
 
       test(
-        'should throw LocalDatabaseException when updating non-existent contact',
+        'should throw LocalDatabaseException when updating non-existent friend',
         () async {
           final contact = ContactEntity(id: 9999, name: 'John', number: '111');
 
@@ -139,7 +139,7 @@ void main() {
         },
       );
 
-      test('should delete a contact', () async {
+      test('should delete a friend', () async {
         final contact = await dbService.saveContact(
           ContactEntity(name: 'John', number: '111'),
         );

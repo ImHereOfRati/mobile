@@ -12,6 +12,6 @@ abstract class PermissionServiceModule {
   @Named('fcmAlert')
   PermissionServiceInterface get fcmAlertService => FcmAlertPermissionService();
 
-  @Named('contact')
+  @Named('friend')
   PermissionServiceInterface get contactService => ContactPermissionService();
 }

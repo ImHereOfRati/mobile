@@ -18,18 +18,13 @@ class AppRoutes {
   // ── Main (ShellRoute) ─────────────────────────────────────────────
   static const String geofence = '/geofence';
   static const String geofenceEnroll = '/geofence/enroll';
-  static const String contact = '/contact';
-  static const String contactAdd = '/contact/add';
+  static const String contact = '/friend';
+  static const String contactAdd = '/friend/add';
   static const String record = '/record';
   static const String setting = '/setting';
 
   /// BottomNavigationBar 탭 순서와 일치해야 합니다.
-  static const List<String> mainTabs = [
-    geofence,
-    contact,
-    record,
-    setting,
-  ];
+  static const List<String> mainTabs = [geofence, contact, record, setting];
 
   // ── Navigation helpers ────────────────────────────────────────────
   static void goToUserPermission(BuildContext context) =>

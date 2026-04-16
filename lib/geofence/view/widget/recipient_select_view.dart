@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/contact/view_model/contact.dart';
-import 'package:iamhere/contact/view_model/contact_view_model.dart';
-import 'package:iamhere/contact/view_model/contact_view_model_provider.dart';
+import 'package:iamhere/friend/view_model/contact.dart';
+import 'package:iamhere/friend/view_model/contact_view_model.dart';
+import 'package:iamhere/friend/view_model/contact_view_model_provider.dart';
 import 'package:iamhere/geofence/view_model/recipient_select_view_model.dart';
 
 import 'recipient_tile.dart';
@@ -32,7 +32,7 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
       return;
     }
 
-    debugPrint('선택된 수신자: ${selectedContacts.map((c) => c.name).join(", ")}');
+    debugPrint('선택된 수신자: ${selectedContacts.map((c) => c!.name).join(", ")}');
     Navigator.of(context).pop(selectedContacts);
   }
 
@@ -66,7 +66,12 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
                 Text(
                   err.toString(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55), fontSize: 14.sp),
+                  style: TextStyle(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.55),
+                    fontSize: 14.sp,
+                  ),
                 ),
               ],
             ),
@@ -89,14 +94,21 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   SizedBox(height: 8.h),
                   Text(
                     '먼저 연락처 탭에서\n친구를 추가해주세요',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14.sp, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55)),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.55),
+                    ),
                   ),
                   SizedBox(height: 24.h),
                   ElevatedButton.icon(
@@ -130,7 +142,14 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   border: Border(
-                    bottom: BorderSide(color: Theme.of(context).dividerTheme.color ?? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2), width: 1),
+                    bottom: BorderSide(
+                      color:
+                          Theme.of(context).dividerTheme.color ??
+                          Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
                   ),
                 ),
                 child: Row(
@@ -156,7 +175,14 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   border: Border(
-                    bottom: BorderSide(color: Theme.of(context).dividerTheme.color ?? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2), width: 1),
+                    bottom: BorderSide(
+                      color:
+                          Theme.of(context).dividerTheme.color ??
+                          Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
                   ),
                 ),
                 child: Row(
@@ -188,7 +214,9 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
                       '${recipientState.selectedCount} / ${contacts.length}',
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.55),
                       ),
                     ),
                   ],

@@ -15,7 +15,7 @@ class SmsNotificationService {
   /// Returns Result<void> indicating success or failure
   Future<Result<void>> sendSmsToRecipients({
     required List<String> phoneNumbers,
-    required String message,
+    required String location,
   }) async {
     try {
       if (phoneNumbers.isEmpty) {
@@ -25,7 +25,7 @@ class SmsNotificationService {
 
       final result = await _smsService.sendSms(
         phoneNumbers: phoneNumbers,
-        message: message,
+        location: location,
       );
 
       if (result is Success) {

@@ -1,10 +1,10 @@
 import 'dart:developer';
 
 import 'package:flutter/services.dart';
-import 'package:iamhere/contact/repository/contact_local_repository_provider.dart';
-import 'package:iamhere/contact/view_model/contact.dart';
-import 'package:iamhere/contact/view_model/contact_adapter.dart';
-import 'package:iamhere/contact/view_model/contact_view_model_interface.dart';
+import 'package:iamhere/friend/repository/contact_local_repository_provider.dart';
+import 'package:iamhere/friend/view_model/contact.dart';
+import 'package:iamhere/friend/view_model/contact_adapter.dart';
+import 'package:iamhere/friend/view_model/contact_view_model_interface.dart';
 import 'package:iamhere/shared/infrastructure/di/di_setup.dart';
 import 'package:iamhere/user_permission/service/permission_service_interface.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -36,7 +36,7 @@ class ContactViewModel extends _$ContactViewModel
   @override
   Future<Contact?> selectContact() async {
     final contactPermissionService = getIt<PermissionServiceInterface>(
-      instanceName: 'contact',
+      instanceName: 'friend',
     );
     await contactPermissionService.checkPermissionStatus();
 

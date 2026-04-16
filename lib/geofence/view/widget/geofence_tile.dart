@@ -21,118 +21,101 @@ class GeofenceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color tileBackgroundColor = _getBackgroundColor(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
 
     return GestureDetector(
       onLongPress: onLongPress,
       child: Container(
-        decoration: _getGeofenceTileDecoration(tileBackgroundColor),
-        width: MediaQuery.of(context).size.width,
-        height: 100.h,
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        margin: EdgeInsets.symmetric(vertical: 8.h), // 마진 추가하여 두 타일 분리
-
+        decoration: BoxDecoration(
+          color: isToggleOn
+              ? cs.primary.withValues(alpha: 0.08)
+              : cs.surface,
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        margin: EdgeInsets.symmetric(vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // 1. 정보 영역 (Expanded: Flex 4)
+            // 활성 상태 인디케이터
+            Container(
+              width: 4.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: isToggleOn
+                    ? cs.primary
+                    : cs.onSurface.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            SizedBox(width: 14.w),
+
+            // 정보 영역
             Expanded(
-              flex: 4,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildTileTitle(context),
-                  SizedBox(height: 5.h),
-                  // 주소와 인원 정보 행
-                  _buildAdressAndPersonCount(),
+                  Text(
+                    homeName,
+                    style: tt.headlineSmall?.copyWith(
+                      fontSize: 19.sp,
+                      color: cs.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 6.h),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 14.r,
+                        color: tt.bodyMedium?.color,
+                      ),
+                      SizedBox(width: 3.w),
+                      Flexible(
+                        child: Text(
+                          address,
+                          style: tt.bodyMedium?.copyWith(fontSize: 13.sp),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Icon(
+                        Icons.people_outline,
+                        size: 14.r,
+                        color: tt.bodyMedium?.color,
+                      ),
+                      SizedBox(width: 3.w),
+                      Text(
+                        '$memberCount명',
+                        style: tt.bodyMedium?.copyWith(fontSize: 13.sp),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
 
-            // 2. 토글 스위치 영역 (Expanded: Flex 1)
-            Expanded(flex: 1, child: _buildOnOffToggle()),
+            SizedBox(width: 8.w),
+
+            // 토글
+            Transform.scale(
+              scale: 0.8,
+              child: Switch(
+                value: isToggleOn,
+                onChanged: onToggleChanged,
+                activeThumbColor: Colors.white,
+                activeTrackColor: cs.primary,
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: cs.onSurface.withValues(alpha: 0.15),
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  Align _buildOnOffToggle() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Transform.scale(
-        // 스위치 크기 조절
-        scale: 0.8, // 스위치 전체 크기 줄이기 (이미지 크기에 맞춤)
-        child: Switch(
-          value: isToggleOn,
-          onChanged: onToggleChanged,
-          // 활성화 시 트랙 색상 (이미지 밝은 청록색)
-          activeColor: Colors.white, // thumb가 흰색이니 activeColor는 thumb color
-          activeTrackColor: const Color(0xFF66C8C8), // 활성화 시 트랙 색상 (이미지 청록색)
-          // 비활성화 시 트랙 색상 (이미지 회색)
-          inactiveThumbColor: Colors.white, // 비활성화 시 thumb 색상 (흰색)
-          inactiveTrackColor: Colors.grey.withValues(
-            alpha: 0.4,
-          ), // 비활성화 시 트랙 색상 (연한 회색)
-        ),
-      ),
-    );
-  }
-
-  Row _buildAdressAndPersonCount() {
-    return Row(
-      children: [
-        Icon(Icons.location_on, size: 16.w, color: Colors.grey),
-        SizedBox(width: 1.w),
-        Text(
-          address,
-          style: TextStyle(color: Colors.grey, fontSize: 15.sp),
-        ),
-
-        SizedBox(width: 20.w),
-
-        Icon(Icons.people, size: 16.w, color: Colors.grey),
-        SizedBox(width: 5.w),
-        Text(
-          '$memberCount명',
-          style: TextStyle(color: Colors.grey, fontSize: 15.sp),
-        ),
-      ],
-    );
-  }
-
-  Text _buildTileTitle(BuildContext context) {
-    return Text(
-      homeName,
-      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-        fontWeight: FontWeight.bold,
-        fontSize: 25.sp,
-        color: Theme.of(context).colorScheme.onSurface,
-      ),
-    );
-  }
-
-  BoxDecoration _getGeofenceTileDecoration(Color tileBackgroundColor) {
-    return BoxDecoration(
-      color: tileBackgroundColor,
-      borderRadius: BorderRadius.all(Radius.circular(25.w)),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withValues(alpha: 0.1),
-          spreadRadius: 1,
-          blurRadius: 5,
-          offset: const Offset(0, 3), // changes position of shadow
-        ),
-      ],
-    );
-  }
-
-  Color _getBackgroundColor(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (isToggleOn) {
-      return isDark ? const Color(0xFF1A2E2E) : const Color(0xFFE8F6F6);
-    }
-    return Theme.of(context).colorScheme.surface;
   }
 }

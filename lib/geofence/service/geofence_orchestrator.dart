@@ -8,6 +8,7 @@ import 'package:iamhere/geofence/service/deduplication_service.dart';
 import 'package:iamhere/geofence/service/geofence_checking_service.dart';
 import 'package:iamhere/geofence/service/location_monitoring_service.dart';
 import 'package:iamhere/geofence/service/record_service.dart';
+import 'package:iamhere/geofence/service/geocoding_service.dart';
 import 'package:iamhere/geofence/service/sms_notification_service.dart';
 import 'package:iamhere/shared/base/result/result.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -18,13 +19,13 @@ part 'geofence_orchestrator.g.dart';
 /// Replaces GeofenceMonitoringService with clean separation of concerns
 @Riverpod(keepAlive: true)
 class GeofenceOrchestrator extends _$GeofenceOrchestrator {
-  late LocationMonitoringService _locationService;
-  late GeofenceCheckingService _geofenceChecker;
-  late ContactResolutionService _contactResolver;
-  late SmsNotificationService _smsNotifier;
-  late RecordService _recordService;
-  late DeduplicationService _deduplicationService;
-  late GeofenceLocalRepository _geofenceRepository;
+  LocationMonitoringService? _locationService;
+  GeofenceCheckingService? _geofenceChecker;
+  ContactResolutionService? _contactResolver;
+  SmsNotificationService? _smsNotifier;
+  RecordService? _recordService;
+  DeduplicationService? _deduplicationService;
+  GeofenceLocalRepository? _geofenceRepository;
 
   @override
   Future<void> build() async {
@@ -42,7 +43,7 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
       _setupServices();
 
       // Start location monitoring
-      await _locationService.startLocationMonitoring((Position position) async {
+      await _locationService!.startLocationMonitoring((Position position) async {
         await _checkGeofences(position);
       });
 
@@ -56,45 +57,54 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
   /// Stop monitoring geofences
   Future<void> stopMonitoring() async {
     log('Stopping geofence monitoring orchestration');
-    await _locationService.stopLocationMonitoring();
-    _deduplicationService.reset();
+    _locationService?.stopLocationMonitoring();
+    _deduplicationService?.reset();
   }
 
   /// Check geofences for current position
   Future<void> _checkGeofences(Position currentPosition) async {
     try {
-      final allGeofences = await _geofenceRepository.findAll();
+      final allGeofences = await _geofenceRepository!.findAll();
       final activeGeofences = allGeofences.where((g) => g.isActive).toList();
 
       for (final geofence in activeGeofences) {
         // Skip if already triggered (deduplication)
-        if (_deduplicationService.isDuplicate(geofence.id ?? -1)) {
+        if (_deduplicationService!.isDuplicate(geofence.id ?? -1)) {
           continue;
         }
 
         // Check if within geofence
-        if (_geofenceChecker.isWithinGeofence(currentPosition, geofence)) {
+        if (_geofenceChecker!.isWithinGeofence(currentPosition, geofence)) {
           log('Geofence entry detected: ${geofence.name}');
 
           // Mark as triggered to prevent duplicates
           if (geofence.id != null) {
-            _deduplicationService.markTriggered(geofence.id!);
+            _deduplicationService!.markTriggered(geofence.id!);
           }
 
           // Resolve contacts and send SMS
-          final recipients = await _contactResolver.resolveContacts(geofence);
+          final recipients = await _contactResolver!.resolveContacts(geofence);
           if (recipients.isNotEmpty) {
-            final phoneNumbers = _contactResolver.extractPhoneNumbers(
+            final phoneNumbers = _contactResolver!.extractPhoneNumbers(
               recipients,
             );
-            final result = await _smsNotifier.sendSmsToRecipients(
+
+            // 장소명 + 완전한 주소로 location 구성
+            final geocodingService = GeocodingService();
+            final address = await geocodingService.reverseGeocode(
+              geofence.lat,
+              geofence.lng,
+            );
+            final location = '${geofence.name} ($address)';
+
+            final result = await _smsNotifier!.sendSmsToRecipients(
               phoneNumbers: phoneNumbers,
-              message: geofence.message,
+              location: location,
             );
 
             // If SMS successful, save record and deactivate geofence
             if (result is Success) {
-              await _recordService.saveGeofenceRecord(
+              await _recordService!.saveGeofenceRecord(
                 geofence: geofence,
                 recipients: recipients,
               );
@@ -102,7 +112,7 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
               // Deactivate geofence (via repository, not ViewModel)
               if (geofence.id != null) {
                 try {
-                  await _geofenceRepository.updateActiveStatus(
+                  await _geofenceRepository!.updateActiveStatus(
                     geofence.id!,
                     false,
                   );

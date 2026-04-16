@@ -1,4 +1,4 @@
-import 'package:iamhere/contact/repository/contact_entity.dart';
+import 'package:iamhere/friend/repository/contact_entity.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/shared/infrastructure/database/local_database_exception.dart';
@@ -122,7 +122,7 @@ class LocalDatabaseService {
 
   Future<ContactEntity> saveContact(ContactEntity entity) async {
     return await _executeInsert(
-      entityName: 'contact',
+      entityName: 'friend',
       table: LocalDatabaseProperties.contactTableName,
       values: entity.toMap(),
       createEntity: (id) => entity.copyWith(id: id),
@@ -142,7 +142,7 @@ class LocalDatabaseService {
 
   Future<List<ContactEntity>> findAllContacts() async {
     return await _executeQuery(
-      entityName: 'contact',
+      entityName: 'friend',
       table: LocalDatabaseProperties.contactTableName,
       fromMap: ContactEntity.fromMap,
       orderBy: 'name ASC',
@@ -151,7 +151,7 @@ class LocalDatabaseService {
 
   Future<void> deleteContact(int id) async {
     return await _executeDelete(
-      entityName: 'contact',
+      entityName: 'friend',
       table: LocalDatabaseProperties.contactTableName,
       id: id,
     );

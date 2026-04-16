@@ -1,8 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/auth/view/auth_view.dart';
 import 'package:iamhere/auth/view_model/auth_view_model.dart';
-import 'package:iamhere/contact/view/add_friend_view.dart';
-import 'package:iamhere/contact/view/contact_view.dart';
+import 'package:iamhere/friend/view/add_friend_view.dart';
+import 'package:iamhere/friend/view/contact_view.dart';
 import 'package:iamhere/geofence/view/geofence_enroll_view.dart';
 import 'package:iamhere/geofence/view/geofence_view.dart';
 import 'package:iamhere/record/view/record_view.dart';

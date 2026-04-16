@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/geofence/service/geocoding_service.dart';
 import 'package:iamhere/geofence/service/geofence_orchestrator.dart';
 import 'package:iamhere/geofence/view_model/geofence_list_view_model.dart';
 import 'package:iamhere/geofence/view_model/geofence_view_model.dart';
@@ -22,6 +23,8 @@ class GeofenceView extends ConsumerStatefulWidget {
 class _GeofenceViewState extends ConsumerState<GeofenceView>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final _geocodingService = GeocodingService();
+  final Map<int, String> _addressCache = {};
 
   @override
   void initState() {
@@ -143,9 +146,23 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     }
   }
 
-  // 위도/경도로 주소 문자열 생성 (간단한 형식)
-  String _formatLocation(double lat, double lng) {
-    return '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
+  /// 지오펜스 목록의 주소를 일괄 resolve (캐시에 없는 것만)
+  final Set<int> _pendingIds = {};
+
+  void _resolveAddresses(List<GeofenceEntity> geofences) {
+    for (final geofence in geofences) {
+      final id = geofence.id ?? -1;
+      if (_addressCache.containsKey(id) || _pendingIds.contains(id)) continue;
+
+      _pendingIds.add(id);
+      _geocodingService.reverseGeocode(geofence.lat, geofence.lng).then((addr) {
+        if (mounted) {
+          setState(() {
+            _addressCache[id] = addr;
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -220,6 +237,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
               // 활성화된 지오펜스가 있으면 모니터링 시작
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _startMonitoringIfNeeded(geofences);
+                _resolveAddresses(geofences);
               });
 
               if (geofences.isEmpty) {
@@ -252,15 +270,18 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
               }
 
               return ListView.builder(
-                padding: EdgeInsets.zero,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 20.w,
+                  vertical: 8.h,
+                ),
                 itemCount: geofences.length,
                 itemBuilder: (context, index) {
                   final geofence = geofences[index];
                   final memberCount = _getMemberCount(geofence.contactIds);
-                  final address = _formatLocation(geofence.lat, geofence.lng);
+                  final address = _addressCache[geofence.id ?? -1] ?? '주소 불러오는 중...';
 
                   return GeofenceTile(
-                    key: ValueKey(geofence.id), // 각 항목을 고유하게 식별
+                    key: ValueKey(geofence.id),
                     homeName: geofence.name,
                     address: address,
                     memberCount: memberCount,

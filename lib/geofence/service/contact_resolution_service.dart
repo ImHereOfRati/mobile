@@ -1,25 +1,27 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:iamhere/contact/repository/contact_entity.dart';
-import 'package:iamhere/contact/repository/contact_local_repository.dart';
+import 'package:iamhere/friend/repository/contact_entity.dart';
+import 'package:iamhere/friend/repository/contact_local_repository.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:injectable/injectable.dart';
 
-/// Resolve and fetch contact information for geofence recipients
+/// Resolve and fetch friend information for geofence recipients
 @injectable
 class ContactResolutionService {
   final ContactLocalRepository _contactRepository;
 
   ContactResolutionService(this._contactRepository);
 
-  /// Get contact entities for a geofence's contact IDs
+  /// Get friend entities for a geofence's friend IDs
   /// Returns empty list if no contacts found
   Future<List<ContactEntity>> resolveContacts(GeofenceEntity geofence) async {
     try {
-      // Parse contact IDs from JSON string
+      // Parse friend IDs from JSON string
       final List<dynamic> contactIdsJson = jsonDecode(geofence.contactIds);
-      final List<int> contactIds = contactIdsJson.map((id) => id as int).toList();
+      final List<int> contactIds = contactIdsJson
+          .map((id) => id as int)
+          .toList();
 
       if (contactIds.isEmpty) {
         log('No contacts specified for geofence: ${geofence.name}');
@@ -31,7 +33,7 @@ class ContactResolutionService {
 
       // Filter contacts matching the IDs
       final recipients = allContacts
-          .where((contact) => contactIds.contains(contact.id))
+          .where((contact) => contactIds.contains(contact!.id))
           .toList();
 
       if (recipients.isEmpty) {

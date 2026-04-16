@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:iamhere/contact/repository/contact_entity.dart';
+import 'package:iamhere/friend/repository/contact_entity.dart';
 import 'package:iamhere/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/record/repository/geofence_record_local_repository.dart';

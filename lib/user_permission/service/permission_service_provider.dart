@@ -11,7 +11,7 @@ PermissionServiceInterface locationPermissionService(Ref ref) {
 
 @riverpod
 PermissionServiceInterface contactPermissionService(Ref ref) {
-  return getIt<PermissionServiceInterface>(instanceName: 'contact');
+  return getIt<PermissionServiceInterface>(instanceName: 'friend');
 }
 
 @riverpod

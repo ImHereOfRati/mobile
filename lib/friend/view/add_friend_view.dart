@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/contact/view_model/contact_view_model_provider.dart';
+import 'package:iamhere/friend/view_model/contact_view_model_provider.dart';
 
 class AddFriendView extends ConsumerStatefulWidget {
   const AddFriendView({super.key});
@@ -202,14 +202,14 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
                         controller: _searchController,
                         style: TextStyle(
                           fontFamily: 'BMHANNAAir',
-                          fontSize: 14.sp,
+                          fontSize: 18.sp,
                           color: cs.onSurface,
                         ),
                         decoration: InputDecoration(
                           hintText: '이메일 또는 닉네임 입력',
                           hintStyle: TextStyle(
                             fontFamily: 'BMHANNAAir',
-                            fontSize: 14.sp,
+                            fontSize: 20.sp,
                             color: cs.onSurface.withValues(alpha: 0.35),
                           ),
                           border: InputBorder.none,
@@ -302,9 +302,9 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
     Future.delayed(const Duration(milliseconds: 500), () {
       if (!mounted) return;
       setState(() => _isSearching = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('"$query" 검색 결과가 없습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('"$query" 검색 결과가 없습니다.')));
     });
   }
 }

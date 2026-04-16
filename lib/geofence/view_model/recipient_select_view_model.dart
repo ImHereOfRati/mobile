@@ -1,4 +1,4 @@
-import 'package:iamhere/contact/view_model/contact.dart';
+import 'package:iamhere/friend/view_model/contact.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'recipient_select_view_model.g.dart';

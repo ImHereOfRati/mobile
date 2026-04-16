@@ -1,5 +1,5 @@
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:iamhere/contact/view_model/contact.dart';
+import 'package:iamhere/friend/view_model/contact.dart';
 import 'package:iamhere/geofence/utils/radius_helper.dart';
 import 'package:iamhere/geofence/view_model/geofence_view_model_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/contact/view_model/contact.dart';
+import 'package:iamhere/friend/view_model/contact.dart';
 
 class RecipientTile extends StatelessWidget {
   final Contact contact;
@@ -30,11 +30,7 @@ class RecipientTile extends StatelessWidget {
             SizedBox(width: 16.w),
             buildNameAndNumber(colorScheme),
             if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: colorScheme.primary,
-                size: 24.sp,
-              ),
+              Icon(Icons.check_circle, color: colorScheme.primary, size: 24.sp),
           ],
         ),
       ),
@@ -92,7 +88,9 @@ class RecipientTile extends StatelessWidget {
       color: isSelected ? colorScheme.primary.withValues(alpha: 0.08) : null,
       border: Border(
         bottom: BorderSide(
-          color: Theme.of(context).dividerTheme.color ?? colorScheme.onSurface.withValues(alpha: 0.12),
+          color:
+              Theme.of(context).dividerTheme.color ??
+              colorScheme.onSurface.withValues(alpha: 0.12),
           width: 1,
         ),
       ),

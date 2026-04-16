@@ -4,12 +4,12 @@ part 'message_send_request.g.dart';
 
 @JsonSerializable()
 class MessageSendRequest {
-  final String message;
   final String receiverNumber;
-
-  MessageSendRequest({required this.message, required this.receiverNumber});
+  final String location;
 
   factory MessageSendRequest.fromJson(Map<String, dynamic> json) =>
       _$MessageSendRequestFromJson(json);
+
+  MessageSendRequest({required this.receiverNumber, required this.location});
   Map<String, dynamic> toJson() => _$MessageSendRequestToJson(this);
 }
