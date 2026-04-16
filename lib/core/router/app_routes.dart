@@ -23,6 +23,9 @@ class AppRoutes {
   static const String friendRequests = '/friend/requests';
   static const String friendRestrictions = '/friend/restrictions';
   static const String record = '/record';
+  static const String recordNotifications = '/record/notifications';
+  static const String recordFriendRequests = '/record/friend-requests';
+  static const String recordSendHistory = '/record/send-history';
   static const String setting = '/setting';
 
   /// BottomNavigationBar 탭 순서와 일치해야 합니다.
@@ -35,6 +38,16 @@ class AppRoutes {
   static void goToTermsConsent(BuildContext context) =>
       context.go(termsConsent);
   static void goToContactAdd(BuildContext context) => context.push(contactAdd);
+  static void goToFriendRequests(BuildContext context) =>
+      context.push(friendRequests);
+  static void goToFriendRestrictions(BuildContext context) =>
+      context.push(friendRestrictions);
+  static void goToRecordNotifications(BuildContext context) =>
+      context.push(recordNotifications);
+  static void goToRecordFriendRequests(BuildContext context) =>
+      context.push(recordFriendRequests);
+  static void goToRecordSendHistory(BuildContext context) =>
+      context.push(recordSendHistory);
   static void goToGeofence(BuildContext context) => context.go(geofence);
   static void pushTermsDetail(BuildContext context, int termDefinitionId) =>
       context.push(termsDetail(termDefinitionId));

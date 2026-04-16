@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/auth/model/login_result.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
 import 'package:iamhere/shared/base/result/result.dart';
@@ -37,7 +36,7 @@ void main() {
       const testToken = 'test_id_token';
       when(
         mockAuthService.sendIdTokenToServer(testToken),
-      ).thenAnswer((_) async => LoginResult.existingUser); // 기존 사용자
+      ).thenAnswer((_) async => MemberState.existingUser); // 기존 사용자
 
       // Act
       // Note: handleKakaoLogin은 _doUserKakaoLogin 호출이 필요하므로
@@ -51,7 +50,7 @@ void main() {
       const testToken = 'test_id_token';
       when(
         mockAuthService.sendIdTokenToServer(testToken),
-      ).thenAnswer((_) async => LoginResult.newUser); // 신규 사용자
+      ).thenAnswer((_) async => MemberState.newUser); // 신규 사용자
 
       // Act
       // Note: handleKakaoLogin은 _doUserKakaoLogin 호출이 필요하므로
@@ -188,7 +187,7 @@ void main() {
       const testToken = 'test_id_token';
       when(
         mockAuthService.sendIdTokenToServer(testToken),
-      ).thenAnswer((_) async => LoginResult.existingUser); // 기존 사용자 반환
+      ).thenAnswer((_) async => MemberState.existingUser); // 기존 사용자 반환
 
       // Act
       final isNewUser = await mockAuthService.sendIdTokenToServer(testToken);

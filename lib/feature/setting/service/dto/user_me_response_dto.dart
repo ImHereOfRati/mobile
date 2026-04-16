@@ -4,12 +4,10 @@ part 'user_me_response_dto.g.dart';
 
 @JsonSerializable()
 class UserMeResponseDto {
-  final String userId;
   final String userEmail;
   final String userNickname;
 
   UserMeResponseDto({
-    required this.userId,
     required this.userEmail,
     required this.userNickname,
   });

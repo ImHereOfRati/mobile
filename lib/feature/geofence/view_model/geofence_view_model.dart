@@ -29,6 +29,7 @@ class GeofenceViewModel extends _$GeofenceViewModel
   @override
   Future<GeofenceEntity> saveGeofence({
     required String name,
+    required String address,
     required double lat,
     required double lng,
     required double radius,
@@ -40,6 +41,7 @@ class GeofenceViewModel extends _$GeofenceViewModel
 
     final entity = GeofenceEntity(
       name: name,
+      address: address,
       lat: lat,
       lng: lng,
       radius: radius,

@@ -46,7 +46,6 @@ class MyInfoView extends ConsumerWidget {
               _buildInfoCard(context, [
                 _InfoRow(label: '닉네임', value: userInfo.userNickname),
                 _InfoRow(label: '이메일', value: userInfo.userEmail),
-                _InfoRow(label: '사용자 ID', value: userInfo.userId),
               ]),
             ],
           );

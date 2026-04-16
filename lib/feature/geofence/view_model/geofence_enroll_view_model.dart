@@ -10,6 +10,7 @@ part 'geofence_enroll_view_model.g.dart';
 /// 지오펜스 등록 폼 상태
 class GeofenceEnrollFormState {
   final String name;
+  final String address;
   final NLatLng? selectedLocation;
   final String radius;
   final List<Contact> selectedRecipients;
@@ -18,6 +19,7 @@ class GeofenceEnrollFormState {
 
   GeofenceEnrollFormState({
     this.name = '',
+    this.address = '',
     this.selectedLocation,
     this.radius = '500',
     this.selectedRecipients = const [],
@@ -34,6 +36,7 @@ class GeofenceEnrollFormState {
 
   GeofenceEnrollFormState copyWith({
     String? name,
+    String? address,
     NLatLng? selectedLocation,
     String? radius,
     List<Contact>? selectedRecipients,
@@ -42,6 +45,7 @@ class GeofenceEnrollFormState {
   }) {
     return GeofenceEnrollFormState(
       name: name ?? this.name,
+      address: address ?? this.address,
       selectedLocation: selectedLocation ?? this.selectedLocation,
       radius: radius ?? this.radius,
       selectedRecipients: selectedRecipients ?? this.selectedRecipients,
@@ -66,6 +70,11 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
   /// 위치 업데이트
   void updateLocation(NLatLng? location) {
     state = state.copyWith(selectedLocation: location);
+  }
+
+  /// 주소 업데이트
+  void updateAddress(String address) {
+    state = state.copyWith(address: address);
   }
 
   /// 반경 업데이트
@@ -119,6 +128,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
 
     final saved = await vmInterface.saveGeofence(
       name: state.name.trim(),
+      address: state.address.trim(),
       lat: state.selectedLocation!.latitude,
       lng: state.selectedLocation!.longitude,
       radius: radius,

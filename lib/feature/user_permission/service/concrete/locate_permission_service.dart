@@ -1,8 +1,10 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
+import 'package:injectable/injectable.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+@lazySingleton
 class LocatePermissionService implements PermissionServiceInterface {
   @override
   Future<PermissionState> requestPermission() async {

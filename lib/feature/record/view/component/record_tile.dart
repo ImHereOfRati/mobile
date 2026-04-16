@@ -1,124 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
-import 'package:iamhere/feature/record/view/component/device_tile.dart';
-import 'package:iamhere/shared/util/date_time_formatter.dart';
-
-import 'target_tile.dart';
 
 class RecordTile extends StatelessWidget {
-  final Key? tileKey; // 사용자 지정 키
-  final String locationName; // "회사"
-  final DateTime recordTime; // 2025-11-06 09:15
-  final String message; // "회사에 도착했습니다!"
-  final String targetName; // "팀장님"
-  final SendMachine sendMachine; // 전송한 기기
+  final String locationName;
+  final DateTime recordTime;
+  final String message;
+  final String targetName;
+  final SendMachine sendMachine;
 
   const RecordTile({
-    this.tileKey,
+    super.key,
     required this.locationName,
     required this.recordTime,
     required this.message,
     required this.targetName,
     required this.sendMachine,
-  }) : super(key: tileKey);
+  });
 
   @override
   Widget build(BuildContext context) {
-    const Color mainColor = Color(0xFF66C8C8);
-    final tileBackgroundColor = Theme.of(context).colorScheme.surface;
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
 
-    /**
-     * 구성
-     * - buildTop : 위치 이름 + 확인 아이콘
-     * - buildTImeStamp : 시간 정보
-     * - buildMessageTile : 메시지 내용
-     * - buildBottom : 타킷 + 기기 정보
-     */
-    return Card(
-      color: tileBackgroundColor,
-      margin: EdgeInsets.symmetric(vertical: 8.h),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-      elevation: 3,
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: cs.onSurface.withValues(alpha: 0.06),
+            offset: const Offset(0, 2),
+            blurRadius: 12,
+          ),
+        ],
+      ),
       child: Padding(
-        padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 16.h),
+        padding: EdgeInsets.all(16.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildTop(mainColor, context),
-            SizedBox(height: 8.h),
-            buildTimeStamp(context),
-            SizedBox(height: 6.h),
-            buildMessageTile(context),
+            // ── 헤더: 위치 + 성공 뱃지 ───────────────────────────────
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  color: cs.primary,
+                  size: 20.r,
+                ),
+                SizedBox(width: 6.w),
+                Expanded(
+                  child: Text(
+                    locationName,
+                    style: tt.headlineSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 8.w,
+                    vertical: 3.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: cs.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(980.r),
+                  ),
+                  child: Text(
+                    '전송 완료',
+                    style: tt.bodySmall?.copyWith(
+                      color: cs.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 10.h),
+
+            // ── 메시지 ───────────────────────────────────────────────
+            Text(message, style: tt.bodyLarge),
+
+            SizedBox(height: 12.h),
+
+            // ── 구분선 ───────────────────────────────────────────────
             Divider(
-              thickness: 1,
-              color: Colors.grey.withValues(alpha: 0.3),
-              height: 10.h,
+              height: 1,
+              thickness: 0.5,
+              color: cs.onSurface.withValues(alpha: 0.08),
             ),
-            buildBottom(),
+
+            SizedBox(height: 12.h),
+
+            // ── 하단 메타 정보 ───────────────────────────────────────
+            Row(
+              children: [
+                // 수신자
+                Icon(
+                  Icons.person_outline_rounded,
+                  size: 14.r,
+                  color: cs.onSurface.withValues(alpha: 0.45),
+                ),
+                SizedBox(width: 4.w),
+                Text(targetName, style: tt.bodyMedium),
+
+                SizedBox(width: 12.w),
+
+                // 전송 기기
+                Icon(
+                  sendMachine == SendMachine.mobile
+                      ? Icons.phone_iphone_rounded
+                      : Icons.cloud_outlined,
+                  size: 14.r,
+                  color: cs.onSurface.withValues(alpha: 0.45),
+                ),
+                SizedBox(width: 4.w),
+                Text(sendMachine.description, style: tt.bodyMedium),
+
+                const Spacer(),
+
+                // 시간
+                Text(
+                  _formatRelativeTime(recordTime),
+                  style: tt.bodySmall,
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Row buildTop(Color mainColor, BuildContext context) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.location_on_outlined, color: mainColor, size: 24.sp),
-            SizedBox(width: 8.w),
-            Text(
-              locationName,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: onSurface,
-                fontSize: 20.sp,
-              ),
-            ),
-          ],
-        ),
-        Icon(Icons.check_circle, color: mainColor, size: 24.sp),
-      ],
-    );
-  }
+  String _formatRelativeTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
 
-  Row buildTimeStamp(BuildContext context) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    TextStyle style = TextStyle(
-      fontSize: 14.sp,
-      color: onSurface.withValues(alpha: 0.75),
-    );
-    return Row(
-      children: [
-        Text("보낸 시각 : ", style: style),
-        Text(formatDateTime(recordTime), style: style),
-      ],
-    );
-  }
+    if (diff.inMinutes < 1) return '방금 전';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays < 7) return '${diff.inDays}일 전';
 
-  Text buildMessageTile(BuildContext context) {
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    return Text(
-      message,
-      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-        fontSize: 18.sp,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      ),
-    );
-  }
-
-  Row buildBottom() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        TargetTile(receiver: targetName),
-        DeviceTile(sendMachine: sendMachine),
-      ],
-    );
+    return '${dt.month}월 ${dt.day}일';
   }
 }

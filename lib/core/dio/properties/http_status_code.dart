@@ -8,4 +8,12 @@ class HttpStatusCode {
 
   /// 5XX
   static const int internalServerError = 500;
+
+  static bool is2XXStatusCode(int stausCode) {
+    if (stausCode == ok || stausCode == created) {
+      return true;
+    }
+
+    return false;
+  }
 }

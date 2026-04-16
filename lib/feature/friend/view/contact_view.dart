@@ -213,7 +213,10 @@ class _ContactViewState extends ConsumerState<ContactView> {
   // ── 받은 친구 요청 ───────────────────────────────────────────────────
   Widget _buildFriendRequestRow(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Padding(
+    return GestureDetector(
+      onTap: () => AppRoutes.goToFriendRequests(context),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
       child: Row(
         children: [
@@ -247,6 +250,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
           Icon(Icons.play_arrow_rounded, size: 20.r, color: cs.primary),
         ],
       ),
+    ),
     );
   }
 
@@ -314,7 +318,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
       padding: EdgeInsets.symmetric(vertical: 24.h),
       child: Center(
         child: GestureDetector(
-          onTap: () {},
+          onTap: () => AppRoutes.goToFriendRestrictions(context),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/core/dio/api_config.dart';
+import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/user_search_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -35,15 +35,18 @@ void main() {
         ],
       };
 
-      when(mockDio.get(
-        ApiConfig.userSearchPath('테스트'),
-        options: anyNamed('options'),
-      )).thenAnswer((_) async => Response(
-            data: responseData,
-            statusCode: 200,
-            requestOptions:
-                RequestOptions(path: ApiConfig.userSearchPath('테스트')),
-          ));
+      when(
+        mockDio.get(
+          ApiConfig.userSearchPath('테스트'),
+          options: anyNamed('options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: ApiConfig.userSearchPath('테스트')),
+        ),
+      );
 
       // Act
       final result = await service.searchByNickname('테스트');
@@ -58,15 +61,20 @@ void main() {
 
     test('검색 결과가 없으면 빈 리스트를 반환해야 함', () async {
       // Arrange
-      when(mockDio.get(
-        ApiConfig.userSearchPath('없는유저'),
-        options: anyNamed('options'),
-      )).thenAnswer((_) async => Response(
-            data: {'data': []},
-            statusCode: 200,
-            requestOptions:
-                RequestOptions(path: ApiConfig.userSearchPath('없는유저')),
-          ));
+      when(
+        mockDio.get(
+          ApiConfig.userSearchPath('없는유저'),
+          options: anyNamed('options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {'data': []},
+          statusCode: 200,
+          requestOptions: RequestOptions(
+            path: ApiConfig.userSearchPath('없는유저'),
+          ),
+        ),
+      );
 
       // Act
       final result = await service.searchByNickname('없는유저');
@@ -77,14 +85,17 @@ void main() {
 
     test('DioException 발생 시 빈 리스트를 반환해야 함', () async {
       // Arrange
-      when(mockDio.get(
-        ApiConfig.userSearchPath('에러'),
-        options: anyNamed('options'),
-      )).thenThrow(DioException(
-        requestOptions:
-            RequestOptions(path: ApiConfig.userSearchPath('에러')),
-        message: 'Network error',
-      ));
+      when(
+        mockDio.get(
+          ApiConfig.userSearchPath('에러'),
+          options: anyNamed('options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: ApiConfig.userSearchPath('에러')),
+          message: 'Network error',
+        ),
+      );
 
       // Act
       final result = await service.searchByNickname('에러');

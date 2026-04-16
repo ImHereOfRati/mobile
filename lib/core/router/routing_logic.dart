@@ -12,6 +12,9 @@ import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 ///    - 기존(200): auth → geofence
 ///
 
+//TODO : 현재 존재하는 문제 -> 만약 사용자가 약관 동의 페이지에서 나가는 경우, 그 어떤 경우에도 201 상태를 벗어날 수 없다.
+// 해결 방법 1 : newUser 와 같은 값 역시 핸들링 한다.
+
 class RouterLogic {
   static String? handleRedirect(Ref ref, GoRouterState state) {
     final authState = ref.read(authStateProvider);

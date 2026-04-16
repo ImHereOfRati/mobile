@@ -9,6 +9,13 @@ import '../../../user_permission/service/concrete/locate_permission_service.dart
 import '../../model/location_search_result.dart';
 import '../../service/geocoding_service.dart';
 
+class MapSelectResult {
+  final NLatLng location;
+  final String address;
+
+  MapSelectResult({required this.location, required this.address});
+}
+
 class MapSelectView extends StatefulWidget {
   final NLatLng? initialLocation;
 
@@ -23,6 +30,7 @@ class _MapSelectViewState extends State<MapSelectView> {
   late Future<NaverMapViewOptions> _mapOptionsFuture;
   NMarker? _currentMarker;
   NLatLng? _selectedLocation;
+  String _selectedAddress = '';
   NLatLng? _initialTarget;
 
   // 검색 관련
@@ -70,7 +78,12 @@ class _MapSelectViewState extends State<MapSelectView> {
 
   void _confirmSelection() {
     if (_selectedLocation != null) {
-      Navigator.of(context).pop(_selectedLocation);
+      Navigator.of(context).pop(
+        MapSelectResult(
+          location: _selectedLocation!,
+          address: _selectedAddress,
+        ),
+      );
     } else {
       ScaffoldMessenger.of(
         context,
@@ -109,6 +122,7 @@ class _MapSelectViewState extends State<MapSelectView> {
     final latlng = NLatLng(result.latitude, result.longitude);
     setState(() {
       _selectedLocation = latlng;
+      _selectedAddress = result.address;
       _showResults = false;
     });
     _searchFocusNode.unfocus();
@@ -377,16 +391,22 @@ class _MapSelectViewState extends State<MapSelectView> {
           _updateMarker(widget.initialLocation!);
         }
       },
-      onMapTapped: (NPoint point, NLatLng latlng) {
+      onMapTapped: (NPoint point, NLatLng latlng) async {
         setState(() {
           _selectedLocation = latlng;
+          _selectedAddress = '';
           _showResults = false;
         });
         _searchFocusNode.unfocus();
         _updateMarker(latlng);
-        debugPrint(
-          "선택된 위치 - lat: ${latlng.latitude}, lng: ${latlng.longitude}",
+
+        final address = await _geocodingService.reverseGeocode(
+          latlng.latitude,
+          latlng.longitude,
         );
+        if (mounted) {
+          setState(() => _selectedAddress = address);
+        }
       },
       onCameraChange: (NCameraUpdateReason reason, bool animated) {
         if (reason == NCameraUpdateReason.gesture) {

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:iamhere/core/dio/api_config.dart';
+import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/fcm_token.dart';

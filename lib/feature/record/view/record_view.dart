@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/core/router/app_routes.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/feature/record/view_model/geofence_record_view_model.dart';
 
@@ -20,14 +21,22 @@ class RecordView extends ConsumerWidget {
         SliverToBoxAdapter(child: _buildPageHeader(context, cs, recordsAsync)),
 
         // ── 받은 알림 ────────────────────────────────────────────────
-        SliverToBoxAdapter(child: _buildSectionHeader(context, cs, '받은 알림', 0)),
+        SliverToBoxAdapter(
+          child: _buildSectionHeader(
+            context, cs, '받은 알림', 0,
+            onViewAll: () => AppRoutes.goToRecordNotifications(context),
+          ),
+        ),
         SliverToBoxAdapter(
           child: _buildEmptySection(context, cs, '받은 알림이 없습니다'),
         ),
 
         // ── 받은 친구 요청 ───────────────────────────────────────────
         SliverToBoxAdapter(
-          child: _buildSectionHeader(context, cs, '받은 친구 요청', 0),
+          child: _buildSectionHeader(
+            context, cs, '받은 친구 요청', 0,
+            onViewAll: () => AppRoutes.goToRecordFriendRequests(context),
+          ),
         ),
         SliverToBoxAdapter(
           child: _buildEmptySection(context, cs, '받은 친구 요청이 없습니다'),
@@ -36,10 +45,9 @@ class RecordView extends ConsumerWidget {
         // ── 나의 전송 기록 ───────────────────────────────────────────
         SliverToBoxAdapter(
           child: _buildSectionHeader(
-            context,
-            cs,
-            '나의 전송 기록',
+            context, cs, '나의 전송 기록',
             recordsAsync.value?.length ?? 0,
+            onViewAll: () => AppRoutes.goToRecordSendHistory(context),
           ),
         ),
 
@@ -76,40 +84,23 @@ class RecordView extends ConsumerWidget {
     ColorScheme cs,
     AsyncValue<List<GeofenceRecordEntity>> recordsAsync,
   ) {
+    final tt = Theme.of(context).textTheme;
     final count = recordsAsync.value?.length ?? 0;
     return Padding(
       padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '기록',
-            style: TextStyle(
-              fontFamily: 'GmarketSans',
-              fontSize: 28.sp,
-              fontWeight: FontWeight.w700,
-              color: cs.onSurface,
-              letterSpacing: -0.3,
-            ),
-          ),
+          Text('기록', style: tt.displayMedium),
           SizedBox(height: 4.h),
           Text(
             '읽지 않은 알림과 요청을 확인하세요',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 14.sp,
-              color: cs.onSurface.withValues(alpha: 0.55),
-            ),
+            style: tt.bodyMedium,
           ),
           SizedBox(height: 4.h),
           Text(
             '$count개의 읽지 않은 항목',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: cs.primary,
-            ),
+            style: tt.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 20.h),
         ],
@@ -122,8 +113,9 @@ class RecordView extends ConsumerWidget {
     BuildContext context,
     ColorScheme cs,
     String title,
-    int unreadCount,
-  ) {
+    int unreadCount, {
+    VoidCallback? onViewAll,
+  }) {
     return Padding(
       padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 4.h),
       child: Column(
@@ -143,7 +135,7 @@ class RecordView extends ConsumerWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: onViewAll,
                 child: Text(
                   '전체 보기',
                   style: TextStyle(
@@ -196,73 +188,73 @@ class RecordView extends ConsumerWidget {
     ColorScheme cs,
     GeofenceRecordEntity record,
   ) {
+    final tt = Theme.of(context).textTheme;
     final recipient = _formatRecipients(record.recipients);
-    final title = '$recipient에게 ${record.geofenceName} 알림 전송 성공';
-    final dateStr = _formatKoreanDate(record.createdAt);
-    // 로컬 DB에 저장된 기록은 전송 성공으로 표시
-    return Column(
-      children: [
-        InkWell(
-          onTap: () {},
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontFamily: 'BMHANNAAir',
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: cs.onSurface,
-                        ),
-                      ),
-                      SizedBox(height: 3.h),
-                      Row(
-                        children: [
-                          Text(
-                            '✓ 전송 성공',
-                            style: TextStyle(
-                              fontFamily: 'BMHANNAAir',
-                              fontSize: 12.sp,
-                              color: cs.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            ' · $dateStr',
-                            style: TextStyle(
-                              fontFamily: 'BMHANNAAir',
-                              fontSize: 12.sp,
-                              color: cs.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  size: 20.r,
-                  color: cs.onSurface.withValues(alpha: 0.3),
-                ),
-              ],
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [
+            BoxShadow(
+              color: cs.onSurface.withValues(alpha: 0.06),
+              offset: const Offset(0, 2),
+              blurRadius: 12,
             ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(14.r),
+          child: Row(
+            children: [
+              // 아이콘
+              Container(
+                width: 40.r,
+                height: 40.r,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  Icons.location_on_rounded,
+                  color: cs.primary,
+                  size: 20.r,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              // 내용
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      record.geofenceName,
+                      style: tt.headlineSmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      '$recipient에게 전송 완료',
+                      style: tt.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+              // 시간
+              Text(
+                _formatRelativeTime(record.createdAt),
+                style: tt.bodySmall,
+              ),
+            ],
           ),
         ),
-        Divider(
-          height: 0.5,
-          thickness: 0.5,
-          color: cs.onSurface.withValues(alpha: 0.1),
-          indent: 20.w,
-          endIndent: 20.w,
-        ),
-      ],
+      ),
     );
   }
 
@@ -307,9 +299,15 @@ class RecordView extends ConsumerWidget {
     }
   }
 
-  String _formatKoreanDate(DateTime dt) {
-    final hour = dt.hour.toString().padLeft(2, '0');
-    final minute = dt.minute.toString().padLeft(2, '0');
-    return '${dt.year}년 ${dt.month}월 ${dt.day}일 $hour:$minute';
+  String _formatRelativeTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+
+    if (diff.inMinutes < 1) return '방금 전';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays < 7) return '${diff.inDays}일 전';
+
+    return '${dt.month}월 ${dt.day}일';
   }
 }

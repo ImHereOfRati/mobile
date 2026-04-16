@@ -77,17 +77,20 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   // ── 지도에서 위치 선택 화면 ───────────────────────────────────────────
   Future<void> _openMapSelect() async {
     final formState = ref.read(geofenceEnrollViewModelProvider);
-    final result = await Navigator.of(context).push<NLatLng>(
+    final result = await Navigator.of(context).push<MapSelectResult>(
       MaterialPageRoute(
         builder: (_) =>
             MapSelectView(initialLocation: formState.selectedLocation),
       ),
     );
     if (result != null) {
-      _onMapTapped(result);
+      _onMapTapped(result.location);
+      ref
+          .read(geofenceEnrollViewModelProvider.notifier)
+          .updateAddress(result.address);
       // 지도 카메라도 선택된 위치로 이동
       _mapController?.updateCamera(
-        NCameraUpdate.scrollAndZoomTo(target: result, zoom: 15),
+        NCameraUpdate.scrollAndZoomTo(target: result.location, zoom: 15),
       );
     }
   }

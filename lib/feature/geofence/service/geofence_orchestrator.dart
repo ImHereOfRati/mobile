@@ -10,7 +10,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'contact_resolution_service.dart';
 import 'deduplication_service.dart';
-import 'geocoding_service.dart';
 import 'geofence_checking_service.dart';
 import 'location_monitoring_service.dart';
 
@@ -44,7 +43,7 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
       _setupServices();
 
       // Start location monitoring
-      await _locationService!.startLocationMonitoring((
+      await _locationService!.activateLocationTracking((
         Position position,
       ) async {
         await _checkGeofences(position);
@@ -92,17 +91,9 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
               recipients,
             );
 
-            // 장소명 + 완전한 주소로 location 구성
-            final geocodingService = GeocodingService();
-            final address = await geocodingService.reverseGeocode(
-              geofence.lat,
-              geofence.lng,
-            );
-            final location = '${geofence.name} ($address)';
-
             final result = await _smsNotifier!.sendSmsToRecipients(
               phoneNumbers: phoneNumbers,
-              location: location,
+              location: geofence.fullLocation,
             );
 
             // If SMS successful, save record and deactivate geofence

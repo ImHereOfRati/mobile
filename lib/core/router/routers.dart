@@ -5,9 +5,14 @@ import 'package:iamhere/feature/auth/view/auth_view.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
 import 'package:iamhere/feature/friend/view/add_friend_view.dart';
 import 'package:iamhere/feature/friend/view/contact_view.dart';
+import 'package:iamhere/feature/friend/view/friend_request_list_view.dart';
+import 'package:iamhere/feature/friend/view/friend_restriction_list_view.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll_view.dart';
 import 'package:iamhere/feature/geofence/view/geofence_view.dart';
+import 'package:iamhere/feature/record/view/notification_list_view.dart';
+import 'package:iamhere/feature/record/view/record_friend_request_list_view.dart';
 import 'package:iamhere/feature/record/view/record_view.dart';
+import 'package:iamhere/feature/record/view/send_history_list_view.dart';
 import 'package:iamhere/feature/setting/view/setting_view.dart';
 import 'package:iamhere/feature/terms/view/terms_detail_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
@@ -76,6 +81,22 @@ final List<RouteBase> appRoutes = [
               child: const AddFriendView(),
             ),
           ),
+          GoRoute(
+            path: 'requests',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: const FriendRequestListView(),
+            ),
+          ),
+          GoRoute(
+            path: 'restrictions',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: const FriendRestrictionListView(),
+            ),
+          ),
         ],
       ),
       GoRoute(
@@ -85,6 +106,32 @@ final List<RouteBase> appRoutes = [
           state: state,
           child: const RecordView(),
         ),
+        routes: [
+          GoRoute(
+            path: 'notifications',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: const NotificationListView(),
+            ),
+          ),
+          GoRoute(
+            path: 'friend-requests',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: const RecordFriendRequestListView(),
+            ),
+          ),
+          GoRoute(
+            path: 'send-history',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: const SendHistoryListView(),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.setting,

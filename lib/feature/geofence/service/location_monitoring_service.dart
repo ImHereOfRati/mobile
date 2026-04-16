@@ -6,63 +6,61 @@ import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/concrete/locate_permission_service.dart';
 import 'package:injectable/injectable.dart';
 
-/// Location monitoring and permission handling
 @lazySingleton
 class LocationMonitoringService {
+  final LocatePermissionService _permissionService;
   StreamSubscription<Position>? _positionStreamSubscription;
 
-  /// Start listening to location updates
-  /// Throws exception if location permission is not granted
-  Future<Stream<Position>> startLocationMonitoring(
+  LocationMonitoringService(this._permissionService);
+
+  Future<Stream<Position>> activateLocationTracking(
     Function(Position position) onPositionUpdate,
   ) async {
-    // Stop any existing monitoring
     await stopLocationMonitoring();
-
-    log('Starting location monitoring');
+    log('위치 관제 시스템 가동 시작');
 
     try {
-      final locationService = LocatePermissionService();
-      final permissionState = await locationService
-          .requestLocationPermissions();
+      await _ensureLocationPermission();
 
-      if (permissionState != PermissionState.grantedAlways &&
-          permissionState != PermissionState.grantedWhenInUse) {
-        log('Location permission not granted: ${permissionState.name}');
-        throw Exception(
-          'Location permission required. Please enable location access in settings.',
-        );
-      }
-
-      final LocationSettings locationSettings = LocationSettings(
+      final locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // Update every 10 meters
+        distanceFilter: 10,
       );
 
-      _positionStreamSubscription =
-          Geolocator.getPositionStream(
-            locationSettings: locationSettings,
-          ).listen(
-            (Position position) {
-              onPositionUpdate(position);
-            },
-            onError: (error) {
-              log('Location stream error: $error');
-            },
-          );
+      final positionStream = Geolocator.getPositionStream(
+        locationSettings: locationSettings,
+      );
 
-      log('Location monitoring started');
-      return Geolocator.getPositionStream(locationSettings: locationSettings);
+      _positionStreamSubscription = positionStream.listen(
+        onPositionUpdate,
+        onError: (error) => log('위치 스트림 에러: $error'),
+        cancelOnError: false,
+      );
+
+      log('위치 관제 시스템 정상 가동 중');
+      return positionStream;
     } catch (e) {
-      log('Failed to start location monitoring: $e');
+      log('위치 관제 가동 실패: $e');
       rethrow;
     }
   }
 
-  /// Stop listening to location updates
+  Future<void> _ensureLocationPermission() async {
+    final permissionState = await _permissionService
+        .requestLocationPermissions();
+
+    if (permissionState != PermissionState.grantedAlways &&
+        permissionState != PermissionState.grantedWhenInUse) {
+      log('위치 권한 거부됨: ${permissionState.name}');
+      throw Exception('위치 권한이 필요합니다. 설정에서 권한을 허용해주세요.');
+    }
+  }
+
   Future<void> stopLocationMonitoring() async {
-    log('Stopping location monitoring');
-    await _positionStreamSubscription?.cancel();
-    _positionStreamSubscription = null;
+    if (_positionStreamSubscription != null) {
+      log('위치 관제 시스템 중단');
+      await _positionStreamSubscription?.cancel();
+      _positionStreamSubscription = null;
+    }
   }
 }

@@ -1,6 +1,7 @@
 class GeofenceEntity {
   final int? id;
   final String name;
+  final String address; // 장소의 완전한 주소
   final double lat;
   final double lng;
   final double radius; // 반경 (미터)
@@ -11,6 +12,7 @@ class GeofenceEntity {
   GeofenceEntity({
     this.id,
     required this.name,
+    this.address = '',
     required this.lat,
     required this.lng,
     required this.radius,
@@ -19,10 +21,15 @@ class GeofenceEntity {
     this.isActive = false, // 기본값은 false
   });
 
+  /// SMS 발송 시 사용할 location 문자열: "장소명 (주소)"
+  String get fullLocation =>
+      address.isNotEmpty ? '$name ($address)' : name;
+
   // isActive를 변경한 새 인스턴스 생성
   GeofenceEntity copyWith({
     int? id,
     String? name,
+    String? address,
     double? lat,
     double? lng,
     double? radius,
@@ -33,12 +40,12 @@ class GeofenceEntity {
     return GeofenceEntity(
       id: id ?? this.id,
       name: name ?? this.name,
+      address: address ?? this.address,
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
       radius: radius ?? this.radius,
       message: message ?? this.message,
       contactIds: contactIds ?? this.contactIds,
-      // isActive가 null이 아닐 때만 업데이트 (false도 포함)
       isActive: isActive ?? this.isActive,
     );
   }
@@ -47,12 +54,13 @@ class GeofenceEntity {
     return {
       'id': id,
       'name': name,
+      'address': address,
       'lat': lat,
       'lng': lng,
       'radius': radius,
       'message': message,
       'contact_ids': contactIds,
-      'is_active': isActive ? 1 : 0, // SQLite는 boolean을 지원하지 않으므로 0/1로 저장
+      'is_active': isActive ? 1 : 0,
     };
   }
 
@@ -60,6 +68,7 @@ class GeofenceEntity {
     return GeofenceEntity(
       id: map['id'] as int?,
       name: map['name'] as String,
+      address: map['address'] as String? ?? '',
       lat: map['lat'] as double,
       lng: map['lng'] as double,
       radius: map['radius'] as double,

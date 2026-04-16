@@ -2,20 +2,21 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
+import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/geofence/model/message_send_request.dart';
 import 'package:iamhere/feature/geofence/model/multiple_message_send_request.dart';
+import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:iamhere/shared/base/result/result.dart';
 import 'package:injectable/injectable.dart';
-
-import 'notification_service.dart';
 
 /// SMS sending service with proper dependency injection and error handling
 @lazySingleton
 class SmsService {
   final Dio _dio;
-  final NotificationService _notificationService;
+  final FcmNotificationService _fcmNotificationService;
+  final UserMeServiceInterface _userMeService;
 
-  SmsService(this._dio, this._notificationService);
+  SmsService(this._dio, this._fcmNotificationService, this._userMeService);
 
   /// Send SMS to one or more recipients
   /// Returns Result<void> indicating success or failure
@@ -80,12 +81,7 @@ class SmsService {
         return Failure('SMS send failed with status ${response.statusCode}');
       }
 
-      // Send FCM notification on success
-      final notificationResult = await _notificationService
-          .sendNotificationToMe();
-      if (notificationResult is Failure) {
-        log('Warning: SMS sent but FCM notification failed');
-      }
+      await _notifyDeliveryResultToMe(location);
 
       return Success(null);
     } catch (e) {
@@ -119,17 +115,35 @@ class SmsService {
         return Failure('SMS send failed with status ${response.statusCode}');
       }
 
-      // Send FCM notification on success
-      final notificationResult = await _notificationService
-          .sendNotificationToMe();
-      if (notificationResult is Failure) {
-        log('Warning: SMS sent but FCM notification failed');
-      }
+      await _notifyDeliveryResultToMe(location);
 
       return Success(null);
     } catch (e) {
       log('Error sending multi SMS: $e');
       return Failure('Error sending SMS: $e');
+    }
+  }
+
+  /// SMS 발송 성공 후 본인에게 FCM으로 발송 결과 통보
+  Future<void> _notifyDeliveryResultToMe(String location) async {
+    try {
+      final myInfo = await _userMeService.fetchMyInfo();
+      if (myInfo == null) {
+        log('Warning: Could not fetch user info for delivery result notification');
+        return;
+      }
+
+      final result = await _fcmNotificationService.notifyDeliveryResult(
+        receiverEmail: myInfo.userEmail,
+        type: 'ARRIVAL',
+        body: '$location 도착 알림이 성공적으로 전송되었습니다.',
+      );
+
+      if (result is Failure) {
+        log('Warning: SMS sent but delivery result notification failed');
+      }
+    } catch (e) {
+      log('Warning: SMS sent but delivery result notification error: $e');
     }
   }
 }

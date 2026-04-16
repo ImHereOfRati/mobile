@@ -20,7 +20,7 @@ void main() {
   late MockAuthViewModel mockAuthViewModel;
   late MockTokenStorageService mockTokenStorageService;
 
-  provideDummy<Result<LoginResult>>(Success(LoginResult.existingUser));
+  provideDummy<Result<MemberState>>(Success(MemberState.existingUser));
   provideDummy<Result<ResultMessage>>(Success(ResultMessage.kakaoAuthSuccess));
 
   setUp(() async {
@@ -75,7 +75,7 @@ void main() {
       // 기존 사용자 로그인 응답
       when(
         mockAuthViewModel.handleKakaoLogin(),
-      ).thenAnswer((_) async => Success(LoginResult.existingUser));
+      ).thenAnswer((_) async => Success(MemberState.existingUser));
 
       // FCM 토큰 전송 (기존 사용자에게만)
       when(

@@ -1,38 +1,43 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
+import 'package:iamhere/core/dio/util/dio_handler.dart';
+import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
+import 'package:iamhere/shared/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
-class FcmNotificationService {
+class FcmNotificationService with DioHandler {
   final Dio _dio;
 
   FcmNotificationService({required Dio dio}) : _dio = dio;
 
-  Future<bool> alertArrivalNotificationSuccessToMe(String fcmToken) async {
-    Map<dynamic, dynamic> date = {};
+  /// 알림 정상 발송 결과를 본인에게 FCM으로 통보
+  Future<Result<void>> notifyDeliveryResult({
+    required String receiverEmail,
+    required String type,
+    required String body,
+  }) async {
+    return await safeApiCall(() async {
+      final dto = FcmNotificationRequestDto(
+        receiverEmail: receiverEmail,
+        type: type,
+        body: body,
+      );
 
-    try {
       final response = await _dio.post(
         ApiConfig.fcmDeliveryResultPath,
-        data: date,
+        data: dto.toJson(),
         options: ApiConfig.authOptions,
       );
 
       if (response.statusCode == 200) {
-        debugPrint('FCM token enrolled successfully');
-        return true;
+        debugPrint('Delivery result notification sent successfully');
+        return Success(null);
       } else {
-        debugPrint('Failed to enroll FCM token: ${response.statusCode}');
-        return false;
+        debugPrint('Failed to send delivery result: ${response.statusCode}');
+        return Failure('Failed to send delivery result: ${response.statusCode}');
       }
-    } on DioException catch (e) {
-      debugPrint('DioException while enrolling FCM token: ${e.message}');
-      debugPrint('Response: ${e.response?.data}');
-      return false;
-    } catch (e) {
-      debugPrint('Error enrolling FCM token: $e');
-      return false;
-    }
+    });
   }
 }

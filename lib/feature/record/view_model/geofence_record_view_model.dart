@@ -21,4 +21,9 @@ class GeofenceRecordViewModel extends _$GeofenceRecordViewModel {
       return await _repository.findAllOrderByCreatedAtDesc();
     });
   }
+
+  Future<void> deleteAll() async {
+    await _repository.deleteAll();
+    await refresh();
+  }
 }
