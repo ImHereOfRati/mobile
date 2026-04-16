@@ -14,7 +14,7 @@ class FcmTokenRepository {
 
   Future<bool> enrollFcmToken(String fcmToken) async {
     try {
-      final request = FcmToken(fcmToken: fcmToken);
+      final request = FcmToken.fromCurrentPlatform(fcmToken: fcmToken);
 
       final response = await _dio.post(
         ApiConfig.fcmEnrollPath,

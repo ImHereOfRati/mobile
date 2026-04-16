@@ -5,6 +5,7 @@ import 'package:iamhere/router/app_routes.dart';
 import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/terms/view_model/terms_agreement_notifier.dart';
 import 'package:iamhere/terms/view_model/terms_agreement_provider.dart';
+import 'package:iamhere/terms/view_model/terms_consent_view_model.dart';
 import 'package:iamhere/terms/view_model/terms_list_view_model.dart';
 
 class TermsListView extends ConsumerWidget {
@@ -47,6 +48,17 @@ class TermsListView extends ConsumerWidget {
       allRequiredTermsAgreedProvider(requiredIds),
     );
 
+    ref.listen(termsConsentViewModelProvider, (_, next) {
+      if (next is AsyncData && next.value != null) {
+        AppRoutes.goToGeofence(context);
+      }
+      if (next is AsyncError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('약관 동의에 실패했습니다. 다시 시도해 주세요.')),
+        );
+      }
+    });
+
     return Column(
       children: [
         Expanded(
@@ -62,7 +74,7 @@ class TermsListView extends ConsumerWidget {
             ],
           ),
         ),
-        _buildBottomAction(context, ref, allRequiredAgreed),
+        _buildBottomAction(context, ref, allRequiredAgreed, terms),
       ],
     );
   }
@@ -231,8 +243,14 @@ class TermsListView extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     bool allRequiredAgreed,
+    List<TermsListRequestDto> terms,
   ) {
     final cs = Theme.of(context).colorScheme;
+    final isLoading = ref.watch(
+      termsConsentViewModelProvider.select((s) => s.isLoading),
+    );
+    final canSubmit = allRequiredAgreed && !isLoading;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 32.h),
       child: Column(
@@ -242,11 +260,16 @@ class TermsListView extends ConsumerWidget {
             width: double.infinity,
             height: 56.h,
             child: ElevatedButton(
-              onPressed: allRequiredAgreed
-                  ? () => AppRoutes.goToGeofence(context)
+              onPressed: canSubmit
+                  ? () {
+                      final agreementsMap = ref.read(termsAgreementProvider);
+                      ref
+                          .read(termsConsentViewModelProvider.notifier)
+                          .submitConsents(terms, agreementsMap);
+                    }
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: allRequiredAgreed
+                backgroundColor: canSubmit
                     ? cs.primary
                     : cs.onSurface.withValues(alpha: 0.08),
                 foregroundColor: cs.onPrimary,
@@ -256,17 +279,26 @@ class TermsListView extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16.r),
                 ),
               ),
-              child: Text(
-                '동의하고 시작하기',
-                style: TextStyle(
-                  fontFamily: 'BMHANNAAir',
-                  fontSize: 17.sp,
-                  fontWeight: FontWeight.w700,
-                  color: allRequiredAgreed
-                      ? cs.onPrimary
-                      : cs.onSurface.withValues(alpha: 0.3),
-                ),
-              ),
+              child: isLoading
+                  ? SizedBox(
+                      width: 24.r,
+                      height: 24.r,
+                      child: CircularProgressIndicator(
+                        color: cs.onPrimary,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                  : Text(
+                      '동의하고 시작하기',
+                      style: TextStyle(
+                        fontFamily: 'BMHANNAAir',
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w700,
+                        color: allRequiredAgreed
+                            ? cs.onPrimary
+                            : cs.onSurface.withValues(alpha: 0.3),
+                      ),
+                    ),
             ),
           ),
           SizedBox(height: 16.h),

@@ -8,12 +8,12 @@ part 'terms_list_view_model.g.dart';
 /// ViewModel for fetching terms list from server
 @riverpod
 class TermsListViewModel extends _$TermsListViewModel {
-  late TermsRequestService _service;
+  late TermsRequestService _requestService;
 
   @override
   Future<List<TermsListRequestDto>> build() async {
-    _service = GetIt.instance<TermsRequestService>();
-    final apiResponse = await _service.requestTermsList();
+    _requestService = GetIt.instance<TermsRequestService>();
+    final apiResponse = await _requestService.requestTermsList();
     return apiResponse.data.content;
   }
 
@@ -21,7 +21,7 @@ class TermsListViewModel extends _$TermsListViewModel {
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final apiResponse = await _service.requestTermsList();
+      final apiResponse = await _requestService.requestTermsList();
       return apiResponse.data.content;
     });
   }

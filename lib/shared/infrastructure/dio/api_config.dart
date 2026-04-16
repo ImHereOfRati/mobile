@@ -28,7 +28,10 @@ class ApiConfig {
   static const String termsListPath = '/api/user/terms';
 
   /// POST — 전체 약관 일괄 동의 (응답으로 신규 토큰 발급)
-  static const String termsConsentPath = '/api/user/terms/consent';
+  static const String allTermsConsentPath = '/api/user/terms/consent';
+
+  static String termConsentPath(String termDefinitionId) =>
+      '/api/user/terms/consent/$termDefinitionId';
 
   /// GET — 특정 약관의 활성화된 버전 상세 조회
   static String termsVersionPath(String termsDefinitionId) =>
