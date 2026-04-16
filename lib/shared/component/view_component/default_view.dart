@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/router/app_routes.dart';
+import 'package:iamhere/core/router/app_routes.dart';
 
 class DefaultView extends ConsumerWidget {
   final Widget child;
@@ -87,7 +87,7 @@ class DefaultView extends ConsumerWidget {
     final selectedColor = cs.primary;
     final unselectedColor =
         Theme.of(context).bottomNavigationBarTheme.unselectedItemColor ??
-            const Color(0xFF6E6E73);
+        const Color(0xFF6E6E73);
 
     return Container(
       decoration: BoxDecoration(

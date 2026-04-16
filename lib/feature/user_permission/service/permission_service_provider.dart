@@ -1,0 +1,20 @@
+import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'permission_service_provider.g.dart';
+
+@riverpod
+PermissionServiceInterface locationPermissionService(Ref ref) {
+  return getIt<PermissionServiceInterface>(instanceName: 'location');
+}
+
+@riverpod
+PermissionServiceInterface contactPermissionService(Ref ref) {
+  return getIt<PermissionServiceInterface>(instanceName: 'friend');
+}
+
+@riverpod
+PermissionServiceInterface fcmAlertPermissionService(Ref ref) {
+  return getIt<PermissionServiceInterface>(instanceName: 'fcmAlert');
+}
