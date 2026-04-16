@@ -8,6 +8,7 @@ import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'my_info_view.dart';
 import 'privacy_view.dart';
 import 'setting_components.dart';
 
@@ -41,6 +42,16 @@ class SettingView extends ConsumerWidget {
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       children: [
+        _buildSection(context, '계정', [
+          SettingItem(
+            title: '내 정보',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyInfoView()),
+            ),
+          ),
+        ]),
+        SizedBox(height: 20.h),
         _buildSection(context, '디스플레이', [
           _buildThemeToggleItem(context, ref, isDark),
         ]),

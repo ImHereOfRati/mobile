@@ -20,6 +20,8 @@ class AppRoutes {
   static const String geofenceEnroll = '/geofence/enroll';
   static const String contact = '/friend';
   static const String contactAdd = '/friend/add';
+  static const String friendRequests = '/friend/requests';
+  static const String friendRestrictions = '/friend/restrictions';
   static const String record = '/record';
   static const String setting = '/setting';
 

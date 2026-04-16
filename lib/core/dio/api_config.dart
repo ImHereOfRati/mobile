@@ -20,8 +20,8 @@ class ApiConfig {
   /// POST — 닉네임 변경
   static const String userNicknamePath = '/api/user/info/nickname';
 
-  /// GET — 닉네임으로 유저 검색 (Query Param: nickname)
-  static const String userSearchPath = '/api/user/info/tester';
+  /// GET — 이메일 또는 닉네임으로 유저 검색 (PathVariable: keyword)
+  static String userSearchPath(String keyword) => '/api/user/info/$keyword';
 
   // ── Terms ───────────────────────────────────────────────────────
   /// GET — 약관 종류 목록 조회 (페이지네이션)
@@ -36,6 +36,45 @@ class ApiConfig {
   /// GET — 특정 약관의 활성화된 버전 상세 조회
   static String termsVersionPath(String termsDefinitionId) =>
       '/api/user/terms/version/$termsDefinitionId';
+
+  // ── Friend Relationship ─────────────────────────────────────────
+  /// GET — 내 친구 목록 조회
+  static const String friendListPath = '/api/user/friends';
+
+  /// POST — 친구 별명 변경
+  static const String friendAliasPath = '/api/user/friends/alias';
+
+  /// POST — 친구 차단
+  static String friendBlockPath(String friendRelationshipId) =>
+      '/api/user/friends/block/$friendRelationshipId';
+
+  /// DELETE — 친구 관계 삭제
+  static String friendDeletePath(String friendRelationshipId) =>
+      '/api/user/friends/$friendRelationshipId';
+
+  // ── Friend Request ─────────────────────────────────────────────
+  /// POST — 친구 요청 보내기 / GET — 받은 친구 요청 목록 조회
+  static const String friendRequestPath = '/api/user/friends/request';
+
+  /// GET — 친구 요청 상세 조회
+  static String friendRequestDetailPath(int requestId) =>
+      '/api/user/friends/request/$requestId';
+
+  /// POST — 친구 요청 수락
+  static String friendRequestAcceptPath(int requestId) =>
+      '/api/user/friends/request/accept/$requestId';
+
+  /// POST — 친구 요청 거절
+  static String friendRequestRejectPath(int requestId) =>
+      '/api/user/friends/request/reject/$requestId';
+
+  // ── Friend Restriction ─────────────────────────────────────────
+  /// GET — 제한(차단/거절) 목록 조회
+  static const String friendRestrictionPath = '/api/user/friends/restriction';
+
+  /// DELETE — 제한 해제 (차단 해제)
+  static String friendRestrictionDeletePath(int friendRestrictionId) =>
+      '/api/user/friends/restriction/$friendRestrictionId';
 
   // ── Notification (FCM) ──────────────────────────────────────────
   /// POST — FCM 토큰 서버 등록 (디바이스 정보 포함)
