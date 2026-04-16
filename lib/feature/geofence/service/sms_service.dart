@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/api_config.dart';
+import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/geofence/model/message_send_request.dart';
 import 'package:iamhere/feature/geofence/model/multiple_message_send_request.dart';
 import 'package:iamhere/shared/base/result/result.dart';

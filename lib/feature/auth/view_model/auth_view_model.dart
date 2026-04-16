@@ -17,7 +17,7 @@ class AuthViewModel implements AuthViewModelInterface {
   AuthViewModel(this._authService, this._fcmTokenService);
 
   @override
-  Future<Result<LoginResult>> handleKakaoLogin() async {
+  Future<Result<MemberState>> handleKakaoLogin() async {
     final result = await _doUserKakaoLogin();
 
     return result.when(

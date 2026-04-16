@@ -19,23 +19,29 @@ Widget rightContentWidget({
         width: 18.w * length,
         height: 30.h,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(35.0),
         ),
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                right,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontSize: 12.sp),
-              ),
-            ],
-          ),
-        ),
+        child: _buildRightContents(right, context),
       ),
+    ),
+  );
+}
+
+Center _buildRightContents(String right, BuildContext context) {
+  return Center(
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          right,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontSize: 12.sp),
+        ),
+      ],
     ),
   );
 }

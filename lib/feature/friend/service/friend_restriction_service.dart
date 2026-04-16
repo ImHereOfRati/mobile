@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:iamhere/core/dio/api_config.dart';
+import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_deleted_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_response_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_restriction_service_interface.dart';
@@ -26,8 +26,11 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
 
         if (data is List) {
           return data
-              .map((e) => FriendRestrictionResponseDto.fromJson(
-                  e as Map<String, dynamic>))
+              .map(
+                (e) => FriendRestrictionResponseDto.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
               .toList();
         }
       }
@@ -40,7 +43,8 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
 
   @override
   Future<FriendRestrictionDeletedResponseDto?> deleteRestriction(
-      int friendRestrictionId) async {
+    int friendRestrictionId,
+  ) async {
     try {
       final response = await _dio.delete(
         ApiConfig.friendRestrictionDeletePath(friendRestrictionId),
@@ -49,7 +53,9 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final body = response.data;
-        final data = body is Map<String, dynamic> ? (body['data'] ?? body) : body;
+        final data = body is Map<String, dynamic>
+            ? (body['data'] ?? body)
+            : body;
         if (data is Map<String, dynamic>) {
           return FriendRestrictionDeletedResponseDto.fromJson(data);
         }

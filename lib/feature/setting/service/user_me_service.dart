@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:iamhere/core/dio/api_config.dart';
+import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/setting/service/dto/user_me_response_dto.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:injectable/injectable.dart';
@@ -21,7 +21,9 @@ class UserMeService implements UserMeServiceInterface {
 
       if (response.statusCode == 200) {
         final body = response.data;
-        final data = body is Map<String, dynamic> ? (body['data'] ?? body) : body;
+        final data = body is Map<String, dynamic>
+            ? (body['data'] ?? body)
+            : body;
 
         if (data is Map<String, dynamic>) {
           return UserMeResponseDto.fromJson(data);

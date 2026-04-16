@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:iamhere/core/dio/api_config.dart';
+import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
@@ -17,7 +17,8 @@ class FriendRequestService implements FriendRequestServiceInterface {
 
   @override
   Future<CreateFriendRequestResponseDto?> sendRequest(
-      CreateFriendRequestDto request) async {
+    CreateFriendRequestDto request,
+  ) async {
     try {
       final response = await _dio.post(
         ApiConfig.friendRequestPath,
@@ -27,7 +28,9 @@ class FriendRequestService implements FriendRequestServiceInterface {
 
       if (response.statusCode == 200) {
         final body = response.data;
-        final data = body is Map<String, dynamic> ? (body['data'] ?? body) : body;
+        final data = body is Map<String, dynamic>
+            ? (body['data'] ?? body)
+            : body;
         if (data is Map<String, dynamic>) {
           return CreateFriendRequestResponseDto.fromJson(data);
         }
@@ -53,8 +56,11 @@ class FriendRequestService implements FriendRequestServiceInterface {
 
         if (data is List) {
           return data
-              .map((e) => ReceivedFriendRequestResponseDto.fromJson(
-                  e as Map<String, dynamic>))
+              .map(
+                (e) => ReceivedFriendRequestResponseDto.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
               .toList();
         }
       }
@@ -67,7 +73,8 @@ class FriendRequestService implements FriendRequestServiceInterface {
 
   @override
   Future<ReceivedFriendRequestDetailDto?> fetchRequestDetail(
-      int requestId) async {
+    int requestId,
+  ) async {
     try {
       final response = await _dio.get(
         ApiConfig.friendRequestDetailPath(requestId),
@@ -76,7 +83,9 @@ class FriendRequestService implements FriendRequestServiceInterface {
 
       if (response.statusCode == 200) {
         final body = response.data;
-        final data = body is Map<String, dynamic> ? (body['data'] ?? body) : body;
+        final data = body is Map<String, dynamic>
+            ? (body['data'] ?? body)
+            : body;
         if (data is Map<String, dynamic>) {
           return ReceivedFriendRequestDetailDto.fromJson(data);
         }
@@ -98,7 +107,9 @@ class FriendRequestService implements FriendRequestServiceInterface {
 
       if (response.statusCode == 200) {
         final body = response.data;
-        final data = body is Map<String, dynamic> ? (body['data'] ?? body) : body;
+        final data = body is Map<String, dynamic>
+            ? (body['data'] ?? body)
+            : body;
         if (data is Map<String, dynamic>) {
           return FriendRelationshipResponseDto.fromJson(data);
         }

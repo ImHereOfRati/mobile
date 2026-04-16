@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:iamhere/core/dio/api_config.dart';
+import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/user_search_response_dto.dart';
 import 'package:iamhere/feature/friend/service/user_search_service_interface.dart';
 import 'package:injectable/injectable.dart';
@@ -25,8 +25,10 @@ class UserSearchService implements UserSearchServiceInterface {
 
         if (data is List) {
           return data
-              .map((e) =>
-                  UserSearchResponseDto.fromJson(e as Map<String, dynamic>))
+              .map(
+                (e) =>
+                    UserSearchResponseDto.fromJson(e as Map<String, dynamic>),
+              )
               .toList();
         }
       }

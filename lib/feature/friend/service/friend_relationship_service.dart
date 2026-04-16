@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:iamhere/core/dio/api_config.dart';
+import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/update_friend_alias_request_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_relationship_service_interface.dart';
@@ -26,8 +26,11 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
 
         if (data is List) {
           return data
-              .map((e) => FriendRelationshipResponseDto.fromJson(
-                  e as Map<String, dynamic>))
+              .map(
+                (e) => FriendRelationshipResponseDto.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
               .toList();
         }
       }
@@ -40,7 +43,8 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
 
   @override
   Future<FriendRelationshipResponseDto?> updateAlias(
-      UpdateFriendAliasRequestDto request) async {
+    UpdateFriendAliasRequestDto request,
+  ) async {
     try {
       final response = await _dio.post(
         ApiConfig.friendAliasPath,
@@ -50,7 +54,9 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
 
       if (response.statusCode == 200) {
         final body = response.data;
-        final data = body is Map<String, dynamic> ? (body['data'] ?? body) : body;
+        final data = body is Map<String, dynamic>
+            ? (body['data'] ?? body)
+            : body;
         if (data is Map<String, dynamic>) {
           return FriendRelationshipResponseDto.fromJson(data);
         }
