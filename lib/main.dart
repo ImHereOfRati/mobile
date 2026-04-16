@@ -5,12 +5,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/router/router_provider.dart';
+import 'package:iamhere/core/router/router_provider.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
-import 'package:iamhere/shared/firebase/firebase_service.dart';
-import 'package:iamhere/shared/infrastructure/di/di_setup.dart';
+import 'package:iamhere/integration/firebase/firebase_service.dart';
+import 'package:iamhere/core/di/di_setup.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
 void main() async {

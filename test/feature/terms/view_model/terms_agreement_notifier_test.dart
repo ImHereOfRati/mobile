@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/terms/view_model/terms_agreement_notifier.dart';
-import 'package:iamhere/terms/view_model/terms_agreement_provider.dart';
+import 'package:iamhere/feature/terms/view_model/terms_agreement_notifier.dart';
+import 'package:iamhere/feature/terms/view_model/terms_agreement_provider.dart';
 
 void main() {
   group('TermsAgreementNotifier', () {

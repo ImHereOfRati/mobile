@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/geofence/utils/radius_helper.dart';
+import 'package:iamhere/feature/geofence/utils/radius_helper.dart';
 
 void main() {
   group('RadiusHelper 유틸리티 테스트', () {

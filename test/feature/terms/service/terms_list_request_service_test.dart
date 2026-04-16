@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/terms/service/dto/terms_type.dart';
-import 'package:iamhere/terms/service/terms_request_service.dart';
+import 'package:iamhere/feature/terms/service/dto/terms_type.dart';
+import 'package:iamhere/feature/terms/service/terms_request_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 

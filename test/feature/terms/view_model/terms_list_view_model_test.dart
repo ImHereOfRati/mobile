@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
-import 'package:iamhere/terms/service/dto/terms_type.dart';
-import 'package:iamhere/terms/service/terms_request_service.dart';
-import 'package:iamhere/terms/view_model/terms_list_view_model.dart';
+import 'package:iamhere/feature/terms/service/dto/terms_list_request_dto.dart';
+import 'package:iamhere/feature/terms/service/dto/terms_type.dart';
+import 'package:iamhere/feature/terms/service/terms_request_service.dart';
+import 'package:iamhere/feature/terms/view_model/terms_list_view_model.dart';
 import 'package:mockito/annotations.dart';
 
 import 'terms_list_view_model_test.mocks.dart';

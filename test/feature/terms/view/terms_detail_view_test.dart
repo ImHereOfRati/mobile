@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:iamhere/feature/terms/service/dto/terms_version_response_dto.dart';
+import 'package:iamhere/feature/terms/service/terms_request_service.dart';
+import 'package:iamhere/feature/terms/view/terms_detail_view.dart';
 import 'package:iamhere/shared/base/api_response/api_response.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
-import 'package:iamhere/terms/service/dto/terms_version_response_dto.dart';
-import 'package:iamhere/terms/service/terms_request_service.dart';
-import 'package:iamhere/terms/view/terms_detail_view.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -73,13 +73,15 @@ void main() {
       expect(find.byType(TermsDetailView), findsOneWidget);
     });
 
-    testWidgets('로딩 중 CircularProgressIndicator 표시 테스트',
-        (WidgetTester tester) async {
+    testWidgets('로딩 중 CircularProgressIndicator 표시 테스트', (
+      WidgetTester tester,
+    ) async {
       // Arrange — Completer를 사용해 영구적으로 pending 상태 유지 (타이머 없음)
       final completer = Completer<APIResponse<TermsVersionResponseDto>>();
 
-      when(mockTermsService.requestTermsDetail(1))
-          .thenAnswer((_) => completer.future);
+      when(
+        mockTermsService.requestTermsDetail(1),
+      ).thenAnswer((_) => completer.future);
 
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 3.0;
@@ -121,8 +123,9 @@ void main() {
         data: termDto,
       );
 
-      when(mockTermsService.requestTermsDetail(1))
-          .thenAnswer((_) async => apiResponse);
+      when(
+        mockTermsService.requestTermsDetail(1),
+      ).thenAnswer((_) async => apiResponse);
 
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 3.0;

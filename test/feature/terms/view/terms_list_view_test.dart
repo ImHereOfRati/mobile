@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:iamhere/feature/terms/service/dto/terms_list_request_dto.dart';
+import 'package:iamhere/feature/terms/service/dto/terms_type.dart';
+import 'package:iamhere/feature/terms/service/terms_request_service.dart';
+import 'package:iamhere/feature/terms/view/terms_list_view.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
-import 'package:iamhere/terms/service/dto/terms_list_request_dto.dart';
-import 'package:iamhere/terms/service/dto/terms_type.dart';
-import 'package:iamhere/terms/service/terms_request_service.dart';
-import 'package:iamhere/terms/view/terms_list_view.dart';
 import 'package:mockito/annotations.dart';
 
 import 'terms_list_view_test.mocks.dart';

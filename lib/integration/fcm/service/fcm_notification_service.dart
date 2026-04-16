@@ -4,10 +4,10 @@ import 'package:iamhere/core/dio/api_config.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
-class FcmTokenService {
+class FcmNotificationService {
   final Dio _dio;
 
-  FcmTokenService({required Dio dio}) : _dio = dio;
+  FcmNotificationService({required Dio dio}) : _dio = dio;
 
   Future<bool> alertArrivalNotificationSuccessToMe(String fcmToken) async {
     Map<dynamic, dynamic> date = {};

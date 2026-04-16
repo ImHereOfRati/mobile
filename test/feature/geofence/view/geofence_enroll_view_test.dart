@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/geofence/view/widget/radius_button.dart';
-import 'package:iamhere/geofence/view/widget/radius_info_callout.dart';
-import 'package:iamhere/geofence/view_model/geofence_enroll_view_model.dart';
+import 'package:iamhere/feature/geofence/view/widget/radius_button.dart';
+import 'package:iamhere/feature/geofence/view/widget/radius_info_callout.dart';
+import 'package:iamhere/feature/geofence/view_model/geofence_enroll_view_model.dart';
 
 void main() {
   group('GeofenceEnrollFormState 테스트', () {
