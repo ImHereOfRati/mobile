@@ -11,7 +11,7 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
 
   Future<GeofenceEntity> save(GeofenceEntity entity) => executeInsert(
     entityName: 'geofence',
-    table: LocalDatabaseProperties.GEOFENCE_TABLE_NAME,
+    table: LocalDatabaseProperties.geofenceTableName,
     values: entity.toMap(),
     createEntity: (id) => entity.copyWith(id: id),
     entityDetails: 'Geofence: ${entity.name}',
@@ -20,28 +20,28 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
   Future<int> update(GeofenceEntity entity) => executeUpdate(
     entityName: 'Geofence',
     entityId: entity.id,
-    table: LocalDatabaseProperties.GEOFENCE_TABLE_NAME,
+    table: LocalDatabaseProperties.geofenceTableName,
     values: entity.toMap(),
     entityDetails: 'Geofence: ${entity.name}',
   );
 
   Future<List<GeofenceEntity>> findAll() => executeQuery(
     entityName: 'geofence',
-    table: LocalDatabaseProperties.GEOFENCE_TABLE_NAME,
+    table: LocalDatabaseProperties.geofenceTableName,
     fromMap: GeofenceEntity.fromMap,
     orderBy: 'name ASC',
   );
 
   Future<void> delete(int id) => executeDelete(
     entityName: 'geofence',
-    table: LocalDatabaseProperties.GEOFENCE_TABLE_NAME,
+    table: LocalDatabaseProperties.geofenceTableName,
     id: id,
   );
 
   Future<void> updateActiveStatus(int id, bool isActive) async {
     try {
       await database.update(
-        LocalDatabaseProperties.GEOFENCE_TABLE_NAME,
+        LocalDatabaseProperties.geofenceTableName,
         {'is_active': isActive ? 1 : 0},
         where: 'id = ?',
         whereArgs: [id],

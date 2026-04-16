@@ -1,23 +1,17 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/core/dio/properties/dio_properties.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:injectable/injectable.dart';
 
-import 'dio_auth_interceptor.dart';
-import 'pending_request.dart';
+import '../module/dio_auth_interceptor.dart';
+import '../module/pending_request.dart';
 import 'token_refresher.dart';
 
 @module
 abstract class DioModule {
   @lazySingleton
   Dio dio(TokenStorageService tokenStorage, @Named("baseUrl") String url) {
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: url,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
-        headers: {'Content-Type': 'application/json'},
-      ),
-    );
+    final dio = _consistDefaultDio(url);
 
     final refresher = TokenRefresher(tokenStorage, url);
     final retrier = RequestRetrier()..setDio(dio);
@@ -28,5 +22,19 @@ abstract class DioModule {
     ]);
 
     return dio;
+  }
+
+  Dio _consistDefaultDio(String baseUrl) {
+    final defaultDio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        headers: {
+          DioProperties.contentTypeHeader: DioProperties.applicationJson,
+        },
+      ),
+    );
+    return defaultDio;
   }
 }

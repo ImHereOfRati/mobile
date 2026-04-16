@@ -9,7 +9,7 @@ class ContactDatabaseService extends AbstractLocalDatabaseService {
 
   Future<ContactEntity> save(ContactEntity entity) => executeInsert(
     entityName: 'friend',
-    table: LocalDatabaseProperties.CONTACT_TABLE_NAME,
+    table: LocalDatabaseProperties.contactTableName,
     values: entity.toMap(),
     createEntity: (id) => entity.copyWith(id: id),
     entityDetails: 'Contact: ${entity.name}',
@@ -18,21 +18,21 @@ class ContactDatabaseService extends AbstractLocalDatabaseService {
   Future<int> update(ContactEntity entity) => executeUpdate(
     entityName: 'Contact',
     entityId: entity.id,
-    table: LocalDatabaseProperties.CONTACT_TABLE_NAME,
+    table: LocalDatabaseProperties.contactTableName,
     values: entity.toMap(),
     entityDetails: 'Contact: ${entity.name}',
   );
 
   Future<List<ContactEntity>> findAll() => executeQuery(
     entityName: 'friend',
-    table: LocalDatabaseProperties.CONTACT_TABLE_NAME,
+    table: LocalDatabaseProperties.contactTableName,
     fromMap: ContactEntity.fromMap,
     orderBy: 'name ASC',
   );
 
   Future<void> delete(int id) => executeDelete(
     entityName: 'friend',
-    table: LocalDatabaseProperties.CONTACT_TABLE_NAME,
+    table: LocalDatabaseProperties.contactTableName,
     id: id,
   );
 }

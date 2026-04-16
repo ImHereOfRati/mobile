@@ -10,6 +10,8 @@ import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 /// 3. 나머지 온보딩 흐름은 명시적 navigation 으로 처리:
 ///    - 신규(201): auth → terms-consent → user-permission → geofence
 ///    - 기존(200): auth → geofence
+///
+
 class RouterLogic {
   static String? handleRedirect(Ref ref, GoRouterState state) {
     final authState = ref.read(authStateProvider);
