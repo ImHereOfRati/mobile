@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
+import 'package:iamhere/feature/friend/view_model/friend_list_view_model.dart';
 import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
 
 class FriendRequestListView extends ConsumerWidget {
@@ -177,6 +178,9 @@ class FriendRequestListView extends ConsumerWidget {
       BuildContext context, WidgetRef ref, int requestId) async {
     final vm = ref.read(friendRequestViewModelProvider.notifier);
     final success = await vm.acceptRequest(requestId);
+    if (success) {
+      ref.invalidate(friendListViewModelProvider);
+    }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

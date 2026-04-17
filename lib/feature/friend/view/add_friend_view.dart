@@ -6,6 +6,7 @@ import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/dto/user_search_response_dto.dart';
 import 'package:iamhere/feature/friend/service/user_search_service_interface.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model_provider.dart';
+import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
 
 class AddFriendView extends ConsumerStatefulWidget {
   const AddFriendView({super.key});
@@ -501,9 +502,77 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
 
   // ── 친구 추가 ────────────────────────────────────────────────────────
   void _onAddFriend(BuildContext context, UserSearchResponseDto user) {
-    // TODO: 친구 추가 API 연동
+    final messageController = TextEditingController();
+    final cs = Theme.of(context).colorScheme;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          '${user.userNickname}님에게 친구 요청',
+          style: TextStyle(fontFamily: 'GmarketSans', fontSize: 17.sp),
+        ),
+        content: TextField(
+          controller: messageController,
+          maxLength: 255,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: '메시지를 입력하세요 (10자 이상)',
+            hintStyle: TextStyle(
+              fontFamily: 'BMHANNAAir',
+              fontSize: 14.sp,
+              color: cs.onSurface.withValues(alpha: 0.4),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+          ),
+          style: TextStyle(fontFamily: 'BMHANNAAir', fontSize: 14.sp),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final message = messageController.text.trim();
+              if (message.length < 10) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('메시지는 10자 이상 입력해주세요')),
+                );
+                return;
+              }
+              Navigator.pop(dialogContext);
+              await _sendFriendRequest(context, user, message);
+            },
+            child: const Text('보내기'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendFriendRequest(
+    BuildContext context,
+    UserSearchResponseDto user,
+    String message,
+  ) async {
+    final vm = ref.read(friendRequestViewModelProvider.notifier);
+    final success = await vm.sendRequest(
+      receiverId: user.userId,
+      receiverEmail: user.userEmail,
+      message: message,
+    );
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${user.userNickname}님에게 친구 요청을 보냈습니다')),
+      SnackBar(
+        content: Text(
+          success
+              ? '${user.userNickname}님에게 친구 요청을 보냈습니다'
+              : '친구 요청 전송에 실패했습니다',
+        ),
+      ),
     );
   }
 }

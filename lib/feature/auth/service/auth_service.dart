@@ -31,7 +31,7 @@ class AuthService with DioHandler implements AuthServiceInterface {
       if (code == HttpStatusCode.created) {
         return MemberState.newUser;
       }
-      return MemberState.newUser;
+      return MemberState.existingUser;
     });
   }
 
@@ -71,7 +71,7 @@ class AuthService with DioHandler implements AuthServiceInterface {
   int _handleErrorResponse(APIResponse<AuthResponseDto> apiResponse) {
     final responseStatusCode = apiResponse.code;
 
-    if (HttpStatusCode.is2XXStatusCode(responseStatusCode)) {
+    if (!HttpStatusCode.is2XXStatusCode(responseStatusCode)) {
       throw Exception(apiResponse.message ?? ResultMessage.serverError);
     }
     return responseStatusCode;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
+import 'package:iamhere/feature/friend/view_model/friend_list_view_model.dart';
 import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
 
 class RecordFriendRequestListView extends ConsumerWidget {
@@ -180,9 +181,12 @@ class RecordFriendRequestListView extends ConsumerWidget {
       BuildContext context, WidgetRef ref, int requestId) async {
     final vm = ref.read(friendRequestViewModelProvider.notifier);
     final success = await vm.acceptRequest(requestId);
+    if (success) {
+      ref.invalidate(friendListViewModelProvider);
+    }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? '친구 요청을 수락했습니다' : '수락에 실패했습니다')),
+      SnackBar(content: Text(success ? '친구 요청을 수락했습니��' : '수락에 실패했습니다')),
     );
   }
 

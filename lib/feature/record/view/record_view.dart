@@ -5,7 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/core/router/app_routes.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
+import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/view_model/geofence_record_view_model.dart';
+import 'package:iamhere/feature/record/view_model/notification_view_model.dart';
+import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
+import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
 
 class RecordView extends ConsumerWidget {
   const RecordView({super.key});
@@ -13,6 +17,8 @@ class RecordView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recordsAsync = ref.watch(geofenceRecordViewModelProvider);
+    final notificationsAsync = ref.watch(notificationViewModelProvider);
+    final friendRequestsAsync = ref.watch(friendRequestViewModelProvider);
     final cs = Theme.of(context).colorScheme;
 
     return CustomScrollView(
@@ -23,23 +29,65 @@ class RecordView extends ConsumerWidget {
         // ── 받은 알림 ────────────────────────────────────────────────
         SliverToBoxAdapter(
           child: _buildSectionHeader(
-            context, cs, '받은 알림', 0,
+            context, cs, '받은 알림',
+            notificationsAsync.value?.length ?? 0,
             onViewAll: () => AppRoutes.goToRecordNotifications(context),
           ),
         ),
-        SliverToBoxAdapter(
-          child: _buildEmptySection(context, cs, '받은 알림이 없습니다'),
+        notificationsAsync.when(
+          loading: () => const SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => SliverToBoxAdapter(
+            child: _buildEmptySection(context, cs, '알림을 불러올 수 없습니다'),
+          ),
+          data: (notifications) {
+            if (notifications.isEmpty) {
+              return SliverToBoxAdapter(
+                child: _buildEmptySection(context, cs, '받은 알림이 없습니다'),
+              );
+            }
+            final preview = notifications.take(3).toList();
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) =>
+                    _buildNotificationItem(context, cs, preview[index]),
+                childCount: preview.length,
+              ),
+            );
+          },
         ),
 
         // ── 받은 친구 요청 ───────────────────────────────────────────
         SliverToBoxAdapter(
           child: _buildSectionHeader(
-            context, cs, '받은 친구 요청', 0,
+            context, cs, '받은 친구 요청',
+            friendRequestsAsync.value?.length ?? 0,
             onViewAll: () => AppRoutes.goToRecordFriendRequests(context),
           ),
         ),
-        SliverToBoxAdapter(
-          child: _buildEmptySection(context, cs, '받은 친구 요청이 없습니다'),
+        friendRequestsAsync.when(
+          loading: () => const SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => SliverToBoxAdapter(
+            child: _buildEmptySection(context, cs, '친구 요청을 불러올 수 없습니다'),
+          ),
+          data: (requests) {
+            if (requests.isEmpty) {
+              return SliverToBoxAdapter(
+                child: _buildEmptySection(context, cs, '받은 친구 요청이 없습니다'),
+              );
+            }
+            final preview = requests.take(3).toList();
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) =>
+                    _buildFriendRequestItem(context, cs, preview[index]),
+                childCount: preview.length,
+              ),
+            );
+          },
         ),
 
         // ── 나의 전송 기록 ───────────────────────────────────────────
@@ -288,6 +336,151 @@ class RecordView extends ConsumerWidget {
   }
 
   // ── 유틸 ─────────────────────────────────────────────────────────────
+  Widget _buildFriendRequestItem(
+    BuildContext context,
+    ColorScheme cs,
+    ReceivedFriendRequestResponseDto request,
+  ) {
+    final tt = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: () => AppRoutes.goToRecordFriendRequests(context),
+      child: Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [
+            BoxShadow(
+              color: cs.onSurface.withValues(alpha: 0.06),
+              offset: const Offset(0, 2),
+              blurRadius: 12,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(14.r),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20.r,
+                backgroundColor: cs.primary.withValues(alpha: 0.1),
+                child: Text(
+                  request.requesterNickname.isNotEmpty
+                      ? request.requesterNickname[0]
+                      : '?',
+                  style: TextStyle(
+                    fontFamily: 'GmarketSans',
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: cs.primary,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      request.requesterNickname,
+                      style: tt.headlineSmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      request.requesterEmail,
+                      style: tt.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+    );
+  }
+
+  Widget _buildNotificationItem(
+    BuildContext context,
+    ColorScheme cs,
+    NotificationEntity notification,
+  ) {
+    final tt = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: () => AppRoutes.goToRecordNotifications(context),
+      child: Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [
+            BoxShadow(
+              color: cs.onSurface.withValues(alpha: 0.06),
+              offset: const Offset(0, 2),
+              blurRadius: 12,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(14.r),
+          child: Row(
+            children: [
+              Container(
+                width: 40.r,
+                height: 40.r,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  Icons.notifications_rounded,
+                  color: cs.primary,
+                  size: 20.r,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      notification.title,
+                      style: tt.headlineSmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      notification.body,
+                      style: tt.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                _formatRelativeTime(notification.createdAt),
+                style: tt.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+    );
+  }
+
   String _formatRecipients(String recipientsJson) {
     try {
       final list = jsonDecode(recipientsJson) as List<dynamic>;

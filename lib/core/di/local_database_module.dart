@@ -14,18 +14,12 @@ abstract class LocalDatabaseModule {
 
     return openDatabase(
       path,
-      version: 2,
+      version: 1,
       onCreate: (db, version) async {
         await db.execute(_createContactsTableQuery());
         await db.execute(_createGeofenceTableQuery());
         await db.execute(_createRecordsTableQuery());
-      },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          await db.execute(
-            'ALTER TABLE ${LocalDatabaseProperties.geofenceTableName} ADD COLUMN address TEXT DEFAULT ""',
-          );
-        }
+        await db.execute(_createNotificationsTableQuery());
       },
     );
   }
@@ -38,4 +32,7 @@ abstract class LocalDatabaseModule {
 
   String _createRecordsTableQuery() =>
       'CREATE TABLE ${LocalDatabaseProperties.recordTableName}(id INTEGER PRIMARY KEY AUTOINCREMENT, geofence_id INTEGER, geofence_name TEXT, message TEXT, recipients TEXT, created_at TEXT, send_machine TEXT)';
+
+  String _createNotificationsTableQuery() =>
+      'CREATE TABLE ${LocalDatabaseProperties.notificationTableName}(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, body TEXT, sender_nickname TEXT DEFAULT "", sender_email TEXT DEFAULT "", created_at TEXT)';
 }

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/core/router/app_routes.dart';
+import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
 import 'package:iamhere/feature/friend/view_model/contact.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model.dart';
+import 'package:iamhere/feature/friend/view_model/friend_list_view_model.dart';
+import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
 
 import 'component/contact_tile.dart';
 
@@ -18,12 +21,19 @@ class _ContactViewState extends ConsumerState<ContactView> {
   @override
   Widget build(BuildContext context) {
     final contactsAsync = ref.watch(contactViewModelProvider);
+    final serverFriendsAsync = ref.watch(friendListViewModelProvider);
     final vm = ref.read(contactViewModelProvider.notifier);
     final contacts = contactsAsync.value ?? [];
+    final serverFriends = serverFriendsAsync.value ?? [];
 
-    return contactsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(
+    final isLoading = contactsAsync.isLoading || serverFriendsAsync.isLoading;
+    final hasError = contactsAsync.hasError && serverFriendsAsync.hasError;
+
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (hasError) {
+      return Center(
         child: Text(
           '친구 목록 로드 실패',
           style: TextStyle(
@@ -32,19 +42,21 @@ class _ContactViewState extends ConsumerState<ContactView> {
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-      ),
-      data: (_) => _buildBody(context, vm, contacts),
-    );
+      );
+    }
+    return _buildBody(context, vm, contacts, serverFriends);
   }
 
   Widget _buildBody(
     BuildContext context,
     ContactViewModel vm,
     List<Contact> contacts,
+    List<FriendRelationshipResponseDto> serverFriends,
   ) {
     final cs = Theme.of(context).colorScheme;
     final grouped = _groupByConsonant(contacts);
     final consonants = grouped.keys.toList()..sort();
+    final totalCount = contacts.length + serverFriends.length;
 
     return CustomScrollView(
       slivers: [
@@ -52,7 +64,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
         SliverToBoxAdapter(child: _buildTipCard(context)),
 
         // 내 친구 헤더
-        SliverToBoxAdapter(child: _buildFriendHeader(context, contacts.length)),
+        SliverToBoxAdapter(child: _buildFriendHeader(context, totalCount)),
 
         // 받은 친구 요청
         SliverToBoxAdapter(child: _buildFriendRequestRow(context)),
@@ -60,7 +72,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
         // 새로운 친구 추가하기
         SliverToBoxAdapter(child: _buildAddFriendButton(context)),
 
-        if (contacts.isEmpty)
+        if (totalCount == 0)
           SliverFillRemaining(
             child: Center(
               child: Text(
@@ -76,7 +88,45 @@ class _ContactViewState extends ConsumerState<ContactView> {
             ),
           )
         else ...[
-          // 초성별 그룹 리스트
+          // 서버 친구 (ImHere 앱 유저)
+          if (serverFriends.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              child: _buildConsonantHeader(context, 'imhere'),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final friend = serverFriends[index];
+                return Column(
+                  children: [
+                    ContactTile(
+                      key: ValueKey(friend.friendRelationshipId),
+                      contactName: friend.friendAlias.isNotEmpty
+                          ? friend.friendAlias
+                          : friend.friendEmail,
+                      phoneNumber: friend.friendEmail,
+                      status: 'Imhere',
+                      onDelete: () => _deleteServerFriend(
+                        context,
+                        friend.friendRelationshipId,
+                        friend.friendAlias.isNotEmpty
+                            ? friend.friendAlias
+                            : friend.friendEmail,
+                      ),
+                    ),
+                    Divider(
+                      height: 0.5,
+                      thickness: 0.5,
+                      color: cs.onSurface.withValues(alpha: 0.1),
+                      indent: 20.w,
+                      endIndent: 20.w,
+                    ),
+                  ],
+                );
+              }, childCount: serverFriends.length),
+            ),
+          ],
+
+          // 로컬 연락처 (내 기기)
           for (final consonant in consonants) ...[
             SliverToBoxAdapter(
               child: _buildConsonantHeader(context, consonant),
@@ -91,7 +141,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
                       contactName: contact.name,
                       phoneNumber: contact.number,
                       status: '내 기기',
-                      onDelete: () => _confirmDelete(
+                      onDelete: () => _deleteLocalContact(
                         context,
                         vm,
                         contact.id!,
@@ -213,6 +263,9 @@ class _ContactViewState extends ConsumerState<ContactView> {
   // ── 받은 친구 요청 ───────────────────────────────────────────────────
   Widget _buildFriendRequestRow(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final requestsAsync = ref.watch(friendRequestViewModelProvider);
+    final count = requestsAsync.value?.length ?? 0;
+
     return GestureDetector(
       onTap: () => AppRoutes.goToFriendRequests(context),
       behavior: HitTestBehavior.opaque,
@@ -233,11 +286,11 @@ class _ContactViewState extends ConsumerState<ContactView> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
             decoration: BoxDecoration(
-              color: cs.primary,
+              color: count > 0 ? cs.primary : cs.onSurface.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(20.r),
             ),
             child: Text(
-              '0건',
+              '$count건',
               style: TextStyle(
                 fontFamily: 'BMHANNAAir',
                 fontSize: 12.sp,
@@ -343,55 +396,46 @@ class _ContactViewState extends ConsumerState<ContactView> {
     );
   }
 
-  // ── 삭제 확인 다이얼로그 ─────────────────────────────────────────────
-  void _confirmDelete(
+  // ── 로컬 연락처 삭제 (밀어서 삭제) ───────────────────────────────────
+  Future<bool> _deleteLocalContact(
     BuildContext context,
     ContactViewModel vm,
     int id,
     String name,
-  ) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(
-          '친구 삭제',
-          style: TextStyle(fontFamily: 'GmarketSans', fontSize: 17.sp),
-        ),
+  ) async {
+    try {
+      await vm.deleteContact(id);
+      if (!context.mounted) return true;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$name님이 삭제되었습니다.')),
+      );
+      return true;
+    } catch (e) {
+      if (!context.mounted) return false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('삭제 실패: ${e.toString()}')),
+      );
+      return false;
+    }
+  }
+
+  // ── 서버 친구 삭제 (밀어서 삭제) ─────────────────────────────────────
+  Future<bool> _deleteServerFriend(
+    BuildContext context,
+    String friendRelationshipId,
+    String name,
+  ) async {
+    final vm = ref.read(friendListViewModelProvider.notifier);
+    final success = await vm.deleteFriend(friendRelationshipId);
+    if (!context.mounted) return success;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: Text(
-          '$name님을 친구 목록에서 삭제할까요?',
-          style: TextStyle(fontFamily: 'BMHANNAAir', fontSize: 14.sp),
+          success ? '$name님이 삭제되었습니다.' : '삭제에 실패했습니다.',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              vm
-                  .deleteContact(id)
-                  .then((_) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('$name님이 삭제되었습니다.')));
-                  })
-                  .catchError((e) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('삭제 실패: ${e.toString()}')),
-                    );
-                  });
-            },
-            child: Text(
-              '삭제',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ),
-        ],
       ),
     );
+    return success;
   }
 
   // ── 초성 그룹핑 유틸 ─────────────────────────────────────────────────

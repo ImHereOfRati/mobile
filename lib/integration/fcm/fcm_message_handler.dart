@@ -2,6 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/feature/record/repository/notification_entity.dart';
+import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
 
 /// 로컬 알림 플러그인 인스턴스
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -49,6 +52,9 @@ Future<void> setupForegroundMessageListener() async {
     debugPrint('내용: ${message.notification?.body}');
     debugPrint('데이터: ${message.data}');
 
+    // 알림을 로컬 DB에 저장
+    await _saveNotificationToLocal(message);
+
     // 포그라운드에서 로컬 알림 표시
     if (message.notification != null) {
       await _showNotification(
@@ -57,6 +63,24 @@ Future<void> setupForegroundMessageListener() async {
       );
     }
   });
+}
+
+/// FCM 메시지를 로컬 DB에 저장합니다.
+Future<void> _saveNotificationToLocal(RemoteMessage message) async {
+  try {
+    final repository = getIt<NotificationLocalRepository>();
+    final entity = NotificationEntity(
+      title: message.notification?.title ?? '알림',
+      body: message.notification?.body ?? '',
+      senderNickname: message.data['senderNickname'] ?? '',
+      senderEmail: message.data['senderEmail'] ?? '',
+      createdAt: DateTime.now(),
+    );
+    await repository.save(entity);
+    debugPrint('알림 로컬 DB 저장 완료');
+  } catch (e) {
+    debugPrint('알림 로컬 DB 저장 실패: $e');
+  }
 }
 
 /// 로컬 알림을 표시합니다.

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/shared/util/phone_number_formatter.dart';
 
-/// 친구 목록 한 행. status가 null이면 우측 상태 텍스트 미표시.
+/// 친구 목록 한 행. 왼쪽으로 밀어서 삭제.
 class ContactTile extends StatelessWidget {
   final String contactName;
   final String phoneNumber;
   final String? status; // e.g. '내 기기', 'Imhere', '탈퇴한 회원'
-  final VoidCallback? onDelete;
+  final Future<bool> Function()? onDelete;
 
   const ContactTile({
     super.key,
@@ -33,7 +33,7 @@ class ContactTile extends StatelessWidget {
       statusColor = cs.onSurface.withValues(alpha: 0.55);
     }
 
-    return Padding(
+    final content = Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
       child: Row(
         children: [
@@ -79,6 +79,37 @@ class ContactTile extends StatelessWidget {
             ),
         ],
       ),
+    );
+
+    if (onDelete == null) return content;
+
+    return Dismissible(
+      key: key ?? ValueKey(contactName + phoneNumber),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => onDelete!(),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.only(right: 24.w),
+        color: cs.error,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Icon(Icons.delete_outline, color: Colors.white, size: 20.r),
+            SizedBox(width: 4.w),
+            Text(
+              '삭제',
+              style: TextStyle(
+                fontFamily: 'BMHANNAAir',
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 24.w),
+          ],
+        ),
+      ),
+      child: content,
     );
   }
 }

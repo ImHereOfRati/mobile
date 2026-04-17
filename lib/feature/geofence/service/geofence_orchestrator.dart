@@ -8,6 +8,8 @@ import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
 import 'package:iamhere/shared/base/result/result.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:iamhere/feature/geofence/view_model/geofence_list_view_model.dart';
+
 import 'contact_resolution_service.dart';
 import 'deduplication_service.dart';
 import 'geofence_checking_service.dart';
@@ -110,6 +112,7 @@ class GeofenceOrchestrator extends _$GeofenceOrchestrator {
                     geofence.id!,
                     false,
                   );
+                  ref.invalidate(geofenceListViewModelProvider);
                   log('Geofence deactivated: ${geofence.name}');
                 } catch (e) {
                   log('Failed to deactivate geofence: $e');
