@@ -6,6 +6,8 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/core/router/router_provider.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
@@ -58,6 +60,23 @@ Future<void> _initializeAppDependencies() async {
   await _initializeBaseUrl();
   KakaoSdk.init(nativeAppKey: dotenv.env[kakaoNativeAppKey]);
   await _initializeFlutterNaverMap();
+  await _syncNativeGeofencesOnStart();
+}
+
+/// 앱 시작 시 DB 의 활성 지오펜스를 OS 네이티브 지오펜스와 재동기화한다.
+/// 재부팅/앱 재설치 후 OS 등록 상태와 DB 가 어긋나는 경우를 바로잡는다.
+Future<void> _syncNativeGeofencesOnStart() async {
+  try {
+    final registrar = getIt<NativeGeofenceRegistrarInterface>();
+    await registrar.initialize();
+
+    final repo = getIt<GeofenceLocalRepository>();
+    final all = await repo.findAll();
+    final active = all.where((g) => g.isActive).toList();
+    await registrar.syncAll(active);
+  } catch (e) {
+    debugPrint('OS 지오펜스 초기 동기화 실패: $e');
+  }
 }
 
 Future<void> _initializeBaseUrl() async {

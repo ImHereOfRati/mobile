@@ -1,4 +1,4 @@
-# ImHere
+# ImHere · Mobile (Flutter)
 
 [플레이스토어에서 설치하기](https://play.google.com/store/apps/details?id=com.kdongsu5509.iamhere)
 
@@ -6,14 +6,19 @@
   <img src="./images/main-image.png" width=750/>
 </p>
 
-# 0. 프로젝트 개요
+> **ImHere 모바일 앱** — 사용자가 설정한 지점(Geofence)에 진입하면 앱이 꺼진 상태에서도 OS 가 이를 감지해 지정 연락처에 SMS / FCM 도착 알림을 자동 발송하는 **위치 기반 백그라운드 안심 알리미**.
+
+---
+
+## 0. 프로젝트 개요
 
 ### Motivation
 **"버스 도착하기 30분 전에는 꼭 연락하거라."**
 
-장거리 이동 중 깊은 잠에 들어 부모님과의 약속을 지키지 못했던 경험에서 이 프로젝트는 시작되었습니다. "사용자가 신경 쓰지 않아도, 특정 위치에 도달하면 자동으로 알림을 보낼 수는 없을까?"라는 단순한 질문이 본 프로젝트의 핵심 아이디어입니다.
+장거리 이동 중 깊은 잠에 들어 부모님과의 약속을 지키지 못했던 경험에서 이 프로젝트는 시작되었습니다. _"사용자가 신경 쓰지 않아도, 특정 위치에 도달하면 자동으로 알림을 보낼 수는 없을까?"_ 라는 단순한 질문이 핵심 아이디어입니다.
 
-단순한 타이머가 아닌 실시간 위치 정보를 활용하여, 장거리 여행자나 정기적으로 특정 지점을 통과하는 사용자들에게 정서적 안정감과 편의성을 제공하고자 합니다.
+모바일 디바이스의 **OS 레벨 Geofence 서비스**를 활용하여, 앱이 완전히 종료되거나 단말이 재부팅된 이후에도 도착 알림이 동작하는 것을 목표로 합니다.
+
 ### 주요 화면
 
 <table align="center">
@@ -35,66 +40,67 @@
   </tr>
 </table>
 
-### 주요 특징
+### 📱 모바일 특화 핵심 가치
 
-- **명시적 권한 안내**: Google 정책에 맞게 명시적 권한 요청 화면
-- **카카오 소셜 로그인**: 간편한 인증을 위한 카카오 OAuth2 로그인 지원
-- **지오펜스 관리**: 특정 위치와 반경을 설정하여 지오펜스 영역을 등록하고 관리
-- **위치 기반 알림**: 지오펜스 진입/이탈 시 자동 알림 발송
-- **연락처 연동**: 기기 연락처와 연동하여 알림 수신자 관리
-- **기록 관리**: 지오펜스 알림 발송 이력 조회
+| 영역 | 구현 전략 |
+|---|---|
+| **백그라운드 지속성** | OS 네이티브 Geofence API(`CoreLocation` / `GeofencingClient`) 등록 → 앱 종료 / 단말 재부팅 후에도 진입 감지 가능 |
+| **배터리 최적화** | 연속 GPS 스트림 제거. OS 의 셀타워/Wi-Fi/가속도계 기반 저전력 감지에 위임 |
+| **백그라운드 아이솔레이트** | `@pragma('vm:entry-point')` + Dart 백그라운드 Isolate 에서 DI / Firebase / sqflite 재부팅 |
+| **민감정보 보안** | Access Token · Refresh Token 을 iOS Keychain / Android Keystore 에 암호화 저장 (`flutter_secure_storage`) |
+| **권한 투명성** | Google Play Prominent Disclosure 정책 준수 — 목적/데이터/필수 여부 명시 UI |
+| **반응형 UI** | `flutter_screenutil` 로 디바이스 크기별 적응형 레이아웃 (`.w` / `.h` / `.sp` / `.r`) |
+| **국내 환경 최적화** | 네이버 지도 SDK + 카카오 소셜 로그인 통합 |
 
 ---
 
-## *1. Skills*
-- ![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white) ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)
+## 1. *Skills*
 
-### Libraries
-- **State Management**
-    - `flutter_riverpod`: 전역 상태 관리, 비동기 로직 처리 및 의존성 주입을 안전하게 구현
+![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white) ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white) ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) ![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white) ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 
-- **Architecture & DI**
-    - `go_router`: 딥링크 지원 및 직관적인 페이지 이동을 위한 선언형 라우팅 시스템
-    - `get_it`, `injectable`: 의존성 주입(DI) 코드 자동 생성 및 서비스 로케이터 패턴 적용
+### 상태 관리 & DI
+- **`flutter_riverpod` / `riverpod_annotation`** — UI 상태/비동기 흐름 전담. `@Riverpod(keepAlive: true)` 로 AuthState · GeofenceViewModel 등 전역 상태를 장기 보관.
+- **`get_it` + `injectable`** — 서비스/Repository 계층의 DI 컨테이너. `@lazySingleton`, `@injectable`, `@module` 로 선언, `build_runner` 가 `di_setup.config.dart` 자동 생성.
+- **`go_router`** — Shell Route + 선언형 라우팅 + 커스텀 전환 애니메이션 (fade, bottom-up).
 
-- **Network & Data**
-    - `dio`: Interceptor, Timeout 등 강력한 기능을 제공하는 HTTP 클라이언트
-    - `json_annotation`: JSON 직렬화/역직렬화(Serialization) 보일러플레이트 코드 자동화
+### 네트워크 & 직렬화
+- **`dio`** — HTTP 클라이언트. Access Token 주입 / 401 자동 리프레시를 위한 커스텀 Interceptor 체인.
+- **`json_serializable` / `json_annotation`** — DTO 직렬화 자동 생성.
 
-- **Local Storage & Security**
-    - `sqflite`: 로컬 데이터 영속성을 위한 내장형 관계형 데이터베이스(SQLite)
-    - `flutter_secure_storage`: Access Token 등 민감한 정보를 Keystore/Keychain에 안전하게 저장
-    - `flutter_dotenv`: API Key 등 민감한 환경 설정을 코드와 분리하여 보안 강화
+### 로컬 저장 & 보안
+- **`sqflite`** — SQLite 기반 로컬 DB. Geofence, Contact, Record, Notification, ServerRecipient 5개 테이블 운영.
+- **`flutter_secure_storage`** — 토큰 전용 암호화 저장소 (Keychain/Keystore). 백그라운드 아이솔레이트에서도 접근 가능.
+- **`flutter_dotenv`** — `iam_here_flutter_secret.env` 로 API Key / 지도 Client ID 관리.
 
-- **Map & Location**
-    - `flutter_naver_map`: 국내 환경에 최적화된 네이버 지도 SDK 연동 및 오버레이 구현
-    - `geolocator`: 디바이스의 실시간 GPS 좌표 수집 및 위치 권한 상태 확인
+### 지도 & 위치 & 🔥 백그라운드 Geofence
+- **`flutter_naver_map`** — 국내 POI 검색 품질이 우수한 네이버 지도 SDK.
+- **`geolocator`** — 현재 위치 조회 / 실시간 권한 상태 확인.
+- **`native_geofence`** — OS 레벨 Geofence 등록 플러그인.
+  - Android: `GeofencingClient` (Play Services Location) · `BootBroadcastReceiver` 로 재부팅 후 자동 재등록
+  - iOS: `CLCircularRegion` · `CLLocationManager.startMonitoring(for:)` · Always 권한 기반 상시 감지
+  - 진입 이벤트는 `@pragma('vm:entry-point')` 최상위 함수로 dispatch
 
-- **Firebase & Notification**
-    - `firebase_core`, `firebase_messaging`: Firebase 프로젝트 초기화 및 FCM 푸시 알림 수신
-    - `flutter_local_notifications`: 포그라운드 알림 노출 및 로컬 알림 스케줄링 관리
-    - `firebase_crashlytics`: 앱 비정상 종료(Crash) 로그 수집 및 안정성 모니터링
-    - `firebase_analytics`: 사용자 행동 패턴 및 이벤트 데이터 분석
+### Firebase & 알림
+- **`firebase_core`, `firebase_messaging`** — FCM 수신/토큰 관리. 백그라운드 메시지 핸들러 등록.
+- **`flutter_local_notifications`** — 포그라운드 알림 노출 및 스케줄링.
+- **`firebase_crashlytics`** — 크래시 자동 수집 (백그라운드 아이솔레이트 크래시 포함).
+- **`firebase_analytics`** — 사용 흐름 이벤트 수집.
+- **`firebase_remote_config`** — 백엔드 Base URL 을 원격 전환 (배포 후 런타임 대응).
 
-- **UI & Utils**
-    - `flutter_screenutil`: 다양한 디바이스 화면 크기에 대응하는 반응형 레이아웃 구성
-    - `kakao_flutter_sdk`: 카카오 로그인 인증 및 공유하기 기능 연동
-    - `permission_handler`: 런타임 접근 권한 요청 프로세스 및 거부 상태 핸들링
-    - `package_info_plus`: 앱의 버전 정보 및 빌드 번호 등 메타데이터 조회
-
-- **Platform Integration**
-    - **Method Channel**: Flutter와 네이티브 플랫폼(Android/iOS) 간 양방향 통신을 위한 플랫폼 채널 활용
-        - 지오펜스 백그라운드 모니터링: Android `GeofencingClient`, iOS `CLLocationManager` 네이티브 API 직접 제어
-        - 백그라운드 위치 추적 및 이벤트 트리거 처리
+### UI & 유틸
+- **`flutter_screenutil`** — 디자인 기준 402×874 기반 반응형. 모든 수치에 `.w`/`.h`/`.sp`/`.r` 적용.
+- **`kakao_flutter_sdk`** — 카카오 OAuth2 로그인.
+- **`permission_handler`** — 위치/연락처/알림 런타임 권한 요청 및 거부 상태 세분 핸들링.
+- **`package_info_plus`** — 앱 버전/빌드 번호 표시.
 
 ---
 
 ## 2. 주요 기능
 
-#### 회원가입/로그인
-- 카카오 SDK를 이용한 소셜 로그인
-- 서버와의 연동을 통한 JWT 토큰 관리
-- 보안 저장소를 통한 토큰 안전 보관 및 자동 갱신
+### 2.1 회원가입 / 로그인
+
+카카오 OAuth2 → OIDC 검증 → 자체 JWT(AccessToken + RefreshToken) 발급 → Keychain/Keystore 저장.
+
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -111,43 +117,66 @@ sequenceDiagram
     S-->>A: Access Token + Refresh Token 발급
     A->>DB: 토큰 암호화 저장 (Keychain/Keystore)
     DB-->>A: 저장 완료
-    A->>U: 메인 화면 이동 (로그인 or 회원가입 완료)
+    A->>U: 메인 화면 이동
 ```
 
-#### 지오펜스 관리
-- **지오펜스 목록**: 등록된 감시 영역 조회
-- **지오펜스 등록**: 네이버 지도를 통한 직관적인 위치 선택 및 반경 설정
-- **백그라운드 감지**: 앱이 꺼져있거나 백그라운드 상태에서도 진입/이탈 감지
-- **네이티브 통합**: Method Channel을 통한 Android/iOS 네이티브 위치 서비스 활용
+---
+
+### 2.2 Geofence 등록 · 🔥 백그라운드 도착 감지
+
+모바일 플랫폼에서 **앱 종료 상태에서도 안정적으로 동작**시키는 것이 본 프로젝트의 핵심 난제다.
+
+#### 아키텍처 선택
+| 옵션 | 배터리 | Kill-Survival | 복잡도 | 채택 |
+|---|---|---|---|---|
+| Dart 연속 GPS 스트림 | ❌ | ❌ | 낮음 | ❌ |
+| Foreground Service 상시 실행 | ❌ | ⚠️ | 중 | ❌ |
+| **OS 네이티브 Geofence API** | ✅ | ✅ | 중 | **✅** |
+
+#### 등록 → 진입 → 발송 플로우
+
 ```mermaid
 sequenceDiagram
     participant User as 사용자
-    participant MapUI as 지오펜스 등록 View
-    participant Logic as Geofence Service (Dart)
-    participant Channel as Method Channel
-    participant Native as Native Platform<br/>(Android/iOS)
-    participant Event as Event Trigger
-    participant Action as SMS & Server
+    participant UI as GeofenceEnrollView
+    participant VM as GeofenceViewModel
+    participant Registrar as NativeGeofenceRegistrar
+    participant OS as OS Geofence Service<br/>(GeofencingClient / CoreLocation)
+    participant BG as 백그라운드 Isolate<br/>(@pragma vm:entry-point)
+    participant Disp as Dispatcher (DI 재부팅)
+    participant API as SMS API / FCM API
 
-    User->>MapUI: 1. 지도에서 위치 선택 & 반경 설정
-    MapUI->>Logic: 2. 지오펜스 데이터 생성
-    Logic->>Channel: 3. 네이티브 지오펜스 등록 요청
-    Channel->>Native: 4. GeofencingClient (Android)<br/>CLLocationManager (iOS)
-    Native-->>Channel: 5. 등록 완료 응답
-    Channel-->>Logic: 6. 모니터링 시작 확인
-    
-    Note over Native: 백그라운드 프로세스<br/>(앱 종료 시에도 동작)
-    Native->>Native: 7. 실시간 위치 추적
-    Native->>Event: 8. 영역 진입/이탈 감지
-    Event->>Channel: 9. Flutter 레이어로 이벤트 전달
-    Channel->>Action: 10. 문자 발송 API 호출 -> FCM 요청
+    User->>UI: 지도/반경/수신자 선택 후 등록
+    UI->>VM: saveGeofence()
+    VM->>VM: SQLite save + isActive 토글
+    VM->>Registrar: register(entity)
+    Registrar->>OS: createGeofence(id, lat, lng, radius, ENTER)
+    OS-->>Registrar: 등록 완료
+    Note over OS: 앱 종료 / 스와이프 / 재부팅 후에도<br/>OS 가 저전력 감지 유지
+
+    User--)OS: 지오펜스 영역 진입
+    OS->>BG: 백그라운드 FlutterEngine 기동 + 콜백 호출
+    BG->>Disp: _bootstrapBackgroundIsolate()
+    Note over Disp: Firebase.initializeApp<br/>enrollBaseUrlGlobally(baseUrl)<br/>GetIt 재등록
+    Disp->>Disp: DB 에서 GeofenceEntity 조회
+    Disp->>API: SMS 발송 (로컬 연락처)
+    Disp->>API: FCM 도착 알림 (서버 친구)
+    Disp->>Disp: Record 저장 + isActive=false + OS unregister
 ```
 
+핵심 포인트:
+- **`@pragma('vm:entry-point')`** 를 부여한 최상위 함수만 AOT 빌드에서 백그라운드 호출 가능.
+- **GetIt 은 아이솔레이트별 격리** → 백그라운드에서 `enrollBaseUrlGlobally()` 재호출 필요.
+- **1회성 보장** — 진입 성공 시 DB `is_active=false` + OS `removeGeofenceById` 로 재진입 중복 트리거 원천 차단.
+- **iOS 20개 리전 제한** — `syncAll` 에서 id 오름차순 top 20 정책으로 초과분 skip.
 
-#### 연락처 관리
-- 온보딩에서 연락처 권한 사전 획득
-- 기기 연락처에서 알림 수신자 개별 선택
-- 선택된 연락처만 로컬 DB에 저장 및 관리
+---
+
+### 2.3 연락처 연동 (로컬 + 서버 친구 하이브리드)
+
+- **로컬 연락처**: 디바이스 주소록에서 선택 → SQLite 저장 → SMS 수신자.
+- **서버 친구**: ImHere 앱 가입자 → FCM 도착 알림 수신자.
+
 ```mermaid
 sequenceDiagram
     participant User as 사용자
@@ -158,323 +187,235 @@ sequenceDiagram
     participant Native as Native Contact Picker<br/>(Android/iOS)
     participant DB as Local DB (SQLite)
 
-    Note over User,DB: 사전조건: 온보딩에서 연락처 권한 허용됨
-    
-    User->>View: "연락처 불러오기" 버튼 클릭
-    View->>VM: selectContact() 호출
+    User->>View: "연락처 불러오기" 탭
+    View->>VM: selectContact()
     VM->>PermSvc: checkPermissionStatus()
-    Note over PermSvc: 권한 상태만 확인<br/>(요청하지 않음)
-    PermSvc-->>VM: 권한 상태 반환
-    
+    PermSvc-->>VM: 상태 반환
+
     alt 권한 허용됨
         VM->>Channel: 네이티브 연락처 선택 요청
-        Channel->>Native: 시스템 연락처 피커 실행
-        Native-->>User: 연락처 선택 UI 표시
-        User->>Native: 연락처 1개 선택
-        Native-->>Channel: 선택된 연락처 반환
-        Channel-->>VM: Contact 데이터 전달
-        VM->>DB: 선택된 연락처 저장
-        DB-->>VM: 저장 완료
+        Channel->>Native: 시스템 Contact Picker
+        Native-->>User: 선택 UI
+        User->>Native: 연락처 1건 선택
+        Native-->>Channel: Contact 반환
+        Channel-->>VM: Contact 데이터
+        VM->>DB: 선택 항목만 로컬 저장
+        DB-->>VM: 완료
         VM-->>View: 상태 업데이트
-        View->>User: "OOO님 연락처가 등록되었습니다" 메시지
     else 권한 거부됨
-        VM-->>View: Exception 발생
-        View->>User: "연락처 선택 실패" 메시지
+        VM-->>View: Exception
+        View->>User: 실패 안내
     end
 ```
 
-#### 기록 관리
-- 지오펜스 알림 발송 이력(시간, 위치, 수신자) 자동 저장 및 조회
-- 실패 내역 확인
+---
+
+### 2.4 기록 관리
+
+- 진입 감지 시점의 시간/위치/수신자/발송 채널(SMS·FCM)·성공 여부를 **디바이스 로컬에만 적재**. 네트워크 연결 없어도 이력 조회 가능.
+- 백그라운드 발송 직후에도 `RecordService` 가 동일한 DB 를 사용하므로 누락이 없다.
+
 ```mermaid
 sequenceDiagram
-    participant Geo as Geofence Event
-    participant Service as Notification Service
-    participant DB as Local DB (SQLite)
-    participant Server as Backend Server
+    participant Geo as Geofence Enter
+    participant BG as Background Isolate
+    participant DB as SQLite
+    participant API as SMS / FCM
     participant User as 사용자
-    participant App as Record View
+    participant UI as Record View
 
-    Note over Geo,Server: 알림 발송 프로세스
-    Geo->>Service: 지오펜스 진입/이탈 이벤트 발생
-    Service->>Service: SMS 발송 & FCM 요청
-    Service->>DB: 발송 기록 저장
-    Note over DB: 시간, 위치, 수신자,<br/>발송 상태 등 저장
-    Service->>Server: 발송 이력 전송
-    
-    Note over User,App: 기록 조회 프로세스
-    User->>App: 기록 관리 화면 진입
-    App->>DB: 발송 이력 조회
-    DB-->>App: 이력 목록 반환
-    App->>User: 이력 목록 표시
-    Note over User,App: 시간순 정렬,<br/>성공/실패 상태 표시
+    Geo->>BG: 이벤트 발생
+    BG->>API: SMS / FCM 발송
+    BG->>DB: Record 저장 (시간/위치/수신자/성공여부)
+    Note over DB: 오프라인 조회 가능
+
+    User->>UI: 기록 화면 진입
+    UI->>DB: 발송 이력 조회
+    DB-->>UI: 시간 역순 정렬
+    UI-->>User: 성공/실패 뱃지 표시
 ```
 
 ---
 
 ## 3. 프로젝트 구조
 
-### 아키텍처 개요
+### 3.1 아키텍처 개요
 
-본 프로젝트는 **MVVM (Model-View-ViewModel)** 패턴을 채택하였으며, 각 기능별로 모듈화 하였습니다.
+본 프로젝트는 **MVVM + Clean Architecture** 변형을 채택한다.
 
-#### 핵심 설계 원칙
-- `Riverpod`으로 의존성 주입을 하지 않고, `GetIt` + `Injectable` 를 사용하고 있습니다.
-- `Riverpod` 이 의존성 주입 및 상태 관리를 하면 이해가 어려워 해당 방식을 채택하였습니다.
+```
+┌────────── View (ConsumerWidget) ───────────┐
+│  Material / Cupertino 위젯 + ScreenUtil    │
+└─────────────────┬──────────────────────────┘
+                  │ watch / read
+┌─────────────────▼──────────────────────────┐
+│  ViewModel (@Riverpod) — UI 상태 / 이벤트   │
+└─────────────────┬──────────────────────────┘
+                  │ GetIt.get()
+┌─────────────────▼──────────────────────────┐
+│  Service / Registrar — 비즈니스 규칙         │
+│   · NativeGeofenceRegistrar                │
+│   · ContactResolutionService               │
+│   · SmsNotificationService / FcmArrival    │
+└─────────────────┬──────────────────────────┘
+                  │
+┌─────────────────▼──────────────────────────┐
+│  Repository — Dio / sqflite / SecureStorage│
+└────────────────────────────────────────────┘
+```
+
+#### 핵심 원칙
+- **상태 관리 ≠ DI**: UI 상태는 `Riverpod`, 서비스/Repository 의존성은 `GetIt + Injectable`. 한 도구가 두 역할을 겸하면 테스트·이해가 어려워지기 때문.
+- **Interface-Driven**: 모든 Service / ViewModel 은 `interface.dart` 로 계약을 선언한 뒤 `@LazySingleton(as: Interface)` 로 구현체 바인딩. 백그라운드 Isolate 에서도 동일한 인터페이스로 주입.
+- **반응형 수치**: 픽셀 하드코딩 금지. `20.w`, `10.h`, `15.sp`, `5.r` 로 표현.
+- **Platform-agnostic DI**: 플랫폼 특화 로직은 `@module` 하위에 캡슐화 (secure_storage / permission / database).
+
+### 3.2 디렉토리 구조 (실제 코드 기준)
 
 ```
 lib
-├── auth
-│   ├── service
-│   │   ├── auth_service.dart
-│   │   ├── auth_service_interface.dart
-│   │   ├── auth_state_provider.dart
-│   │   ├── auth_state_provider.g.dart
-│   │   ├── dto
-│   │   │   ├── login_request_dto.dart
-│   │   │   └── login_request_dto.g.dart
-│   │   └── token_storage_service.dart
-│   ├── view
-│   │   ├── auth_view.dart
-│   │   └── component
-│   │       ├── login_button.dart
-│   │       ├── login_button_info.dart
-│   │       └── right_content_widget.dart
-│   └── view_model
-│       ├── auth_view_model.dart
-│       └── auth_view_model_interface.dart
-├── common
-│   ├── database
-│   │   ├── local_database_exception.dart
-│   │   ├── local_database_properties.dart
-│   │   └── local_database_service.dart
-│   ├── result
-│   │   ├── error_analyst.dart
-│   │   ├── result.dart
-│   │   └── result_message.dart
-│   ├── router
-│   │   ├── custom_page_transition
-│   │   │   ├── buttom_up_transition.dart
-│   │   │   ├── fade_transition.dart
-│   │   │   └── simple_transition.dart
-│   │   ├── router_provider.dart
-│   │   ├── router_provider.g.dart
-│   │   ├── routers.dart
-│   │   └── routing_logic.dart
-│   ├── theme
-│   │   └── im_here_theme_data_light.dart
-│   ├── util
-│   │   ├── date_time_formatter.dart
-│   │   └── phone_number_formatter.dart
-│   └── view_component
-│       ├── default_view.dart
-│       └── widgets
-│           ├── black_button.dart
-│           ├── page_title.dart
-│           ├── primary_button.dart
-│           ├── section_title.dart
-│           ├── select_button.dart
-│           └── text_input_field.dart
-├── contact
-│   ├── repository
-│   │   ├── contact_entity.dart
-│   │   ├── contact_local_repository.dart
-│   │   └── contact_repository.dart
-│   ├── view
-│   │   ├── component
-│   │   │   └── contact_tile.dart
-│   │   └── contact_view.dart
-│   └── view_model
-│       ├── contact.dart
-│       ├── contact.g.dart
-│       ├── contact_adapter.dart
-│       ├── contact_view_model.dart
-│       ├── contact_view_model.g.dart
-│       ├── contact_view_model_interface.dart
-│       └── contact_view_model_provider.dart
-├── core
-│   └── di
-│       ├── di_setup.config.dart
-│       ├── di_setup.dart
-│       ├── dio
-│       │   └── dio_module.dart
-│       ├── local_database_module.dart
-│       ├── permission_service_module.dart
-│       └── secure_storage_module.dart
-├── fcm
-│   ├── fcm_message_handler.dart
-│   ├── repository
-│   │   ├── dto
-│   │   │   ├── fcm_token.dart
-│   │   │   └── fcm_token.g.dart
-│   │   └── fcm_token_repository.dart
-│   └── service
-│       ├── fcm_token_service.dart
-│       └── fcm_token_storage_service.dart
-├── firebase_init_helper.dart
-├── firebase_options.dart
-├── geofence
-│   ├── model
-│   │   ├── message_send_request.dart
-│   │   ├── message_send_request.g.dart
-│   │   ├── multiple_message_send_request.dart
-│   │   └── multiple_message_send_request.g.dart
-│   ├── repository
-│   │   ├── geofence_entity.dart
-│   │   ├── geofence_local_repository.dart
-│   │   └── geofence_repository.dart
-│   ├── service
-│   │   ├── geofence_monitoring_service.dart
-│   │   ├── geofence_monitoring_service.g.dart
-│   │   └── sms_service.dart
-│   ├── view
-│   │   ├── geofence_enroll_view.dart
-│   │   ├── geofence_view.dart
-│   │   └── widget
-│   │       ├── geofence_tile.dart
-│   │       ├── map_select_view.dart
-│   │       ├── recipient_select_view.dart
-│   │       └── recipient_tile.dart
-│   └── view_model
-│       ├── geofence_enroll_view_model.dart
-│       ├── geofence_enroll_view_model.g.dart
-│       ├── geofence_list_view_model.dart
-│       ├── geofence_list_view_model.g.dart
-│       ├── geofence_view_model.dart
-│       ├── geofence_view_model.g.dart
-│       ├── geofence_view_model_interface.dart
-│       ├── geofence_view_model_provider.dart
-│       ├── recipient_select_view_model.dart
-│       └── recipient_select_view_model.g.dart
-├── main.dart
-├── record
-│   ├── repository
-│   │   ├── geofence_record_entity.dart
-│   │   ├── geofence_record_local_repository.dart
-│   │   └── geofence_record_repository.dart
-│   ├── view
-│   │   ├── component
-│   │   │   ├── device_tile.dart
-│   │   │   ├── record_tile.dart
-│   │   │   └── target_tile.dart
-│   │   └── record_view.dart
-│   └── view_model
-│       ├── geofence_record_view_model.dart
-│       └── geofence_record_view_model.g.dart
-├── setting
-│   ├── const
-│   │   └── policy_data.dart
-│   ├── view
-│   │   ├── privacy_view.dart
-│   │   ├── setting_components.dart
-│   │   └── setting_view.dart
-│   └── view_model
-│       ├── setting_view_model.dart
-│       ├── setting_view_model.g.dart
-│       └── setting_view_model_state.dart
-└── user_permission
-    ├── model
-    │   ├── items
-    │   │   ├── contact_permission_item.dart
-    │   │   ├── fcm_permision_item.dart
-    │   │   ├── location_permission_item.dart
-    │   │   └── sms_permission_item.dart
-    │   ├── permission_item.dart
-    │   └── permission_state.dart
-    ├── service
-    │   ├── concrete
-    │   │   ├── contact_permission_service.dart
-    │   │   ├── fcm_alert_permission_service.dart
-    │   │   └── locate_permission_service.dart
-    │   ├── permission_service_interface.dart
-    │   └── status_to_permission_state_converter.dart
-    ├── view
-    │   ├── user_permission_view.dart
-    │   └── widgets
-    │       ├── finish_page.dart
-    │       ├── intro_page.dart
-    │       └── permission_page.dart
-    └── view_model
-        ├── permissions.dart
-        ├── user_permission_view_model.dart
-        └── user_permission_view_model.g.dart
+├── main.dart                          # 앱 엔트리포인트 + DI/Firebase 부트스트랩
+├── firebase_options.dart              # FlutterFire CLI 생성물
+│
+├── core/                              # 기반 모듈
+│   ├── di/                            # GetIt + Injectable 설정
+│   │   ├── di_setup.dart
+│   │   ├── di_setup.config.dart       # (생성물)
+│   │   ├── local_database_module.dart
+│   │   ├── secure_storage_module.dart
+│   │   └── permission_service_module.dart
+│   ├── dio/                           # Dio 모듈 + Interceptor + ApiConfig
+│   ├── database/                      # sqflite 공통 엔진 / 테이블 정의
+│   │   └── service/                   # Abstract & 테이블별 서비스
+│   └── router/                        # go_router + Shell Route + 전환 애니메이션
+│
+├── feature/                           # 도메인 Feature 모듈
+│   ├── auth/                          # 카카오 OIDC + JWT + 토큰 스토리지
+│   ├── friend/                        # 친구 검색/요청/차단 + 로컬 연락처
+│   ├── geofence/                      # ⭐ 본 프로젝트의 핵심 Feature
+│   │   ├── background/                # 🔥 @pragma('vm:entry-point') 콜백
+│   │   │   └── geofence_background_callback.dart
+│   │   ├── service/                   # Native Registrar / SMS / FCM Arrival 등
+│   │   ├── repository/                # Geofence + ServerRecipient 로컬 저장
+│   │   ├── view/                      # 지도/등록/수신자 선택 UI
+│   │   └── view_model/                # @Riverpod 상태관리
+│   ├── record/                        # 발송 이력
+│   ├── setting/                       # 설정/약관/버전
+│   ├── terms/                         # 약관 서버 조회/동의 API
+│   └── user_permission/               # 📱 Prominent Disclosure 온보딩
+│
+├── integration/                       # 외부 플랫폼 통합
+│   ├── firebase/                      # Core + Messaging + RemoteConfig + Crashlytics
+│   └── fcm/                           # FCM 토큰 관리
+│
+└── shared/                            # 도메인 없는 공통
+    ├── base/result/                   # Result<T> sealed class
+    ├── component/                     # 공통 위젯 / 테마
+    └── util/                          # 포맷터 / 상수
 ```
 
-### 주요 모듈 설명
+### 3.3 주요 모듈 설명
 
-#### 1. Auth (인증 모듈)
-- **역할**: 카카오 OAuth2 기반 소셜 로그인 및 JWT 토큰 관리
-- **주요 컴포넌트**:
-  - `AuthService`: 카카오 SDK 연동 및 서버 인증 처리
-  - `TokenStorageService`: 토큰의 안전한 저장 및 조회 (`flutter_secure_storage` 활용)
-  - `AuthViewModel`: 로그인 상태 관리 및 토큰 자동 갱신 로직
+#### 🔐 Auth
+- `AuthService`: 카카오 SDK → OIDC → 서버 JWT 발급
+- `TokenStorageService`: Keychain/Keystore 저장, Dio Interceptor 에서 주입
+- `AuthViewModel`: 토큰 만료 감지 시 자동 리프레시
 
-#### 2. Geofence (지오펜스 모듈)
-- **역할**: 위치 기반 영역 설정 및 진입/이탈 감지
-- **주요 컴포넌트**:
-  - `GeofenceMonitoringService`: Method Channel을 통한 네이티브 지오펜스 API 제어
-  - `SmsService`: 지오펜스 이벤트 발생 시 SMS 발송
-  - `GeofenceEnrollView`: 네이버 지도 기반 위치 선택 UI
-  - `GeofenceLocalRepository`: SQLite를 통한 지오펜스 데이터 영속화
+#### 📍 Geofence (핵심)
+- `NativeGeofenceRegistrar`: `native_geofence` 플러그인 래핑. `register / unregister / syncAll`.
+- `geofence_background_callback.dart`: OS 진입 이벤트 수신 → DI 재부팅 → SMS/FCM 발송 → 레코드 저장 → 1회성 deactivate.
+- `GeofenceViewModel`: `@Riverpod(keepAlive: true)` — 전역 권한 상태와 CRUD.
+- `GeofenceEnrollView`: 네이버 지도 + 반경 셀렉터 + 수신자 Picker.
 
-#### 3. User Permission (권한 관리 모듈)
-- **역할**: Google Play Prominent Disclosure 정책 준수 권한 온보딩
-- **주요 컴포넌트**:
-  - `PermissionServiceInterface`: 권한별 서비스 추상화 인터페이스
-  - `UserPermissionView`: PageView 기반 순차적 권한 요청 UI
-  - **지원 권한**: 위치(Location), 연락처(Contact), FCM 알림
+#### 👥 Friend
+- 서버 친구 관계 API (검색/요청/수락/차단) + 로컬 연락처 Repository 병행.
+- 지오펜스 수신자 선택 시 두 소스를 하나의 리스트로 표시.
 
-#### 4. Common (공통 모듈)
-- **Router**: `GoRouter` 기반 선언형 라우팅
-  - ShellRoute를 통한 하단 네비게이션 바 공통 레이아웃
-  - 커스텀 페이지 전환 애니메이션 (Fade, Bottom-up)
-- **Result**: 함수형 에러 핸들링 패턴
-  - `Success<T>` / `Failure<T>` sealed class
-  - 일관된 에러 처리 및 사용자 피드백
-- **Database**: SQLite 초기화 및 마이그레이션 관리
+#### 🔔 User Permission (Prominent Disclosure)
+- `UserPermissionView`: PageView 기반 순차 권한 흐름.
+- 권한 항목별 `PermissionItem` 으로 추상화 (Location / Contact / FCM / SMS).
+- **Always Location 권한 안내** — Android 11+ 은 시스템 설정에서만 선택 가능하므로 딥링크 유도 UI 제공.
 
-### 권한 관리 및 온보딩
-
-본 앱은 Google Play Prominent Disclosure 정책을 준수하여 투명한 권한 요청 프로세스를 제공합니다.
-
-#### 온보딩 플로우
-
-1. **IntroPage**: 앱의 핵심 기능 소개 및 권한 필요성 설명
-2. **PermissionPage**: 각 권한에 대한 상세 설명 및 개별 요청
-   - 알림 권한 (FCM)
-   - 연락처 권한
-   - 위치 권한 (Background 포함)
-3. **FinishPage**: 온보딩 완료 및 메인 화면 진입
-
-#### 권한 투명성
-
-각 권한 요청 시 다음 정보를 명시적으로 제공합니다:
-- **사용 목적**: 해당 권한이 왜 필요한지 설명
-- **수집 데이터**: 어떤 데이터에 접근하는지 명시  
-- **필수 여부**: 필수/선택 권한 구분
-
+#### 🛠 Core
+- **Router**: `ShellRoute` 로 하단 네비게이션 공통 레이아웃 유지 + 커스텀 전환.
+- **Dio**: 401 시 RefreshToken 로 재시도 후 원요청 재전송 인터셉터.
+- **Database**: `@preResolve Database` 로 앱 기동 대기 중 오픈. sqflite 가 아이솔레이트 간 공유 가능해 백그라운드 재사용.
 
 ---
 
-## 4. 라우팅 구조
+## 4. 모바일 플랫폼 설정
 
-본 프로젝트는 `go_router` 패키지를 사용하여 선언형 라우팅을 구현합니다.
+### 4.1 Android
 
-### 라우트 구조
+`android/app/src/main/AndroidManifest.xml`
+
+| 퍼미션 | 용도 |
+|---|---|
+| `ACCESS_FINE_LOCATION` | 지도 초기 위치 + Geofence 정밀도 |
+| `ACCESS_COARSE_LOCATION` | Fine 권한 거부 시 fallback |
+| `ACCESS_BACKGROUND_LOCATION` | 앱 종료 상태 Geofence 감지 (Android 10+) |
+| `FOREGROUND_SERVICE_LOCATION` | 포그라운드 서비스 타입 선언 (Android 14+) |
+| `READ_CONTACTS` | 로컬 연락처 Picker |
+| `POST_NOTIFICATIONS` | Android 13+ 알림 권한 |
+| `RECEIVE_BOOT_COMPLETED` | 재부팅 후 Geofence 재등록 |
+| `WAKE_LOCK` | 백그라운드 FlutterEngine 기동 시 CPU 유지 |
+| `INTERNET` | API / FCM |
+
+### 4.2 iOS
+
+`ios/Runner/Info.plist`
+
+| 키 | 값 |
+|---|---|
+| `NSLocationWhenInUseUsageDescription` | 지도 표시 / Geofence 설정 목적 |
+| `NSLocationAlwaysAndWhenInUseUsageDescription` | 백그라운드 Geofence 목적 (Always 승인 필수) |
+| `NSContactsUsageDescription` | 연락처 Picker 목적 |
+| `UIBackgroundModes` | `location`, `fetch`, `processing` |
+| `LSApplicationQueriesSchemes` | `sms`, `kakaokompassauth` 등 |
+
+### 4.3 빌드/실행
+
+```bash
+# 1. 의존성
+flutter pub get
+
+# 2. 코드 생성 (Riverpod · Injectable · JsonSerializable · FreezedLike)
+dart run build_runner build --delete-conflicting-outputs
+# 감시 모드
+dart run build_runner watch --delete-conflicting-outputs
+
+# 3. 환경변수 + 실행
+flutter run --dart-define-from-file=iam_here_flutter_secret.env
+
+# 분석 (커밋 전 필수)
+flutter analyze
+```
+
+환경변수 파일 예시 — `iam_here_flutter_secret.env`:
+
+```env
+KAKAO_NATIVE_APP_KEY=your_kakao_native_app_key
+NAVER_MAP_CLIENT_ID=your_naver_map_client_id
+API_BASE_URL=http://your-api-server-url
+```
+
+---
+
+## 5. 라우팅 구조
+
+`go_router` 기반 선언형 라우팅 + Shell Route 로 하단 네비게이션 공통 유지.
 
 ```
-/user-permission    # 온보딩 권한 요청 화면 (최초 진입)
-/auth               # 카카오 로그인 화면
-/geofence           # 메인 화면 (지오펜스 목록)
-  ├── /enroll       # 지오펜스 등록 화면
-/contact            # 연락처 관리 화면
-/record             # 알림 발송 기록 화면
-/setting            # 설정 화면
+/user-permission    # 온보딩 (최초 1회)
+/auth               # 카카오 로그인
+/geofence           # 메인 (지오펜스 목록)
+  └── /enroll       # 지오펜스 등록
+/friend             # 친구/연락처 관리
+/record             # 발송 이력
+/setting            # 설정 / 약관 / 버전
 ```
 
-### 스마트 라우팅 로직
-
-`routing_logic.dart`에서 앱 초기 진입 시 사용자 상태에 따라 자동으로 적절한 화면으로 리다이렉트합니다:
+`routing_logic.dart` 에서 앱 기동 시 리다이렉트:
 
 ```mermaid
 flowchart TD
@@ -482,156 +423,90 @@ flowchart TD
     B -->|아니오| C[/user-permission]
     B -->|예| D{로그인 완료?}
     D -->|아니오| E[/auth]
-    D -->|예| F[/geofence]
+    D -->|예| F{Geofence 재동기화}
+    F --> G[/geofence]
 ```
+
+기동 시점에 `_syncNativeGeofencesOnStart()` 가 DB 의 활성 Geofence 를 OS 에 재등록하여, 앱 삭제 후 재설치 · OS 설정에서 앱 권한 변경 등으로 어긋난 상태를 보정한다.
 
 ---
 
-## 5. 에러 핸들링
+## 6. 에러 핸들링
 
 ### Result 패턴
 
-본 프로젝트는 `Result<T>` sealed class를 사용하여 함수형 에러 핸들링을 구현합니다.
-
 ```dart
-sealed class Result<T> {
-  R when<R>({
-    required R Function(T data) success,
-    required R Function(String message) failure,
-  });
-}
-
+sealed class Result<T> { ... }
 class Success<T> extends Result<T> { ... }
 class Failure<T> extends Result<T> { ... }
 ```
 
-#### 사용 예시
+- 네트워크/DB 경계에서 예외를 `Result` 로 포장. UI 계층은 `handle(onSuccess, showSnackBar)` 로 소비.
+- 백그라운드 Isolate 내부에서는 예외가 부상(surface)되지 않기 때문에 **예외 경계마다 `log()` 로 흔적**을 남긴다.
 
-```dart
-final result = await repository.save(data);
+### Firebase Crashlytics
 
-result.handle(
-  context: context,
-  onSuccess: (data) {
-    // 성공 시 로직
-  },
-  showSnackBar: true, // 실패 시 자동으로 SnackBar 표시
-);
-```
-
-### 에러 로깅
-
-- `ErrorAnalyst.log()`: 에러 및 스택 트레이스 로깅
-- Firebase Crashlytics 연동을 통한 프로덕션 환경 에러 추적
+- `runZonedGuarded` 로 Dart 에러를 가로채 자동 업로드.
+- 백그라운드 아이솔레이트 초기화에도 `Firebase.initializeApp` 가드 포함.
 
 ---
 
-## 6. 설치 및 실행 가이드
+## 7. 권한 관리 & 온보딩
 
-### 필수 요구사항
+Google Play **Prominent Disclosure** 를 준수하는 명시적 권한 온보딩 플로우.
 
-- **Flutter SDK**: 3.x 이상
-- **Dart SDK**: 3.x 이상
-- **Android Studio** 또는 **Xcode** (iOS 빌드 시)
+1. **IntroPage** — 앱 가치 제안 + 필요 권한 리스트
+2. **PermissionPage** — 권한별 개별 설명 + 요청
+   - 알림(FCM, Android 13+)
+   - 연락처(SMS 수신자 선택)
+   - 위치(Background 포함; iOS 는 Always 선택 유도)
+3. **FinishPage** — 완료 → 메인 진입
 
-### 환경 변수 설정
+각 화면은 다음을 명시한다:
 
-프로젝트 루트의 `assets` 폴더 내에 `iam_here_flutter_secret.env` 파일 생성:
-
-```env
-# 카카오 SDK 설정
-KAKAO_NATIVE_APP_KEY=your_kakao_native_app_key
-
-# 네이버 지도 설정
-NAVER_MAP_CLIENT_ID=your_naver_map_client_id
-
-# 백엔드 API URL
-API_BASE_URL=http://your-api-server-url
-```
-
-### 실행 방법
-
-1. **의존성 설치**
-```bash
-flutter pub get
-```
-
-2. **코드 생성** (Freezed, Injectable, JsonSerializable 등)
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
-
-3. **앱 실행**
-```bash
-# Android
-flutter run
-
-# iOS (macOS only)
-flutter run -d ios
-```
-
----
-
-## 7. 주요 기능 상세
-
-### 설정 화면
-
-- **권한 상태 확인**: 현재 등록된 권한들의 허용/거부 상태 조회
-- **개인정보 보호 정책**: 앱 내 정책 문서 뷰어
-- **버전 정보**: `package_info_plus`를 통한 현재 앱 버전 표시
-- **고객 지원**: Notion 기반 문의 페이지 연동
+- **사용 목적**: 왜 필요한지
+- **수집 데이터**: 어떤 정보에 접근하는지
+- **필수 여부**: 기능 차단 여부
 
 ---
 
 ## 8. 개발 컨벤션
 
 ### 코드 스타일
+- **Effective Dart** 가이드 준수
+- **MVVM + Clean** 계층 구분
+- **flutter_screenutil 수치** 적용 (하드코딩된 픽셀 금지)
+- **interface 우선 작성 → 구현 → `build_runner`** 순의 Harness Loop
 
-- **Effective Dart** 스타일 가이드 준수
-- **MVVM** 아키텍처 패턴 적용
-- **GetIt + Injectable** 의존성 주입
-- **Riverpod** 상태 관리 (UI 상태만 담당, DI는 GetIt 사용)
+### Riverpod 규칙
+- `provider` 패키지 사용 금지. `flutter_riverpod` + `riverpod_annotation` 만 사용.
+- 비동기 상태는 `AsyncValue` 로 래핑. UI 는 `when(data, loading, error)`.
 
 ### 테스트
 
-#### Flutter 테스트 실행
 ```bash
+# 단위 / 위젯 테스트
 flutter test
-```
 
-#### 테스트 커버리지 확인
-
-##### Windows
-```shell
-# lcov 설치 (관리자 권한 PowerShell 필요)
+# 커버리지 (Windows)
 choco install lcov
-
-# 권한 부여 (스크립트 실행 허용 정책 설정 - 최초 1회)
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# 실행 (프로젝트 루트에서)
 .\scripts\obvious_test.ps1
-```
 
-##### Mac
-```bash
-# lcov 설치
-brew install lcov      
-
-# 권한 부여
-# 권한 부여 (최초 1회)
+# 커버리지 (macOS)
+brew install lcov
 chmod +x scripts/obvious_test.sh
-
-# 실행
 ./scripts/obvious_test.sh
-
 ```
+
+- `sqflite_common_ffi` 로 데스크톱 환경에서도 DB 테스트 가능.
+- `mockito` 로 Dio / Service Mock 생성.
 
 ---
 
 ## 9. 커밋 메시지 컨벤션
 
-- **AngularJS Git Commit Convention** 준수
+**AngularJS Git Commit Convention** 준수.
 
 ```
 [타입] 간단한 제목
@@ -647,3 +522,11 @@ chmod +x scripts/obvious_test.sh
 - test: 테스트 코드 추가
 - chore: 빌드 업무 수정, 패키지 매니저 설정 등
 ```
+
+---
+
+## 10. 관련 문서
+
+- 백엔드 API Swagger: <https://fortuneki.site/swagger-ui/index.html>
+- 최근 아키텍처 전환 보고서: [`result.md`](./result.md) — Dart 연속 스트림 → OS 네이티브 Geofence 이관
+- 플레이스토어: <https://play.google.com/store/apps/details?id=com.kdongsu5509.iamhere>

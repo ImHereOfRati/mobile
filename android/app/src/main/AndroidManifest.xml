@@ -6,6 +6,10 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- OS 재부팅 후 활성 지오펜스 재등록을 위한 권한 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- native_geofence 플러그인의 지오펜스 수신기/서비스 실행을 위한 권한 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <queries>
         <package android:name="com.kakao.talk" />
     </queries>

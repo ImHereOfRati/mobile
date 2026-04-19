@@ -3,9 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/service/geocoding_service.dart';
-import 'package:iamhere/feature/geofence/service/geofence_orchestrator.dart';
+import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/geofence/view_model/geofence_list_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/geofence_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
@@ -41,28 +42,16 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     super.dispose();
   }
 
-  /// 활성화된 지오펜스가 있으면 모니터링 시작
-  Future<void> _startMonitoringIfNeeded(List<GeofenceEntity> geofences) async {
-    final hasActiveGeofence = geofences.any((g) => g.isActive);
-    if (hasActiveGeofence) {
-      try {
-        final monitoringService = ref.read(
-          geofenceOrchestratorProvider.notifier,
-        );
-        await monitoringService.startMonitoring();
-      } catch (e) {
-        debugPrint('모니터링 시작 실패: $e');
-      }
-    } else {
-      // 활성화된 지오펜스가 없으면 모니터링 중지
-      try {
-        final monitoringService = ref.read(
-          geofenceOrchestratorProvider.notifier,
-        );
-        await monitoringService.stopMonitoring();
-      } catch (e) {
-        debugPrint('모니터링 중지 실패: $e');
-      }
+  /// 활성 지오펜스 목록을 OS 에 재동기화한다.
+  /// OS 네이티브 geofence 는 백그라운드/프로세스 종료 상태에서도 동작하므로,
+  /// Dart 측 연속 모니터링은 더 이상 필요하지 않다.
+  Future<void> _syncGeofencesWithOs(List<GeofenceEntity> geofences) async {
+    try {
+      final registrar = getIt<NativeGeofenceRegistrarInterface>();
+      final active = geofences.where((g) => g.isActive).toList();
+      await registrar.syncAll(active);
+    } catch (e) {
+      debugPrint('OS 지오펜스 동기화 실패: $e');
     }
   }
 
@@ -73,10 +62,10 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
       final listViewModel = ref.read(geofenceListViewModelProvider.notifier);
       await listViewModel.toggleActive(geofence.id!, newValue);
 
-      // 토글 후 활성화된 지오펜스 목록 확인하여 모니터링 시작/중지
+      // 토글 후 목록을 OS 와 재동기화 (iOS 20개 제한 등 정책 적용).
       final geofencesAsyncValue = ref.read(geofenceListViewModelProvider);
       geofencesAsyncValue.whenData((geofences) {
-        _startMonitoringIfNeeded(geofences);
+        _syncGeofencesWithOs(geofences);
       });
     } catch (e) {
       if (mounted) {
@@ -116,10 +105,10 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
       final listViewModel = ref.read(geofenceListViewModelProvider.notifier);
       await listViewModel.delete(geofence.id!);
 
-      // 삭제 후 활성화된 지오펜스 목록 확인하여 모니터링 시작/중지
+      // 삭제 후 OS 와 재동기화.
       final geofencesAsyncValue = ref.read(geofenceListViewModelProvider);
       geofencesAsyncValue.whenData((geofences) {
-        _startMonitoringIfNeeded(geofences);
+        _syncGeofencesWithOs(geofences);
       });
 
       if (mounted) {
@@ -236,9 +225,9 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
               ),
             ),
             data: (geofences) {
-              // 활성화된 지오펜스가 있으면 모니터링 시작
+              // 목록 로드 시마다 OS 등록 상태 재동기화.
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                _startMonitoringIfNeeded(geofences);
+                _syncGeofencesWithOs(geofences);
                 _resolveAddresses(geofences);
               });
 
