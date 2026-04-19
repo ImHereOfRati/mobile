@@ -1,3 +1,4 @@
+import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 
 abstract class GeofenceViewModelInterface {
@@ -9,6 +10,7 @@ abstract class GeofenceViewModelInterface {
     required double radius,
     required String message,
     required List<int> contactIds,
+    required List<ServerRecipient> serverRecipients,
   });
 
   Future<List<GeofenceEntity>> findAllGeofences();

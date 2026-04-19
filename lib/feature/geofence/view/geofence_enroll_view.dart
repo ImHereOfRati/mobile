@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/feature/friend/view_model/contact.dart';
+import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/view/widget/radius_info_callout.dart';
 import 'package:iamhere/feature/geofence/view_model/geofence_enroll_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/geofence_list_view_model.dart';
@@ -98,12 +98,11 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   // ── 수신자 선택 화면 ─────────────────────────────────────────────────
   Future<void> _openRecipientSelect() async {
     final formState = ref.read(geofenceEnrollViewModelProvider);
-    final result = await Navigator.of(context).push<List<Contact>>(
+    final result = await Navigator.of(context).push<List<Recipient>>(
       MaterialPageRoute(
         builder: (_) => RecipientSelectView(
-          initialSelectedIds: formState.selectedRecipients
-              .where((r) => r.id != null)
-              .map((r) => r.id!)
+          initialSelectedKeys: formState.selectedRecipients
+              .map((r) => r.selectionKey)
               .toList(),
         ),
       ),
@@ -792,7 +791,8 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
     );
   }
 
-  Widget _recipientChip(ColorScheme cs, Contact recipient) {
+  Widget _recipientChip(ColorScheme cs, Recipient recipient) {
+    final isServer = recipient is ServerRecipient;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
@@ -802,10 +802,14 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.person_outline, size: 14.r, color: cs.primary),
+          Icon(
+            isServer ? Icons.cloud_outlined : Icons.person_outline,
+            size: 14.r,
+            color: cs.primary,
+          ),
           SizedBox(width: 4.w),
           Text(
-            recipient.name,
+            recipient.displayName,
             style: TextStyle(
               fontFamily: 'BMHANNAAir',
               fontSize: 13.sp,

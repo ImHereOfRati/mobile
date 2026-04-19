@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/feature/friend/view_model/contact.dart';
+import 'package:iamhere/feature/geofence/model/recipient.dart';
 
 class RecipientTile extends StatelessWidget {
-  final Contact contact;
+  final Recipient recipient;
   final bool isSelected;
   final VoidCallback onTap;
 
   const RecipientTile({
     super.key,
-    required this.contact,
+    required this.recipient,
     required this.isSelected,
     required this.onTap,
   });
@@ -28,7 +28,7 @@ class RecipientTile extends StatelessWidget {
             SizedBox(width: 12.w),
             _buildCircleAvatar(colorScheme),
             SizedBox(width: 16.w),
-            buildNameAndNumber(colorScheme),
+            _buildNameAndSubtitle(colorScheme),
             if (isSelected)
               Icon(Icons.check_circle, color: colorScheme.primary, size: 24.sp),
           ],
@@ -38,13 +38,14 @@ class RecipientTile extends StatelessWidget {
   }
 
   CircleAvatar _buildCircleAvatar(ColorScheme colorScheme) {
+    final name = recipient.displayName;
     return CircleAvatar(
       radius: 24.r,
       backgroundColor: isSelected
           ? colorScheme.primary.withValues(alpha: 0.25)
           : colorScheme.onSurface.withValues(alpha: 0.15),
       child: Text(
-        contact.name.isNotEmpty ? contact.name[0] : '?',
+        name.isNotEmpty ? name[0] : '?',
         style: TextStyle(
           fontSize: 18.sp,
           fontWeight: FontWeight.bold,
@@ -56,22 +57,52 @@ class RecipientTile extends StatelessWidget {
     );
   }
 
-  Expanded buildNameAndNumber(ColorScheme colorScheme) {
+  Expanded _buildNameAndSubtitle(ColorScheme colorScheme) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            contact.name,
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-            ),
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  recipient.displayName,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (recipient is ServerRecipient) ...[
+                SizedBox(width: 6.w),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 6.w,
+                    vertical: 2.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Text(
+                    'ImHere',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
           SizedBox(height: 4.h),
           Text(
-            contact.number,
+            recipient.displaySubtitle,
             style: TextStyle(
               fontSize: 14.sp,
               color: colorScheme.onSurface.withValues(alpha: 0.55),

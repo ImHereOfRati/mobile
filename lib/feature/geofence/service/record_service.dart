@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:iamhere/feature/friend/repository/contact_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_local_repository.dart';
@@ -17,15 +16,13 @@ class RecordService {
   /// Save a geofence entry record
   Future<void> saveGeofenceRecord({
     required GeofenceEntity geofence,
-    required List<ContactEntity> recipients,
+    required List<String> recipientNames,
   }) async {
     try {
       if (geofence.id == null) {
         log('Cannot save record: geofence has no ID');
         return;
       }
-
-      final recipientNames = recipients.map((contact) => contact.name).toList();
 
       final record = GeofenceRecordEntity(
         geofenceId: geofence.id!,

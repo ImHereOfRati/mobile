@@ -1,5 +1,5 @@
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:iamhere/feature/friend/view_model/contact.dart';
+import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/utils/radius_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,7 +13,7 @@ class GeofenceEnrollFormState {
   final String address;
   final NLatLng? selectedLocation;
   final String radius;
-  final List<Contact> selectedRecipients;
+  final List<Recipient> selectedRecipients;
   final String message;
   final bool isActive;
 
@@ -39,7 +39,7 @@ class GeofenceEnrollFormState {
     String? address,
     NLatLng? selectedLocation,
     String? radius,
-    List<Contact>? selectedRecipients,
+    List<Recipient>? selectedRecipients,
     String? message,
     bool? isActive,
   }) {
@@ -83,7 +83,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
   }
 
   /// 수신자 업데이트
-  void updateRecipients(List<Contact> recipients) {
+  void updateRecipients(List<Recipient> recipients) {
     state = state.copyWith(selectedRecipients: recipients);
   }
 
@@ -117,10 +117,14 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
       throw Exception(validationResult.errorMessage ?? '입력값을 확인해주세요');
     }
 
-    // 연락처 ID 리스트 추출
     final contactIds = state.selectedRecipients
-        .where((contact) => contact.id != null)
-        .map((contact) => contact.id!)
+        .whereType<LocalRecipient>()
+        .where((r) => r.id != null)
+        .map((r) => r.id!)
+        .toList();
+
+    final serverRecipients = state.selectedRecipients
+        .whereType<ServerRecipient>()
         .toList();
 
     final vmInterface = ref.read(geofenceViewModelInterfaceProvider);
@@ -134,6 +138,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
       radius: radius,
       message: state.message.trim(),
       contactIds: contactIds,
+      serverRecipients: serverRecipients,
     );
 
     // 활성화 상태가 true면 토글 적용 (기본 저장값은 false)
@@ -157,7 +162,7 @@ class GeofenceFormValidator {
     required String name,
     required Object? selectedLocation, // NLatLng? 또는 null
     required String radiusText,
-    required List<Contact> selectedRecipients,
+    required List<Recipient> selectedRecipients,
     required String message,
   }) {
     if (name.trim().isEmpty) {

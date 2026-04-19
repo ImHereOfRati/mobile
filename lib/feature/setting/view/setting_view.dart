@@ -6,6 +6,7 @@ import 'package:iamhere/feature/setting/view_model/setting_view_model.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model_state.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'my_info_view.dart';
@@ -60,14 +61,38 @@ class SettingView extends ConsumerWidget {
           SettingItem(
             title: '푸시 알림',
             trailingText: _permLabel(state.pushPermission, toggle: true),
-          ),
-          SettingItem(
-            title: '메시지 알림',
-            trailingText: _permLabel(state.pushPermission, toggle: true),
+            onTap: () => _handlePermissionTap(
+              context,
+              ref,
+              state.pushPermission,
+              () => ref
+                  .read(settingViewModelProvider.notifier)
+                  .requestPushPermission(),
+            ),
           ),
           SettingItem(
             title: '위치 추적',
             trailingText: _permLabel(state.locationPermission),
+            onTap: () => _handlePermissionTap(
+              context,
+              ref,
+              state.locationPermission,
+              () => ref
+                  .read(settingViewModelProvider.notifier)
+                  .requestLocationPermission(),
+            ),
+          ),
+          SettingItem(
+            title: '연락처 접근',
+            trailingText: _permLabel(state.contactPermission, toggle: true),
+            onTap: () => _handlePermissionTap(
+              context,
+              ref,
+              state.contactPermission,
+              () => ref
+                  .read(settingViewModelProvider.notifier)
+                  .requestContactPermission(),
+            ),
           ),
           const SettingItem(title: '위치 기록 보관', trailingText: '30일'),
         ]),
@@ -203,6 +228,27 @@ class SettingView extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _handlePermissionTap(
+    BuildContext context,
+    WidgetRef ref,
+    PermissionState current,
+    Future<void> Function() request,
+  ) async {
+    final needsOsSettings =
+        current == PermissionState.grantedAlways ||
+        current == PermissionState.grantedWhenInUse ||
+        current == PermissionState.permanentlyDenied ||
+        current == PermissionState.restricted;
+
+    if (needsOsSettings) {
+      await ph.openAppSettings();
+      await ref.read(settingViewModelProvider.notifier).refreshPermissions();
+      return;
+    }
+
+    await request();
   }
 
   String _permLabel(PermissionState state, {bool toggle = false}) {
