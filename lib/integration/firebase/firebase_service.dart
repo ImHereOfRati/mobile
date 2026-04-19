@@ -1,6 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:iamhere/firebase_options.dart';
 
-import '../../firebase_options.dart';
 import 'firebase_cloud_message_service.dart';
 import 'firebase_crashlytics_service.dart';
 import 'firebase_remote_service.dart';

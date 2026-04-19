@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
+import 'package:iamhere/core/dio/properties/http_status_code.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/fcm_token.dart';
@@ -22,7 +23,7 @@ class FcmTokenRepository {
         options: ApiConfig.authOptions,
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == HttpStatusCode.ok) {
         debugPrint('FCM token enrolled successfully');
         return true;
       } else {
