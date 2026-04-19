@@ -8,6 +8,7 @@ class ContactTile extends StatelessWidget {
   final String phoneNumber;
   final String? status; // e.g. '내 기기', 'Imhere', '탈퇴한 회원'
   final Future<bool> Function()? onDelete;
+  final VoidCallback? onTap;
 
   const ContactTile({
     super.key,
@@ -15,6 +16,7 @@ class ContactTile extends StatelessWidget {
     required this.phoneNumber,
     this.status,
     this.onDelete,
+    this.onTap,
   });
 
   @override
@@ -33,7 +35,7 @@ class ContactTile extends StatelessWidget {
       statusColor = cs.onSurface.withValues(alpha: 0.55);
     }
 
-    final content = Padding(
+    final row = Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
       child: Row(
         children: [
@@ -81,7 +83,11 @@ class ContactTile extends StatelessWidget {
       ),
     );
 
-    if (onDelete == null) return content;
+    final tappable = onTap == null
+        ? row
+        : InkWell(onTap: onTap, child: row);
+
+    if (onDelete == null) return tappable;
 
     return Dismissible(
       key: key ?? ValueKey(contactName + phoneNumber),
@@ -109,7 +115,7 @@ class ContactTile extends StatelessWidget {
           ],
         ),
       ),
-      child: content,
+      child: tappable,
     );
   }
 }

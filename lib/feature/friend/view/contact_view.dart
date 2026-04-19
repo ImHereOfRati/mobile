@@ -17,6 +17,8 @@ class ContactView extends ConsumerStatefulWidget {
   ConsumerState<ContactView> createState() => _ContactViewState();
 }
 
+enum _FriendAction { delete, block }
+
 class _ContactViewState extends ConsumerState<ContactView> {
   @override
   Widget build(BuildContext context) {
@@ -112,6 +114,13 @@ class _ContactViewState extends ConsumerState<ContactView> {
                             ? friend.friendAlias
                             : friend.friendEmail,
                       ),
+                      onTap: () => _showServerFriendActions(
+                        context,
+                        friend.friendRelationshipId,
+                        friend.friendAlias.isNotEmpty
+                            ? friend.friendAlias
+                            : friend.friendEmail,
+                      ),
                     ),
                     Divider(
                       height: 0.5,
@@ -142,6 +151,12 @@ class _ContactViewState extends ConsumerState<ContactView> {
                       phoneNumber: contact.number,
                       status: '내 기기',
                       onDelete: () => _deleteLocalContact(
+                        context,
+                        vm,
+                        contact.id!,
+                        contact.name,
+                      ),
+                      onTap: () => _showLocalContactActions(
                         context,
                         vm,
                         contact.id!,
@@ -436,6 +451,166 @@ class _ContactViewState extends ConsumerState<ContactView> {
       ),
     );
     return success;
+  }
+
+  // ── 서버 친구 액션 시트 (삭제/차단) ─────────────────────────────────
+  Future<void> _showServerFriendActions(
+    BuildContext context,
+    String friendRelationshipId,
+    String name,
+  ) async {
+    final cs = Theme.of(context).colorScheme;
+    final action = await showModalBottomSheet<_FriendAction>(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
+              child: Text(
+                name,
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.block, color: cs.onSurface),
+              title: Text(
+                '차단',
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 15.sp,
+                ),
+              ),
+              onTap: () => Navigator.pop(ctx, _FriendAction.block),
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: cs.error),
+              title: Text(
+                '삭제',
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 15.sp,
+                  color: cs.error,
+                ),
+              ),
+              onTap: () => Navigator.pop(ctx, _FriendAction.delete),
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ),
+      ),
+    );
+
+    if (!context.mounted || action == null) return;
+    if (action == _FriendAction.delete) {
+      final ok = await _confirm(context, '$name님을 삭제하시겠어요?');
+      if (ok && context.mounted) {
+        await _deleteServerFriend(context, friendRelationshipId, name);
+      }
+    } else {
+      final ok = await _confirm(
+        context,
+        '$name님을 차단하시겠어요?\n차단된 친구는 알림을 받을 수 없습니다.',
+      );
+      if (ok && context.mounted) {
+        final vm = ref.read(friendListViewModelProvider.notifier);
+        final success = await vm.blockFriend(friendRelationshipId);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success ? '$name님을 차단했습니다.' : '차단에 실패했습니다.',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  // ── 로컬 연락처 액션 시트 (삭제) ──────────────────────────────────────
+  Future<void> _showLocalContactActions(
+    BuildContext context,
+    ContactViewModel vm,
+    int id,
+    String name,
+  ) async {
+    final cs = Theme.of(context).colorScheme;
+    final action = await showModalBottomSheet<_FriendAction>(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
+              child: Text(
+                name,
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: cs.error),
+              title: Text(
+                '삭제',
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 15.sp,
+                  color: cs.error,
+                ),
+              ),
+              onTap: () => Navigator.pop(ctx, _FriendAction.delete),
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ),
+      ),
+    );
+
+    if (!context.mounted || action != _FriendAction.delete) return;
+    final ok = await _confirm(context, '$name님을 삭제하시겠어요?');
+    if (ok && context.mounted) {
+      await _deleteLocalContact(context, vm, id, name);
+    }
+  }
+
+  Future<bool> _confirm(BuildContext context, String message) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: Text(
+          message,
+          style: TextStyle(fontFamily: 'BMHANNAAir', fontSize: 15.sp),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   // ── 초성 그룹핑 유틸 ─────────────────────────────────────────────────

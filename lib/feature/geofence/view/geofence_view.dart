@@ -10,7 +10,9 @@ import 'package:iamhere/feature/geofence/service/native_geofence_registrar_inter
 import 'package:iamhere/feature/geofence/view_model/geofence_list_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/geofence_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
+import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:iamhere/shared/component/view_component/widgets/page_title.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'widget/geofence_tile.dart';
 
@@ -58,6 +60,14 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
   void _handleToggle(GeofenceEntity geofence, bool newValue) async {
     if (geofence.id == null) return;
 
+    // 활성화 시에는 반드시 위치 권한 '항상 허용' 이 필요하다.
+    // OS 네이티브 지오펜스가 앱이 종료된 상태에서도 동작하려면
+    // `locationAlways` 권한이 요구된다.
+    if (newValue) {
+      final granted = await _ensureAlwaysLocationPermission();
+      if (!granted) return;
+    }
+
     try {
       final listViewModel = ref.read(geofenceListViewModelProvider.notifier);
       await listViewModel.toggleActive(geofence.id!, newValue);
@@ -74,6 +84,85 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
         );
       }
     }
+  }
+
+  /// 지오펜스 활성화 전에 위치 권한 '항상 허용' 을 확인/요청한다.
+  /// 이미 허용된 경우 즉시 true. 그 외에는 안내 다이얼로그 후 요청 또는
+  /// 설정 앱 이동을 제안한다.
+  Future<bool> _ensureAlwaysLocationPermission() async {
+    final permissionService = ref.read(locationPermissionServiceProvider);
+    final current = await permissionService.checkPermissionStatus();
+    if (current == PermissionState.grantedAlways) return true;
+    if (!mounted) return false;
+
+    final shouldRequest = await _showAlwaysPermissionRationaleDialog(current);
+    if (shouldRequest != true) return false;
+
+    // 영구 거부 상태이면 시스템 설정으로 유도.
+    if (current == PermissionState.permanentlyDenied) {
+      await openAppSettings();
+      if (!mounted) return false;
+      final afterSettings = await permissionService.checkPermissionStatus();
+      return afterSettings == PermissionState.grantedAlways;
+    }
+
+    final updated = await permissionService.requestPermission();
+    if (updated == PermissionState.grantedAlways) return true;
+
+    if (!mounted) return false;
+    await _showAlwaysPermissionDeniedDialog();
+    return false;
+  }
+
+  Future<bool?> _showAlwaysPermissionRationaleDialog(PermissionState current) {
+    final message = current == PermissionState.permanentlyDenied
+        ? '위치 권한이 거부되어 있습니다.\n설정에서 "항상 허용" 으로 바꿔주세요.'
+        : '앱을 닫아도 지오펜스 알림을 받으려면\n위치 권한을 "항상 허용" 으로 설정해야 합니다.';
+    final action = current == PermissionState.permanentlyDenied
+        ? '설정 열기'
+        : '허용하기';
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('"항상 허용" 권한이 필요해요'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(action),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showAlwaysPermissionDeniedDialog() {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('"항상 허용" 으로 설정해주세요'),
+        content: const Text(
+          '앱 설정 > 위치 > "항상 허용" 을 선택해야 백그라운드에서도 지오펜스가 동작합니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('닫기'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await openAppSettings();
+            },
+            child: const Text('설정 열기'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleDelete(GeofenceEntity geofence) async {
