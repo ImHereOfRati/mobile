@@ -19,27 +19,6 @@
 
 모바일 디바이스의 **OS 레벨 Geofence 서비스**를 활용하여, 앱이 완전히 종료되거나 단말이 재부팅된 이후에도 도착 알림이 동작하는 것을 목표로 합니다.
 
-### 주요 화면
-
-<table align="center">
-  <tr>
-    <td align="center"><img src="./images/permissions_intro_view.jpg" width="150"></td>
-    <td align="center"><img src="./images/alert_request_view.jpg" width="150"></td>
-    <td align="center"><img src="./images/contact_request_view.jpg" width="150"></td>
-    <td align="center"><img src="./images/location_request_view.jpg" width="150"></td>
-  </tr>
-</table>
-
-<table align="center">
-  <tr>
-    <td align="center"><img src="./images/geofence_view.jpg" width="150"></td>
-    <td align="center"><img src="./images/enroll_view.jpg" width="150"></td>
-    <td align="center"><img src="./images/contact_view.jpg" width="150"></td>
-    <td align="center"><img src="./images/record_view.jpg" width="150"></td>
-    <td align="center"><img src="./images/setting_view.jpg" width="150"></td>
-  </tr>
-</table>
-
 ### 📱 모바일 특화 핵심 가치
 
 | 영역 | 구현 전략 |
