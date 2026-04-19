@@ -18,6 +18,7 @@ abstract class LocalDatabaseModule {
       onCreate: (db, version) async {
         await db.execute(_createContactsTableQuery());
         await db.execute(_createGeofenceTableQuery());
+        await db.execute(_createGeofenceServerRecipientTableQuery());
         await db.execute(_createRecordsTableQuery());
         await db.execute(_createNotificationsTableQuery());
       },
@@ -29,6 +30,15 @@ abstract class LocalDatabaseModule {
 
   String _createGeofenceTableQuery() =>
       'CREATE TABLE ${LocalDatabaseProperties.geofenceTableName}(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, address TEXT DEFAULT "", lat REAL, lng REAL, radius REAL, message TEXT, contact_ids TEXT, is_active INTEGER DEFAULT 0)';
+
+  String _createGeofenceServerRecipientTableQuery() =>
+      'CREATE TABLE ${LocalDatabaseProperties.geofenceServerRecipientTableName}'
+      '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
+      'geofence_id INTEGER NOT NULL, '
+      'friend_relationship_id TEXT NOT NULL, '
+      'friend_email TEXT NOT NULL, '
+      'friend_alias TEXT NOT NULL DEFAULT "", '
+      'FOREIGN KEY (geofence_id) REFERENCES ${LocalDatabaseProperties.geofenceTableName}(id) ON DELETE CASCADE)';
 
   String _createRecordsTableQuery() =>
       'CREATE TABLE ${LocalDatabaseProperties.recordTableName}(id INTEGER PRIMARY KEY AUTOINCREMENT, geofence_id INTEGER, geofence_name TEXT, message TEXT, recipients TEXT, created_at TEXT, send_machine TEXT)';
