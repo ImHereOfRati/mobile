@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
+import 'package:iamhere/feature/setting/service/dto/change_nickname_request_dto.dart';
 import 'package:iamhere/feature/setting/service/dto/user_me_response_dto.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:injectable/injectable.dart';
@@ -36,6 +37,36 @@ class UserMeService implements UserMeServiceInterface {
       return null;
     } catch (e) {
       debugPrint('내 정보 조회 중 오류: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<UserMeResponseDto?> changeNickname(String newNickname) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.userNicknamePath,
+        data: ChangeNicknameRequestDto(newNickname: newNickname).toJson(),
+        options: ApiConfig.authOptions,
+      );
+
+      if (response.statusCode == 200) {
+        final body = response.data;
+        final data = body is Map<String, dynamic>
+            ? (body['data'] ?? body)
+            : body;
+
+        if (data is Map<String, dynamic>) {
+          return UserMeResponseDto.fromJson(data);
+        }
+      }
+
+      return null;
+    } on DioException catch (e) {
+      debugPrint('닉네임 변경 실패: ${e.message}');
+      return null;
+    } catch (e) {
+      debugPrint('닉네임 변경 중 오류: $e');
       return null;
     }
   }

@@ -20,7 +20,7 @@ class ApiConfig {
   /// POST — 닉네임 변경
   static const String userNicknamePath = '/api/user/info/nickname';
 
-  /// GET — 이메일 또는 닉네임으로 유저 검색 (PathVariable: keyword)
+  /// GET — 닉네임으로 유저 검색 (PathVariable: keyword)
   static String userSearchPath(String keyword) => '/api/user/info/$keyword';
 
   // ── Terms ───────────────────────────────────────────────────────

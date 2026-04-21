@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
@@ -27,6 +28,7 @@ class GeofenceViewModel extends _$GeofenceViewModel
   late GeofenceServerRecipientLocalRepository _serverRecipientRepository;
   late PermissionServiceInterface _locationPermissionService;
   late NativeGeofenceRegistrarInterface _registrar;
+  late FcmNotificationService _fcmNotificationService;
 
   @override
   Future<PermissionState> build() async {
@@ -36,6 +38,7 @@ class GeofenceViewModel extends _$GeofenceViewModel
     );
     _locationPermissionService = ref.watch(locationPermissionServiceProvider);
     _registrar = getIt<NativeGeofenceRegistrarInterface>();
+    _fcmNotificationService = getIt<FcmNotificationService>();
     return await _locationPermissionService.checkPermissionStatus();
   }
 
@@ -73,6 +76,12 @@ class GeofenceViewModel extends _$GeofenceViewModel
             friendEmail: r.friendEmail,
             friendAlias: r.friendAlias,
           ),
+        );
+
+        await _fcmNotificationService.notifyLocationTarget(
+          receiverEmail: r.friendEmail,
+          type: 'LOCATION_TARGET',
+          body: '위치 알림 대상자로 등록되었습니다.',
         );
       }
     }

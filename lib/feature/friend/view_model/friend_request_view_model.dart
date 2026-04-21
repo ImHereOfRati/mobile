@@ -1,6 +1,7 @@
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
+import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/friend/service/friend_request_service_interface.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -9,10 +10,12 @@ part 'friend_request_view_model.g.dart';
 @riverpod
 class FriendRequestViewModel extends _$FriendRequestViewModel {
   late final FriendRequestServiceInterface _service;
+  late final FcmNotificationService _fcmService;
 
   @override
   Future<List<ReceivedFriendRequestResponseDto>> build() async {
     _service = getIt<FriendRequestServiceInterface>();
+    _fcmService = getIt<FcmNotificationService>();
     return _service.fetchReceivedRequests();
   }
 
@@ -31,7 +34,14 @@ class FriendRequestViewModel extends _$FriendRequestViewModel {
       receiverEmail: receiverEmail,
       message: message,
     ));
-    return result != null;
+    if (result == null) return false;
+
+    await _fcmService.sendFcmNotification(
+      receiverEmail: receiverEmail,
+      type: 'FRIEND_REQUEST',
+      body: '친구 요청이 왔습니다.',
+    );
+    return true;
   }
 
   Future<bool> acceptRequest(int requestId) async {

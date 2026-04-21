@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
@@ -110,18 +111,40 @@ Future<void> _showNotification({
   );
 }
 
-/// 메시지 탭 이벤트를 처리
-void setupMessageTapHandler() {
-  // 앱이 종료된 상태에서 알림을 탭하여 앱을 열었을 때
+/// 알림 탭 시 `data['path']`를 읽어 GoRouter로 이동시킨다.
+///
+/// - 백그라운드 상태에서 탭: `onMessageOpenedApp` 스트림 사용
+/// - 종료 상태에서 탭하여 앱 콜드 스타트: `getInitialMessage()` 사용
+///
+/// 인증 상태는 `RouterLogic.handleRedirect`가 자동 처리하므로
+/// 로그인이 안 된 사용자는 자동으로 `/auth`로 리다이렉트된다.
+void setupMessageTapHandler(GoRouter router) {
   FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
     if (message != null) {
       debugPrint('앱 종료 상태에서 메시지 탭: ${message.messageId}');
+      _handleNavigation(router, message);
     }
   });
 
-  // 앱이 백그라운드 상태에서 알림을 탭하여 앱을 열었을 때
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     debugPrint('백그라운드 상태에서 메시지 탭: ${message.messageId}');
-    // 여기서 특정 화면으로 이동하는 등의 처리를 할 수 있습니다
+    _handleNavigation(router, message);
   });
+}
+
+void _handleNavigation(GoRouter router, RemoteMessage message) {
+  final raw = message.data['path'];
+  if (raw is! String) return;
+
+  final path = raw.trim();
+  if (path.isEmpty || !path.startsWith('/')) {
+    debugPrint('알림 path 형식 오류: "$raw"');
+    return;
+  }
+
+  try {
+    router.push(path);
+  } catch (e) {
+    debugPrint('알림 네비게이션 실패 (path=$path): $e');
+  }
 }

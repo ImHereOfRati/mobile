@@ -7,9 +7,23 @@ part 'my_info_view_model.g.dart';
 
 @riverpod
 class MyInfoViewModel extends _$MyInfoViewModel {
+  late final UserMeServiceInterface _service;
+
   @override
   Future<UserMeResponseDto?> build() async {
-    final service = getIt<UserMeServiceInterface>();
-    return service.fetchMyInfo();
+    _service = getIt<UserMeServiceInterface>();
+    return _service.fetchMyInfo();
+  }
+
+  /// 닉네임 변경. 성공 시 true 반환 및 상태 갱신.
+  Future<bool> changeNickname(String newNickname) async {
+    final trimmed = newNickname.trim();
+    if (trimmed.isEmpty) return false;
+
+    final updated = await _service.changeNickname(trimmed);
+    if (updated == null) return false;
+
+    state = AsyncData(updated);
+    return true;
   }
 }

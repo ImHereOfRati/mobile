@@ -44,4 +44,30 @@ class TermsResponseService {
       rethrow;
     }
   }
+
+  Future<APIResponse<void>> requestToAgreeSingleTerm(
+    int termDefinitionId,
+  ) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.termConsentPath(termDefinitionId.toString()),
+        options: ApiConfig.authOptions,
+      );
+
+      if (response.statusCode == 200) {
+        return APIResponse<void>.fromJson(response.data, (_) {});
+      }
+
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        message: "서버 응답 오류: ${response.statusCode}",
+      );
+    } catch (e) {
+      debugPrint(
+        'TermsResponseService.requestToAgreeSingleTerm 에러 (id=$termDefinitionId): $e',
+      );
+      rethrow;
+    }
+  }
 }

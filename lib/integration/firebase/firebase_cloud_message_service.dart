@@ -7,7 +7,8 @@ class FirebaseCloudMessageService {
     await _requestNotificationPermission();
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     setupForegroundMessageListener();
-    setupMessageTapHandler();
+    // 알림 탭 핸들러는 GoRouter 인스턴스가 필요하므로
+    // ProviderScope 구동 이후 ImHereApp.initState에서 별도로 등록한다.
   }
 
   Future<void> _requestNotificationPermission() async {

@@ -43,4 +43,16 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
       return dto;
     });
   }
+
+  /// 단건 약관 동의. 성공 시 true 반환.
+  Future<bool> submitSingleConsent(int termDefinitionId) async {
+    try {
+      final responseService = GetIt.instance<TermsResponseService>();
+      final response =
+          await responseService.requestToAgreeSingleTerm(termDefinitionId);
+      return response.code == 200;
+    } catch (_) {
+      return false;
+    }
+  }
 }

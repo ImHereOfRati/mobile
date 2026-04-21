@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/core/router/router_provider.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
+import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
@@ -30,6 +31,17 @@ class ImHereApp extends ConsumerStatefulWidget {
 
 class _ImHereAppState extends ConsumerState<ImHereApp> {
   static final String _appTitle = "ImHere";
+
+  @override
+  void initState() {
+    super.initState();
+    // 라우터가 구축된 뒤(첫 프레임 이후) 알림 탭 핸들러를 등록한다.
+    // getInitialMessage()는 콜드 스타트 직후 한 번만 유효하므로
+    // 이 시점에 반드시 호출해야 한다.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setupMessageTapHandler(ref.read(routerProvider));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
