@@ -38,10 +38,12 @@ class LocatePermissionService implements PermissionServiceInterface {
 
   // 위치 특화 메서드
 
-  //TODO : 아래 메서드 반드시 별도로 분리하여야한다.
-  /// 현재 사용자 위치 가져오기
+  /// 현재 사용자 위치 가져오기.
+  ///
+  /// UI 에서 init/build 중 호출되므로 이 메서드 내부에서는 권한을 요청하지 않는다.
+  /// 권한 획득은 [LocationPermissionGuideView] 에서 명시적으로 수행한다.
   Future<Position> getCurrentUserLocation() async {
-    PermissionState status = await requestLocationPermissions();
+    final status = await checkPermissionStatus();
 
     if (status == PermissionState.grantedAlways ||
         status == PermissionState.grantedWhenInUse) {
@@ -57,44 +59,27 @@ class LocatePermissionService implements PermissionServiceInterface {
     throw Exception("위치 권한이 충분히 허용되지 않았습니다. 현재 상태: ${status.name}");
   }
 
+  /// 위치 권한 요청.
+  ///
+  /// 먼저 '앱 사용 중' 권한을 시스템 다이얼로그로 요청하고, 그 결과 상태만 반환한다.
+  /// '항상 허용' 상향 요청이 필요한 경우에는 [LocationPermissionGuideView] 가
+  /// 별도로 설정 앱 진입을 안내하므로, 이 메서드에서는 설정 앱을 자동으로 열지 않는다.
   Future<PermissionState> requestLocationPermissions() async {
-    // 2-1. 첫 번째: '앱 사용 중에만 허용' 권한 요청 (팝업으로 뜸)
-    PermissionStatus whenInUseStatus = await Permission.locationWhenInUse
-        .request();
+    final whenInUseStatus = await Permission.locationWhenInUse.request();
 
     if (whenInUseStatus.isGranted || whenInUseStatus.isLimited) {
-      // 2-2. 첫 번째 권한이 허용되었다면, '항상 허용' 권한 상태를 확인합니다.
-      PermissionStatus alwaysStatus = await Permission.locationAlways.status;
-
-      if (alwaysStatus.isGranted) {
-        return PermissionState.grantedAlways;
-      } else {
-        await openAppSettings();
-        alwaysStatus = await Permission.locationAlways.status;
-      }
-
-      if (alwaysStatus.isDenied) {}
-
-      // 2-4. 최종 상태 반환
-      if (alwaysStatus.isGranted) {
-        return PermissionState.grantedAlways;
-      } else {
-        // '항상 허용'이 안 되었지만, '앱 사용 중에만 허용'은 된 상태
-        return PermissionState.grantedWhenInUse;
-      }
+      final alwaysStatus = await Permission.locationAlways.status;
+      return alwaysStatus.isGranted
+          ? PermissionState.grantedAlways
+          : PermissionState.grantedWhenInUse;
     }
 
-    // 2-5. '앱 사용 중에만 허용'조차 거부된 경우
-    if (whenInUseStatus.isDenied) {
-      return PermissionState.denied;
-    }
     if (whenInUseStatus.isPermanentlyDenied) {
       return PermissionState.permanentlyDenied;
     }
     if (whenInUseStatus.isRestricted) {
       return PermissionState.restricted;
     }
-
     return PermissionState.denied;
   }
 }

@@ -16,6 +16,7 @@ import 'package:iamhere/feature/record/view/send_history_list_view.dart';
 import 'package:iamhere/feature/setting/view/setting_view.dart';
 import 'package:iamhere/feature/terms/view/terms_detail_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
+import 'package:iamhere/feature/user_permission/view/location_permission_guide_view.dart';
 import 'package:iamhere/shared/component/view_component/default_view.dart';
 
 import 'custom_page_transition/buttom_up_transition.dart';
@@ -42,6 +43,14 @@ final List<RouteBase> appRoutes = [
       child: TermsDetailView(
         termDefinitionId: int.parse(state.pathParameters['termId']!),
       ),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.locationPermissionGuide,
+    pageBuilder: (context, state) => buildPageWithBottomUpTransition(
+      context: context,
+      state: state,
+      child: const LocationPermissionGuideView(),
     ),
   ),
   ShellRoute(
