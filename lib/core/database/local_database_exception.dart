@@ -1,4 +1,3 @@
-/// Custom exception for database operations
 class LocalDatabaseException implements Exception {
   static const databaseExceptionTitle = "데이터베이스 오류 발생\n\n";
   static const databaseExceptionDetail = "상세 내용\n";

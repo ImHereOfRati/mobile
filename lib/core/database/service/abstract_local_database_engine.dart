@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:iamhere/core/database/local_database_exception.dart';
+import 'package:iamhere/core/database/util/database_handler.dart';
 import 'package:sqflite/sqflite.dart';
 
-abstract class AbstractLocalDatabaseService {
+abstract class AbstractLocalDatabaseService with DatabaseHandler {
   final Database database;
 
   AbstractLocalDatabaseService(this.database);
@@ -15,20 +16,10 @@ abstract class AbstractLocalDatabaseService {
     required T Function(int id) createEntity,
     String? entityDetails,
   }) async {
-    try {
-      final id = await database.insert(
-        table,
-        values,
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
+    return safeDbCall(() async {
+      int id = await _insertEntity(table, values);
       return createEntity(id);
-    } catch (e) {
-      throw LocalDatabaseException(
-        'Failed to save $entityName',
-        details: entityDetails,
-        originalError: e,
-      );
-    }
+    });
   }
 
   Future<int> executeUpdate({
@@ -38,34 +29,10 @@ abstract class AbstractLocalDatabaseService {
     required Map<String, dynamic> values,
     String? entityDetails,
   }) async {
-    if (entityId == null) {
-      throw LocalDatabaseException(
-        'Cannot update $entityName without ID',
-        details: entityDetails,
-      );
-    }
-    try {
-      final count = await database.update(
-        table,
-        values,
-        where: 'id = ?',
-        whereArgs: [entityId],
-      );
-      if (count == 0) {
-        throw LocalDatabaseException(
-          '$entityName not found',
-          details: 'ID: $entityId',
-        );
-      }
-      return count;
-    } catch (e) {
-      if (e is LocalDatabaseException) rethrow;
-      throw LocalDatabaseException(
-        'Failed to update $entityName',
-        details: entityDetails ?? 'ID: $entityId',
-        originalError: e,
-      );
-    }
+    return safeDbCall(() async {
+      _validateEntityIdExistence(entityId, entityName, entityDetails);
+      return await _updateEntity(table, values, entityId, entityName);
+    });
   }
 
   Future<List<T>> executeQuery<T>({
@@ -74,15 +41,10 @@ abstract class AbstractLocalDatabaseService {
     required T Function(Map<String, dynamic>) fromMap,
     String? orderBy,
   }) async {
-    try {
+    return safeDbCall(() async {
       final result = await database.query(table, orderBy: orderBy);
       return result.map((json) => fromMap(json)).toList();
-    } catch (e) {
-      throw LocalDatabaseException(
-        'Failed to fetch ${entityName}s',
-        originalError: e,
-      );
-    }
+    });
   }
 
   Future<void> executeDelete({
@@ -91,17 +53,62 @@ abstract class AbstractLocalDatabaseService {
     int? id,
     String? additionalDetails,
   }) async {
-    try {
+    return safeDbCall(() async {
       if (id != null) {
         await database.delete(table, where: 'id = ?', whereArgs: [id]);
       } else {
         await database.delete(table);
       }
-    } catch (e) {
+    });
+  }
+
+  Future<int> _insertEntity(String table, Map<String, dynamic> values) async {
+    final id = await database.insert(
+      table,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.abort,
+    );
+    return id;
+  }
+
+  Future<int> _updateEntity(
+    String table,
+    Map<String, dynamic> values,
+    int? entityId,
+    String entityName,
+  ) async {
+    final count = await database.update(
+      table,
+      values,
+      where: 'id = ?',
+      whereArgs: [entityId],
+    );
+    _validateUpdateAffectedRowCount(count, entityName, entityId);
+    return count;
+  }
+
+  void _validateUpdateAffectedRowCount(
+    int count,
+    String entityName,
+    int? entityId,
+  ) {
+    if (count == 0) {
       throw LocalDatabaseException(
-        'Failed to delete $entityName',
-        details: id != null ? 'ID: $id' : additionalDetails,
-        originalError: e,
+        '$entityName not found',
+        details: 'ID: $entityId',
+      );
+    }
+  }
+
+  void _validateEntityIdExistence(
+    int? entityId,
+    String entityName,
+    String? entityDetails,
+  ) {
+    if (entityId == null) {
+      throw LocalDatabaseException(
+        'Cannot update $entityName without ID',
+        details: entityDetails,
       );
     }
   }
