@@ -38,4 +38,12 @@ class AppTextStyles {
       letterSpacing: -0.1,
     );
   }
+
+  static TextStyle mediumInfo(Color color) {
+    return _descriptionBase.copyWith(
+      fontSize: 14.sp,
+      color: color,
+      fontWeight: FontWeight.w500,
+    );
+  }
 }

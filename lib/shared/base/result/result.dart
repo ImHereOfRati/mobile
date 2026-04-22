@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'app_snack_bar.dart';
+import '../snack_bar/app_snack_bar.dart';
 import 'error_analyst.dart';
 
 sealed class Result<T> {

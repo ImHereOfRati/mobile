@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/shared/base/api_response/api_response.dart';
+import 'package:iamhere/shared/base/api_response/page_response.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/terms_list_request_dto.dart';

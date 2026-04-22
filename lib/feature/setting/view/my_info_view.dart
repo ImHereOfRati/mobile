@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/setting/view_model/my_info_view_model.dart';
-import 'package:iamhere/shared/base/result/app_snack_bar.dart';
 import 'package:iamhere/shared/base/result/result_message.dart';
+import 'package:iamhere/shared/base/snack_bar/app_snack_bar.dart';
 
 class MyInfoView extends ConsumerWidget {
   const MyInfoView({super.key});
@@ -33,10 +33,9 @@ class MyInfoView extends ConsumerWidget {
                 style: TextStyle(
                   fontFamily: 'BMHANNAAir',
                   fontSize: 16.sp,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.55),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.55),
                 ),
               ),
             );
@@ -66,10 +65,7 @@ class MyInfoView extends ConsumerWidget {
         error: (_, __) => Center(
           child: Text(
             '정보를 불러오는 중 오류가 발생했습니다.',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 16.sp,
-            ),
+            style: TextStyle(fontFamily: 'BMHANNAAir', fontSize: 16.sp),
           ),
         ),
       ),
@@ -96,8 +92,10 @@ class MyInfoView extends ConsumerWidget {
                       : Radius.zero,
                 ),
                 child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 14.h,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
@@ -107,10 +105,9 @@ class MyInfoView extends ConsumerWidget {
                           style: TextStyle(
                             fontFamily: 'BMHANNAAir',
                             fontSize: 14.sp,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.55),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.55),
                             letterSpacing: -0.2,
                           ),
                         ),
@@ -130,10 +127,9 @@ class MyInfoView extends ConsumerWidget {
                         Icon(
                           Icons.edit_outlined,
                           size: 18.r,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.45),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.45),
                         ),
                     ],
                   ),
@@ -218,10 +214,7 @@ class MyInfoView extends ConsumerWidget {
         ResultMessage.nicknameChangedSuccess.message,
       );
     } else {
-      AppSnackBar.showError(
-        context,
-        ResultMessage.nicknameChangeFail.message,
-      );
+      AppSnackBar.showError(context, ResultMessage.nicknameChangeFail.message);
     }
   }
 }
