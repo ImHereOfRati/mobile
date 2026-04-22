@@ -27,6 +27,11 @@ class _BatteryOptimizationGuideViewState
     with WidgetsBindingObserver {
   PermissionState? _currentStatus;
   bool _isProcessing = false;
+  // 배터리 최적화 시스템 다이얼로그는 인앱 오버레이라 `resumed` 와 `_handleAction.finally`
+  // 가 거의 동시에 _refreshStatus 를 호출한다. 두 경로가 모두 status=grantedAlways 를
+  // 보고 pop 하면 두 번째 pop 에서 go_router 의 currentConfiguration.isNotEmpty
+  // 어설션이 터진다. 이 플래그로 단일 pop 을 보장한다.
+  bool _popped = false;
 
   @override
   void initState() {
@@ -54,8 +59,11 @@ class _BatteryOptimizationGuideViewState
     if (!mounted) return;
     setState(() => _currentStatus = status);
 
-    if (status == PermissionState.grantedAlways) {
-      Navigator.of(context).pop(true);
+    if (status == PermissionState.grantedAlways && !_popped) {
+      _popped = true;
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop(true);
+      }
     }
   }
 

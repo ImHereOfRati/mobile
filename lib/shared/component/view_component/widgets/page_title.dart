@@ -32,7 +32,7 @@ class _PageTitleState extends State<PageTitle> {
     return Expanded(
       flex: widget.expandedWidgetFlex,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
+        padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,

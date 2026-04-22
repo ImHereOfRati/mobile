@@ -359,9 +359,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
               decoration: BoxDecoration(
                 color: isTracking
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.all(Radius.circular(20.r)),
               ),
               child: Row(
@@ -468,7 +466,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  '배터리 최적화 제외가 필요해요. 앱이 꺼진 상태에서 알림이 놓쳐질 수 있어요',
+                  '앱이 꺼진 상태에서 알림을 보내기 위해서\n배터리 최적화 제외가 필요해요.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onTertiaryContainer,
                     fontSize: 13.sp,
