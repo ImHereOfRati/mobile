@@ -16,6 +16,7 @@ import 'package:iamhere/feature/record/view/send_history_list_view.dart';
 import 'package:iamhere/feature/setting/view/setting_view.dart';
 import 'package:iamhere/feature/terms/view/terms_detail_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
+import 'package:iamhere/feature/user_permission/view/battery_optimization_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/location_permission_guide_view.dart';
 import 'package:iamhere/shared/component/view_component/default_view.dart';
 
@@ -51,6 +52,14 @@ final List<RouteBase> appRoutes = [
       context: context,
       state: state,
       child: const LocationPermissionGuideView(),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.batteryOptimizationGuide,
+    pageBuilder: (context, state) => buildPageWithBottomUpTransition(
+      context: context,
+      state: state,
+      child: const BatteryOptimizationGuideView(),
     ),
   ),
   ShellRoute(

@@ -1,3 +1,4 @@
+import 'package:iamhere/feature/user_permission/service/concrete/battery_optimization_permission_service.dart';
 import 'package:iamhere/feature/user_permission/service/concrete/contact_permission_service.dart';
 import 'package:iamhere/feature/user_permission/service/concrete/fcm_alert_permission_service.dart';
 import 'package:iamhere/feature/user_permission/service/concrete/locate_permission_service.dart';
@@ -14,4 +15,8 @@ abstract class PermissionServiceModule {
 
   @Named('friend')
   PermissionServiceInterface get contactService => ContactPermissionService();
+
+  @Named('batteryOptimization')
+  PermissionServiceInterface get batteryOptimizationService =>
+      BatteryOptimizationPermissionService();
 }

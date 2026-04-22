@@ -11,6 +11,7 @@ class AppRoutes {
   // ── Onboarding ────────────────────────────────────────────────────
   static const String userPermission = '/user-permission';
   static const String locationPermissionGuide = '/location-permission-guide';
+  static const String batteryOptimizationGuide = '/battery-optimization-guide';
   static const String auth = '/auth';
   static const String termsConsent = '/terms-consent';
   static String termsDetail(int termDefinitionId) =>
@@ -37,6 +38,10 @@ class AppRoutes {
       context.go(userPermission);
   static Future<bool> pushLocationPermissionGuide(BuildContext context) async {
     final result = await context.push<bool>(locationPermissionGuide);
+    return result ?? false;
+  }
+  static Future<bool> pushBatteryOptimizationGuide(BuildContext context) async {
+    final result = await context.push<bool>(batteryOptimizationGuide);
     return result ?? false;
   }
   static void goToAuth(BuildContext context) => context.go(auth);

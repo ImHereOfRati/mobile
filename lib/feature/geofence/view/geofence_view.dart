@@ -183,12 +183,18 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     final pageTitle = "내 위치 기반 알림";
     final pageDescription = "특정 위치에 도착하면 친구에게 자동으로 메시지를 보냅니다";
 
-    // '항상 허용' 이 아니면 경고 배너가 추가로 렌더되므로, 타이틀 영역의
-    // flex 비중을 높여 2.2px 오버플로우를 방지한다.
-    final needsWarning = permissionAsyncValue.maybeWhen(
+    // '항상 허용' 이 아니거나 배터리 최적화가 제외되지 않았을 때 경고 배너가 추가로 렌더된다.
+    // 타이틀 영역의 flex 비중을 높여 오버플로우를 방지한다.
+    final batteryAsyncValue = ref.watch(batteryOptimizationStatusProvider);
+    final needsLocationWarning = permissionAsyncValue.maybeWhen(
       data: (status) => status != PermissionState.grantedAlways,
       orElse: () => false,
     );
+    final needsBatteryWarning = batteryAsyncValue.maybeWhen(
+      data: (status) => status != PermissionState.grantedAlways,
+      orElse: () => false,
+    );
+    final needsWarning = needsLocationWarning || needsBatteryWarning;
     final titleFlex = needsWarning ? 3 : 2;
     final listFlex = needsWarning ? 6 : 5;
 
@@ -370,6 +376,9 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
               SizedBox(height: 6.h),
               _buildAlwaysPermissionWarning(),
             ],
+            // 위치 권한과는 독립적으로 배터리 최적화 제외 여부를 검사한다.
+            // 둘 다 종료 상태 알람 안정성에 필수이므로 나란히 노출.
+            ..._buildBatteryOptimizationWarningIfNeeded(),
           ],
         );
       },
@@ -413,6 +422,70 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     );
     if (!isTracking) return icon;
     return FadeTransition(opacity: _controller, child: icon);
+  }
+
+  List<Widget> _buildBatteryOptimizationWarningIfNeeded() {
+    final batteryAsyncValue = ref.watch(batteryOptimizationStatusProvider);
+    return batteryAsyncValue.maybeWhen(
+      data: (status) {
+        if (status == PermissionState.grantedAlways) return const <Widget>[];
+        return [SizedBox(height: 6.h), _buildBatteryOptimizationWarning()];
+      },
+      orElse: () => const <Widget>[],
+    );
+  }
+
+  Widget _buildBatteryOptimizationWarning() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.all(Radius.circular(12.r)),
+        onTap: () async {
+          final granted = await AppRoutes.pushBatteryOptimizationGuide(context);
+          if (!mounted) return;
+          // 상태 갱신 — granted 여부와 무관하게 최신 상태로 반영.
+          ref.invalidate(batteryOptimizationStatusProvider);
+          if (granted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('배터리 최적화 제외가 적용되었습니다.')),
+            );
+          }
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: colorScheme.tertiaryContainer,
+            borderRadius: BorderRadius.all(Radius.circular(12.r)),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.battery_saver,
+                color: colorScheme.onTertiaryContainer,
+                size: 20.sp,
+              ),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  '배터리 최적화 제외가 필요해요. 앱이 꺼진 상태에서 알림이 놓쳐질 수 있어요',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onTertiaryContainer,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: colorScheme.onTertiaryContainer,
+                size: 20.sp,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // '항상 허용' 권한이 아닐 때 노출되는 경고 문구. 탭하면 가이드 화면으로 이동한다.

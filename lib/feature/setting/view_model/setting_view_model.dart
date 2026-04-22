@@ -12,12 +12,16 @@ class SettingViewModel extends _$SettingViewModel {
   late final PermissionServiceInterface _fcmService;
   late final PermissionServiceInterface _locationService;
   late final PermissionServiceInterface _contactService;
+  late final PermissionServiceInterface _batteryOptimizationService;
 
   @override
   Future<SettingViewModelState> build() async {
     _fcmService = ref.watch(fcmAlertPermissionServiceProvider);
     _locationService = ref.watch(locationPermissionServiceProvider);
     _contactService = ref.watch(contactPermissionServiceProvider);
+    _batteryOptimizationService = ref.watch(
+      batteryOptimizationPermissionServiceProvider,
+    );
 
     return _fetchInitialState();
   }
@@ -26,6 +30,7 @@ class SettingViewModel extends _$SettingViewModel {
     final push = await _fcmService.checkPermissionStatus();
     final location = await _locationService.checkPermissionStatus();
     final contact = await _contactService.checkPermissionStatus();
+    final battery = await _batteryOptimizationService.checkPermissionStatus();
 
     final packageInfo = await PackageInfo.fromPlatform();
     final version = packageInfo.version;
@@ -38,6 +43,7 @@ class SettingViewModel extends _$SettingViewModel {
       pushPermission: push,
       locationPermission: location,
       contactPermission: contact,
+      batteryOptimizationPermission: battery,
       appVersion: versionString,
     );
   }
@@ -66,5 +72,14 @@ class SettingViewModel extends _$SettingViewModel {
     if (current == null) return;
     final next = await _contactService.requestPermission();
     state = AsyncData(current.copyWith(contactPermission: next));
+  }
+
+  Future<void> requestBatteryOptimizationPermission() async {
+    final current = state.asData?.value;
+    if (current == null) return;
+    final next = await _batteryOptimizationService.requestPermission();
+    state = AsyncData(
+      current.copyWith(batteryOptimizationPermission: next),
+    );
   }
 }

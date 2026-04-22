@@ -1,10 +1,14 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/core/router/app_routes.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model_state.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
+import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:url_launcher/url_launcher.dart';
@@ -95,6 +99,14 @@ class SettingView extends ConsumerWidget {
             ),
           ),
           const SettingItem(title: '위치 기록 보관', trailingText: '30일'),
+        ]),
+        SizedBox(height: 20.h),
+        _buildSection(context, '배터리 / 백그라운드 진단', [
+          SettingItem(
+            title: '배터리 최적화 제외',
+            trailingText: _batteryLabel(state.batteryOptimizationPermission),
+            onTap: () => _handleBatteryOptimizationTap(context, ref),
+          ),
         ]),
         SizedBox(height: 20.h),
         _buildSection(context, '개인정보', [
@@ -249,6 +261,38 @@ class SettingView extends ConsumerWidget {
     }
 
     await request();
+  }
+
+  String _batteryLabel(PermissionState state) {
+    if (!Platform.isAndroid) return '해당 없음';
+    switch (state) {
+      case PermissionState.grantedAlways:
+        return '제외됨';
+      case PermissionState.permanentlyDenied:
+        return '시스템에서 거부됨';
+      case PermissionState.restricted:
+        return '제한됨';
+      case PermissionState.denied:
+      case PermissionState.grantedWhenInUse:
+        return '미적용';
+    }
+  }
+
+  Future<void> _handleBatteryOptimizationTap(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final granted = await AppRoutes.pushBatteryOptimizationGuide(context);
+    // 가이드 화면에서 돌아오면 상태를 재조회한다. 반응형 provider 도 함께 무효화.
+    ref.invalidate(batteryOptimizationStatusProvider);
+    if (!context.mounted) return;
+    await ref.read(settingViewModelProvider.notifier).refreshPermissions();
+    // granted 값 자체는 참고용이며, 실제 상태는 refresh 결과로 UI 에 반영된다.
+    if (granted && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('배터리 최적화 제외가 적용되었습니다.')),
+      );
+    }
   }
 
   String _permLabel(PermissionState state, {bool toggle = false}) {

@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import ContactsUI
 import Contacts
+import native_geofence
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, CNContactPickerDelegate {
@@ -14,6 +15,12 @@ import Contacts
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+
+    // native_geofence 백그라운드 FlutterEngine 에서 플러그인을 재등록하기 위한 콜백.
+    // 앱 종료 상태에서 지오펜스 진입 시 이 콜백으로 플러그인들이 주입되어야 Dio/SQLite/Firebase 등이 동작.
+    NativeGeofencePlugin.setPluginRegistrantCallback { registry in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
 
     if let controller = window?.rootViewController as? FlutterViewController {
       let contactChannel = FlutterMethodChannel(name: methodChannelName, binaryMessenger: controller.binaryMessenger)
