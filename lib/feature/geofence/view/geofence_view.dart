@@ -12,7 +12,7 @@ import 'package:iamhere/feature/geofence/view_model/geofence_list_view_model.dar
 import 'package:iamhere/feature/geofence/view_model/geofence_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/shared/component/view_component/widgets/page_title.dart';
+import 'package:iamhere/shared/component/view_component/page_title.dart';
 
 import 'widget/geofence_tile.dart';
 
@@ -28,6 +28,7 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
   late AnimationController _controller;
   final _geocodingService = GeocodingService();
   final Map<int, String> _addressCache = {};
+  final Set<int> _pendingIds = {};
 
   @override
   void initState() {
@@ -44,9 +45,8 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     super.dispose();
   }
 
-  /// 활성 지오펜스 목록을 OS 에 재동기화한다.
-  /// OS 네이티브 geofence 는 백그라운드/프로세스 종료 상태에서도 동작하므로,
-  /// Dart 측 연속 모니터링은 더 이상 필요하지 않다.
+  // ── 비즈니스 로직 (기존 유지) ──────────────────────────────────────────
+
   Future<void> _syncGeofencesWithOs(List<GeofenceEntity> geofences) async {
     try {
       final registrar = getIt<NativeGeofenceRegistrarInterface>();
@@ -59,48 +59,30 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
 
   void _handleToggle(GeofenceEntity geofence, bool newValue) async {
     if (geofence.id == null) return;
-
-    // 활성화 시에는 반드시 위치 권한 '항상 허용' 이 필요하다.
-    // OS 네이티브 지오펜스가 앱이 종료된 상태에서도 동작하려면
-    // `locationAlways` 권한이 요구된다.
     if (newValue) {
       final granted = await _ensureAlwaysLocationPermission();
       if (!granted) return;
     }
-
     try {
       final listViewModel = ref.read(geofenceListViewModelProvider.notifier);
       await listViewModel.toggleActive(geofence.id!, newValue);
-
-      // 토글 후 목록을 OS 와 재동기화 (iOS 20개 제한 등 정책 적용).
-      final geofencesAsyncValue = ref.read(geofenceListViewModelProvider);
-      geofencesAsyncValue.whenData((geofences) {
-        _syncGeofencesWithOs(geofences);
-      });
+      ref
+          .read(geofenceListViewModelProvider)
+          .whenData((g) => _syncGeofencesWithOs(g));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('활성화 상태 변경 실패: ${e.toString()}')),
-        );
-      }
+      if (mounted) _showSnackBar('활성화 상태 변경 실패: $e');
     }
   }
 
-  /// 지오펜스 활성화 전에 위치 권한 '항상 허용' 을 확인/요청한다.
-  /// 이미 허용된 경우 즉시 true. 그 외에는 가이드 화면으로 이동시킨다.
   Future<bool> _ensureAlwaysLocationPermission() async {
     final permissionService = ref.read(locationPermissionServiceProvider);
     final current = await permissionService.checkPermissionStatus();
     if (current == PermissionState.grantedAlways) return true;
     if (!mounted) return false;
-
     return await AppRoutes.pushLocationPermissionGuide(context);
   }
 
   Future<void> _handleDelete(GeofenceEntity geofence) async {
-    if (geofence.id == null) return;
-
-    // 삭제 확인 다이얼로그 표시
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -108,224 +90,137 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
         content: Text('${geofence.name} 지오펜스를 삭제하시겠습니까?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('취소'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('삭제'),
           ),
         ],
       ),
     );
-
     if (confirmed != true || !mounted) return;
-
-    try {
-      final listViewModel = ref.read(geofenceListViewModelProvider.notifier);
-      await listViewModel.delete(geofence.id!);
-
-      // 삭제 후 OS 와 재동기화.
-      final geofencesAsyncValue = ref.read(geofenceListViewModelProvider);
-      geofencesAsyncValue.whenData((geofences) {
-        _syncGeofencesWithOs(geofences);
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${geofence.name} 지오펜스가 삭제되었습니다')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('삭제 실패: ${e.toString()}')));
-      }
-    }
+    await ref.read(geofenceListViewModelProvider.notifier).delete(geofence.id!);
+    ref
+        .read(geofenceListViewModelProvider)
+        .whenData((g) => _syncGeofencesWithOs(g));
   }
-
-  // 연락처 ID 리스트에서 개수 가져오기
-  int _getMemberCount(String contactIdsJson) {
-    try {
-      final List<dynamic> contactIds = jsonDecode(contactIdsJson);
-      return contactIds.length;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  /// 지오펜스 목록의 주소를 일괄 resolve (캐시에 없는 것만)
-  final Set<int> _pendingIds = {};
 
   void _resolveAddresses(List<GeofenceEntity> geofences) {
-    for (final geofence in geofences) {
-      final id = geofence.id ?? -1;
+    for (final g in geofences) {
+      final id = g.id ?? -1;
       if (_addressCache.containsKey(id) || _pendingIds.contains(id)) continue;
-
       _pendingIds.add(id);
-      _geocodingService.reverseGeocode(geofence.lat, geofence.lng).then((addr) {
-        if (mounted) {
-          setState(() {
-            _addressCache[id] = addr;
-          });
-        }
+      _geocodingService.reverseGeocode(g.lat, g.lng).then((addr) {
+        if (mounted) setState(() => _addressCache[id] = addr);
       });
     }
   }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  // ── UI 빌드 ──────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final geofencesAsyncValue = ref.watch(geofenceListViewModelProvider);
     final permissionAsyncValue = ref.watch(geofenceViewModelProvider);
-
-    final pageTitle = "내 위치 기반 알림";
-    final pageDescription = "특정 위치에 도착하면 친구에게 자동으로 메시지를 보냅니다";
-
-    // '항상 허용' 이 아니거나 배터리 최적화가 제외되지 않았을 때 경고 배너가 추가로 렌더된다.
-    // 타이틀 영역의 flex 비중을 높여 오버플로우를 방지한다.
     final batteryAsyncValue = ref.watch(batteryOptimizationStatusProvider);
-    final needsLocationWarning = permissionAsyncValue.maybeWhen(
+
+    // 권한 및 상태 체크
+    final isAlwaysLocationMissing = permissionAsyncValue.maybeWhen(
       data: (status) => status != PermissionState.grantedAlways,
       orElse: () => false,
     );
-    final needsBatteryWarning = batteryAsyncValue.maybeWhen(
+    final isBatteryOptimizationMissing = batteryAsyncValue.maybeWhen(
       data: (status) => status != PermissionState.grantedAlways,
       orElse: () => false,
     );
-    final needsWarning = needsLocationWarning || needsBatteryWarning;
-    final titleFlex = needsWarning ? 3 : 2;
-    final listFlex = needsWarning ? 6 : 5;
 
     return Column(
       children: [
-        // 1. 페이지 타이틀 (추가 위젯 포함)
-        PageTitle(
-          key: ValueKey(pageTitle),
-          pageTitle: pageTitle,
-          pageDescription: pageDescription,
-          pageInfoCount: geofencesAsyncValue.when(
-            data: (geofences) => "${geofences.length}개 등록됨",
-            loading: () => "로딩 중...",
-            error: (_, __) => "오류",
+        // 1. 타이틀 영역 (개선된 PageTitle 사용)
+        Expanded(
+          flex: (isAlwaysLocationMissing || isBatteryOptimizationMissing)
+              ? 4
+              : 3,
+          child: PageTitle(
+            title: "내 위치 기반 알림",
+            description: "특정 위치에 도착하면 친구에게 자동으로 메시지를 보냅니다",
+            infoCount: geofencesAsyncValue.when(
+              data: (g) => "${g.length}개 등록됨",
+              loading: () => "로딩 중...",
+              error: (_, __) => "오류",
+            ),
+            bottomSpacing: 12.h,
+            actions: [
+              // GPS 상태 카드
+              _buildGPSStatusCard(permissionAsyncValue, geofencesAsyncValue),
+
+              // 경고 배너들 (조건부 노출)
+              if (isAlwaysLocationMissing) ...[
+                SizedBox(height: 8.h),
+                _buildWarningBanner(
+                  icon: Icons.warning_amber_rounded,
+                  text: '항상 허용으로 위치를 설정해주셔야 앱이 정상 작동합니다',
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  onTap: () async {
+                    if (await AppRoutes.pushLocationPermissionGuide(context)) {
+                      ref.invalidate(geofenceViewModelProvider);
+                    }
+                  },
+                ),
+              ],
+              if (isBatteryOptimizationMissing) ...[
+                SizedBox(height: 8.h),
+                _buildWarningBanner(
+                  icon: Icons.battery_saver,
+                  text: '앱이 꺼진 상태에서 알림을 보내기 위해 배터리 최적화 제외가 필요해요',
+                  color: Theme.of(context).colorScheme.tertiaryContainer,
+                  onTap: () async {
+                    if (await AppRoutes.pushBatteryOptimizationGuide(context)) {
+                      ref.invalidate(batteryOptimizationStatusProvider);
+                    }
+                  },
+                ),
+              ],
+            ],
           ),
-          additionalWidget: _buildGPSInfoTrackingUsingDescription(
-            permissionAsyncValue,
-            geofencesAsyncValue,
-          ),
-          interval: 2,
-          expandedWidgetFlex: titleFlex,
         ),
 
-        // 2. 지오펜스 타일 목록
+        // 2. 리스트 영역
         Expanded(
-          flex: listFlex,
+          flex: 6,
           child: geofencesAsyncValue.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.w),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
-                    SizedBox(height: 16.h),
-                    Text(
-                      '지오펜스 로드 실패',
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      err.toString(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.55),
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-                    ElevatedButton(
-                      onPressed: () {
-                        ref
-                            .read(geofenceListViewModelProvider.notifier)
-                            .refresh();
-                      },
-                      child: Text('다시 시도'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            error: (err, _) => _buildErrorView(err.toString()),
             data: (geofences) {
-              // 목록 로드 시마다 OS 등록 상태 재동기화.
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _syncGeofencesWithOs(geofences);
                 _resolveAddresses(geofences);
               });
 
-              if (geofences.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.location_off,
-                        size: 64.sp,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.4),
-                      ),
-                      SizedBox(height: 16.h),
-                      Text(
-                        '등록된 지오펜스가 없습니다',
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        '지오펜스를 등록해주세요',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.55),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
+              if (geofences.isEmpty) return _buildEmptyView();
 
               return ListView.builder(
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
                 itemCount: geofences.length,
                 itemBuilder: (context, index) {
-                  final geofence = geofences[index];
-                  final memberCount = _getMemberCount(geofence.contactIds);
-                  final address =
-                      _addressCache[geofence.id ?? -1] ?? '주소 불러오는 중...';
-
+                  final g = geofences[index];
                   return GeofenceTile(
-                    key: ValueKey(geofence.id),
-                    homeName: geofence.name,
-                    address: address,
-                    memberCount: memberCount,
-                    isToggleOn: geofence.isActive,
-                    onToggleChanged: (newValue) =>
-                        _handleToggle(geofence, newValue),
-                    onLongPress: () => _handleDelete(geofence),
+                    key: ValueKey(g.id),
+                    homeName: g.name,
+                    address: _addressCache[g.id ?? -1] ?? '주소 불러오는 중...',
+                    memberCount: _getMemberCount(g.contactIds),
+                    isToggleOn: g.isActive,
+                    onToggleChanged: (val) => _handleToggle(g, val),
+                    onLongPress: () => _handleDelete(g),
                   );
                 },
               );
@@ -336,149 +231,92 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     );
   }
 
-  // GPS 추적 정보 표시 위젯 (ScreenUtil 적용)
-  Widget _buildGPSInfoTrackingUsingDescription(
-    AsyncValue<PermissionState> permissionAsyncValue,
-    AsyncValue<List<GeofenceEntity>> geofencesAsyncValue,
+  // ── 소형 위젯 분리 ─────────────────────────────────────────────────────
+
+  Widget _buildGPSStatusCard(
+    AsyncValue<PermissionState> pAsync,
+    AsyncValue<List<GeofenceEntity>> gAsync,
   ) {
-    return permissionAsyncValue.when(
-      data: (permissionStatus) {
-        final isAlwaysGranted =
-            permissionStatus == PermissionState.grantedAlways;
-        final hasActiveGeofence = geofencesAsyncValue.maybeWhen(
-          data: (geofences) => geofences.any((g) => g.isActive),
-          orElse: () => false,
-        );
-        final isTracking = isAlwaysGranted && hasActiveGeofence;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              height: 40.h,
-              decoration: BoxDecoration(
-                color: isTracking
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.all(Radius.circular(20.r)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _buildGPSIcon(isTracking),
-                  _buildDescription(isTracking),
-                ],
-              ),
-            ),
-            if (!isAlwaysGranted) ...[
-              SizedBox(height: 6.h),
-              _buildAlwaysPermissionWarning(),
-            ],
-            // 위치 권한과는 독립적으로 배터리 최적화 제외 여부를 검사한다.
-            // 둘 다 종료 상태 알람 안정성에 필수이므로 나란히 노출.
-            ..._buildBatteryOptimizationWarningIfNeeded(),
-          ],
-        );
-      },
-      loading: () => SizedBox(
-        height: 40.h,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, __) => SizedBox(
-        height: 40.h,
-        child: Center(child: Text('권한 상태 확인 실패')),
-      ),
-    );
-  }
-
-  // 위치 추적 설명 텍스트 (ScreenUtil 적용)
-  Widget _buildDescription(bool isTracking) {
-    final message = isTracking ? "위치 추적 중이에요" : "위치 추적을 하고 있지 않아요";
-    return Text(
-      message,
-      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-        color: isTracking
-            ? Theme.of(context).colorScheme.onPrimary
-            : Theme.of(context).colorScheme.onSurfaceVariant,
-        fontWeight: FontWeight.bold,
-        fontSize: 16.sp,
-      ),
-    );
-  }
-
-  // GPS 아이콘 — 추적 중엔 깜빡이고, 아닐 땐 정적으로 표시한다.
-  Widget _buildGPSIcon(bool isTracking) {
-    final icon = Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 0, 4.w, 0),
-      child: Icon(
-        Icons.location_on_outlined,
-        color: isTracking
-            ? Colors.red
-            : Theme.of(context).colorScheme.onSurfaceVariant,
-        size: 25.sp,
-      ),
-    );
-    if (!isTracking) return icon;
-    return FadeTransition(opacity: _controller, child: icon);
-  }
-
-  List<Widget> _buildBatteryOptimizationWarningIfNeeded() {
-    final batteryAsyncValue = ref.watch(batteryOptimizationStatusProvider);
-    return batteryAsyncValue.maybeWhen(
+    return pAsync.maybeWhen(
       data: (status) {
-        if (status == PermissionState.grantedAlways) return const <Widget>[];
-        return [SizedBox(height: 6.h), _buildBatteryOptimizationWarning()];
-      },
-      orElse: () => const <Widget>[],
-    );
-  }
-
-  Widget _buildBatteryOptimizationWarning() {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.all(Radius.circular(12.r)),
-        onTap: () async {
-          final granted = await AppRoutes.pushBatteryOptimizationGuide(context);
-          if (!mounted) return;
-          // 상태 갱신 — granted 여부와 무관하게 최신 상태로 반영.
-          ref.invalidate(batteryOptimizationStatusProvider);
-          if (granted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('배터리 최적화 제외가 적용되었습니다.')),
+        final isTracking =
+            (status == PermissionState.grantedAlways) &&
+            gAsync.maybeWhen(
+              data: (g) => g.any((item) => item.isActive),
+              orElse: () => false,
             );
-          }
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           decoration: BoxDecoration(
-            color: colorScheme.tertiaryContainer,
-            borderRadius: BorderRadius.all(Radius.circular(12.r)),
+            color: isTracking
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20.r),
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.battery_saver,
-                color: colorScheme.onTertiaryContainer,
-                size: 20.sp,
+              _buildGPSIcon(isTracking),
+              SizedBox(width: 8.w),
+              Text(
+                isTracking ? "위치 추적 중이에요" : "위치 추적을 하고 있지 않아요",
+                style: TextStyle(
+                  color: isTracking
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                ),
               ),
+            ],
+          ),
+        );
+      },
+      orElse: () => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildGPSIcon(bool isTracking) {
+    final icon = Icon(
+      Icons.location_on_outlined,
+      color: isTracking
+          ? Colors.redAccent
+          : Theme.of(context).colorScheme.onSurfaceVariant,
+      size: 20.sp,
+    );
+    return isTracking
+        ? FadeTransition(opacity: _controller, child: icon)
+        : icon;
+  }
+
+  Widget _buildWarningBanner({
+    required IconData icon,
+    required String text,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(12.r),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          child: Row(
+            children: [
+              Icon(icon, size: 20.sp),
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  '앱이 꺼진 상태에서 알림을 보내기 위해서\n배터리 최적화 제외가 필요해요.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onTertiaryContainer,
-                    fontSize: 13.sp,
+                  text,
+                  style: TextStyle(
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: colorScheme.onTertiaryContainer,
-                size: 20.sp,
-              ),
+              const Icon(Icons.chevron_right, size: 18),
             ],
           ),
         ),
@@ -486,53 +324,20 @@ class _GeofenceViewState extends ConsumerState<GeofenceView>
     );
   }
 
-  // '항상 허용' 권한이 아닐 때 노출되는 경고 문구. 탭하면 가이드 화면으로 이동한다.
-  Widget _buildAlwaysPermissionWarning() {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.all(Radius.circular(12.r)),
-        onTap: () async {
-          final granted = await AppRoutes.pushLocationPermissionGuide(context);
-          if (!mounted) return;
-          if (granted) {
-            ref.invalidate(geofenceViewModelProvider);
-          }
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
-          decoration: BoxDecoration(
-            color: colorScheme.errorContainer,
-            borderRadius: BorderRadius.all(Radius.circular(12.r)),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: colorScheme.onErrorContainer,
-                size: 20.sp,
-              ),
-              SizedBox(width: 8.w),
-              Expanded(
-                child: Text(
-                  '항상 허용으로 위치를 설정해주셔야 앱이 정상으로 작동됩니다',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onErrorContainer,
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: colorScheme.onErrorContainer,
-                size: 20.sp,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  Widget _buildEmptyView() => Center(
+    child: Text(
+      '등록된 지오펜스가 없습니다',
+      style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+    ),
+  );
+
+  Widget _buildErrorView(String msg) => Center(child: Text('오류 발생: $msg'));
+
+  int _getMemberCount(String json) {
+    try {
+      return (jsonDecode(json) as List).length;
+    } catch (_) {
+      return 0;
+    }
   }
 }

@@ -18,7 +18,7 @@ import 'package:iamhere/feature/terms/view/terms_detail_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
 import 'package:iamhere/feature/user_permission/view/battery_optimization_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/location_permission_guide_view.dart';
-import 'package:iamhere/shared/component/view_component/default_view.dart';
+import 'package:iamhere/shared/component/view_component/default_view/default_view.dart';
 
 import 'custom_page_transition/buttom_up_transition.dart';
 import 'custom_page_transition/simple_transition.dart';

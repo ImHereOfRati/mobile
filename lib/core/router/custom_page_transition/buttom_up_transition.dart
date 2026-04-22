@@ -12,13 +12,13 @@ CustomTransitionPage buildPageWithBottomUpTransition({
     transitionDuration: const Duration(milliseconds: 350),
 
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = Offset(0.0, 1.0); // 시작 지점: 화면 아래 (y=1.0)
-      const end = Offset.zero; // 도착 지점: 화면 중앙 (y=0.0)
+      const begin = Offset(0.0, 1.0);
+      const end = Offset.zero;
 
       final tween = Tween(
         begin: begin,
         end: end,
-      ).chain(CurveTween(curve: Curves.easeOut)); // 부드러운 전환 커브 적용
+      ).chain(CurveTween(curve: Curves.easeOut));
 
       return SlideTransition(position: animation.drive(tween), child: child);
     },
