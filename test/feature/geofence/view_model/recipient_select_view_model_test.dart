@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/friend/view_model/contact.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
-import 'package:iamhere/feature/geofence/view_model/recipient_select_view_model.dart';
+import 'package:iamhere/feature/geofence/view_model/recipient/recipient_select_view_model.dart';
 
 void main() {
   group('Recipient selectionKey', () {

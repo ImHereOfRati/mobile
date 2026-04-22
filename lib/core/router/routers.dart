@@ -7,8 +7,8 @@ import 'package:iamhere/feature/friend/view/add_friend_view.dart';
 import 'package:iamhere/feature/friend/view/contact_view.dart';
 import 'package:iamhere/feature/friend/view/friend_request_list_view.dart';
 import 'package:iamhere/feature/friend/view/friend_restriction_list_view.dart';
-import 'package:iamhere/feature/geofence/view/geofence_enroll_view.dart';
-import 'package:iamhere/feature/geofence/view/geofence_view.dart';
+import 'package:iamhere/feature/geofence/view/geofence_enroll/geofence_enroll_view.dart';
+import 'package:iamhere/feature/geofence/view/geofence_list/geofence_list_view.dart';
 import 'package:iamhere/feature/record/view/notification_list_view.dart';
 import 'package:iamhere/feature/record/view/record_friend_request_list_view.dart';
 import 'package:iamhere/feature/record/view/record_view.dart';
@@ -70,11 +70,11 @@ final List<RouteBase> appRoutes = [
         pageBuilder: (context, state) => buildPageWithSimpleTransition(
           context: context,
           state: state,
-          child: const GeofenceView(),
+          child: const GeofenceListView(),
         ),
         routes: [
           GoRoute(
-            path: 'enroll',
+            path: 'message',
             pageBuilder: (context, state) => buildPageWithBottomUpTransition(
               context: context,
               state: state,

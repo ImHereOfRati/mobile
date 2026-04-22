@@ -28,4 +28,9 @@ class GeofenceLocalRepository implements GeofenceRepository {
   Future<void> updateActiveStatus(int id, bool isActive) async {
     await _geofenceDatabaseService.updateActiveStatus(id, isActive);
   }
+
+  @override
+  Future<void> updateAddress(int id, String address) async {
+    await _geofenceDatabaseService.updateAddress(id, address);
+  }
 }

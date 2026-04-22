@@ -91,7 +91,7 @@ class FcmTokenService {
       if (success) {
         debugPrint('FCM token enrolled to server successfully');
       } else {
-        debugPrint('Failed to enroll FCM token to server');
+        debugPrint('Failed to message FCM token to server');
       }
 
       return success;

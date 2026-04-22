@@ -54,4 +54,21 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
       );
     }
   }
+
+  Future<void> updateAddress(int id, String address) async {
+    try {
+      await database.update(
+        LocalDatabaseProperties.geofenceTableName,
+        {'address': address},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      throw LocalDatabaseException(
+        'Failed to update geofence address',
+        details: 'ID: $id, address: $address',
+        originalError: e,
+      );
+    }
+  }
 }

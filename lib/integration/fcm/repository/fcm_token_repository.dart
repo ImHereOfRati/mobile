@@ -27,7 +27,7 @@ class FcmTokenRepository {
         debugPrint('FCM token enrolled successfully');
         return true;
       } else {
-        debugPrint('Failed to enroll FCM token: ${response.statusCode}');
+        debugPrint('Failed to message FCM token: ${response.statusCode}');
         return false;
       }
     } on DioException catch (e) {

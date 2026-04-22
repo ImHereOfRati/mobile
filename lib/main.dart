@@ -5,21 +5,27 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/core/router/router_provider.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
+import 'package:iamhere/integration/firebase/firebase_service.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
-import 'package:iamhere/integration/firebase/firebase_service.dart';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/shared/component/view_component/initialization_error_app.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _initializeAppDependencies();
-  runApp(const ProviderScope(child: ImHereApp()));
+  try {
+    await _initializeAppDependencies();
+    runApp(const ProviderScope(child: ImHereApp()));
+  } catch (e) {
+    debugPrint('상부 의존성 초기화 실패: $e');
+    runApp(const InitializationErrorApp());
+  }
 }
 
 class ImHereApp extends ConsumerStatefulWidget {
@@ -110,6 +116,7 @@ Future<void> _initializeFlutterNaverMap() async {
   await FlutterNaverMap().init(
     clientId: dotenv.env[naverMapClientIdKey],
     onAuthFailed: (ex) {
+      debugPrint("네이버 지도 인증 실패 상세: $ex");
       switch (ex) {
         case NQuotaExceededException(:final message):
           debugPrint("사용량 초과 (message: $message)");
@@ -117,7 +124,7 @@ Future<void> _initializeFlutterNaverMap() async {
         case NUnauthorizedClientException() ||
             NClientUnspecifiedException() ||
             NAnotherAuthFailedException():
-          debugPrint("인증 실패: $ex");
+          debugPrint("인증 실패: $ex (패키지명이나 클라이언트 ID를 확인하세요)");
           break;
       }
     },

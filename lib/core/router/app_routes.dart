@@ -19,7 +19,7 @@ class AppRoutes {
 
   // ── Main (ShellRoute) ─────────────────────────────────────────────
   static const String geofence = '/geofence';
-  static const String geofenceEnroll = '/geofence/enroll';
+  static const String geofenceEnroll = '/geofence/message';
   static const String contact = '/friend';
   static const String contactAdd = '/friend/add';
   static const String friendRequests = '/friend/requests';
@@ -40,10 +40,12 @@ class AppRoutes {
     final result = await context.push<bool>(locationPermissionGuide);
     return result ?? false;
   }
+
   static Future<bool> pushBatteryOptimizationGuide(BuildContext context) async {
     final result = await context.push<bool>(batteryOptimizationGuide);
     return result ?? false;
   }
+
   static void goToAuth(BuildContext context) => context.go(auth);
   static void goToTermsConsent(BuildContext context) =>
       context.go(termsConsent);

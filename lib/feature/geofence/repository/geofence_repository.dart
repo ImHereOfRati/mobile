@@ -8,4 +8,6 @@ abstract class GeofenceRepository {
   Future<void> delete(int id);
 
   Future<void> updateActiveStatus(int id, bool isActive);
+
+  Future<void> updateAddress(int id, String address);
 }

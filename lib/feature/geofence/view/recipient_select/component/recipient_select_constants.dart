@@ -1,0 +1,9 @@
+const String selectRecipientTitle = '수신자 선택';
+const String selectAll = '전체 선택';
+const String loadContactFailed = '연락처 로드 실패';
+const String addFriendPrompt = '먼저 연락처 탭에서\n친구를 추가해주세요';
+const String addContactButton = '연락처 추가하기';
+const String contactAddedSuffix = '님이 추가되었습니다';
+const String emptyList = '등록된 지오펜스가 없습니다';
+const String memberCountUnit = '명';
+const String slash = ' / ';

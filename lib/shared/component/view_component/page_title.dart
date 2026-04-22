@@ -24,21 +24,24 @@ class PageTitle extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildPageTitle(colorScheme),
-          SizedBox(height: 2.h),
+      child: Padding(
+        padding: EdgeInsets.all(10.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildPageTitle(colorScheme),
+            SizedBox(height: 2.h),
 
-          _buildPageDescription(colorScheme),
-          SizedBox(height: 4.h),
+            _buildPageDescription(colorScheme),
+            SizedBox(height: 4.h),
 
-          _buildInfoCount(colorScheme),
+            _buildInfoCount(colorScheme),
 
-          if (bottomSpacing > 0) SizedBox(height: bottomSpacing),
-          if (actions.isNotEmpty) ...actions,
-        ],
+            if (bottomSpacing > 0) SizedBox(height: bottomSpacing),
+            if (actions.isNotEmpty) ...actions,
+          ],
+        ),
       ),
     );
   }

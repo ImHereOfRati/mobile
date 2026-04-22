@@ -46,4 +46,18 @@ class AppTextStyles {
       fontWeight: FontWeight.w500,
     );
   }
+
+  // --- General Purpose Styles ---
+
+  static TextStyle gSansBold(double size, Color color) =>
+      _titleBase.copyWith(fontSize: size.sp, color: color);
+
+  static TextStyle hannaAirRegular(double size, Color color) =>
+      _descriptionBase.copyWith(fontSize: size.sp, color: color);
+
+  static TextStyle hannaAirBold(double size, Color color) =>
+      _descriptionBase.copyWith(fontSize: size.sp, color: color, fontWeight: FontWeight.w700);
+
+  static TextStyle hannaAirMedium(double size, Color color) =>
+      _descriptionBase.copyWith(fontSize: size.sp, color: color, fontWeight: FontWeight.w500);
 }

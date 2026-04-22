@@ -37,4 +37,8 @@ class FirebaseCrashlyticsService {
       }).sendPort,
     );
   }
+
+  Future<void> recordError(dynamic error, StackTrace? stack, {bool fatal = false}) async {
+    await _firebaseCrashlytics.recordError(error, stack, fatal: fatal);
+  }
 }
