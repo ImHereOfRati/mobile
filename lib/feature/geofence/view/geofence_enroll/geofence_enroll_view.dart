@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_form_body.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/map/enroll_inline_map.dart';
 import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_model.dart';
@@ -11,11 +12,18 @@ import '../map_select/map_select_view.dart';
 import '../map_select/component/map_select_widgets.dart';
 import '../recipient_select/recipient_select_view.dart';
 
-const String _enrollSuccess = '지오펜스가 등록되었습니다';
-const String _enrollFailure = '등록 실패: ';
+const String _enrollSuccess = '지오펜스가 저장되었습니다';
+const String _enrollFailure = '저장 실패: ';
 
 class GeofenceEnrollView extends ConsumerStatefulWidget {
-  const GeofenceEnrollView({super.key});
+  final GeofenceEntity? geofence;
+  final List<ServerRecipient>? serverRecipients;
+
+  const GeofenceEnrollView({
+    super.key,
+    this.geofence,
+    this.serverRecipients,
+  });
 
   @override
   ConsumerState<GeofenceEnrollView> createState() => _GeofenceEnrollViewState();
@@ -25,26 +33,46 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   final GlobalKey<EnrollInlineMapState> _mapRef = GlobalKey();
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.geofence != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(geofenceEnrollViewModelProvider.notifier).initializeWithGeofence(
+              widget.geofence!,
+              widget.serverRecipients ?? [],
+            );
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final formState = ref.watch(geofenceEnrollViewModelProvider);
+    final isEditMode = widget.geofence != null;
 
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          EnrollInlineMap(
-            key: _mapRef,
-            initialSelectedLocation: formState.selectedLocation,
-            onLocationPicked: (latlng) => ref
-                .read(geofenceEnrollViewModelProvider.notifier)
-                .updateLocation(latlng),
-            onOpenMapSelect: _openMapSelect,
-          ),
-          EnrollFormBody(
-            onOpenRecipientSelect: _openRecipientSelect,
-            onSave: _save,
-          ),
-        ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isEditMode ? '지오펜스 수정' : '지오펜스 등록'),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            EnrollInlineMap(
+              key: _mapRef,
+              initialSelectedLocation: formState.selectedLocation,
+              onLocationPicked: (latlng) => ref
+                  .read(geofenceEnrollViewModelProvider.notifier)
+                  .updateLocation(latlng),
+              onOpenMapSelect: _openMapSelect,
+            ),
+            EnrollFormBody(
+              onOpenRecipientSelect: _openRecipientSelect,
+              onSave: _save,
+            ),
+          ],
+        ),
       ),
     );
   }

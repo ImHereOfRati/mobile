@@ -13,6 +13,11 @@ class LocatePermissionService implements PermissionServiceInterface {
 
   @override
   Future<PermissionState> checkPermissionStatus() async {
+    final isServiceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isServiceEnabled) {
+      return PermissionState.serviceDisabled;
+    }
+
     final alwaysStatus = await Permission.locationAlways.status;
     final whenInUseStatus = await Permission.locationWhenInUse.status;
 

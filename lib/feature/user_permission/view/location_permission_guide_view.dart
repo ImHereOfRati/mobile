@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -64,7 +65,9 @@ class _LocationPermissionGuideViewState
     final status = _currentStatus ?? await service.checkPermissionStatus();
 
     try {
-      if (status == PermissionState.permanentlyDenied ||
+      if (status == PermissionState.serviceDisabled) {
+        await Geolocator.openLocationSettings();
+      } else if (status == PermissionState.permanentlyDenied ||
           status == PermissionState.grantedWhenInUse) {
         // 시스템 대화상자로 더 이상 상향 요청이 불가능한 상태 → 설정 앱으로 유도.
         await openAppSettings();
@@ -213,20 +216,25 @@ class _LocationPermissionGuideViewState
     PermissionState? status,
     ColorScheme colorScheme,
   ) {
-    switch (status) {
-      case PermissionState.grantedAlways:
-        return ('항상 허용', Colors.green, Icons.check_circle);
-      case PermissionState.grantedWhenInUse:
-        return ('앱 사용 중에만 허용', Colors.orange, Icons.info);
-      case PermissionState.denied:
-        return ('거부됨', colorScheme.error, Icons.cancel);
-      case PermissionState.permanentlyDenied:
-        return ('영구 거부됨', colorScheme.error, Icons.block);
-      case PermissionState.restricted:
-        return ('제한됨', colorScheme.error, Icons.lock);
-      case null:
-        return ('확인 중...', colorScheme.onSurface, Icons.hourglass_empty);
+    if (status == null) {
+      return ('확인 중...', colorScheme.onSurface, Icons.hourglass_empty);
     }
+
+    return {
+          PermissionState.serviceDisabled: (
+            'GPS 꺼짐',
+            colorScheme.error,
+            Icons.location_off
+          ),
+          PermissionState.grantedAlways: ('항상 허용', Colors.green, Icons.check_circle),
+          PermissionState.grantedWhenInUse:
+              ('앱 사용 중에만 허용', Colors.orange, Icons.info),
+          PermissionState.denied: ('거부됨', colorScheme.error, Icons.cancel),
+          PermissionState.permanentlyDenied:
+              ('영구 거부됨', colorScheme.error, Icons.block),
+          PermissionState.restricted: ('제한됨', colorScheme.error, Icons.lock),
+        }[status] ??
+        ('알 수 없음', colorScheme.onSurface, Icons.help_outline);
   }
 
   Widget _buildSectionTitle(String text) {
@@ -239,6 +247,7 @@ class _LocationPermissionGuideViewState
   Widget _buildReasonText(ColorScheme colorScheme) {
     return Text(
       '등록한 장소에 도착했을 때 친구에게 자동으로 메시지를 보내려면\n'
+      '기기의 GPS(위치 서비스)가 켜져 있어야 하며,\n'
       '앱이 백그라운드나 종료 상태에서도 위치를 확인할 수 있어야 합니다.\n\n'
       '"앱 사용 중에만 허용" 상태에서는 앱을 종료하면 알림이 동작하지 않아요.',
       style: TextStyle(
@@ -250,6 +259,22 @@ class _LocationPermissionGuideViewState
   }
 
   List<Widget> _buildSteps(PermissionState? status, ColorScheme colorScheme) {
+    if (status == PermissionState.serviceDisabled) {
+      return [
+        _StepTile(
+          number: 1,
+          title: '기기 위치 서비스(GPS) 켜기',
+          description: '아래 버튼을 눌러 시스템 설정에서 위치 서비스를 활성화해주세요.',
+        ),
+        SizedBox(height: 10.h),
+        _StepTile(
+          number: 2,
+          title: '앱으로 돌아오기',
+          description: 'GPS를 켠 후 앱으로 돌아오면 다음 단계를 안내해 드립니다.',
+        ),
+      ];
+    }
+
     final needsInitialRequest =
         status == PermissionState.denied || status == null;
 
@@ -281,12 +306,14 @@ class _LocationPermissionGuideViewState
   }
 
   Widget _buildActionButton(PermissionState? status, ColorScheme colorScheme) {
-    final label = switch (status) {
-      PermissionState.grantedWhenInUse ||
-      PermissionState.permanentlyDenied => '설정 앱에서 변경하기',
-      PermissionState.restricted => '설정 앱 열기',
-      _ => '권한 요청 시작하기',
+    final Map<PermissionState, String> labels = {
+      PermissionState.serviceDisabled: '위치 서비스(GPS) 켜기',
+      PermissionState.grantedWhenInUse: '설정 앱에서 변경하기',
+      PermissionState.permanentlyDenied: '설정 앱에서 변경하기',
+      PermissionState.restricted: '설정 앱 열기',
     };
+
+    final label = labels[status] ?? '권한 요청 시작하기';
 
     return SizedBox(
       height: 52.h,

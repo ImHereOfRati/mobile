@@ -3,6 +3,8 @@ import 'geofence_entity.dart';
 abstract class GeofenceRepository {
   Future<GeofenceEntity> save(GeofenceEntity entity);
 
+  Future<void> update(GeofenceEntity entity);
+
   Future<List<GeofenceEntity>> findAll();
 
   Future<void> delete(int id);

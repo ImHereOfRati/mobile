@@ -237,6 +237,8 @@ class _BatteryOptimizationGuideViewState
       case PermissionState.grantedWhenInUse:
       case null:
         return ('확인 중...', colorScheme.onSurface, Icons.hourglass_empty);
+      case PermissionState.serviceDisabled:
+        throw UnimplementedError();
     }
   }
 
@@ -265,9 +267,7 @@ class _BatteryOptimizationGuideViewState
     return [
       _StepTile(
         number: 1,
-        title: isPermanentlyDenied
-            ? '설정 앱으로 이동합니다'
-            : '"허용" 을 선택해주세요',
+        title: isPermanentlyDenied ? '설정 앱으로 이동합니다' : '"허용" 을 선택해주세요',
         description: isPermanentlyDenied
             ? '앱 정보 > 배터리 메뉴에서 "제한 없음" 또는 "최적화 안 함" 을 선택해 주세요.'
             : '시스템 팝업이 나타나면 "허용" 을 선택해 주세요.',

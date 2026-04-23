@@ -15,9 +15,9 @@ class GeofenceListView extends ConsumerWidget {
     final permissionAsyncValue = ref.watch(geofenceViewModelProvider);
     final batteryAsyncValue = ref.watch(batteryOptimizationStatusProvider);
 
-    final isAlwaysLocationMissing = permissionAsyncValue.maybeWhen(
-      data: (status) => status != PermissionState.grantedAlways,
-      orElse: () => false,
+    final permissionStatus = permissionAsyncValue.maybeWhen(
+      data: (status) => status,
+      orElse: () => PermissionState.denied,
     );
     final isBatteryOptimizationMissing = batteryAsyncValue.maybeWhen(
       data: (status) => status != PermissionState.grantedAlways,
@@ -28,7 +28,7 @@ class GeofenceListView extends ConsumerWidget {
       slivers: [
         SliverToBoxAdapter(
           child: GeofenceHeader(
-            isAlwaysLocationMissing: isAlwaysLocationMissing,
+            permissionStatus: permissionStatus,
             isBatteryOptimizationMissing: isBatteryOptimizationMissing,
           ),
         ),

@@ -275,6 +275,8 @@ class SettingView extends ConsumerWidget {
       case PermissionState.denied:
       case PermissionState.grantedWhenInUse:
         return '미적용';
+      case PermissionState.serviceDisabled:
+        return '서비스 상태 불량';
     }
   }
 
@@ -289,9 +291,9 @@ class SettingView extends ConsumerWidget {
     await ref.read(settingViewModelProvider.notifier).refreshPermissions();
     // granted 값 자체는 참고용이며, 실제 상태는 refresh 결과로 UI 에 반영된다.
     if (granted && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('배터리 최적화 제외가 적용되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('배터리 최적화 제외가 적용되었습니다.')));
     }
   }
 

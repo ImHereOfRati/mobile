@@ -39,12 +39,13 @@ Future<void> _bootstrapBackgroundIsolate() async {
     try {
       final String baseUrl = await _resolveBaseUrlInBackground();
       await enrollBaseUrlGlobally(baseUrl: baseUrl);
+      _backgroundIsolateBootstrapped = true;
     } catch (e) {
       log('BG: GetIt init failed: $e');
     }
+  } else {
+    _backgroundIsolateBootstrapped = true;
   }
-
-  _backgroundIsolateBootstrapped = true;
 }
 
 Future<String> _resolveBaseUrlInBackground() async {
@@ -68,8 +69,9 @@ Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
   try {
     await _bootstrapBackgroundIsolate();
 
-    if (params.event != GeofenceEvent.enter) {
-      log('BG: non-enter event ignored: ${params.event}');
+    final allowedEvents = {GeofenceEvent.enter, GeofenceEvent.dwell};
+    if (!allowedEvents.contains(params.event)) {
+      log('BG: event ignored: ${params.event}');
       return;
     }
 
@@ -145,14 +147,14 @@ Future<void> _dispatchArrival(int geofenceId) async {
       final r = await fcmArrival.sendArrivalNotifications(
         receiverEmails: emails,
         body: body,
+        location: geofence.fullLocation,
       );
       if (r is Success) anySuccess = true;
     }
   }
 
   if (!anySuccess) {
-    log('BG: all notifications failed for ${geofence.name}');
-    return;
+    log('BG: all notifications failed for ${geofence.name}, but proceeding to deactivate');
   }
 
   final names = <String>[

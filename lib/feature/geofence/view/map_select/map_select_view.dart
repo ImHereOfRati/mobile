@@ -98,5 +98,12 @@ class _MapSelectViewState extends ConsumerState<MapSelectView> {
   }
 
   @override
-  void dispose() { _search.dispose(); _focus.dispose(); super.dispose(); }
+  void dispose() {
+    _marker = null;
+    _map?.clearOverlays();
+    _map = null;
+    _search.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
 }

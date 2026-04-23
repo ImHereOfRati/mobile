@@ -81,7 +81,10 @@ class SmsService {
         return Failure('SMS send failed with status ${response.statusCode}');
       }
 
-      await _notifyDeliveryResultToMe(location);
+      // 본인 알림은 지오펜스 비활성화 로직을 방해하지 않도록 비동기로 처리 (await 제거)
+      _notifyDeliveryResultToMe(location).catchError((e) {
+        log('Secondary notification failed: $e');
+      });
 
       return Success(null);
     } catch (e) {
@@ -115,7 +118,10 @@ class SmsService {
         return Failure('SMS send failed with status ${response.statusCode}');
       }
 
-      await _notifyDeliveryResultToMe(location);
+      // 본인 알림은 지오펜스 비활성화 로직을 방해하지 않도록 비동기로 처리 (await 제거)
+      _notifyDeliveryResultToMe(location).catchError((e) {
+        log('Secondary notification failed: $e');
+      });
 
       return Success(null);
     } catch (e) {

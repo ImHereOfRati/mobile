@@ -38,7 +38,8 @@ class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModel
 
   @override
   Future<GeofenceEntity> saveGeofence(SaveGeofenceRequest request) async {
-    final saved = await _repo.save(GeofenceEntity(
+    final entity = GeofenceEntity(
+      id: request.id,
       name: request.name,
       address: request.address,
       lat: request.lat,
@@ -46,11 +47,21 @@ class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModel
       radius: request.radius,
       message: request.message,
       contactIds: jsonEncode(request.contactIds),
-    ));
-    if (saved.id != null) {
+    );
+
+    GeofenceEntity finalEntity;
+    if (request.id != null) {
+      await _repo.update(entity);
+      await _srvRepo.deleteByGeofenceId(request.id!);
+      finalEntity = entity;
+    } else {
+      finalEntity = await _repo.save(entity);
+    }
+
+    if (finalEntity.id != null) {
       for (final r in request.serverRecipients) {
         await _srvRepo.save(GeofenceServerRecipientEntity(
-          geofenceId: saved.id!,
+          geofenceId: finalEntity.id!,
           friendRelationshipId: r.friendRelationshipId,
           friendEmail: r.friendEmail,
           friendAlias: r.friendAlias,
@@ -62,7 +73,17 @@ class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModel
         );
       }
     }
-    return saved;
+
+    // 수정 시 활성화 상태였다면 OS 에도 변경사항 반영
+    if (request.id != null) {
+      final all = await _repo.findAll();
+      final updated = all.firstWhere((g) => g.id == request.id);
+      if (updated.isActive) {
+        await _reg.register(updated);
+      }
+    }
+
+    return finalEntity;
   }
 
   @override

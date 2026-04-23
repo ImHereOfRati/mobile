@@ -12,6 +12,7 @@ class TokenRefresher {
 
   final TokenStorageService _tokenStorage;
   final String _baseUrl;
+  Dio? _dio;
 
   TokenRefresher(this._tokenStorage, this._baseUrl);
 
@@ -20,8 +21,7 @@ class TokenRefresher {
     _existRefreshToken(refreshToken);
 
     try {
-      final dio = _consistDefaultDio();
-      final response = await dio.post(
+      final response = await _ensureDio().post(
         ApiConfig.authReissuePath,
         data: {DioProperties.refreshToken: refreshToken},
       );
@@ -31,17 +31,15 @@ class TokenRefresher {
     }
   }
 
-  Dio _consistDefaultDio() {
-    final defaultDio = Dio(
+  Dio _ensureDio() {
+    return _dio ??= Dio(
       BaseOptions(
         baseUrl: _baseUrl,
         headers: {
           DioProperties.contentTypeHeader: DioProperties.applicationJson,
         },
       ),
-    );
-    defaultDio.interceptors.add(DioHeaderSanitizerInterceptor());
-    return defaultDio;
+    )..interceptors.add(DioHeaderSanitizerInterceptor());
   }
 
   void _existRefreshToken(String? refreshToken) {

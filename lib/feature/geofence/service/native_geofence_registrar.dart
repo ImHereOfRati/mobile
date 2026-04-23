@@ -44,13 +44,13 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
       id: geofence.id!.toString(),
       location: Location(latitude: geofence.lat, longitude: geofence.lng),
       radiusMeters: geofence.radius,
-      triggers: const {GeofenceEvent.enter},
-      iosSettings: IosGeofenceSettings(initialTrigger: false),
+      triggers: const {GeofenceEvent.enter, GeofenceEvent.dwell},
+      iosSettings: IosGeofenceSettings(initialTrigger: true),
       androidSettings: AndroidGeofenceSettings(
-        initialTriggers: const {GeofenceEvent.enter},
+        initialTriggers: const {GeofenceEvent.enter, GeofenceEvent.dwell},
         expiration: null,
-        loiteringDelay: const Duration(minutes: 1),
-        notificationResponsiveness: const Duration(minutes: 1),
+        loiteringDelay: Duration.zero,
+        notificationResponsiveness: Duration.zero,
       ),
     );
 

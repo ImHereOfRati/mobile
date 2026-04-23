@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/shared/component/style/app_text_styles.dart';
 
-const String enrollButton = '등록하기';
+const String enrollButton = '저장하기';
 
 class EnrollSaveButton extends StatelessWidget {
   final VoidCallback onPressed;

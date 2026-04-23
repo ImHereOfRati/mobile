@@ -1,6 +1,6 @@
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:iamhere/shared/util/app_package_info.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'setting_view_model_state.dart';
@@ -32,7 +32,7 @@ class SettingViewModel extends _$SettingViewModel {
     final contact = await _contactService.checkPermissionStatus();
     final battery = await _batteryOptimizationService.checkPermissionStatus();
 
-    final packageInfo = await PackageInfo.fromPlatform();
+    final packageInfo = await AppPackageInfo.instance;
     final version = packageInfo.version;
     final buildNumber = packageInfo.buildNumber;
     final versionString = buildNumber.isEmpty

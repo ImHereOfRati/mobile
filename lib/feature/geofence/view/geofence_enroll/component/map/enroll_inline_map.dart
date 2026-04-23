@@ -34,6 +34,14 @@ class EnrollInlineMapState extends State<EnrollInlineMap> {
     _futureInit = _fetchInit();
   }
 
+  @override
+  void dispose() {
+    _marker = null;
+    _ctrl?.clearOverlays();
+    _ctrl = null;
+    super.dispose();
+  }
+
   Future<NLatLng> _fetchInit() => LocatePermissionService()
       .getCurrentUserLocation()
       .then((p) => NLatLng(p.latitude, p.longitude))

@@ -12,12 +12,14 @@ class GeofenceListTile extends StatelessWidget {
   final List<GeofenceEntity> geofences;
   final Function(GeofenceEntity, bool) onToggle;
   final Function(GeofenceEntity) onDelete;
+  final Function(GeofenceEntity) onEdit;
 
   const GeofenceListTile({
     super.key,
     required this.geofences,
     required this.onToggle,
     required this.onDelete,
+    required this.onEdit,
   });
 
   @override
@@ -35,6 +37,7 @@ class GeofenceListTile extends StatelessWidget {
             isToggleOn: g.isActive,
             onToggleChanged: (val) => onToggle(g, val),
             onLongPress: () => onDelete(g),
+            onTap: () => onEdit(g),
           );
         }, childCount: geofences.length),
       ),

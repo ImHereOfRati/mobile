@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/core/router/app_routes.dart';
+import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository_provider.dart';
+import 'package:iamhere/feature/geofence/view/geofence_enroll/geofence_enroll_view.dart';
 import 'package:iamhere/feature/geofence/view/geofence_list/component/geofence_list_tile.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
@@ -49,9 +52,35 @@ class _GeofenceListBodyState extends ConsumerState<GeofenceListBody> {
           geofences: geofences,
           onToggle: _handleToggle,
           onDelete: _handleDelete,
+          onEdit: _handleEdit,
         );
       },
     );
+  }
+
+  void _handleEdit(GeofenceEntity geofence) async {
+    final srvRepo = ref.read(geofenceServerRecipientLocalRepositoryProvider);
+    final srvRecipients = await srvRepo.findByGeofenceId(geofence.id!);
+    final serverRecipients = srvRecipients
+        .map((s) => ServerRecipient(
+              friendRelationshipId: s.friendRelationshipId,
+              friendEmail: s.friendEmail,
+              friendAlias: s.friendAlias,
+            ))
+        .toList();
+
+    if (!mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => GeofenceEnrollView(
+        geofence: geofence,
+        serverRecipients: serverRecipients,
+      ),
+    );
+    ref.read(geofenceListViewModelProvider.notifier).refresh();
   }
 
   void _handleToggle(GeofenceEntity geofence, bool newValue) async {

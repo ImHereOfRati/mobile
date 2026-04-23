@@ -20,6 +20,11 @@ class GeofenceLocalRepository implements GeofenceRepository {
   }
 
   @override
+  Future<void> update(GeofenceEntity entity) async {
+    await _geofenceDatabaseService.update(entity);
+  }
+
+  @override
   Future<void> delete(int id) async {
     await _geofenceDatabaseService.delete(id);
   }

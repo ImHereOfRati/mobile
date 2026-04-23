@@ -4,4 +4,5 @@ enum PermissionState {
   denied, // 거부됨
   permanentlyDenied, // 영구적으로 거부됨
   restricted, // 제한됨
+  serviceDisabled, // 기기 위치 서비스(GPS)가 꺼져 있음
 }

@@ -11,6 +11,7 @@ class GeofenceTile extends StatelessWidget {
   final String address;
   final int memberCount;
   final VoidCallback? onLongPress;
+  final VoidCallback? onTap;
 
   const GeofenceTile({
     super.key,
@@ -20,6 +21,7 @@ class GeofenceTile extends StatelessWidget {
     required this.address,
     required this.memberCount,
     this.onLongPress,
+    this.onTap,
   });
 
   @override
@@ -28,6 +30,7 @@ class GeofenceTile extends StatelessWidget {
 
     return GestureDetector(
       onLongPress: onLongPress,
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: isToggleOn ? cs.primary.withValues(alpha: 0.08) : cs.surface,

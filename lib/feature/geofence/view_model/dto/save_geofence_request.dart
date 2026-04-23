@@ -1,6 +1,7 @@
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 
 class SaveGeofenceRequest {
+  final int? id;
   final String name;
   final String address;
   final double lat;
@@ -11,6 +12,7 @@ class SaveGeofenceRequest {
   final List<ServerRecipient> serverRecipients;
 
   SaveGeofenceRequest({
+    this.id,
     required this.name,
     required this.address,
     required this.lat,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
@@ -21,6 +22,7 @@ import 'package:iamhere/shared/util/app_logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _configureSystemChrome();
   try {
     await _initializeAppDependencies();
     runApp(const ProviderScope(child: ImHereApp()));
@@ -28,6 +30,23 @@ void main() async {
     AppLogger.error('상부 의존성 초기화 실패', e, stack);
     runApp(const InitializationErrorApp());
   }
+}
+
+void _configureSystemChrome() {
+  SystemChrome.setPreferredOrientations(const [
+    DeviceOrientation.portraitUp,
+  ]);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+  );
 }
 
 class ImHereApp extends ConsumerStatefulWidget {
@@ -44,10 +63,9 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
   @override
   void initState() {
     super.initState();
-    // 라우터가 구축된 뒤(첫 프레임 이후) 무거운 작업을 수행한다.
+    // 첫 프레임 이후 UI 렌더링에 영향 없는 동기화만 수행한다.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setupMessageTapHandler(ref.read(routerProvider));
-      await _initializeFlutterNaverMap();
       await _syncNativeGeofencesOnStart();
     });
   }
@@ -86,7 +104,8 @@ Future<void> _initializeAppDependencies() async {
   await FirebaseService().initialize();
   await _initializeBaseUrl();
   _initializeKakaoSdk();
-  // 네이버 지도 SDK와 지오펜스 동기화는 첫 프레임 렌더링 이후로 지연시킨다.
+  // NaverMap SDK 는 위젯 빌드 전에 init 완료가 필수라 pre-runApp 단계에서 처리한다.
+  await _initializeFlutterNaverMap();
 }
 
 void _initializeKakaoSdk() {

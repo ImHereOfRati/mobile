@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:iamhere/feature/friend/repository/contact_local_repository_provider.dart';
+import 'package:iamhere/feature/friend/view_model/contact.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/service/geocoding_service_provider.dart';
 import 'package:iamhere/feature/geofence/view_model/dto/save_geofence_request.dart';
@@ -11,8 +15,46 @@ part 'geofence_enroll_view_model.g.dart';
 
 @Riverpod(keepAlive: false)
 class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
+  int? _id;
+
   @override
   GeofenceEnrollFormState build() => GeofenceEnrollFormState();
+
+  void initializeWithGeofence(
+    GeofenceEntity geofence,
+    List<ServerRecipient> serverRecipients,
+  ) async {
+    _id = geofence.id;
+    state = state.copyWith(
+      basic: state.basic.copyWith(
+        name: geofence.name,
+        address: geofence.address,
+        message: geofence.message,
+      ),
+      area: state.area.copyWith(
+        location: NLatLng(geofence.lat, geofence.lng),
+        radius: geofence.radius.toInt().toString(),
+      ),
+      status: state.status.copyWith(
+        isActive: geofence.isActive,
+      ),
+    );
+
+    // 수신자 목록 초기화
+    final List<int> contactIds = jsonDecode(geofence.contactIds).cast<int>();
+    final contactRepo = ref.read(contactLocalRepositoryProvider);
+    final allContacts = await contactRepo.findAll();
+    final localRecipients = allContacts
+        .where((c) => contactIds.contains(c.id))
+        .map((c) => LocalRecipient(Contact(id: c.id, name: c.name, number: c.number)))
+        .toList();
+
+    state = state.copyWith(
+      status: state.status.copyWith(
+        recipients: [...localRecipients, ...serverRecipients],
+      ),
+    );
+  }
 
   void updateName(String name) =>
       state = state.copyWith(basic: state.basic.copyWith(name: name));
@@ -53,6 +95,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
 
     final vm = ref.read(geofenceViewModelInterfaceProvider);
     final saved = await vm.saveGeofence(SaveGeofenceRequest(
+      id: _id,
       name: state.name.trim(),
       address: state.address.trim(),
       lat: state.selectedLocation!.latitude,

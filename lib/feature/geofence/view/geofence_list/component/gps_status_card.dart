@@ -9,6 +9,7 @@ import 'package:iamhere/shared/component/style/app_text_styles.dart';
 
 const String _trackingActive = '위치 추적 중이에요';
 const String _trackingInactive = '위치 추적을 하고 있지 않아요';
+const String _serviceDisabled = 'GPS가 꺼져 있어요';
 
 class GPSStatusCard extends ConsumerStatefulWidget {
   const GPSStatusCard({super.key});
@@ -45,14 +46,19 @@ class _GPSStatusCardState extends ConsumerState<GPSStatusCard>
     return permissionState.maybeWhen(
       data: (status) {
         bool isTracking = _checkTrackingStatus(geofenceList, status);
+        bool isServiceDisabled = status == PermissionState.serviceDisabled;
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           decoration: BoxDecoration(
-            color: isTracking ? cs.primary : cs.surfaceContainerHighest,
+            color: isTracking
+                ? cs.primary
+                : (isServiceDisabled
+                    ? cs.errorContainer
+                    : cs.surfaceContainerHighest),
             borderRadius: BorderRadius.circular(20.r),
           ),
-          child: _buildContents(isTracking, cs),
+          child: _buildContents(isTracking, isServiceDisabled, cs),
         );
       },
       orElse: () => const SizedBox.shrink(),
@@ -72,26 +78,37 @@ class _GPSStatusCardState extends ConsumerState<GPSStatusCard>
     return isTracking;
   }
 
-  Row _buildContents(bool isTracking, ColorScheme cs) {
+  Row _buildContents(bool isTracking, bool isServiceDisabled, ColorScheme cs) {
+    String text = isTracking ? _trackingActive : _trackingInactive;
+    if (isServiceDisabled) text = _serviceDisabled;
+
     return Row(
       children: [
-        _buildGPSIcon(isTracking, cs),
+        _buildGPSIcon(isTracking, isServiceDisabled, cs),
         SizedBox(width: 8.w),
         Text(
-          isTracking ? _trackingActive : _trackingInactive,
+          text,
           style: AppTextStyles.hannaAirBold(
             14,
-            isTracking ? cs.onPrimary : cs.onSurfaceVariant,
+            isTracking
+                ? cs.onPrimary
+                : (isServiceDisabled ? cs.error : cs.onSurfaceVariant),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildGPSIcon(bool isTracking, ColorScheme cs) {
+  Widget _buildGPSIcon(
+    bool isTracking,
+    bool isServiceDisabled,
+    ColorScheme cs,
+  ) {
     final icon = Icon(
-      Icons.location_on_outlined,
-      color: selectColor(isTracking, cs),
+      isServiceDisabled
+          ? Icons.location_off_outlined
+          : Icons.location_on_outlined,
+      color: selectColor(isTracking, isServiceDisabled, cs),
       size: 20.sp,
     );
 
@@ -105,9 +122,12 @@ class _GPSStatusCardState extends ConsumerState<GPSStatusCard>
     return icon;
   }
 
-  Color selectColor(bool isTracking, ColorScheme cs) {
+  Color selectColor(bool isTracking, bool isServiceDisabled, ColorScheme cs) {
     if (isTracking) {
       return cs.onPrimary;
+    }
+    if (isServiceDisabled) {
+      return cs.error;
     }
     return cs.onSurfaceVariant;
   }
