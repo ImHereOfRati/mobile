@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/shared/base/api_response/api_response.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/after_terms_agreement_auth_response_dto.dart';
@@ -40,7 +40,7 @@ class TermsResponseService {
         message: "서버 응답 오류: ${response.statusCode}",
       );
     } catch (e) {
-      debugPrint('TermsListRequestService.requestTermsList 에러: $e');
+      AppLogger.error('TermsListRequestService.requestTermsList 에러: $e');
       rethrow;
     }
   }
@@ -64,7 +64,7 @@ class TermsResponseService {
         message: "서버 응답 오류: ${response.statusCode}",
       );
     } catch (e) {
-      debugPrint(
+      AppLogger.error(
         'TermsResponseService.requestToAgreeSingleTerm 에러 (id=$termDefinitionId): $e',
       );
       rethrow;

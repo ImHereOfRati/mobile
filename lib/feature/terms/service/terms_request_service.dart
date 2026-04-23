@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/shared/base/api_response/api_response.dart';
 import 'package:iamhere/shared/base/api_response/page_response.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/terms_list_request_dto.dart';
@@ -35,7 +35,7 @@ class TermsRequestService {
         message: "서버 응답 오류: ${response.statusCode}",
       );
     } catch (e) {
-      debugPrint('TermsListRequestService.requestTermsList 에러: $e');
+      AppLogger.error('TermsListRequestService.requestTermsList 에러: $e');
       rethrow;
     }
   }
@@ -57,7 +57,7 @@ class TermsRequestService {
 
       throw Exception("상세 조회 실패 (ID: $termDefinitionId)");
     } catch (e) {
-      debugPrint('TermsListRequestService.requestTermsDetail 에러: $e');
+      AppLogger.error('TermsListRequestService.requestTermsDetail 에러: $e');
       rethrow;
     }
   }

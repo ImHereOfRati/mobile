@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 /// FCM 토큰을 로컬에 안전하게 저장하는 서비스
@@ -12,9 +12,9 @@ class FcmTokenStorageService {
   Future<void> saveFcmToken(String fcmToken) async {
     try {
       await _storage.write(key: _fcmTokenKey, value: fcmToken);
-      debugPrint('FCM token saved to local storage: $fcmToken');
+      AppLogger.debug('FCM token saved to local storage: $fcmToken');
     } catch (e) {
-      debugPrint('Error saving FCM token to local storage: $e');
+      AppLogger.error('Error saving FCM token to local storage: $e');
       rethrow;
     }
   }
@@ -24,13 +24,13 @@ class FcmTokenStorageService {
     try {
       final token = await _storage.read(key: _fcmTokenKey);
       if (token != null) {
-        debugPrint('FCM token retrieved from local storage');
+        AppLogger.debug('FCM token retrieved from local storage');
       } else {
-        debugPrint('No FCM token found in local storage');
+        AppLogger.debug('No FCM token found in local storage');
       }
       return token;
     } catch (e) {
-      debugPrint('Error retrieving FCM token from local storage: $e');
+      AppLogger.error('Error retrieving FCM token from local storage: $e');
       return null;
     }
   }
@@ -39,9 +39,9 @@ class FcmTokenStorageService {
   Future<void> deleteFcmToken() async {
     try {
       await _storage.delete(key: _fcmTokenKey);
-      debugPrint('FCM token deleted from local storage');
+      AppLogger.debug('FCM token deleted from local storage');
     } catch (e) {
-      debugPrint('Error deleting FCM token from local storage: $e');
+      AppLogger.error('Error deleting FCM token from local storage: $e');
       rethrow;
     }
   }
@@ -54,7 +54,7 @@ class FcmTokenStorageService {
     final isValid = storedToken == currentToken;
 
     if (!isValid) {
-      debugPrint(
+      AppLogger.debug(
         'Token mismatch - Local: $storedToken, Current: $currentToken',
       );
     }

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_response_dto.dart';
@@ -7,6 +6,7 @@ import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_detail_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_request_service_interface.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable(as: FriendRequestServiceInterface)
@@ -37,7 +37,7 @@ class FriendRequestService implements FriendRequestServiceInterface {
       }
       return null;
     } on DioException catch (e) {
-      debugPrint('친구 요청 전송 실패: ${e.message}');
+      AppLogger.error('친구 요청 전송 실패: ${e.message}');
       return null;
     }
   }
@@ -66,7 +66,7 @@ class FriendRequestService implements FriendRequestServiceInterface {
       }
       return [];
     } on DioException catch (e) {
-      debugPrint('받은 친구 요청 조회 실패: ${e.message}');
+      AppLogger.error('받은 친구 요청 조회 실패: ${e.message}');
       return [];
     }
   }
@@ -92,7 +92,7 @@ class FriendRequestService implements FriendRequestServiceInterface {
       }
       return null;
     } on DioException catch (e) {
-      debugPrint('친구 요청 상세 조회 실패: ${e.message}');
+      AppLogger.error('친구 요청 상세 조회 실패: ${e.message}');
       return null;
     }
   }
@@ -116,7 +116,7 @@ class FriendRequestService implements FriendRequestServiceInterface {
       }
       return null;
     } on DioException catch (e) {
-      debugPrint('친구 요청 수락 실패: ${e.message}');
+      AppLogger.error('친구 요청 수락 실패: ${e.message}');
       return null;
     }
   }
@@ -130,7 +130,7 @@ class FriendRequestService implements FriendRequestServiceInterface {
       );
       return response.statusCode == 200;
     } on DioException catch (e) {
-      debugPrint('친구 요청 거절 실패: ${e.message}');
+      AppLogger.error('친구 요청 거절 실패: ${e.message}');
       return false;
     }
   }

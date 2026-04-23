@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:iamhere/integration/fcm/repository/fcm_token_repository.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 import 'fcm_token_storage_service.dart';
@@ -20,13 +20,13 @@ class FcmTokenService {
     try {
       final token = await _firebaseMessaging.getToken();
       if (token != null) {
-        debugPrint('FCM Token received: $token');
+        AppLogger.debug('FCM Token received: $token');
       } else {
-        debugPrint('Failed to get FCM token');
+        AppLogger.error('Failed to get FCM token');
       }
       return token;
     } catch (e) {
-      debugPrint('Error getting FCM token: $e');
+      AppLogger.error('Error getting FCM token: $e');
       return null;
     }
   }
@@ -42,9 +42,9 @@ class FcmTokenService {
   Future<void> deleteToken() async {
     try {
       await _firebaseMessaging.deleteToken();
-      debugPrint('FCM Token deleted successfully');
+      AppLogger.debug('FCM Token deleted successfully');
     } catch (e) {
-      debugPrint('Error deleting FCM token: $e');
+      AppLogger.error('Error deleting FCM token: $e');
     }
   }
 
@@ -57,17 +57,17 @@ class FcmTokenService {
       final token = await getToken();
 
       if (token == null) {
-        debugPrint('Failed to generate FCM token');
+        AppLogger.error('Failed to generate FCM token');
         return null;
       }
 
       // 로컬 저장소에 FCM 토큰 저장
       await _storageService.saveFcmToken(token);
-      debugPrint('FCM token generated and saved successfully');
+      AppLogger.debug('FCM token generated and saved successfully');
 
       return token;
     } catch (e) {
-      debugPrint('Error in generateAndSaveFcmToken: $e');
+      AppLogger.error('Error in generateAndSaveFcmToken: $e');
       return null;
     }
   }
@@ -81,7 +81,7 @@ class FcmTokenService {
       final token = await _storageService.getFcmToken();
 
       if (token == null) {
-        debugPrint('No FCM token found in local storage');
+        AppLogger.debug('No FCM token found in local storage');
         return false;
       }
 
@@ -89,14 +89,14 @@ class FcmTokenService {
       final success = await _repository.enrollFcmToken(token);
 
       if (success) {
-        debugPrint('FCM token enrolled to server successfully');
+        AppLogger.debug('FCM token enrolled to server successfully');
       } else {
-        debugPrint('Failed to message FCM token to server');
+        AppLogger.error('Failed to message FCM token to server');
       }
 
       return success;
     } catch (e) {
-      debugPrint('Error in enrollFcmTokenToServer: $e');
+      AppLogger.error('Error in enrollFcmTokenToServer: $e');
       return false;
     }
   }

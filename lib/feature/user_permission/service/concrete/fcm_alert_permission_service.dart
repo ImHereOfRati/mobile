@@ -1,7 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 
 class FcmAlertPermissionService implements PermissionServiceInterface {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -17,7 +17,7 @@ class FcmAlertPermissionService implements PermissionServiceInterface {
       provisional: false,
       sound: true,
     );
-    debugPrint('User granted permission: ${settings.authorizationStatus}');
+    AppLogger.debug('User granted permission: ${settings.authorizationStatus}');
     return _mapAuthStatusToPermissionState(settings.authorizationStatus);
   }
 

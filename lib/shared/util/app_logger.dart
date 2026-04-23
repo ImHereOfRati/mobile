@@ -6,14 +6,14 @@ class AppLogger {
   AppLogger._();
 
   /// 일반 정보 로그
-  static void d(String message) {
+  static void debug(String message) {
     if (kDebugMode) {
       debugPrint('[DEBUG] $message');
     }
   }
 
   /// 에러 로그
-  static void e(String message, [Object? error, StackTrace? stackTrace]) {
+  static void error(String message, [Object? error, StackTrace? stackTrace]) {
     if (kDebugMode) {
       debugPrint('[ERROR] $message');
       if (error != null) {
@@ -26,7 +26,7 @@ class AppLogger {
   }
 
   /// 경고 로그
-  static void w(String message) {
+  static void warning(String message) {
     if (kDebugMode) {
       debugPrint('[WARN] $message');
     }

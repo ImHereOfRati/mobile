@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/user_search_response_dto.dart';
 import 'package:iamhere/feature/friend/service/user_search_service_interface.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable(as: UserSearchServiceInterface)
@@ -35,11 +35,11 @@ class UserSearchService implements UserSearchServiceInterface {
 
       return [];
     } on DioException catch (e) {
-      debugPrint('유저 검색 실패: ${e.message}');
-      debugPrint('Response: ${e.response?.data}');
+      AppLogger.error('유저 검색 실패: ${e.message}');
+      AppLogger.error('Response: ${e.response?.data}');
       return [];
     } catch (e) {
-      debugPrint('유저 검색 중 오류: $e');
+      AppLogger.error('유저 검색 중 오류: $e');
       return [];
     }
   }

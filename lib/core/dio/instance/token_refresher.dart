@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:iamhere/core/dio/module/dio_header_sanitizer_interceptor.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/core/dio/properties/dio_properties.dart';
 import 'package:iamhere/core/dio/properties/http_status_code.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 
 class TokenRefresher {
   static const debuggingMessage = '리프레시 토큰 미존재로 인한 토큰 갱신 실패';
@@ -39,12 +40,13 @@ class TokenRefresher {
         },
       ),
     );
+    defaultDio.interceptors.add(DioHeaderSanitizerInterceptor());
     return defaultDio;
   }
 
   void _existRefreshToken(String? refreshToken) {
     if (refreshToken == null) {
-      debugPrint(debuggingMessage);
+      AppLogger.debug(debuggingMessage);
       throw Exception(exceptionMessage);
     }
   }

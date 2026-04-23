@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/core/router/router_provider.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
@@ -16,15 +18,14 @@ import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
 import 'package:iamhere/shared/component/view_component/initialization_error_app.dart';
 import 'package:iamhere/shared/util/app_logger.dart';
-import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await _initializeAppDependencies();
     runApp(const ProviderScope(child: ImHereApp()));
-  } catch (e) {
-    AppLogger.e('상부 의존성 초기화 실패', e);
+  } catch (e, stack) {
+    AppLogger.error('상부 의존성 초기화 실패', e, stack);
     runApp(const InitializationErrorApp());
   }
 }
@@ -38,15 +39,16 @@ class ImHereApp extends ConsumerStatefulWidget {
 
 class _ImHereAppState extends ConsumerState<ImHereApp> {
   static final String _appTitle = "ImHere";
+  static const Locale _fixedLocale = Locale('ko', 'KR');
 
   @override
   void initState() {
     super.initState();
-    // 라우터가 구축된 뒤(첫 프레임 이후) 알림 탭 핸들러를 등록한다.
-    // getInitialMessage()는 콜드 스타트 직후 한 번만 유효하므로
-    // 이 시점에 반드시 호출해야 한다.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // 라우터가 구축된 뒤(첫 프레임 이후) 무거운 작업을 수행한다.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       setupMessageTapHandler(ref.read(routerProvider));
+      await _initializeFlutterNaverMap();
+      await _syncNativeGeofencesOnStart();
     });
   }
 
@@ -65,6 +67,14 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
           darkTheme: darkTheme,
           themeMode: themeMode,
           routerConfig: routerConfig,
+          locale: _fixedLocale,
+          supportedLocales: const [_fixedLocale],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          localeResolutionCallback: (_, __) => _fixedLocale,
         );
       },
     );
@@ -72,14 +82,16 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
 }
 
 Future<void> _initializeAppDependencies() async {
-  final String kakaoNativeAppKey = 'KAKAO_NATIVE_APP_KEY';
-
   await _initializeDotEnvFile();
   await FirebaseService().initialize();
   await _initializeBaseUrl();
+  _initializeKakaoSdk();
+  // 네이버 지도 SDK와 지오펜스 동기화는 첫 프레임 렌더링 이후로 지연시킨다.
+}
+
+void _initializeKakaoSdk() {
+  final kakaoNativeAppKey = 'KAKAO_NATIVE_APP_KEY';
   KakaoSdk.init(nativeAppKey: dotenv.env[kakaoNativeAppKey]);
-  await _initializeFlutterNaverMap();
-  await _syncNativeGeofencesOnStart();
 }
 
 /// 앱 시작 시 DB 의 활성 지오펜스를 OS 네이티브 지오펜스와 재동기화한다.
@@ -94,7 +106,7 @@ Future<void> _syncNativeGeofencesOnStart() async {
     final active = all.where((g) => g.isActive).toList();
     await registrar.syncAll(active);
   } catch (e) {
-    AppLogger.e('OS 지오펜스 초기 동기화 실패', e);
+    AppLogger.error('OS 지오펜스 초기 동기화 실패', e);
   }
 }
 
@@ -117,15 +129,15 @@ Future<void> _initializeFlutterNaverMap() async {
   await FlutterNaverMap().init(
     clientId: dotenv.env[naverMapClientIdKey],
     onAuthFailed: (ex) {
-      AppLogger.e('네이버 지도 인증 실패 상세', ex);
+      AppLogger.error('네이버 지도 인증 실패 상세', ex);
       switch (ex) {
         case NQuotaExceededException(:final message):
-          AppLogger.w('사용량 초과 (message: $message)');
+          AppLogger.warning('사용량 초과 (message: $message)');
           break;
         case NUnauthorizedClientException() ||
             NClientUnspecifiedException() ||
             NAnotherAuthFailedException():
-          AppLogger.e('인증 실패 (패키지명이나 클라이언트 ID를 확인하세요)', ex);
+          AppLogger.error('인증 실패 (패키지명이나 클라이언트 ID를 확인하세요)', ex);
           break;
       }
     },

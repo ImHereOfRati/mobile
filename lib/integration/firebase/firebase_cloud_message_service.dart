@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 
 class FirebaseCloudMessageService {
   Future<void> initialize() async {
@@ -17,6 +17,6 @@ class FirebaseCloudMessageService {
       badge: true,
       sound: true,
     );
-    debugPrint('알림 권한 상태: ${settings.authorizationStatus}');
+    AppLogger.debug('알림 권한 상태: ${settings.authorizationStatus}');
   }
 }

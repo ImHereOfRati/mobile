@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/update_friend_alias_request_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_relationship_service_interface.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable(as: FriendRelationshipServiceInterface)
@@ -36,7 +36,7 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
       }
       return [];
     } on DioException catch (e) {
-      debugPrint('친구 목록 조회 실패: ${e.message}');
+      AppLogger.error('친구 목록 조회 실패: ${e.message}');
       return [];
     }
   }
@@ -63,7 +63,7 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
       }
       return null;
     } on DioException catch (e) {
-      debugPrint('별명 변경 실패: ${e.message}');
+      AppLogger.error('별명 변경 실패: ${e.message}');
       return null;
     }
   }
@@ -77,7 +77,7 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
       );
       return response.statusCode == 200;
     } on DioException catch (e) {
-      debugPrint('친구 차단 실패: ${e.message}');
+      AppLogger.error('친구 차단 실패: ${e.message}');
       return false;
     }
   }
@@ -91,7 +91,7 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
       );
       return response.statusCode == 200;
     } on DioException catch (e) {
-      debugPrint('친구 삭제 실패: ${e.message}');
+      AppLogger.error('친구 삭제 실패: ${e.message}');
       return false;
     }
   }

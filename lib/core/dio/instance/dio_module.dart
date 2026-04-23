@@ -4,6 +4,7 @@ import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:injectable/injectable.dart';
 
 import '../module/dio_auth_interceptor.dart';
+import '../module/dio_header_sanitizer_interceptor.dart';
 import '../module/pending_request.dart';
 import 'token_refresher.dart';
 
@@ -17,6 +18,7 @@ abstract class DioModule {
     final retrier = RequestRetrier()..setDio(dio);
 
     dio.interceptors.addAll([
+      DioHeaderSanitizerInterceptor(),
       DioAuthInterceptor(tokenStorage, refresher, retrier),
       LogInterceptor(requestBody: true, responseBody: true),
     ]);

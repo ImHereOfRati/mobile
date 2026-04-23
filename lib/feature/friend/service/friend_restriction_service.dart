@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_deleted_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_response_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_restriction_service_interface.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable(as: FriendRestrictionServiceInterface)
@@ -36,7 +36,7 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
       }
       return [];
     } on DioException catch (e) {
-      debugPrint('제한 목록 조회 실패: ${e.message}');
+      AppLogger.error('제한 목록 조회 실패: ${e.message}');
       return [];
     }
   }
@@ -62,7 +62,7 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
       }
       return null;
     } on DioException catch (e) {
-      debugPrint('제한 해제 실패: ${e.message}');
+      AppLogger.error('제한 해제 실패: ${e.message}');
       return null;
     }
   }

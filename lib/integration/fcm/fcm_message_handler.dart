@@ -1,11 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 
 /// 로컬 알림 플러그인 인스턴스
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -22,10 +22,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Firebase를 초기화합니다 (백그라운드에서 다른 Firebase 서비스 사용 시 필요)
   await Firebase.initializeApp();
 
-  debugPrint('백그라운드 메시지 수신: ${message.messageId}');
-  debugPrint('제목: ${message.notification?.title}');
-  debugPrint('내용: ${message.notification?.body}');
-  debugPrint('데이터: ${message.data}');
+  AppLogger.debug('백그라운드 메시지 수신: ${message.messageId}');
+  AppLogger.debug('제목: ${message.notification?.title}');
+  AppLogger.debug('내용: ${message.notification?.body}');
+  AppLogger.debug('데이터: ${message.data}');
 }
 
 /// 로컬 알림 플러그인을 초기화합니다.
@@ -48,10 +48,10 @@ Future<void> setupForegroundMessageListener() async {
   await initializeLocalNotifications();
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-    debugPrint('포그라운드 메시지 수신: ${message.messageId}');
-    debugPrint('제목: ${message.notification?.title}');
-    debugPrint('내용: ${message.notification?.body}');
-    debugPrint('데이터: ${message.data}');
+    AppLogger.debug('포그라운드 메시지 수신: ${message.messageId}');
+    AppLogger.debug('제목: ${message.notification?.title}');
+    AppLogger.debug('내용: ${message.notification?.body}');
+    AppLogger.debug('데이터: ${message.data}');
 
     // 알림을 로컬 DB에 저장
     await _saveNotificationToLocal(message);
@@ -78,9 +78,9 @@ Future<void> _saveNotificationToLocal(RemoteMessage message) async {
       createdAt: DateTime.now(),
     );
     await repository.save(entity);
-    debugPrint('알림 로컬 DB 저장 완료');
+    AppLogger.debug('알림 로컬 DB 저장 완료');
   } catch (e) {
-    debugPrint('알림 로컬 DB 저장 실패: $e');
+    AppLogger.error('알림 로컬 DB 저장 실패: $e');
   }
 }
 
@@ -121,13 +121,13 @@ Future<void> _showNotification({
 void setupMessageTapHandler(GoRouter router) {
   FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
     if (message != null) {
-      debugPrint('앱 종료 상태에서 메시지 탭: ${message.messageId}');
+      AppLogger.debug('앱 종료 상태에서 메시지 탭: ${message.messageId}');
       _handleNavigation(router, message);
     }
   });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    debugPrint('백그라운드 상태에서 메시지 탭: ${message.messageId}');
+    AppLogger.debug('백그라운드 상태에서 메시지 탭: ${message.messageId}');
     _handleNavigation(router, message);
   });
 }
@@ -138,13 +138,13 @@ void _handleNavigation(GoRouter router, RemoteMessage message) {
 
   final path = raw.trim();
   if (path.isEmpty || !path.startsWith('/')) {
-    debugPrint('알림 path 형식 오류: "$raw"');
+    AppLogger.error('알림 path 형식 오류: "$raw"');
     return;
   }
 
   try {
     router.push(path);
   } catch (e) {
-    debugPrint('알림 네비게이션 실패 (path=$path): $e');
+    AppLogger.error('알림 네비게이션 실패 (path=$path): $e');
   }
 }

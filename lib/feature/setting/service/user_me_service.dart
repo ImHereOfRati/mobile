@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/feature/setting/service/dto/change_nickname_request_dto.dart';
 import 'package:iamhere/feature/setting/service/dto/user_me_response_dto.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable(as: UserMeServiceInterface)
@@ -33,10 +33,10 @@ class UserMeService implements UserMeServiceInterface {
 
       return null;
     } on DioException catch (e) {
-      debugPrint('내 정보 조회 실패: ${e.message}');
+      AppLogger.error('내 정보 조회 실패: ${e.message}');
       return null;
     } catch (e) {
-      debugPrint('내 정보 조회 중 오류: $e');
+      AppLogger.error('내 정보 조회 중 오류: $e');
       return null;
     }
   }
@@ -63,10 +63,10 @@ class UserMeService implements UserMeServiceInterface {
 
       return null;
     } on DioException catch (e) {
-      debugPrint('닉네임 변경 실패: ${e.message}');
+      AppLogger.error('닉네임 변경 실패: ${e.message}');
       return null;
     } catch (e) {
-      debugPrint('닉네임 변경 중 오류: $e');
+      AppLogger.error('닉네임 변경 중 오류: $e');
       return null;
     }
   }

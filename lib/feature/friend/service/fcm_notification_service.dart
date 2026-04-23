@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/core/dio/util/dio_handler.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -32,10 +32,10 @@ class FcmNotificationService with DioHandler {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('Delivery result notification sent successfully');
+        AppLogger.debug('Delivery result notification sent successfully');
         return Success(null);
       } else {
-        debugPrint('Failed to send delivery result: ${response.statusCode}');
+        AppLogger.error('Failed to send delivery result: ${response.statusCode}');
         return Failure('Failed to send delivery result: ${response.statusCode}');
       }
     });
@@ -61,10 +61,10 @@ class FcmNotificationService with DioHandler {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('FCM notification sent successfully');
+        AppLogger.debug('FCM notification sent successfully');
         return Success(null);
       } else {
-        debugPrint('Failed to send FCM notification: ${response.statusCode}');
+        AppLogger.error('Failed to send FCM notification: ${response.statusCode}');
         return Failure('Failed to send FCM notification: ${response.statusCode}');
       }
     });
@@ -90,10 +90,10 @@ class FcmNotificationService with DioHandler {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('Location target notification sent successfully');
+        AppLogger.debug('Location target notification sent successfully');
         return Success(null);
       } else {
-        debugPrint(
+        AppLogger.error(
           'Failed to send location target notification: ${response.statusCode}',
         );
         return Failure(
