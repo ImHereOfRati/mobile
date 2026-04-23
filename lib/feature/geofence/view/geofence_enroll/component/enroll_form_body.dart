@@ -32,9 +32,19 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
   @override
   void initState() {
     super.initState();
-    _messageController.text = ref.read(geofenceEnrollViewModelProvider).message;
     _nameController.addListener(_onName);
     _messageController.addListener(_onMessage);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = ref.read(geofenceEnrollViewModelProvider);
+      if (state.name.isNotEmpty && _nameController.text.isEmpty) {
+        _nameController.text = state.name;
+      }
+      if (state.message.isNotEmpty && _messageController.text.isEmpty) {
+        _messageController.text = state.message;
+      }
+    });
   }
 
   @override
@@ -55,15 +65,6 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(geofenceEnrollViewModelProvider);
-
-    // 초기화 시(수정 모드) 컨트롤러 텍스트 동기화
-    if (_nameController.text != state.name && state.name.isNotEmpty && _nameController.text.isEmpty) {
-      _nameController.text = state.name;
-    }
-    if (_messageController.text != state.message && state.message.isNotEmpty && _messageController.text.isEmpty) {
-      _messageController.text = state.message;
-    }
-
     final notifier = ref.read(geofenceEnrollViewModelProvider.notifier);
     final h20Box = SizedBox(height: 20.h);
 
