@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/shared/component/style/app_text_styles.dart';
 
-import 'enroll_section_label.dart';
+import '../common/enroll_section_label.dart';
 import 'enroll_message_hint_banner.dart';
 
 const String _sectionMessage = '도착 알림 메시지';

@@ -15,6 +15,7 @@ import 'package:iamhere/shared/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
 import 'package:iamhere/shared/component/view_component/initialization_error_app.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
 void main() async {
@@ -23,7 +24,7 @@ void main() async {
     await _initializeAppDependencies();
     runApp(const ProviderScope(child: ImHereApp()));
   } catch (e) {
-    debugPrint('상부 의존성 초기화 실패: $e');
+    AppLogger.e('상부 의존성 초기화 실패', e);
     runApp(const InitializationErrorApp());
   }
 }
@@ -93,7 +94,7 @@ Future<void> _syncNativeGeofencesOnStart() async {
     final active = all.where((g) => g.isActive).toList();
     await registrar.syncAll(active);
   } catch (e) {
-    debugPrint('OS 지오펜스 초기 동기화 실패: $e');
+    AppLogger.e('OS 지오펜스 초기 동기화 실패', e);
   }
 }
 
@@ -116,15 +117,15 @@ Future<void> _initializeFlutterNaverMap() async {
   await FlutterNaverMap().init(
     clientId: dotenv.env[naverMapClientIdKey],
     onAuthFailed: (ex) {
-      debugPrint("네이버 지도 인증 실패 상세: $ex");
+      AppLogger.e('네이버 지도 인증 실패 상세', ex);
       switch (ex) {
         case NQuotaExceededException(:final message):
-          debugPrint("사용량 초과 (message: $message)");
+          AppLogger.w('사용량 초과 (message: $message)');
           break;
         case NUnauthorizedClientException() ||
             NClientUnspecifiedException() ||
             NAnotherAuthFailedException():
-          debugPrint("인증 실패: $ex (패키지명이나 클라이언트 ID를 확인하세요)");
+          AppLogger.e('인증 실패 (패키지명이나 클라이언트 ID를 확인하세요)', ex);
           break;
       }
     },

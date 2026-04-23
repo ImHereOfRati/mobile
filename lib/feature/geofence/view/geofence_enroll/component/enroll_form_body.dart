@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_model.dart';
 
-import 'enroll_radius_section.dart';
-import 'enroll_activate_toggle.dart';
+import 'radius/enroll_radius_section.dart';
+import 'fields/enroll_activate_toggle.dart';
 import 'enroll_check_card.dart';
-import 'enroll_message_field.dart';
-import 'enroll_name_field.dart';
-import 'enroll_recipient_section.dart';
+import 'fields/enroll_message_field.dart';
+import 'fields/enroll_name_field.dart';
+import 'recipient/enroll_recipient_section.dart';
 import 'enroll_save_button.dart';
 
 class EnrollFormBody extends ConsumerStatefulWidget {

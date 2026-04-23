@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_section_label.dart';
+import 'package:iamhere/feature/geofence/view/geofence_enroll/component/common/enroll_section_label.dart';
 
 import 'radius_button.dart';
 import 'radius_info_callout.dart';

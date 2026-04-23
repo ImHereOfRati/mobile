@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_form_body.dart';
-import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_inline_map.dart';
+import 'package:iamhere/feature/geofence/view/geofence_enroll/component/map/enroll_inline_map.dart';
 import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/shared/base/snack_bar/app_snack_bar.dart';
