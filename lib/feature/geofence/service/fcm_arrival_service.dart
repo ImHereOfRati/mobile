@@ -67,7 +67,10 @@ class FcmArrivalService {
       final response = await _dio.post(
         ApiConfig.fcmArrivalPath,
         data: dto.toJson(),
-        options: ApiConfig.authOptions,
+        options: ApiConfig.authOptions.copyWith(
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
       );
 
       final ok = response.statusCode == 200 || response.statusCode == 201;

@@ -8,6 +8,7 @@ class GeofenceEntity {
   final String message; // 알림 메시지
   final String contactIds; // 연락처 ID 리스트 (JSON 형태로 저장, 예: "[1,2,3]")
   final bool isActive; // 활성화 상태
+  final int serverRecipientCount; // IMHERE 서버 친구 숫자
 
   GeofenceEntity({
     this.id,
@@ -18,7 +19,8 @@ class GeofenceEntity {
     required this.radius,
     required this.message,
     required this.contactIds,
-    this.isActive = false, // 기본값은 false
+    this.isActive = false,
+    this.serverRecipientCount = 0, // 기본값 0 보장
   });
 
   /// SMS 발송 시 사용할 location 문자열: "장소명 (주소)"
@@ -36,6 +38,7 @@ class GeofenceEntity {
     String? message,
     String? contactIds,
     bool? isActive,
+    int? serverRecipientCount,
   }) {
     return GeofenceEntity(
       id: id ?? this.id,
@@ -47,6 +50,7 @@ class GeofenceEntity {
       message: message ?? this.message,
       contactIds: contactIds ?? this.contactIds,
       isActive: isActive ?? this.isActive,
+      serverRecipientCount: serverRecipientCount ?? this.serverRecipientCount,
     );
   }
 
@@ -75,6 +79,7 @@ class GeofenceEntity {
       message: map['message'] as String,
       contactIds: map['contact_ids'] as String? ?? '[]',
       isActive: (map['is_active'] as int? ?? 0) == 1,
+      serverRecipientCount: map['server_recipient_count'] as int? ?? 0,
     );
   }
 }

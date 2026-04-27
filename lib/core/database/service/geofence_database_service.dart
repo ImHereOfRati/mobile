@@ -25,12 +25,20 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
     entityDetails: 'Geofence: ${entity.name}',
   );
 
-  Future<List<GeofenceEntity>> findAll() => executeQuery(
-    entityName: 'geofence',
-    table: LocalDatabaseProperties.geofenceTableName,
-    fromMap: GeofenceEntity.fromMap,
-    orderBy: 'name ASC',
-  );
+  Future<List<GeofenceEntity>> findAll() async {
+    final gTable = LocalDatabaseProperties.geofenceTableName;
+    final rTable = LocalDatabaseProperties.geofenceServerRecipientTableName;
+
+    // 서브쿼리를 사용하여 서버 친구 숫자를 포함한 목록 조회
+    final List<Map<String, dynamic>> maps = await database.rawQuery('''
+      SELECT g.*, 
+             (SELECT COUNT(*) FROM $rTable r WHERE r.geofence_id = g.id) as server_recipient_count
+      FROM $gTable g
+      ORDER BY g.name ASC
+    ''');
+
+    return maps.map((map) => GeofenceEntity.fromMap(map)).toList();
+  }
 
   Future<void> delete(int id) => executeDelete(
     entityName: 'geofence',

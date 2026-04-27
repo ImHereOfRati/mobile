@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
@@ -14,6 +15,7 @@ part 'geofence_list_view_model.g.dart';
 class GeofenceListViewModel extends _$GeofenceListViewModel {
   late GeofenceLocalRepository _repo;
   late NativeGeofenceRegistrarInterface _registrar;
+  Timer? _pollingTimer;
 
   @override
   Future<List<GeofenceEntity>> build() async {
@@ -23,14 +25,48 @@ class GeofenceListViewModel extends _$GeofenceListViewModel {
     final list = await _repo.findAll();
     _syncWithOs(list);
     _fillMissingAddresses(list);
+
+    // 활성화된 지오펜스가 있다면 폴링 시작
+    _startPollingIfNecessary(list);
+
+    ref.onDispose(() {
+      _pollingTimer?.cancel();
+    });
+
     return list;
   }
 
+  void _startPollingIfNecessary(List<GeofenceEntity> list) {
+    _pollingTimer?.cancel();
+    final hasActive = list.any((g) => g.isActive);
+    if (hasActive) {
+      _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+        final newList = await _repo.findAll();
+        final anyChanged = _checkIfStatusChanged(state.value, newList);
+        if (anyChanged) {
+          log('GeofenceListViewModel: Status change detected via polling, updating UI');
+          state = AsyncValue.data(newList);
+          if (!newList.any((g) => g.isActive)) {
+            _pollingTimer?.cancel();
+          }
+        }
+      });
+    }
+  }
+
+  bool _checkIfStatusChanged(List<GeofenceEntity>? oldList, List<GeofenceEntity> newList) {
+    if (oldList == null || oldList.length != newList.length) return true;
+    for (int i = 0; i < oldList.length; i++) {
+      if (oldList[i].isActive != newList[i].isActive) return true;
+    }
+    return false;
+  }
+
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final list = await _repo.findAll();
       _syncWithOs(list);
+      _startPollingIfNecessary(list);
       return list;
     });
   }
@@ -68,6 +104,9 @@ class GeofenceListViewModel extends _$GeofenceListViewModel {
       await _repo.updateActiveStatus(id, isActive);
       final target = updatedList.firstWhere((g) => g.id == id);
       isActive ? await _registrar.register(target) : await _registrar.unregister(id);
+      
+      // 토글 후 활성 상태라면 폴링 시작 (백그라운드 비활성화 감지용)
+      _startPollingIfNecessary(updatedList);
     } catch (e) {
       state = prev;
       log('toggleActive failed: $e');
