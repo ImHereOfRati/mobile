@@ -30,7 +30,7 @@ class GeofenceListTile extends StatelessWidget {
         delegate: SliverChildBuilderDelegate((context, index) {
           final g = geofences[index];
           return GeofenceTile(
-            key: ValueKey(g.id),
+            key: ValueKey('${g.id}_${g.isActive}'), // ID와 활성 상태를 조합한 키 사용
             homeName: g.name,
             address: g.address.isNotEmpty ? g.address : _loadingAddress,
             memberCount: _parseCount(g.contactIds),

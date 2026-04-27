@@ -19,6 +19,7 @@ class GeofenceListViewModel extends _$GeofenceListViewModel {
   Future<List<GeofenceEntity>> build() async {
     _repo = ref.watch(geofenceLocalRepositoryProvider);
     _registrar = getIt<NativeGeofenceRegistrarInterface>();
+    
     final list = await _repo.findAll();
     _syncWithOs(list);
     _fillMissingAddresses(list);

@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../common/enroll_section_label.dart';
 
-const String _sectionName = '위치 알람 이름';
+const String _sectionName = '위치 이름';
 const String _nameHint = '예) 우리집, 회사, 학교';
 
 class EnrollNameField extends StatelessWidget {

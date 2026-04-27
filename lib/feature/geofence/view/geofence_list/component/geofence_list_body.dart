@@ -28,7 +28,29 @@ class GeofenceListBody extends ConsumerStatefulWidget {
   ConsumerState<GeofenceListBody> createState() => _GeofenceListBodyState();
 }
 
-class _GeofenceListBodyState extends ConsumerState<GeofenceListBody> {
+class _GeofenceListBodyState extends ConsumerState<GeofenceListBody>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint('GeofenceListBody: App resumed, triggering refresh...');
+      // 앱이 포그라운드로 돌아올 때 지오펜스 상태(비활성화 등)를 동기화하기 위해 새로고침
+      ref.read(geofenceListViewModelProvider.notifier).refresh();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final geofencesAsync = ref.watch(geofenceListViewModelProvider);

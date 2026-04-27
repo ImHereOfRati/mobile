@@ -73,6 +73,6 @@ cert.der
 #기타
 build_error.log
 .flutter-plugins-dependencies
-/.claude/
+/.gemini/
 
 firebase.json

@@ -1,4 +1,6 @@
-import 'dart:developer';
+import 'dart:developer' as dev;
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
@@ -13,6 +15,7 @@ import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
 import 'package:iamhere/firebase_options.dart';
 import 'package:iamhere/integration/firebase/firebase_service.dart';
 import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:native_geofence/native_geofence.dart';
 
 bool _backgroundIsolateBootstrapped = false;
@@ -23,15 +26,17 @@ Future<void> _bootstrapBackgroundIsolate() async {
   if (_backgroundIsolateBootstrapped) return;
 
   WidgetsFlutterBinding.ensureInitialized();
+  AppLogger.debug('BG: Bootstrapping background isolate...');
 
   try {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      AppLogger.debug('BG: Firebase initialized');
     }
   } catch (e) {
-    log('BG: Firebase init failed: $e');
+    AppLogger.error('BG: Firebase init failed', e);
   }
 
   // GetIt 은 아이솔레이트별 격리이므로 아직 등록되지 않은 경우 재부팅.
@@ -40,11 +45,13 @@ Future<void> _bootstrapBackgroundIsolate() async {
       final String baseUrl = await _resolveBaseUrlInBackground();
       await enrollBaseUrlGlobally(baseUrl: baseUrl);
       _backgroundIsolateBootstrapped = true;
+      AppLogger.debug('BG: DI (GetIt) initialized with baseUrl: $baseUrl');
     } catch (e) {
-      log('BG: GetIt init failed: $e');
+      AppLogger.error('BG: GetIt init failed', e);
     }
   } else {
     _backgroundIsolateBootstrapped = true;
+    AppLogger.debug('BG: DI already initialized');
   }
 }
 
@@ -55,7 +62,7 @@ Future<String> _resolveBaseUrlInBackground() async {
     await fbs.initialize();
     return fbs.remoteConfig.baseUrlOrNull ?? fallback;
   } catch (e) {
-    log('BG: remote config unavailable, using fallback baseUrl: $e');
+    AppLogger.warning('BG: remote config unavailable, using fallback baseUrl: $e');
     return fallback;
   }
 }
@@ -67,24 +74,26 @@ Future<String> _resolveBaseUrlInBackground() async {
 @pragma('vm:entry-point')
 Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
   try {
+    AppLogger.debug('BG: Geofence triggered event: ${params.event}');
     await _bootstrapBackgroundIsolate();
 
     final allowedEvents = {GeofenceEvent.enter, GeofenceEvent.dwell};
     if (!allowedEvents.contains(params.event)) {
-      log('BG: event ignored: ${params.event}');
+      AppLogger.debug('BG: Event ignored (not enter/dwell): ${params.event}');
       return;
     }
 
+    AppLogger.debug('BG: Number of geofences triggered: ${params.geofences.length}');
     for (final zone in params.geofences) {
       final id = int.tryParse(zone.id);
       if (id == null) {
-        log('BG: invalid geofence id: ${zone.id}');
+        AppLogger.warning('BG: Invalid geofence id format: ${zone.id}');
         continue;
       }
       await _dispatchArrival(id);
     }
   } catch (e, st) {
-    log('BG: geofenceTriggered failed: $e\n$st');
+    AppLogger.error('BG: geofenceTriggered critical failure', e, st);
   }
 }
 
@@ -100,12 +109,16 @@ Future<void> _dispatchArrival(int geofenceId) async {
       break;
     }
   }
+
   if (geofence == null) {
-    log('BG: geofence not found id=$geofenceId');
+    AppLogger.warning('BG: Geofence not found in DB for ID: $geofenceId');
     return;
   }
+  
+  AppLogger.debug('BG: Processing arrival for "${geofence.name}" (ID: $geofenceId)');
+
   if (!geofence.isActive) {
-    log('BG: geofence inactive, ignore id=$geofenceId');
+    AppLogger.debug('BG: Geofence "${geofence.name}" is already inactive, ignoring');
     return;
   }
 
@@ -119,27 +132,34 @@ Future<void> _dispatchArrival(int geofenceId) async {
     geofence,
   );
 
+  AppLogger.debug('BG: Resolved recipients - SMS: ${localRecipients.length}, Server: ${serverRecipients.length}');
+
   if (localRecipients.isEmpty && serverRecipients.isEmpty) {
-    log('BG: no recipients for ${geofence.name}');
+    AppLogger.warning('BG: No recipients found for "${geofence.name}", skipping notifications');
     return;
   }
 
-  var anySuccess = false;
-
+  // 알림 전송 시도 (성공 여부에 관계없이 이후 비활성화 진행)
   if (localRecipients.isNotEmpty) {
     final numbers = contactResolver.extractPhoneNumbers(localRecipients);
     if (numbers.isNotEmpty) {
+      AppLogger.debug('BG: Sending SMS to ${numbers.length} numbers...');
       final r = await smsNotifier.sendSmsToRecipients(
         phoneNumbers: numbers,
         location: geofence.fullLocation,
       );
-      if (r is Success) anySuccess = true;
+      if (r is Success) {
+        AppLogger.debug('BG: SMS sent successfully');
+      } else {
+        AppLogger.error('BG: SMS sending failed: ${(r as Failure).message}');
+      }
     }
   }
 
   if (serverRecipients.isNotEmpty) {
     final emails = contactResolver.extractServerEmails(serverRecipients);
     if (emails.isNotEmpty) {
+      AppLogger.debug('BG: Sending FCM notifications to ${emails.length} emails...');
       final body = geofence.message.replaceAll(
         '{location}',
         geofence.fullLocation,
@@ -149,12 +169,12 @@ Future<void> _dispatchArrival(int geofenceId) async {
         body: body,
         location: geofence.fullLocation,
       );
-      if (r is Success) anySuccess = true;
+      if (r is Success) {
+        AppLogger.debug('BG: FCM notifications sent successfully');
+      } else {
+        AppLogger.error('BG: FCM notifications failed: ${(r as Failure).message}');
+      }
     }
-  }
-
-  if (!anySuccess) {
-    log('BG: all notifications failed for ${geofence.name}, but proceeding to deactivate');
   }
 
   final names = <String>[
@@ -163,20 +183,23 @@ Future<void> _dispatchArrival(int geofenceId) async {
       (s) => s.friendAlias.isNotEmpty ? s.friendAlias : s.friendEmail,
     ),
   ];
+  
+  AppLogger.debug('BG: Saving arrival record...');
   await recordService.saveGeofenceRecord(
     geofence: geofence,
     recipientNames: names,
   );
 
   try {
+    AppLogger.debug('BG: Deactivating geofence ID: $geofenceId from DB and OS (Request initiated)');
     await repo.updateActiveStatus(geofenceId, false);
     // OS 에서도 제거하여 중복 트리거를 방지.
     await NativeGeofenceManager.instance.removeGeofenceById(
       geofenceId.toString(),
     );
-    log('BG: dispatched + deactivated id=$geofenceId');
+    AppLogger.debug('BG: Process completed and deactivated for "${geofence.name}"');
   } catch (e) {
-    log('BG: post-dispatch cleanup failed: $e');
+    AppLogger.error('BG: Post-dispatch cleanup failed', e);
   }
 }
 
