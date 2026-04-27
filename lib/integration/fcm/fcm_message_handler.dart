@@ -23,9 +23,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   AppLogger.debug('백그라운드 메시지 수신: ${message.messageId}');
-  AppLogger.debug('제목: ${message.notification?.title}');
-  AppLogger.debug('내용: ${message.notification?.body}');
-  AppLogger.debug('데이터: ${message.data}');
+  
+  // 데이터 기반 알림 표시 시도
+  final String title = message.notification?.title ?? message.data['title'] ?? 'ImHere 알림';
+  final String body = message.notification?.body ?? message.data['body'] ?? '';
+  
+  if (body.isNotEmpty) {
+    await _showNotification(title: title, body: body);
+  }
 }
 
 /// 로컬 알림 플러그인을 초기화합니다.
@@ -37,42 +42,43 @@ Future<void> initializeLocalNotifications() async {
     android: initializationSettingsAndroid,
   );
 
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (details) {
+      // 알림 클릭 시 처리 (필요시 추가)
+    },
+  );
 }
 
 /// FCM 포그라운드 메시지 리스너를 설정합니다.
-///
-/// 앱이 포그라운드에 있을 때 메시지를 수신하면 호출됩니다.
 Future<void> setupForegroundMessageListener() async {
   // 로컬 알림 초기화
   await initializeLocalNotifications();
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
     AppLogger.debug('포그라운드 메시지 수신: ${message.messageId}');
-    AppLogger.debug('제목: ${message.notification?.title}');
-    AppLogger.debug('내용: ${message.notification?.body}');
-    AppLogger.debug('데이터: ${message.data}');
+    
+    // 알림 정보를 추출 (notification 객체 우선, 없으면 data 객체 참조)
+    final String title = message.notification?.title ?? message.data['title'] ?? 'ImHere 알림';
+    final String body = message.notification?.body ?? message.data['body'] ?? '';
 
     // 알림을 로컬 DB에 저장
-    await _saveNotificationToLocal(message);
+    await _saveNotificationToLocal(message, title, body);
 
-    // 포그라운드에서 로컬 알림 표시
-    if (message.notification != null) {
-      await _showNotification(
-        title: message.notification!.title ?? '알림',
-        body: message.notification!.body ?? '',
-      );
+    // 알림 표시
+    if (body.isNotEmpty) {
+      await _showNotification(title: title, body: body);
     }
   });
 }
 
 /// FCM 메시지를 로컬 DB에 저장합니다.
-Future<void> _saveNotificationToLocal(RemoteMessage message) async {
+Future<void> _saveNotificationToLocal(RemoteMessage message, String title, String body) async {
   try {
     final repository = getIt<NotificationLocalRepository>();
     final entity = NotificationEntity(
-      title: message.notification?.title ?? '알림',
-      body: message.notification?.body ?? '',
+      title: title,
+      body: body,
       senderNickname: message.data['senderNickname'] ?? '',
       senderEmail: message.data['senderEmail'] ?? '',
       createdAt: DateTime.now(),

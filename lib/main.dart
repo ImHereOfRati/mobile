@@ -7,7 +7,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/core/router/router_provider.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
@@ -20,6 +19,7 @@ import 'package:iamhere/shared/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
 import 'package:iamhere/shared/component/view_component/initialization_error_app.dart';
 import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,9 +34,7 @@ void main() async {
 }
 
 void _configureSystemChrome() {
-  SystemChrome.setPreferredOrientations(const [
-    DeviceOrientation.portraitUp,
-  ]);
+  SystemChrome.setPreferredOrientations(const [DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -45,9 +43,7 @@ void _configureSystemChrome() {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.edgeToEdge,
-  );
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 }
 
 class ImHereApp extends ConsumerStatefulWidget {

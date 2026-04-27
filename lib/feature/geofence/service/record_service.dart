@@ -27,7 +27,7 @@ class RecordService {
       final record = GeofenceRecordEntity(
         geofenceId: geofence.id!,
         geofenceName: geofence.name,
-        message: geofence.message,
+        message: '', // 메시지 내용은 저장하지 않음
         recipients: jsonEncode(recipientNames),
         createdAt: DateTime.now(),
         sendMachine: SendMachine.mobile,

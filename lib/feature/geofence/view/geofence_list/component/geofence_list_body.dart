@@ -45,8 +45,6 @@ class _GeofenceListBodyState extends ConsumerState<GeofenceListBody>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      debugPrint('GeofenceListBody: App resumed, triggering refresh...');
-      // 앱이 포그라운드로 돌아올 때 지오펜스 상태(비활성화 등)를 동기화하기 위해 새로고침
       ref.read(geofenceListViewModelProvider.notifier).refresh();
     }
   }

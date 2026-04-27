@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:developer' as dev;
 
 import 'package:dio/dio.dart';
 import 'package:iamhere/core/dio/properties/api_config.dart';
@@ -6,6 +6,7 @@ import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/shared/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 /// 서버 친구(ImHere 앱 유저)에게 목적지 도착 FCM 알림 발송
@@ -44,10 +45,6 @@ class FcmArrivalService {
     final bool isSuccess = successCount > 0;
 
     if (isSuccess) {
-      // 본인 알림은 지오펜스 비활성화 로직을 방해하지 않도록 비동기로 처리 (await 제거)
-      _notifyDeliveryResultToMe(location).catchError((e) {
-        log('Secondary notification failed: $e');
-      });
       return Success(null);
     } else {
       return Failure('All FCM sends failed');
@@ -75,38 +72,46 @@ class FcmArrivalService {
 
       final ok = response.statusCode == 200 || response.statusCode == 201;
       if (!ok) {
-        log(
+        dev.log(
           'FCM arrival failed ($receiverEmail): status=${response.statusCode}',
         );
         return Failure('FCM arrival failed: ${response.statusCode}');
       }
       return Success(null);
     } catch (e) {
-      log('FCM arrival error ($receiverEmail): $e');
+      dev.log('FCM arrival error ($receiverEmail): $e');
       return Failure('FCM arrival error: $e');
     }
   }
 
   /// FCM 발송 성공 후 본인에게 FCM으로 발송 결과 통보
-  Future<void> _notifyDeliveryResultToMe(String location) async {
+  Future<void> notifyDeliveryResultToMe(String location) async {
     try {
-      final myInfo = await _userMeService.fetchMyInfo();
-      if (myInfo == null) {
-        log('Warning: Could not fetch user info for delivery result notification');
-        return;
-      }
-
-      final result = await _fcmNotificationService.notifyDeliveryResult(
-        receiverEmail: myInfo.userEmail,
-        type: 'ARRIVAL',
-        body: '$location 도착 알림이 성공적으로 전송되었습니다.',
+      dev.log('!!!! BG_SELF_NOTIFY: Method Start');
+      
+      final myInfo = await _userMeService.fetchMyInfo().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw 'fetchMyInfo Timeout',
       );
+      
+      if (myInfo != null) {
+        dev.log('!!!! BG_SELF_NOTIFY: Email found ${myInfo.userEmail}');
+        final result = await _fcmNotificationService.notifyDeliveryResult(
+          receiverEmail: myInfo.userEmail,
+          type: 'ARRIVAL',
+          body: '$location 도착 알림이 성공적으로 전송되었습니다.',
+        );
 
-      if (result is Failure) {
-        log('Warning: FCM sent but delivery result notification failed');
+        if (result is Success) {
+          dev.log('!!!! BG_SELF_NOTIFY: POST Success');
+        } else {
+          dev.log('!!!! BG_SELF_NOTIFY: POST Failed: ${(result as Failure).message}');
+        }
+      } else {
+        dev.log('!!!! BG_SELF_NOTIFY: myInfo is NULL');
       }
     } catch (e) {
-      log('Warning: FCM sent but delivery result notification error: $e');
+      dev.log('!!!! BG_SELF_NOTIFY: Critical Error: $e');
     }
   }
 }
