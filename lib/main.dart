@@ -11,6 +11,7 @@ import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/core/router/router_provider.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
 import 'package:iamhere/integration/firebase/firebase_service.dart';
@@ -124,6 +125,10 @@ Future<void> _syncNativeGeofencesOnStart() async {
     final all = await repo.findAll();
     final active = all.where((g) => g.isActive).toList();
     await registrar.syncAll(active);
+  } on MissingBackgroundLocationException catch (e) {
+    // 첫 실행 또는 권한 미허용 상태에서는 정상 시나리오. 사용자가 가이드 뷰에서
+    // '항상 허용' 으로 상향한 뒤 토글/저장 시점에 자연스럽게 등록된다.
+    AppLogger.warning('OS 지오펜스 초기 동기화 보류: 권한 부족 (${e.state.name})');
   } catch (e) {
     AppLogger.error('OS 지오펜스 초기 동기화 실패', e);
   }

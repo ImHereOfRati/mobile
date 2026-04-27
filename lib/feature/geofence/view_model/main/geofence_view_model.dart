@@ -9,6 +9,7 @@ import 'package:iamhere/feature/geofence/repository/geofence_local_repository_pr
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository_provider.dart';
+import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
@@ -100,6 +101,11 @@ class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModel
       } else {
         await _reg.unregister(id);
       }
-    } catch (e) { log('toggleGeofenceActive failed (id=$id): $e'); }
+    } on MissingBackgroundLocationException {
+      // 권한 부족은 UI 가 가이드 뷰로 라우팅해야 하므로 그대로 전파한다.
+      rethrow;
+    } catch (e) {
+      log('toggleGeofenceActive failed (id=$id): $e');
+    }
   }
 }

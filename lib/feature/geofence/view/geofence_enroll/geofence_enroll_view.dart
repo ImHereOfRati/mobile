@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/core/router/app_routes.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_form_body.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/map/enroll_inline_map.dart';
 import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
+import 'package:iamhere/feature/user_permission/model/permission_state.dart';
+import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:iamhere/shared/base/snack_bar/app_snack_bar.dart';
 
 import '../map_select/map_select_view.dart';
@@ -112,6 +116,9 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   }
 
   Future<void> _save() async {
+    final formState = ref.read(geofenceEnrollViewModelProvider);
+    if (formState.isActive && !await _ensureAlwaysPermission()) return;
+
     try {
       await ref.read(geofenceEnrollViewModelProvider.notifier).saveGeofence();
       ref.read(geofenceListViewModelProvider.notifier).refresh();
@@ -119,10 +126,23 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
         AppSnackBar.showSuccess(context, _enrollSuccess);
         Navigator.of(context).pop();
       }
+    } on MissingBackgroundLocationException {
+      // 권한 사전 체크 후에도 사용자가 도중에 권한을 회수한 드문 케이스.
+      if (!mounted) return;
+      await AppRoutes.pushLocationPermissionGuide(context);
     } catch (e) {
       if (mounted) {
         AppSnackBar.showError(context, '$_enrollFailure${e.toString()}');
       }
     }
+  }
+
+  Future<bool> _ensureAlwaysPermission() async {
+    final service = ref.read(locationPermissionServiceProvider);
+    final isAlways =
+        await service.checkPermissionStatus() == PermissionState.grantedAlways;
+    if (isAlways) return true;
+    if (!mounted) return false;
+    return await AppRoutes.pushLocationPermissionGuide(context);
   }
 }
