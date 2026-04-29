@@ -60,7 +60,6 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
   @override
   void initState() {
     super.initState();
-    // 첫 프레임 이후 UI 렌더링에 영향 없는 동기화만 수행한다.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setupMessageTapHandler(ref.read(routerProvider));
       await _syncNativeGeofencesOnStart();
@@ -77,6 +76,7 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
           title: _appTitle,
           theme: lightTheme,
           darkTheme: darkTheme,

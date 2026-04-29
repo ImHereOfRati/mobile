@@ -1,4 +1,3 @@
-import 'package:iamhere/core/database/local_database_exception.dart';
 import 'package:iamhere/core/database/local_database_properties.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:injectable/injectable.dart';
@@ -25,19 +24,22 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
     entityDetails: 'Geofence: ${entity.name}',
   );
 
-  Future<List<GeofenceEntity>> findAll() async {
+  Future<List<GeofenceEntity>> findAll() {
     final gTable = LocalDatabaseProperties.geofenceTableName;
     final rTable = LocalDatabaseProperties.geofenceServerRecipientTableName;
 
-    // 서브쿼리를 사용하여 서버 친구 숫자를 포함한 목록 조회
-    final List<Map<String, dynamic>> maps = await database.rawQuery('''
-      SELECT g.*, 
-             (SELECT COUNT(*) FROM $rTable r WHERE r.geofence_id = g.id) as server_recipient_count
-      FROM $gTable g
-      ORDER BY g.name ASC
-    ''');
-
-    return maps.map((map) => GeofenceEntity.fromMap(map)).toList();
+    // 서브쿼리로 서버 친구 숫자(server_recipient_count)까지 한 번에 조회.
+    return executeRawQuery<GeofenceEntity>(
+      entityName: 'geofence',
+      sql: '''
+        SELECT g.*,
+               (SELECT COUNT(*) FROM $rTable r WHERE r.geofence_id = g.id)
+                 as server_recipient_count
+        FROM $gTable g
+        ORDER BY g.name ASC
+      ''',
+      fromMap: GeofenceEntity.fromMap,
+    );
   }
 
   Future<void> delete(int id) => executeDelete(
@@ -46,37 +48,19 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
     id: id,
   );
 
-  Future<void> updateActiveStatus(int id, bool isActive) async {
-    try {
-      await database.update(
-        LocalDatabaseProperties.geofenceTableName,
-        {'is_active': isActive ? 1 : 0},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-    } catch (e) {
-      throw LocalDatabaseException(
-        'Failed to update geofence active status',
-        details: 'ID: $id, isActive: $isActive',
-        originalError: e,
-      );
-    }
-  }
+  Future<void> updateActiveStatus(int id, bool isActive) => executePartialUpdate(
+    entityName: 'geofence active status',
+    table: LocalDatabaseProperties.geofenceTableName,
+    values: {'is_active': isActive ? 1 : 0},
+    id: id,
+    entityDetails: 'ID: $id, isActive: $isActive',
+  );
 
-  Future<void> updateAddress(int id, String address) async {
-    try {
-      await database.update(
-        LocalDatabaseProperties.geofenceTableName,
-        {'address': address},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-    } catch (e) {
-      throw LocalDatabaseException(
-        'Failed to update geofence address',
-        details: 'ID: $id, address: $address',
-        originalError: e,
-      );
-    }
-  }
+  Future<void> updateAddress(int id, String address) => executePartialUpdate(
+    entityName: 'geofence address',
+    table: LocalDatabaseProperties.geofenceTableName,
+    values: {'address': address},
+    id: id,
+    entityDetails: 'ID: $id, address: $address',
+  );
 }

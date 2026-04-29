@@ -15,11 +15,15 @@ abstract class AbstractLocalDatabaseService with DatabaseHandler {
     required Map<String, dynamic> values,
     required T Function(int id) createEntity,
     String? entityDetails,
-  }) async {
-    return safeDbCall(() async {
-      int id = await _insertEntity(table, values);
-      return createEntity(id);
-    });
+  }) {
+    return safeDbCall(
+      () async {
+        final id = await _insertEntity(table, values);
+        return createEntity(id);
+      },
+      operation: 'Failed to save $entityName',
+      details: entityDetails,
+    );
   }
 
   Future<int> executeUpdate({
@@ -28,11 +32,15 @@ abstract class AbstractLocalDatabaseService with DatabaseHandler {
     required String table,
     required Map<String, dynamic> values,
     String? entityDetails,
-  }) async {
-    return safeDbCall(() async {
-      _validateEntityIdExistence(entityId, entityName, entityDetails);
-      return await _updateEntity(table, values, entityId, entityName);
-    });
+  }) {
+    return safeDbCall(
+      () async {
+        _validateEntityIdExistence(entityId, entityName, entityDetails);
+        return _updateEntity(table, values, entityId, entityName);
+      },
+      operation: 'Failed to update $entityName',
+      details: entityDetails ?? 'ID: $entityId',
+    );
   }
 
   Future<List<T>> executeQuery<T>({
@@ -40,35 +48,81 @@ abstract class AbstractLocalDatabaseService with DatabaseHandler {
     required String table,
     required T Function(Map<String, dynamic>) fromMap,
     String? orderBy,
-  }) async {
-    return safeDbCall(() async {
-      final result = await database.query(table, orderBy: orderBy);
-      return result.map((json) => fromMap(json)).toList();
-    });
+  }) {
+    return safeDbCall(
+      () async {
+        final result = await database.query(table, orderBy: orderBy);
+        return result.map(fromMap).toList();
+      },
+      operation: 'Failed to fetch ${entityName}s',
+    );
+  }
+
+  Future<List<T>> executeRawQuery<T>({
+    required String entityName,
+    required String sql,
+    required T Function(Map<String, dynamic>) fromMap,
+    List<Object?>? arguments,
+  }) {
+    return safeDbCall(
+      () async {
+        final result = await database.rawQuery(sql, arguments);
+        return result.map(fromMap).toList();
+      },
+      operation: 'Failed to fetch ${entityName}s',
+    );
   }
 
   Future<void> executeDelete({
     required String entityName,
     required String table,
     int? id,
+    String? where,
+    List<Object?>? whereArgs,
     String? additionalDetails,
-  }) async {
-    return safeDbCall(() async {
-      if (id != null) {
-        await database.delete(table, where: 'id = ?', whereArgs: [id]);
-      } else {
-        await database.delete(table);
-      }
-    });
+  }) {
+    return safeDbCall(
+      () async {
+        if (id != null) {
+          await database.delete(table, where: 'id = ?', whereArgs: [id]);
+        } else if (where != null) {
+          await database.delete(table, where: where, whereArgs: whereArgs);
+        } else {
+          await database.delete(table);
+        }
+      },
+      operation: 'Failed to delete $entityName',
+      details: additionalDetails ?? (id != null ? 'ID: $id' : null),
+    );
   }
 
-  Future<int> _insertEntity(String table, Map<String, dynamic> values) async {
-    final id = await database.insert(
+  Future<int> executePartialUpdate({
+    required String entityName,
+    required String table,
+    required Map<String, dynamic> values,
+    required int id,
+    String? entityDetails,
+  }) {
+    return safeDbCall(
+      () async {
+        return await database.update(
+          table,
+          values,
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+      },
+      operation: 'Failed to update $entityName',
+      details: entityDetails ?? 'ID: $id',
+    );
+  }
+
+  Future<int> _insertEntity(String table, Map<String, dynamic> values) {
+    return database.insert(
       table,
       values,
       conflictAlgorithm: ConflictAlgorithm.abort,
     );
-    return id;
   }
 
   Future<int> _updateEntity(
