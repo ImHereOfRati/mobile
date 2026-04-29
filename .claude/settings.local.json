@@ -4,7 +4,9 @@
       "Bash(flutter test *)",
       "Bash(dart run *)",
       "Bash(git stash *)",
-      "Bash(flutter analyze *)"
+      "Bash(flutter analyze *)",
+      "Bash(git log *)",
+      "Bash(git rev-list *)"
     ]
   }
 }
