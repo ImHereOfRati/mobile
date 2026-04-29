@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,12 +25,35 @@ import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _configureSystemChrome();
+
+  // 인터넷 안내 화면은 '실제로 네트워크가 끊겨 있을 때' 만 노출한다.
+  // Remote Config 등 네트워크 의존 초기화가 모바일 데이터 첫 핸드셰이크에서
+  // 단순 timeout 으로 실패하는 경우는 에러 화면으로 라우팅하지 않는다.
+  if (!await _hasNetworkConnection()) {
+    AppLogger.warning('네트워크 미연결 — 초기화 에러 화면 표시');
+    runApp(const InitializationErrorApp());
+    return;
+  }
+
   try {
     await _initializeAppDependencies();
-    runApp(const ProviderScope(child: ImHereApp()));
   } catch (e, stack) {
-    AppLogger.error('상부 의존성 초기화 실패', e, stack);
-    runApp(const InitializationErrorApp());
+    // 네트워크는 살아있는데 일부 의존성이 실패한 경우. 캐시/기본값으로 진입을 계속한다.
+    AppLogger.error('일부 의존성 초기화 실패 — 부분 진입 진행', e, stack);
+  }
+  runApp(const ProviderScope(child: ImHereApp()));
+}
+
+Future<bool> _hasNetworkConnection() async {
+  try {
+    final result = await InternetAddress.lookup(
+      'fortuneki.site',
+    ).timeout(const Duration(seconds: 5));
+    return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
+  } on TimeoutException {
+    return false;
+  } on SocketException {
+    return false;
   }
 }
 
@@ -129,11 +153,11 @@ Future<void> _syncNativeGeofencesOnStart() async {
 }
 
 Future<void> _initializeBaseUrl() async {
-  final localServerUrlForAOS = 'http://10.0.2.2:8080';
+  // Remote Config 가 비어있거나 fetch 실패 시 사용할 운영 서버 폴백.
+  // 백그라운드 콜백(geofence_background_callback.dart)과 동일한 값으로 정합성 유지.
+  const productionFallback = 'https://fortuneki.site';
   final String? remoteUrl = FirebaseService().remoteConfig.baseUrlOrNull;
-
-  final String finalBaseUrl = remoteUrl ?? localServerUrlForAOS;
-  await enrollBaseUrlGlobally(baseUrl: finalBaseUrl);
+  await enrollBaseUrlGlobally(baseUrl: remoteUrl ?? productionFallback);
 }
 
 Future<void> _initializeDotEnvFile() async {
