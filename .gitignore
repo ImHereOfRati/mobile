@@ -74,5 +74,6 @@ cert.der
 build_error.log
 .flutter-plugins-dependencies
 /.gemini/
+/.claude/
 
 firebase.json
