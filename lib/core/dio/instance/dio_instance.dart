@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/core/dio/instance/module/auth_token_refresh_coordinator.dart';
-import 'package:iamhere/core/dio/properties/dio_properties.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:injectable/injectable.dart';
 
@@ -13,7 +12,7 @@ abstract class DioInstance {
     return BaseOptions(
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
-      headers: {DioProperties.contentTypeHeader: DioProperties.applicationJson},
+      headers: {'Content-Type': 'application/json'},
     );
   }
 

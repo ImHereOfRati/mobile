@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/dio_properties.dart';
-import 'package:iamhere/core/dio/properties/dio_properties.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -32,8 +30,7 @@ class RequestRetrier {
     PendingRequest pendingRequest,
     String token,
   ) async {
-    pendingRequest.requestOptions.headers[DioProperties.authorizationHeader] =
-        '${DioProperties.bearer} $token';
+    pendingRequest.requestOptions.headers['Authorization'] = 'Bearer $token';
     try {
       final response = await _dio.fetch(pendingRequest.requestOptions);
       pendingRequest.handler.resolve(response);

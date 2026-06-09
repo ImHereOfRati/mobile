@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/dio_properties.dart';
 import 'package:iamhere/core/dio/properties/http_status_code.dart';
 import 'package:iamhere/core/dio/response/api_response.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
@@ -46,8 +45,8 @@ class TokenRefresher {
       );
     }
 
-    final access = apiResponse.data![DioProperties.accessToken];
-    final refresh = apiResponse.data![DioProperties.refreshToken];
+    final access = apiResponse.data!['accessToken'];
+    final refresh = apiResponse.data!['refreshToken'];
 
     await _tokenStorage.saveAccessToken(access as String);
     await _tokenStorage.saveRefreshToken(refresh as String);

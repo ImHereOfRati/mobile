@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/dio_properties.dart';
 import 'package:iamhere/core/dio/properties/http_status_code.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 
@@ -24,8 +23,7 @@ class DioAuthInterceptor extends Interceptor {
 
     final token = await _tokenStorage.getAccessToken();
     if (token != null) {
-      options.headers[DioProperties.authorizationHeader] =
-          '${DioProperties.bearer} $token';
+      options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
   }
