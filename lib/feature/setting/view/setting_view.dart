@@ -4,12 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/core/router/app_routes.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model_state.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/shared/component/theme/theme_mode_provider.dart';
+import 'package:iamhere/common/component/theme/theme_mode_provider.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:url_launcher/url_launcher.dart';
 

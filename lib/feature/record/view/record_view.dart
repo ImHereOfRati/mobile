@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/core/router/app_routes.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/view_model/geofence_record_view_model.dart';

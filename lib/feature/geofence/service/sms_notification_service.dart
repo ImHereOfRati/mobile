@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 import 'sms_service.dart';

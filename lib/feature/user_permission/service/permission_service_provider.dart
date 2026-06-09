@@ -1,4 +1,4 @@
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

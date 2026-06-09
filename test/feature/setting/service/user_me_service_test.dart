@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/setting/service/user_me_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';

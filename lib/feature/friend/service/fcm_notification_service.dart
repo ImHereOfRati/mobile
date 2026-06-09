@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
-import 'package:iamhere/core/dio/util/dio_handler.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
+import 'package:iamhere/infrastructure/network/util/dio_handler.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
-import 'package:iamhere/shared/base/result/result.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton

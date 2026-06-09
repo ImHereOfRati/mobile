@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:iamhere/integration/fcm/repository/fcm_token_repository.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 import 'fcm_token_storage_service.dart';

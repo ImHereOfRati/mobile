@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/geofence/model/location_search_result.dart';
-import 'package:iamhere/shared/component/style/app_text_styles.dart';
+import 'package:iamhere/common/component/style/app_text_styles.dart';
 
 class MapSelectResult {
   final NLatLng location;

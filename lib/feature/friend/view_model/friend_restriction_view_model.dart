@@ -1,4 +1,4 @@
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_response_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_restriction_service_interface.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

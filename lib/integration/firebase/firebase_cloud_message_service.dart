@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 
 class FirebaseCloudMessageService {
   Future<void> initialize() async {

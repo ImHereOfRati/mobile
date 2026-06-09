@@ -1,4 +1,4 @@
-import 'package:iamhere/core/database/service/contact_database_service.dart';
+import 'package:iamhere/infrastructure/database/service/contact_database_service.dart';
 import 'package:iamhere/feature/friend/repository/contact_repository.dart';
 import 'package:injectable/injectable.dart';
 

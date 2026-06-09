@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
-import 'package:iamhere/shared/component/style/app_text_styles.dart';
+import 'package:iamhere/common/component/style/app_text_styles.dart';
 
 class EnrollRecipientChip extends StatelessWidget {
   final Recipient recipient;

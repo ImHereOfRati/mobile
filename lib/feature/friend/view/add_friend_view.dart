@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/dto/user_search_response_dto.dart';
 import 'package:iamhere/feature/friend/service/user_search_service_interface.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model_provider.dart';

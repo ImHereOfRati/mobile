@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iamhere/core/router/app_routes.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
@@ -10,7 +10,7 @@ import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/shared/base/snack_bar/app_snack_bar.dart';
+import 'package:iamhere/common/base/snack_bar/app_snack_bar.dart';
 
 import '../map_select/component/map_select_widgets.dart';
 import '../map_select/map_select_view.dart';

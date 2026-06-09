@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/core/router/app_routes.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/feature/terms/view_model/terms_agreement_notifier.dart';
 import 'package:iamhere/feature/terms/view_model/terms_agreement_provider.dart';

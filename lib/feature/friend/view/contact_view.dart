@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/core/router/app_routes.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
 import 'package:iamhere/feature/friend/view_model/contact.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model.dart';

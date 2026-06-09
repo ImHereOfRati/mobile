@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/shared/util/phone_number_formatter.dart';
+import 'package:iamhere/common/util/phone_number_formatter.dart';
 
 /// 친구 목록 한 행. 왼쪽으로 밀어서 삭제.
 class ContactTile extends StatelessWidget {

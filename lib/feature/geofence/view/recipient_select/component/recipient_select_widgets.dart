@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/shared/component/style/app_text_styles.dart';
+import 'package:iamhere/common/component/style/app_text_styles.dart';
 
 import 'recipient_select_constants.dart';
 

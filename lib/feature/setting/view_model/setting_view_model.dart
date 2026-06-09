@@ -1,6 +1,6 @@
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/shared/util/app_package_info.dart';
+import 'package:iamhere/common/util/app_package_info.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'setting_view_model_state.dart';

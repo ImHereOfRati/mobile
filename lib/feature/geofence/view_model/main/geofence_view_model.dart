@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/geofence/view_model/dto/save_geofence_request.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';

@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
-import 'package:iamhere/core/dio/properties/http_status_code.dart';
-import 'package:iamhere/core/dio/util/dio_handler.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
+import 'package:iamhere/infrastructure/network/properties/http_status_code.dart';
+import 'package:iamhere/infrastructure/network/util/dio_handler.dart';
 import 'package:iamhere/feature/auth/model/login_result.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
-import 'package:iamhere/shared/base/api_response/api_response.dart';
-import 'package:iamhere/shared/base/result/result_message.dart';
+import 'package:iamhere/common/base/api_response/api_response.dart';
+import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:injectable/injectable.dart';
 
 import 'auth_service_interface.dart';

@@ -3,8 +3,8 @@ import 'package:iamhere/feature/auth/model/login_result.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
-import 'package:iamhere/shared/base/result/result.dart';
-import 'package:iamhere/shared/base/result/result_message.dart';
+import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 

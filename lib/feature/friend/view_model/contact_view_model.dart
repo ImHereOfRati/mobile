@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/services.dart';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/repository/contact_local_repository_provider.dart';
 import 'package:iamhere/feature/friend/repository/contact_repository.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';

@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:iamhere/feature/terms/service/dto/terms_version_response_dto.dart';
 import 'package:iamhere/feature/terms/service/terms_request_service.dart';
-import 'package:iamhere/shared/base/api_response/api_response.dart';
+import 'package:iamhere/common/base/api_response/api_response.dart';
 
 class TermsDetailView extends ConsumerStatefulWidget {
   final int termDefinitionId;

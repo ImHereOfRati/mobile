@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/core/router/app_routes.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/shared/component/view_component/page_title.dart';
+import 'package:iamhere/common/component/view_component/page_title.dart';
 
 import 'geofence_warning_banner.dart';
 import 'gps_status_card.dart';

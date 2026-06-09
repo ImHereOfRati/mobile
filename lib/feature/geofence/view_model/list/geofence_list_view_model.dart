@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository_provider.dart';

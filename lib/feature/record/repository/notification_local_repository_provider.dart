@@ -1,4 +1,4 @@
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'notification_local_repository.dart';

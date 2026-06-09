@@ -2,10 +2,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 
 /// 로컬 알림 플러그인 인스턴스
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =

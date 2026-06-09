@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/shared/component/style/app_text_styles.dart';
+import 'package:iamhere/common/component/style/app_text_styles.dart';
 
 const String _locationSelected = '위치 선택됨';
 const String _openMapSelect = '지도에서 위치 선택하기';

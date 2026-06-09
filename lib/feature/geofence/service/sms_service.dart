@@ -1,12 +1,12 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/geofence/model/message_send_request.dart';
 import 'package:iamhere/feature/geofence/model/multiple_message_send_request.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
-import 'package:iamhere/shared/base/result/result.dart';
+import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 /// SMS sending service with proper dependency injection and error handling

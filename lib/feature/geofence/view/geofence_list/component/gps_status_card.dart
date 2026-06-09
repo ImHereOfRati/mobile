@@ -5,7 +5,7 @@ import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
-import 'package:iamhere/shared/component/style/app_text_styles.dart';
+import 'package:iamhere/common/component/style/app_text_styles.dart';
 
 const String _trackingActive = '위치 추적 중이에요';
 const String _trackingInactive = '위치 추적을 하고 있지 않아요';

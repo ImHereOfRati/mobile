@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_detail_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_request_service_interface.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable(as: FriendRequestServiceInterface)

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/setting/view_model/my_info_view_model.dart';
-import 'package:iamhere/shared/base/result/result_message.dart';
-import 'package:iamhere/shared/base/snack_bar/app_snack_bar.dart';
+import 'package:iamhere/common/base/result/result_message.dart';
+import 'package:iamhere/common/base/snack_bar/app_snack_bar.dart';
 
 class MyInfoView extends ConsumerWidget {
   const MyInfoView({super.key});

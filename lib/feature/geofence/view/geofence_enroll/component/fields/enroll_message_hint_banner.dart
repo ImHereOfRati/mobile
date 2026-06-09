@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/shared/component/style/app_text_styles.dart';
+import 'package:iamhere/common/component/style/app_text_styles.dart';
 
 const String _smsNote = '문자 메시지 발송 시에는 적용되지 않아요\n대신 아래와 같이 발송됩니다.';
 const String _smsExample =

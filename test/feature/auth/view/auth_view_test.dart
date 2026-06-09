@@ -8,8 +8,8 @@ import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/feature/auth/view/auth_view.dart';
 import 'package:iamhere/feature/auth/view/component/login_button.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
-import 'package:iamhere/shared/base/result/result.dart';
-import 'package:iamhere/shared/base/result/result_message.dart';
+import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
-import 'package:iamhere/core/dio/properties/http_status_code.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
+import 'package:iamhere/infrastructure/network/properties/http_status_code.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/fcm_token.dart';

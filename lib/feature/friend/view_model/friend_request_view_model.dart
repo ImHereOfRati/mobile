@@ -1,4 +1,4 @@
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';

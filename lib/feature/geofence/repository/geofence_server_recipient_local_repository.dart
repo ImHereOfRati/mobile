@@ -1,4 +1,4 @@
-import 'package:iamhere/core/database/service/geofence_server_recipient_database_service.dart';
+import 'package:iamhere/infrastructure/database/service/geofence_server_recipient_database_service.dart';
 import 'package:injectable/injectable.dart';
 
 import 'geofence_server_recipient_entity.dart';

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_request_service.dart';
 import 'package:mockito/annotations.dart';

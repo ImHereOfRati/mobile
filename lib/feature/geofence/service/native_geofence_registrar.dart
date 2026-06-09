@@ -6,7 +6,7 @@ import 'package:iamhere/feature/geofence/service/missing_background_location_exc
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 import 'package:native_geofence/native_geofence.dart';
 

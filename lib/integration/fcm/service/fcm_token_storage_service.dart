@@ -1,5 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 /// FCM 토큰을 로컬에 안전하게 저장하는 서비스

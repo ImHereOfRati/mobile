@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
-import 'package:iamhere/shared/base/api_response/api_response.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
+import 'package:iamhere/common/base/api_response/api_response.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/after_terms_agreement_auth_response_dto.dart';

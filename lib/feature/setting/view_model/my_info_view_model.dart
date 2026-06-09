@@ -1,4 +1,4 @@
-import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/setting/service/dto/user_me_response_dto.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

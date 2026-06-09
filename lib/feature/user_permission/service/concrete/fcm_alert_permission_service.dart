@@ -1,7 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
-import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 
 class FcmAlertPermissionService implements PermissionServiceInterface {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
