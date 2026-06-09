@@ -1,67 +1,56 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/core/dio/module/dio_header_sanitizer_interceptor.dart';
-import 'package:iamhere/core/dio/properties/api_config.dart';
 import 'package:iamhere/core/dio/properties/dio_properties.dart';
 import 'package:iamhere/core/dio/properties/http_status_code.dart';
+import 'package:iamhere/core/dio/response/api_response.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/shared/util/app_logger.dart';
+import 'package:injectable/injectable.dart';
 
+@lazySingleton
 class TokenRefresher {
-  static const debuggingMessage = '리프레시 토큰 미존재로 인한 토큰 갱신 실패';
-  static const exceptionMessage = '"리프레시 토큰이 저장소에 존재하지 합시다"';
+  static const tokenRefreshEndPoint = '/api/auth/refresh';
 
+  static const notFoundTokenErrorMessage =
+      '리프레시 토큰이 저장소에 존재하지 않아 로그인 갱신에 실패했습니다';
+
+  final Dio _dio;
   final TokenStorageService _tokenStorage;
-  final String _baseUrl;
-  Dio? _dio;
 
-  TokenRefresher(this._tokenStorage, this._baseUrl);
+  TokenRefresher(this._tokenStorage, @Named('retryDio') this._dio);
 
-  Future<String?> refresh() async {
+  Future<ApiResponse<String>> refresh() async {
     final refreshToken = await _tokenStorage.getRefreshToken();
-    _existRefreshToken(refreshToken);
-
-    try {
-      final response = await _ensureDio().post(
-        ApiConfig.authReissuePath,
-        data: {DioProperties.refreshToken: refreshToken},
-      );
-      return await _saveTokens(response);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Dio _ensureDio() {
-    return _dio ??= Dio(
-      BaseOptions(
-        baseUrl: _baseUrl,
-        headers: {
-          DioProperties.contentTypeHeader: DioProperties.applicationJson,
-        },
-      ),
-    )..interceptors.add(DioHeaderSanitizerInterceptor());
-  }
-
-  void _existRefreshToken(String? refreshToken) {
     if (refreshToken == null) {
-      AppLogger.debug(debuggingMessage);
-      throw Exception(exceptionMessage);
+      AppLogger.debug(notFoundTokenErrorMessage);
+      throw Exception(notFoundTokenErrorMessage);
     }
+
+    final response = await _dio.post(
+      tokenRefreshEndPoint,
+      data: {'refreshToken': refreshToken},
+    );
+
+    return _saveTokens(response);
   }
 
-  Future<String?> _saveTokens(Response response) async {
+  Future<ApiResponse<String>> _saveTokens(Response response) async {
+    final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
+      response.data,
+      (json) => json as Map<String, dynamic>,
+    );
+
     if (response.statusCode != HttpStatusCode.ok) {
-      return null;
+      return ApiResponse.fail(
+        imhereErrorCode: apiResponse.imhereResponseCode,
+        errorMessage: apiResponse.message,
+      );
     }
 
-    final data = response.data;
-    if (data == null || data is! Map) return null;
+    final access = apiResponse.data![DioProperties.accessToken];
+    final refresh = apiResponse.data![DioProperties.refreshToken];
 
-    final access = data[DioProperties.accessToken];
-    final refresh = data[DioProperties.refreshToken];
-
-    if (access != null) await _tokenStorage.saveAccessToken(access);
-    if (refresh != null) await _tokenStorage.saveRefreshToken(refresh);
-    return access;
+    await _tokenStorage.saveAccessToken(access as String);
+    await _tokenStorage.saveRefreshToken(refresh as String);
+    return ApiResponse.success(data: '재로그인 성공');
   }
 }
