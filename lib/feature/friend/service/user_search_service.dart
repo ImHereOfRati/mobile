@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/user_search_response_dto.dart';
 import 'package:iamhere/feature/friend/service/user_search_service_interface.dart';
 import 'package:iamhere/common/util/app_logger.dart';
@@ -7,6 +6,8 @@ import 'package:injectable/injectable.dart';
 
 @Injectable(as: UserSearchServiceInterface)
 class UserSearchService implements UserSearchServiceInterface {
+  static const String _userSearchPath = '/api/users';
+
   final Dio _dio;
 
   UserSearchService({required Dio dio}) : _dio = dio;
@@ -15,8 +16,8 @@ class UserSearchService implements UserSearchServiceInterface {
   Future<List<UserSearchResponseDto>> searchByNickname(String keyword) async {
     try {
       final response = await _dio.get(
-        ApiConfig.userSearchPath(keyword),
-        options: ApiConfig.authOptions,
+        _userSearchPath,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {

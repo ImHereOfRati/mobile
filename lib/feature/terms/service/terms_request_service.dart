@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/common/base/api_response/page_response.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
@@ -10,6 +9,9 @@ import 'dto/terms_version_response_dto.dart';
 
 @lazySingleton
 class TermsRequestService {
+  static const String _termsListPath = '/api/terms';
+  static const String _termsVersionPath = '/api/terms';
+
   final Dio _dio;
 
   TermsRequestService(this._dio);
@@ -17,7 +19,7 @@ class TermsRequestService {
   Future<ApiResponse<PageResponse<TermsListRequestDto>>>
   requestTermsList() async {
     try {
-      final response = await _dio.get(ApiConfig.termsListPath);
+      final response = await _dio.get(_termsListPath);
 
       if (response.statusCode == 200) {
         return ApiResponse<PageResponse<TermsListRequestDto>>.fromJson(
@@ -44,8 +46,7 @@ class TermsRequestService {
     int termDefinitionId,
   ) async {
     try {
-      final path = ApiConfig.termsVersionPath(termDefinitionId.toString());
-      final response = await _dio.get(path);
+      final response = await _dio.get(_termsVersionPath);
 
       if (response.statusCode == 200) {
         return ApiResponse<TermsVersionResponseDto>.fromJson(

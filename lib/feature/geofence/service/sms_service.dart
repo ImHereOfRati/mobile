@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/geofence/model/message_send_request.dart';
 import 'package:iamhere/feature/geofence/model/multiple_message_send_request.dart';
@@ -12,6 +11,9 @@ import 'package:injectable/injectable.dart';
 /// SMS sending service with proper dependency injection and error handling
 @lazySingleton
 class SmsService {
+  static const String _smsArrivalPath = '/api/notifications';
+  static const String _smsMultipleArrivalPath = '/api/notifications/batch';
+
   final Dio _dio;
   final FcmNotificationService _fcmNotificationService;
   final UserMeServiceInterface _userMeService;
@@ -67,7 +69,7 @@ class SmsService {
   }) async {
     try {
       final response = await _dio.post(
-        ApiConfig.smsArrivalPath,
+        _smsArrivalPath,
         data: MessageSendRequest(
           location: location,
           receiverNumber: phoneNumber,
@@ -107,7 +109,7 @@ class SmsService {
           .toList();
 
       final response = await _dio.post(
-        ApiConfig.smsMultipleArrivalPath,
+        _smsMultipleArrivalPath,
         data: MultipleMessageSendRequest(requests: requests).toJson(),
       );
 

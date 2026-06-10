@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/update_friend_alias_request_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_relationship_service.dart';
 import 'package:mockito/annotations.dart';
@@ -21,7 +20,7 @@ void main() {
   group('fetchFriendList', () {
     test('성공 시 친구 목록을 반환해야 함', () async {
       when(
-        mockDio.get(ApiConfig.friendListPath, options: anyNamed('options')),
+        mockDio.get('/api/friendships', options: anyNamed('options')),
       ).thenAnswer(
         (_) async => Response(
           data: {
@@ -39,7 +38,7 @@ void main() {
             ],
           },
           statusCode: 200,
-          requestOptions: RequestOptions(path: ApiConfig.friendListPath),
+          requestOptions: RequestOptions(path: '/api/friendships'),
         ),
       );
 
@@ -52,10 +51,10 @@ void main() {
 
     test('실패 시 빈 리스트를 반환해야 함', () async {
       when(
-        mockDio.get(ApiConfig.friendListPath, options: anyNamed('options')),
+        mockDio.get('/api/friendships', options: anyNamed('options')),
       ).thenThrow(
         DioException(
-          requestOptions: RequestOptions(path: ApiConfig.friendListPath),
+          requestOptions: RequestOptions(path: '/api/friendships'),
         ),
       );
 
@@ -73,7 +72,7 @@ void main() {
 
       when(
         mockDio.post(
-          ApiConfig.friendAliasPath,
+          '/api/friendships/uuid-1/alias',
           data: anyNamed('data'),
           options: anyNamed('options'),
         ),
@@ -87,7 +86,7 @@ void main() {
             },
           },
           statusCode: 200,
-          requestOptions: RequestOptions(path: ApiConfig.friendAliasPath),
+          requestOptions: RequestOptions(path: '/api/friendships/uuid-1/alias'),
         ),
       );
 
@@ -102,7 +101,7 @@ void main() {
     test('성공 시 true를 반환해야 함', () async {
       when(
         mockDio.post(
-          ApiConfig.friendBlockPath('uuid-1'),
+          '/api/friendships/uuid-1/block',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
@@ -110,7 +109,7 @@ void main() {
           data: {'status': 200, 'message': 'success'},
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: ApiConfig.friendBlockPath('uuid-1'),
+            path: '/api/friendships/uuid-1/block',
           ),
         ),
       );
@@ -124,7 +123,7 @@ void main() {
     test('성공 시 true를 반환해야 함', () async {
       when(
         mockDio.delete(
-          ApiConfig.friendDeletePath('uuid-1'),
+          '/api/friendships/uuid-1',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
@@ -132,7 +131,7 @@ void main() {
           data: {'status': 200, 'message': 'success'},
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: ApiConfig.friendDeletePath('uuid-1'),
+            path: '/api/friendships/uuid-1',
           ),
         ),
       );

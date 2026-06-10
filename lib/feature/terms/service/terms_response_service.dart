@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
@@ -9,6 +8,9 @@ import 'dto/terms_consent_request_dto.dart';
 
 @lazySingleton
 class TermsResponseService {
+  static const String _allTermsConsentPath = '/api/auth/activation';
+  static const String _termConsentPath = '/api/auth/activation';
+
   final Dio _dio;
 
   TermsResponseService(this._dio);
@@ -20,9 +22,9 @@ class TermsResponseService {
     try {
       final body = TermsAllConsentRequestDto(consents: consents).toJson();
       final response = await _dio.post(
-        ApiConfig.allTermsConsentPath,
+        _allTermsConsentPath,
         data: body,
-        options: ApiConfig.authOptions,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -50,8 +52,8 @@ class TermsResponseService {
   ) async {
     try {
       final response = await _dio.post(
-        ApiConfig.termConsentPath(termDefinitionId.toString()),
-        options: ApiConfig.authOptions,
+        _termConsentPath,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {

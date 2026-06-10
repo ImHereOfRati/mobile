@@ -1,7 +1,6 @@
 import 'dart:developer' as dev;
 
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
@@ -12,6 +11,8 @@ import 'package:injectable/injectable.dart';
 /// 서버 친구(ImHere 앱 유저)에게 목적지 도착 FCM 알림 발송
 @lazySingleton
 class FcmArrivalService {
+  static const String _fcmArrivalPath = '/api/notifications';
+
   final Dio _dio;
   final FcmNotificationService _fcmNotificationService;
   final UserMeServiceInterface _userMeService;
@@ -62,9 +63,9 @@ class FcmArrivalService {
         body: body,
       );
       final response = await _dio.post(
-        ApiConfig.fcmArrivalPath,
+        _fcmArrivalPath,
         data: dto.toJson(),
-        options: ApiConfig.authOptions.copyWith(
+        options: Options(extra: const {'requiresAuth': true}).copyWith(
           sendTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
         ),

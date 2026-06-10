@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_request_service.dart';
 import 'package:mockito/annotations.dart';
@@ -28,7 +27,7 @@ void main() {
 
       when(
         mockDio.post(
-          ApiConfig.friendRequestPath,
+          '/api/friends/requests',
           data: anyNamed('data'),
           options: anyNamed('options'),
         ),
@@ -38,7 +37,7 @@ void main() {
             'data': {'friendRequestId': 42},
           },
           statusCode: 200,
-          requestOptions: RequestOptions(path: ApiConfig.friendRequestPath),
+          requestOptions: RequestOptions(path: '/api/friends/requests'),
         ),
       );
 
@@ -57,13 +56,13 @@ void main() {
 
       when(
         mockDio.post(
-          ApiConfig.friendRequestPath,
+          '/api/friends/requests',
           data: anyNamed('data'),
           options: anyNamed('options'),
         ),
       ).thenThrow(
         DioException(
-          requestOptions: RequestOptions(path: ApiConfig.friendRequestPath),
+          requestOptions: RequestOptions(path: '/api/friends/requests'),
         ),
       );
 
@@ -75,7 +74,7 @@ void main() {
   group('fetchReceivedRequests', () {
     test('성공 시 받은 요청 목록을 반환해야 함', () async {
       when(
-        mockDio.get(ApiConfig.friendRequestPath, options: anyNamed('options')),
+        mockDio.get('/api/friends/requests', options: anyNamed('options')),
       ).thenAnswer(
         (_) async => Response(
           data: {
@@ -88,7 +87,7 @@ void main() {
             ],
           },
           statusCode: 200,
-          requestOptions: RequestOptions(path: ApiConfig.friendRequestPath),
+          requestOptions: RequestOptions(path: '/api/friends/requests'),
         ),
       );
 
@@ -104,7 +103,7 @@ void main() {
     test('성공 시 상세 정보를 반환해야 함', () async {
       when(
         mockDio.get(
-          ApiConfig.friendRequestDetailPath(1),
+          '/api/friends/requests/1',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
@@ -119,7 +118,7 @@ void main() {
           },
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: ApiConfig.friendRequestDetailPath(1),
+            path: '/api/friends/requests/1',
           ),
         ),
       );
@@ -135,7 +134,7 @@ void main() {
     test('성공 시 친구 관계 정보를 반환해야 함', () async {
       when(
         mockDio.post(
-          ApiConfig.friendRequestAcceptPath(1),
+          '/api/friends/requests/1/accept',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
@@ -149,7 +148,7 @@ void main() {
           },
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: ApiConfig.friendRequestAcceptPath(1),
+            path: '/api/friends/requests/1/accept',
           ),
         ),
       );
@@ -165,7 +164,7 @@ void main() {
     test('성공 시 true를 반환해야 함', () async {
       when(
         mockDio.post(
-          ApiConfig.friendRequestRejectPath(1),
+          '/api/friends/requests/1/reject',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
@@ -173,7 +172,7 @@ void main() {
           data: {'status': 200, 'message': 'success'},
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: ApiConfig.friendRequestRejectPath(1),
+            path: '/api/friends/requests/1/reject',
           ),
         ),
       );

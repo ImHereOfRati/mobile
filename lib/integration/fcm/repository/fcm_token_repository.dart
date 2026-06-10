@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/infrastructure/network/properties/http_status_code.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
@@ -9,6 +8,8 @@ import 'dto/fcm_token.dart';
 /// FCM 토큰을 서버에 전송하는 Repository
 @lazySingleton
 class FcmTokenRepository {
+  static const String _fcmEnrollPath = '/api/fcm-tokens';
+
   final Dio _dio;
 
   FcmTokenRepository(this._dio);
@@ -18,9 +19,9 @@ class FcmTokenRepository {
       final request = FcmToken.fromCurrentPlatform(fcmToken: fcmToken);
 
       final response = await _dio.post(
-        ApiConfig.fcmEnrollPath,
+        _fcmEnrollPath,
         data: request.toJson(),
-        options: ApiConfig.authOptions,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == HttpStatusCode.ok) {

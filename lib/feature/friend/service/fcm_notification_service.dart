@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/infrastructure/network/util/dio_handler.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/common/base/result/result.dart';
@@ -8,6 +7,10 @@ import 'package:injectable/injectable.dart';
 
 @lazySingleton
 class FcmNotificationService with DioHandler {
+  static const String _fcmNotificationPath = '/api/notifications';
+  static const String _fcmDeliveryResultPath = '/api/notifications';
+  static const String _fcmLocationTargetPath = '/api/notifications';
+
   final Dio _dio;
 
   FcmNotificationService({required Dio dio}) : _dio = dio;
@@ -26,9 +29,9 @@ class FcmNotificationService with DioHandler {
       );
 
       final response = await _dio.post(
-        ApiConfig.fcmDeliveryResultPath,
+        _fcmDeliveryResultPath,
         data: dto.toJson(),
-        options: ApiConfig.authOptions,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -55,9 +58,9 @@ class FcmNotificationService with DioHandler {
       );
 
       final response = await _dio.post(
-        ApiConfig.fcmNotificationPath,
+        _fcmNotificationPath,
         data: dto.toJson(),
-        options: ApiConfig.authOptions,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -84,9 +87,9 @@ class FcmNotificationService with DioHandler {
       );
 
       final response = await _dio.post(
-        ApiConfig.fcmLocationTargetPath,
+        _fcmLocationTargetPath,
         data: dto.toJson(),
-        options: ApiConfig.authOptions,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {

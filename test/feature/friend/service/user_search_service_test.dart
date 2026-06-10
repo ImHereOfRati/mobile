@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/user_search_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -37,14 +36,14 @@ void main() {
 
       when(
         mockDio.get(
-          ApiConfig.userSearchPath('테스트'),
+          '/api/users?nickname=테스트',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
         (_) async => Response(
           data: responseData,
           statusCode: 200,
-          requestOptions: RequestOptions(path: ApiConfig.userSearchPath('테스트')),
+          requestOptions: RequestOptions(path: '/api/users?nickname=테스트'),
         ),
       );
 
@@ -63,7 +62,7 @@ void main() {
       // Arrange
       when(
         mockDio.get(
-          ApiConfig.userSearchPath('없는유저'),
+          '/api/users?nickname=없는유저',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
@@ -71,7 +70,7 @@ void main() {
           data: {'data': []},
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: ApiConfig.userSearchPath('없는유저'),
+            path: '/api/users?nickname=없는유저',
           ),
         ),
       );
@@ -87,12 +86,12 @@ void main() {
       // Arrange
       when(
         mockDio.get(
-          ApiConfig.userSearchPath('에러'),
+          '/api/users?nickname=에러',
           options: anyNamed('options'),
         ),
       ).thenThrow(
         DioException(
-          requestOptions: RequestOptions(path: ApiConfig.userSearchPath('에러')),
+          requestOptions: RequestOptions(path: '/api/users?nickname=에러'),
           message: 'Network error',
         ),
       );

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/infrastructure/network/properties/http_status_code.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
@@ -15,6 +14,8 @@ import 'dto/oauth_request.dart';
 
 @lazySingleton
 class AuthService implements AuthServiceInterface {
+  static const String _loginPath = '/api/auth/login';
+
   final Dio _dio;
   final TokenStorageService _tokenStorage;
 
@@ -52,9 +53,9 @@ class AuthService implements AuthServiceInterface {
     );
 
     return await _dio.post(
-      ApiConfig.authLoginPath,
+      _loginPath,
       data: authRequestData,
-      options: ApiConfig.publicOptions,
+      options: Options(extra: const {'requiresAuth': false}),
     );
   }
 

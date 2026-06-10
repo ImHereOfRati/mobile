@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/friend_restriction_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -21,7 +20,7 @@ void main() {
     test('성공 시 제한 목록을 반환해야 함', () async {
       when(
         mockDio.get(
-          ApiConfig.friendRestrictionPath,
+          '/api/friends/restrictions',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
@@ -38,7 +37,7 @@ void main() {
             ],
           },
           statusCode: 200,
-          requestOptions: RequestOptions(path: ApiConfig.friendRestrictionPath),
+          requestOptions: RequestOptions(path: '/api/friends/restrictions'),
         ),
       );
 
@@ -52,12 +51,12 @@ void main() {
     test('실패 시 빈 리스트를 반환해야 함', () async {
       when(
         mockDio.get(
-          ApiConfig.friendRestrictionPath,
+          '/api/friends/restrictions',
           options: anyNamed('options'),
         ),
       ).thenThrow(
         DioException(
-          requestOptions: RequestOptions(path: ApiConfig.friendRestrictionPath),
+          requestOptions: RequestOptions(path: '/api/friends/restrictions'),
         ),
       );
 
@@ -70,7 +69,7 @@ void main() {
     test('성공 시 해제된 대상 이메일을 반환해야 함', () async {
       when(
         mockDio.delete(
-          ApiConfig.friendRestrictionDeletePath(1),
+          '/api/friends/restrictions/1',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
@@ -80,7 +79,7 @@ void main() {
           },
           statusCode: 201,
           requestOptions: RequestOptions(
-            path: ApiConfig.friendRestrictionDeletePath(1),
+            path: '/api/friends/restrictions/1',
           ),
         ),
       );
@@ -94,13 +93,13 @@ void main() {
     test('실패 시 null을 반환해야 함', () async {
       when(
         mockDio.delete(
-          ApiConfig.friendRestrictionDeletePath(1),
+          '/api/friends/restrictions/1',
           options: anyNamed('options'),
         ),
       ).thenThrow(
         DioException(
           requestOptions: RequestOptions(
-            path: ApiConfig.friendRestrictionDeletePath(1),
+            path: '/api/friends/restrictions/1',
           ),
         ),
       );

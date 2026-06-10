@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/setting/service/user_me_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -28,12 +27,12 @@ void main() {
       };
 
       when(
-        mockDio.get(ApiConfig.userMePath, options: anyNamed('options')),
+        mockDio.get('/api/users/my', options: anyNamed('options')),
       ).thenAnswer(
         (_) async => Response(
           data: responseData,
           statusCode: 200,
-          requestOptions: RequestOptions(path: ApiConfig.userMePath),
+          requestOptions: RequestOptions(path: '/api/users/my'),
         ),
       );
 
@@ -49,12 +48,12 @@ void main() {
     test('서버 에러 시 null을 반환해야 함', () async {
       // Arrange
       when(
-        mockDio.get(ApiConfig.userMePath, options: anyNamed('options')),
+        mockDio.get('/api/users/my', options: anyNamed('options')),
       ).thenAnswer(
         (_) async => Response(
           data: null,
           statusCode: 500,
-          requestOptions: RequestOptions(path: ApiConfig.userMePath),
+          requestOptions: RequestOptions(path: '/api/users/my'),
         ),
       );
 
@@ -68,10 +67,10 @@ void main() {
     test('DioException 발생 시 null을 반환해야 함', () async {
       // Arrange
       when(
-        mockDio.get(ApiConfig.userMePath, options: anyNamed('options')),
+        mockDio.get('/api/users/my', options: anyNamed('options')),
       ).thenThrow(
         DioException(
-          requestOptions: RequestOptions(path: ApiConfig.userMePath),
+          requestOptions: RequestOptions(path: '/api/users/my'),
           message: 'Network error',
         ),
       );

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/update_friend_alias_request_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_relationship_service_interface.dart';
@@ -8,6 +7,11 @@ import 'package:injectable/injectable.dart';
 
 @Injectable(as: FriendRelationshipServiceInterface)
 class FriendRelationshipService implements FriendRelationshipServiceInterface {
+  static const String _friendListPath = '/api/friendships';
+  static const String _friendAliasPath = '/api/friendships/{id}/alias';
+  static const String _friendBlockPath = '/api/friendships/{id}/block';
+  static const String _friendDeletePath = '/api/friendships/{id}';
+
   final Dio _dio;
 
   FriendRelationshipService({required Dio dio}) : _dio = dio;
@@ -16,8 +20,8 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
   Future<List<FriendRelationshipResponseDto>> fetchFriendList() async {
     try {
       final response = await _dio.get(
-        ApiConfig.friendListPath,
-        options: ApiConfig.authOptions,
+        _friendListPath,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -47,9 +51,9 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
   ) async {
     try {
       final response = await _dio.post(
-        ApiConfig.friendAliasPath,
+        _friendAliasPath,
         data: request.toJson(),
-        options: ApiConfig.authOptions,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -72,8 +76,8 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
   Future<bool> blockFriend(String friendRelationshipId) async {
     try {
       final response = await _dio.post(
-        ApiConfig.friendBlockPath(friendRelationshipId),
-        options: ApiConfig.authOptions,
+        _friendBlockPath(friendRelationshipId),
+        options: Options(extra: const {'requiresAuth': true}),
       );
       return response.statusCode == 200;
     } on DioException catch (e) {
@@ -86,8 +90,8 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
   Future<bool> deleteFriend(String friendRelationshipId) async {
     try {
       final response = await _dio.delete(
-        ApiConfig.friendDeletePath(friendRelationshipId),
-        options: ApiConfig.authOptions,
+        _friendDeletePath(friendRelationshipId),
+        options: Options(extra: const {'requiresAuth': true}),
       );
       return response.statusCode == 200;
     } on DioException catch (e) {

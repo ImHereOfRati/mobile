@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_deleted_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_response_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_restriction_service_interface.dart';
@@ -8,6 +7,9 @@ import 'package:injectable/injectable.dart';
 
 @Injectable(as: FriendRestrictionServiceInterface)
 class FriendRestrictionService implements FriendRestrictionServiceInterface {
+  static const String _friendRestrictionPath = '/api/friends/restrictions';
+  static const String _friendRestrictionDeletePath = '/api/friends/restrictions/{id}';
+
   final Dio _dio;
 
   FriendRestrictionService({required Dio dio}) : _dio = dio;
@@ -16,8 +18,8 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
   Future<List<FriendRestrictionResponseDto>> fetchRestrictions() async {
     try {
       final response = await _dio.get(
-        ApiConfig.friendRestrictionPath,
-        options: ApiConfig.authOptions,
+        _friendRestrictionPath,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -47,8 +49,8 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
   ) async {
     try {
       final response = await _dio.delete(
-        ApiConfig.friendRestrictionDeletePath(friendRestrictionId),
-        options: ApiConfig.authOptions,
+        _friendRestrictionDeletePath(friendRestrictionId),
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {

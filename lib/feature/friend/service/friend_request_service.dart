@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
@@ -11,6 +10,11 @@ import 'package:injectable/injectable.dart';
 
 @Injectable(as: FriendRequestServiceInterface)
 class FriendRequestService implements FriendRequestServiceInterface {
+  static const String _friendRequestPath = '/api/friends/requests';
+  static const String _friendRequestDetailPath = '/api/friends/requests/{id}';
+  static const String _friendRequestAcceptPath = '/api/friends/requests/{id}/accept';
+  static const String _friendRequestRejectPath = '/api/friends/requests/{id}/reject';
+
   final Dio _dio;
 
   FriendRequestService({required Dio dio}) : _dio = dio;
@@ -21,9 +25,9 @@ class FriendRequestService implements FriendRequestServiceInterface {
   ) async {
     try {
       final response = await _dio.post(
-        ApiConfig.friendRequestPath,
+        _friendRequestPath,
         data: request.toJson(),
-        options: ApiConfig.authOptions,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -46,8 +50,8 @@ class FriendRequestService implements FriendRequestServiceInterface {
   Future<List<ReceivedFriendRequestResponseDto>> fetchReceivedRequests() async {
     try {
       final response = await _dio.get(
-        ApiConfig.friendRequestPath,
-        options: ApiConfig.authOptions,
+        _friendRequestPath,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -77,8 +81,8 @@ class FriendRequestService implements FriendRequestServiceInterface {
   ) async {
     try {
       final response = await _dio.get(
-        ApiConfig.friendRequestDetailPath(requestId),
-        options: ApiConfig.authOptions,
+        _friendRequestDetailPath(requestId),
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -101,8 +105,8 @@ class FriendRequestService implements FriendRequestServiceInterface {
   Future<FriendRelationshipResponseDto?> acceptRequest(int requestId) async {
     try {
       final response = await _dio.post(
-        ApiConfig.friendRequestAcceptPath(requestId),
-        options: ApiConfig.authOptions,
+        _friendRequestAcceptPath(requestId),
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -125,8 +129,8 @@ class FriendRequestService implements FriendRequestServiceInterface {
   Future<bool> rejectRequest(int requestId) async {
     try {
       final response = await _dio.post(
-        ApiConfig.friendRequestRejectPath(requestId),
-        options: ApiConfig.authOptions,
+        _friendRequestRejectPath(requestId),
+        options: Options(extra: const {'requiresAuth': true}),
       );
       return response.statusCode == 200;
     } on DioException catch (e) {

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/feature/setting/service/dto/change_nickname_request_dto.dart';
 import 'package:iamhere/feature/setting/service/dto/user_me_response_dto.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
@@ -8,6 +7,9 @@ import 'package:injectable/injectable.dart';
 
 @Injectable(as: UserMeServiceInterface)
 class UserMeService implements UserMeServiceInterface {
+  static const String _userMePath = '/api/users/my';
+  static const String _userNicknamePath = '/api/users/my';
+
   final Dio _dio;
 
   UserMeService({required Dio dio}) : _dio = dio;
@@ -16,8 +18,8 @@ class UserMeService implements UserMeServiceInterface {
   Future<UserMeResponseDto?> fetchMyInfo() async {
     try {
       final response = await _dio.get(
-        ApiConfig.userMePath,
-        options: ApiConfig.authOptions,
+        _userMePath,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
@@ -45,9 +47,9 @@ class UserMeService implements UserMeServiceInterface {
   Future<UserMeResponseDto?> changeNickname(String newNickname) async {
     try {
       final response = await _dio.post(
-        ApiConfig.userNicknamePath,
+        _userNicknamePath,
         data: ChangeNicknameRequestDto(newNickname: newNickname).toJson(),
-        options: ApiConfig.authOptions,
+        options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
