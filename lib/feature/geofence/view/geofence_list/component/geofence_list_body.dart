@@ -16,10 +16,10 @@ import 'package:iamhere/common/component/layout/loading_body.dart';
 import 'package:iamhere/common/component/layout/sliver_message_view.dart';
 
 const String _enrollFailure = '등록 실패: ';
-const String _deleteDialogTitle = '지오펜스 삭제';
-const String _deleteDialogSuffix = ' 지오펜스를 삭제하시겠습니까?';
+const String _deleteDialogTitle = '도착 알림 삭제';
+const String _deleteDialogSuffix = ' 알림을 삭제하시겠습니까?';
 const String _errorPrefix = '오류 발생: ';
-const String _emptyListMessage = '등록된 지오펜스가 없습니다';
+const String _emptyListMessage = '아직 만든 도착 알림이 없어요';
 
 class GeofenceListBody extends ConsumerStatefulWidget {
   const GeofenceListBody({super.key});
@@ -126,8 +126,10 @@ class _GeofenceListBodyState extends ConsumerState<GeofenceListBody>
     }
 
     if (!mounted) return false;
+    await AppRoutes.pushUserPermission(context);
+    if (!mounted) return false;
 
-    return await AppRoutes.pushLocationPermissionGuide(context);
+    return await service.checkPermissionStatus() == PermissionState.grantedAlways;
   }
 
   Future<void> _handleDelete(GeofenceEntity geofence) async {

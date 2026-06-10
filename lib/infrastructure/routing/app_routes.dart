@@ -36,6 +36,8 @@ class AppRoutes {
   // ── Navigation helpers ────────────────────────────────────────────
   static void goToUserPermission(BuildContext context) =>
       context.go(userPermission);
+  static Future<void> pushUserPermission(BuildContext context) =>
+      context.push(userPermission);
   static Future<bool> pushLocationPermissionGuide(BuildContext context) async {
     final result = await context.push<bool>(locationPermissionGuide);
     return result ?? false;

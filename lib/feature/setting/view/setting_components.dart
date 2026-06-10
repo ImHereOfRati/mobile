@@ -39,9 +39,10 @@ class SettingItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final textColor = isDestructive
-        ? const Color(0xFFFF3B30)
-        : Theme.of(context).colorScheme.onSurface;
+        ? cs.error
+        : cs.onSurface;
 
     return InkWell(
       onTap: onTap,
@@ -67,7 +68,7 @@ class SettingItem extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'BMHANNAAir',
                   fontSize: 14.sp,
-                  color: const Color(0xFF0071E3),
+                  color: cs.primary,
                   fontWeight: FontWeight.w500,
                   letterSpacing: -0.224,
                 ),

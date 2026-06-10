@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
 
@@ -16,7 +18,7 @@ class CenterAddButton extends ConsumerWidget {
   });
 
   static const _permissionRequiredMessage =
-      '추가를 위해 위치 권한이 필요해요';
+      '알림을 만들려면 위치 권한이 필요해요';
 
   final void Function(BuildContext context) onAuthorizedTap;
   final Future<void> Function(BuildContext context) onUnauthorizedTap;
@@ -61,7 +63,7 @@ class CenterAddButton extends ConsumerWidget {
     HapticFeedback.lightImpact();
 
     final service = ref.read(locationPermissionServiceProvider);
-    final status = await service.checkPermissionStatus();
+    final status = await _resolveStatusForCreate(service);
     if (!context.mounted) return;
 
     switch (_actionResolver.resolve(status)) {
@@ -71,5 +73,17 @@ class CenterAddButton extends ConsumerWidget {
         AppSnackBar.showError(context, _permissionRequiredMessage);
         await onUnauthorizedTap(context);
     }
+  }
+
+  Future<PermissionState> _resolveStatusForCreate(
+    PermissionServiceInterface service,
+  ) async {
+    final status = await service.checkPermissionStatus();
+
+    if (status == PermissionState.denied) {
+      return service.requestPermission();
+    }
+
+    return status;
   }
 }

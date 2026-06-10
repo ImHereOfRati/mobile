@@ -16,7 +16,7 @@ import '../map_select/component/map_select_widgets.dart';
 import '../map_select/map_select_view.dart';
 import '../recipient_select/recipient_select_view.dart';
 
-const String _enrollSuccess = '지오펜스가 저장되었습니다';
+const String _enrollSuccess = '도착 알림이 저장되었습니다';
 const String _enrollFailure = '저장 실패: ';
 
 class GeofenceEnrollView extends ConsumerStatefulWidget {
@@ -50,7 +50,6 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   @override
   Widget build(BuildContext context) {
     final formState = ref.watch(geofenceEnrollViewModelProvider);
-    final isEditMode = widget.geofence != null;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -137,6 +136,8 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
         await service.checkPermissionStatus() == PermissionState.grantedAlways;
     if (isAlways) return true;
     if (!mounted) return false;
-    return await AppRoutes.pushLocationPermissionGuide(context);
+    await AppRoutes.pushUserPermission(context);
+    if (!mounted) return false;
+    return await service.checkPermissionStatus() == PermissionState.grantedAlways;
   }
 }

@@ -1,15 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
-import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
-import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/view_model/geofence_record_view_model.dart';
 import 'package:iamhere/feature/record/view_model/notification_view_model.dart';
-import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
+
+import 'component/record_overview_items.dart';
+import 'component/record_overview_sections.dart';
 
 class RecordView extends ConsumerWidget {
   const RecordView({super.key});
@@ -19,18 +17,16 @@ class RecordView extends ConsumerWidget {
     final recordsAsync = ref.watch(geofenceRecordViewModelProvider);
     final notificationsAsync = ref.watch(notificationViewModelProvider);
     final friendRequestsAsync = ref.watch(friendRequestViewModelProvider);
-    final cs = Theme.of(context).colorScheme;
-
     return CustomScrollView(
       slivers: [
-        // ── 페이지 헤더 ───────────────────────────────────────────────
-        SliverToBoxAdapter(child: _buildPageHeader(context, cs, recordsAsync)),
-
-        // ── 받은 알림 ────────────────────────────────────────────────
         SliverToBoxAdapter(
-          child: _buildSectionHeader(
-            context, cs, '받은 알림',
-            notificationsAsync.value?.length ?? 0,
+          child: RecordPageHeader(count: recordsAsync.value?.length ?? 0),
+        ),
+
+        SliverToBoxAdapter(
+          child: RecordSectionHeader(
+            title: '받은 알림',
+            unreadCount: notificationsAsync.value?.length ?? 0,
             onViewAll: () => AppRoutes.goToRecordNotifications(context),
           ),
         ),
@@ -39,30 +35,30 @@ class RecordView extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (_, __) => SliverToBoxAdapter(
-            child: _buildEmptySection(context, cs, '알림을 불러올 수 없습니다'),
+            child: const RecordEmptySection(message: '알림을 불러올 수 없습니다'),
           ),
           data: (notifications) {
             if (notifications.isEmpty) {
               return SliverToBoxAdapter(
-                child: _buildEmptySection(context, cs, '받은 알림이 없습니다'),
+                child: const RecordEmptySection(message: '받은 알림이 없습니다'),
               );
             }
             final preview = notifications.take(3).toList();
             return SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) =>
-                    _buildNotificationItem(context, cs, preview[index]),
+                (context, index) => NotificationOverviewItem(
+                  notification: preview[index],
+                ),
                 childCount: preview.length,
               ),
             );
           },
         ),
 
-        // ── 받은 친구 요청 ───────────────────────────────────────────
         SliverToBoxAdapter(
-          child: _buildSectionHeader(
-            context, cs, '받은 친구 요청',
-            friendRequestsAsync.value?.length ?? 0,
+          child: RecordSectionHeader(
+            title: '받은 친구 요청',
+            unreadCount: friendRequestsAsync.value?.length ?? 0,
             onViewAll: () => AppRoutes.goToRecordFriendRequests(context),
           ),
         ),
@@ -71,30 +67,30 @@ class RecordView extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (_, __) => SliverToBoxAdapter(
-            child: _buildEmptySection(context, cs, '친구 요청을 불러올 수 없습니다'),
+            child: const RecordEmptySection(message: '친구 요청을 불러올 수 없습니다'),
           ),
           data: (requests) {
             if (requests.isEmpty) {
               return SliverToBoxAdapter(
-                child: _buildEmptySection(context, cs, '받은 친구 요청이 없습니다'),
+                child: const RecordEmptySection(message: '받은 친구 요청이 없습니다'),
               );
             }
             final preview = requests.take(3).toList();
             return SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) =>
-                    _buildFriendRequestItem(context, cs, preview[index]),
+                (context, index) => FriendRequestOverviewItem(
+                  request: preview[index],
+                ),
                 childCount: preview.length,
               ),
             );
           },
         ),
 
-        // ── 나의 전송 기록 ───────────────────────────────────────────
         SliverToBoxAdapter(
-          child: _buildSectionHeader(
-            context, cs, '나의 전송 기록',
-            recordsAsync.value?.length ?? 0,
+          child: RecordSectionHeader(
+            title: '나의 전송 기록',
+            unreadCount: recordsAsync.value?.length ?? 0,
             onViewAll: () => AppRoutes.goToRecordSendHistory(context),
           ),
         ),
@@ -103,18 +99,20 @@ class RecordView extends ConsumerWidget {
           loading: () => const SliverToBoxAdapter(
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (err, _) =>
-              SliverToBoxAdapter(child: _buildErrorState(context, cs, ref)),
+          error: (err, _) => SliverToBoxAdapter(
+            child: RecordErrorSection(ref: ref),
+          ),
           data: (records) {
             if (records.isEmpty) {
               return SliverToBoxAdapter(
-                child: _buildEmptySection(context, cs, '전송된 기록이 없습니다'),
+                child: const RecordEmptySection(message: '전송된 기록이 없습니다'),
               );
             }
             return SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) =>
-                    _buildSendRecordItem(context, cs, records[index]),
+                (context, index) => SendRecordOverviewItem(
+                  record: records[index],
+                ),
                 childCount: records.length,
               ),
             );
@@ -124,383 +122,5 @@ class RecordView extends ConsumerWidget {
         SliverToBoxAdapter(child: SizedBox(height: 32.h)),
       ],
     );
-  }
-
-  // ── 페이지 헤더 ───────────────────────────────────────────────────────
-  Widget _buildPageHeader(
-    BuildContext context,
-    ColorScheme cs,
-    AsyncValue<List<GeofenceRecordEntity>> recordsAsync,
-  ) {
-    final tt = Theme.of(context).textTheme;
-    final count = recordsAsync.value?.length ?? 0;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('기록', style: tt.displayMedium),
-          SizedBox(height: 4.h),
-          Text(
-            '읽지 않은 알림과 요청을 확인하세요',
-            style: tt.bodyMedium,
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            '$count개의 읽지 않은 항목',
-            style: tt.labelLarge?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 20.h),
-        ],
-      ),
-    );
-  }
-
-  // ── 섹션 헤더 ─────────────────────────────────────────────────────────
-  Widget _buildSectionHeader(
-    BuildContext context,
-    ColorScheme cs,
-    String title,
-    int unreadCount, {
-    VoidCallback? onViewAll,
-  }) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 4.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontFamily: 'GmarketSans',
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
-                  color: cs.onSurface,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              GestureDetector(
-                onTap: onViewAll,
-                child: Text(
-                  '전체 보기',
-                  style: TextStyle(
-                    fontFamily: 'BMHANNAAir',
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
-                    color: cs.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            unreadCount > 0 ? '$unreadCount개 읽지 않음' : '읽지 않은 항목 없음',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 13.sp,
-              color: cs.onSurface.withValues(alpha: 0.45),
-            ),
-          ),
-          SizedBox(height: 8.h),
-        ],
-      ),
-    );
-  }
-
-  // ── 빈 섹션 ──────────────────────────────────────────────────────────
-  Widget _buildEmptySection(
-    BuildContext context,
-    ColorScheme cs,
-    String message,
-  ) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 4.h, 20.w, 24.h),
-      child: Text(
-        message,
-        style: TextStyle(
-          fontFamily: 'BMHANNAAir',
-          fontSize: 14.sp,
-          color: cs.onSurface.withValues(alpha: 0.35),
-        ),
-      ),
-    );
-  }
-
-  // ── 나의 전송 기록 아이템 ─────────────────────────────────────────────
-  Widget _buildSendRecordItem(
-    BuildContext context,
-    ColorScheme cs,
-    GeofenceRecordEntity record,
-  ) {
-    final tt = Theme.of(context).textTheme;
-    final recipient = _formatRecipients(record.recipients);
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-      child: Container(
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: cs.onSurface.withValues(alpha: 0.06),
-              offset: const Offset(0, 2),
-              blurRadius: 12,
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(14.r),
-          child: Row(
-            children: [
-              // 아이콘
-              Container(
-                width: 40.r,
-                height: 40.r,
-                decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(
-                  Icons.location_on_rounded,
-                  color: cs.primary,
-                  size: 20.r,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              // 내용
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      record.geofenceName,
-                      style: tt.headlineSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      '$recipient에게 전송 완료',
-                      style: tt.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 8.w),
-              // 시간
-              Text(
-                _formatRelativeTime(record.createdAt),
-                style: tt.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── 에러 상태 ─────────────────────────────────────────────────────────
-  Widget _buildErrorState(BuildContext context, ColorScheme cs, WidgetRef ref) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '기록을 불러올 수 없습니다',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 14.sp,
-              color: cs.onSurface.withValues(alpha: 0.55),
-            ),
-          ),
-          SizedBox(height: 8.h),
-          TextButton(
-            onPressed: () =>
-                ref.read(geofenceRecordViewModelProvider.notifier).refresh(),
-            child: Text(
-              '다시 시도',
-              style: TextStyle(fontFamily: 'BMHANNAAir', fontSize: 13.sp),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── 유틸 ─────────────────────────────────────────────────────────────
-  Widget _buildFriendRequestItem(
-    BuildContext context,
-    ColorScheme cs,
-    ReceivedFriendRequestResponseDto request,
-  ) {
-    final tt = Theme.of(context).textTheme;
-
-    return GestureDetector(
-      onTap: () => AppRoutes.goToRecordFriendRequests(context),
-      child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-      child: Container(
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: cs.onSurface.withValues(alpha: 0.06),
-              offset: const Offset(0, 2),
-              blurRadius: 12,
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(14.r),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 20.r,
-                backgroundColor: cs.primary.withValues(alpha: 0.1),
-                child: Text(
-                  request.requesterNickname.isNotEmpty
-                      ? request.requesterNickname[0]
-                      : '?',
-                  style: TextStyle(
-                    fontFamily: 'GmarketSans',
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w700,
-                    color: cs.primary,
-                  ),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      request.requesterNickname,
-                      style: tt.headlineSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      request.requesterEmail,
-                      style: tt.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-    );
-  }
-
-  Widget _buildNotificationItem(
-    BuildContext context,
-    ColorScheme cs,
-    NotificationEntity notification,
-  ) {
-    final tt = Theme.of(context).textTheme;
-
-    return GestureDetector(
-      onTap: () => AppRoutes.goToRecordNotifications(context),
-      child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-      child: Container(
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: cs.onSurface.withValues(alpha: 0.06),
-              offset: const Offset(0, 2),
-              blurRadius: 12,
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(14.r),
-          child: Row(
-            children: [
-              Container(
-                width: 40.r,
-                height: 40.r,
-                decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(
-                  Icons.notifications_rounded,
-                  color: cs.primary,
-                  size: 20.r,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      notification.title,
-                      style: tt.headlineSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      notification.body,
-                      style: tt.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                _formatRelativeTime(notification.createdAt),
-                style: tt.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-    );
-  }
-
-  String _formatRecipients(String recipientsJson) {
-    try {
-      final list = jsonDecode(recipientsJson) as List<dynamic>;
-      if (list.isEmpty) return '수신자';
-      if (list.length == 1) return list.first as String;
-      return '${list.first} 외 ${list.length - 1}명';
-    } catch (_) {
-      return '수신자';
-    }
-  }
-
-  String _formatRelativeTime(DateTime dt) {
-    final now = DateTime.now();
-    final diff = now.difference(dt);
-
-    if (diff.inMinutes < 1) return '방금 전';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
-    if (diff.inHours < 24) return '${diff.inHours}시간 전';
-    if (diff.inDays < 7) return '${diff.inDays}일 전';
-
-    return '${dt.month}월 ${dt.day}일';
   }
 }

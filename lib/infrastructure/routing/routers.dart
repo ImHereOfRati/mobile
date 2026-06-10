@@ -18,6 +18,7 @@ import 'package:iamhere/feature/terms/view/terms_detail_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
 import 'package:iamhere/feature/user_permission/view/battery_optimization_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/location_permission_guide_view.dart';
+import 'package:iamhere/feature/user_permission/view/user_permission_prep_view.dart';
 import 'package:iamhere/common/component/navigation/default_view/default_view.dart';
 import 'package:iamhere/common/component/navigation/default_view/navigation_bar/navigation_tab_index_resolver.dart';
 
@@ -45,6 +46,14 @@ final List<RouteBase> appRoutes = [
       child: TermsDetailView(
         termDefinitionId: int.parse(state.pathParameters['termId']!),
       ),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.userPermission,
+    pageBuilder: (context, state) => buildPageWithSimpleTransition(
+      context: context,
+      state: state,
+      child: const UserPermissionPrepView(),
     ),
   ),
   GoRoute(

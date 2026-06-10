@@ -1,21 +1,11 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model_state.dart';
-import 'package:iamhere/feature/user_permission/model/permission_state.dart';
-import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:iamhere/common/component/theme/theme_mode_provider.dart';
-import 'package:permission_handler/permission_handler.dart' as ph;
-import 'package:url_launcher/url_launcher.dart';
 
-import 'my_info_view.dart';
-import 'privacy_view.dart';
-import 'setting_components.dart';
+import 'setting_sections_view.dart';
+import 'setting_view_support.dart';
 
 class SettingView extends ConsumerWidget {
   const SettingView({super.key});
@@ -30,8 +20,10 @@ class SettingView extends ConsumerWidget {
     return Scaffold(
       body: stateAsync.when(
         data: (state) => _buildList(context, ref, state, isDark),
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF0071E3)),
+        loading: () => Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
         error: (_, __) => const Center(child: Text('설정을 불러오는 중 오류가 발생했습니다.')),
       ),
@@ -44,305 +36,17 @@ class SettingView extends ConsumerWidget {
     SettingViewModelState state,
     bool isDark,
   ) {
-    return ListView(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      children: [
-        _buildSection(context, '계정', [
-          SettingItem(
-            title: '내 정보',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MyInfoView()),
-            ),
-          ),
-        ]),
-        SizedBox(height: 20.h),
-        _buildSection(context, '디스플레이', [
-          _buildThemeToggleItem(context, ref, isDark),
-        ]),
-        SizedBox(height: 20.h),
-        _buildSection(context, '권한', [
-          SettingItem(
-            title: '푸시 알림',
-            trailingText: _permLabel(state.pushPermission, toggle: true),
-            onTap: () => _handlePermissionTap(
-              context,
-              ref,
-              state.pushPermission,
-              () => ref
-                  .read(settingViewModelProvider.notifier)
-                  .requestPushPermission(),
-            ),
-          ),
-          SettingItem(
-            title: '위치 추적',
-            trailingText: _permLabel(state.locationPermission),
-            onTap: () => _handlePermissionTap(
-              context,
-              ref,
-              state.locationPermission,
-              () => ref
-                  .read(settingViewModelProvider.notifier)
-                  .requestLocationPermission(),
-            ),
-          ),
-          SettingItem(
-            title: '연락처 접근',
-            trailingText: _permLabel(state.contactPermission, toggle: true),
-            onTap: () => _handlePermissionTap(
-              context,
-              ref,
-              state.contactPermission,
-              () => ref
-                  .read(settingViewModelProvider.notifier)
-                  .requestContactPermission(),
-            ),
-          ),
-          const SettingItem(title: '위치 기록 보관', trailingText: '30일'),
-        ]),
-        SizedBox(height: 20.h),
-        _buildSection(context, '배터리 / 백그라운드 진단', [
-          SettingItem(
-            title: '배터리 최적화 제외',
-            trailingText: _batteryLabel(state.batteryOptimizationPermission),
-            onTap: () => _handleBatteryOptimizationTap(context, ref),
-          ),
-        ]),
-        SizedBox(height: 20.h),
-        _buildSection(context, '개인정보', [
-          SettingItem(
-            title: '개인정보 보호 정책',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const PrivacyView(title: '개인정보 보호 정책'),
-              ),
-            ),
-          ),
-          SettingItem(
-            title: '서비스 이용약관',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const PrivacyView(title: '서비스 이용약관'),
-              ),
-            ),
-          ),
-        ]),
-        SizedBox(height: 20.h),
-        _buildSection(context, '고객 지원', [
-          SettingItem(
-            title: '문의하기',
-            onTap: () async {
-              final url = Uri.parse(
-                'https://dsko.notion.site/d75b9924c10c47f0b91e4da6ee4251ec?pvs=105',
-              );
-              if (!await launchUrl(url, mode: LaunchMode.inAppWebView)) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('문의하기 페이지를 열 수 없습니다.')),
-                  );
-                }
-              }
-            },
-          ),
-        ]),
-        SizedBox(height: 20.h),
-        _buildSection(context, '앱 정보', [
-          SettingItem(
-            title: '버전 정보',
-            trailingText: state.appVersion.isEmpty ? '정보 없음' : state.appVersion,
-          ),
-        ]),
-        SizedBox(height: 32.h),
-        _buildFooter(context),
-        SizedBox(height: 20.h),
-      ],
-    );
-  }
-
-  Widget _buildSection(BuildContext context, String title, List<Widget> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(left: 4.w, bottom: 8.h),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.55),
-              letterSpacing: -0.12,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Column(
-            children: List.generate(items.length, (i) {
-              return Column(
-                children: [
-                  items[i],
-                  if (i < items.length - 1)
-                    Divider(
-                      height: 0.5,
-                      thickness: 0.5,
-                      indent: 16.w,
-                      color: Theme.of(context).dividerTheme.color,
-                    ),
-                ],
-              );
-            }),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildThemeToggleItem(
-    BuildContext context,
-    WidgetRef ref,
-    bool isDark,
-  ) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      child: Row(
-        children: [
-          Icon(
-            isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-            size: 20.r,
-            color: const Color(0xFF0071E3),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Text(
-              '다크 모드',
-              style: TextStyle(
-                fontFamily: 'BMHANNAAir',
-                fontSize: 16.sp,
-                color: Theme.of(context).colorScheme.onSurface,
-                letterSpacing: -0.3,
-              ),
-            ),
-          ),
-          CupertinoSwitch(
-            value: isDark,
-            activeTrackColor: const Color(0xFF0071E3),
-            onChanged: (_) => ref.read(appThemeModeProvider.notifier).toggle(),
-          ),
-        ],
+    return SettingSectionsView(
+      ref: ref,
+      state: state,
+      isDark: isDark,
+      batteryLabel: SettingLabelFormatter.battery(
+        state.batteryOptimizationPermission,
       ),
-    );
-  }
-
-  Future<void> _handlePermissionTap(
-    BuildContext context,
-    WidgetRef ref,
-    PermissionState current,
-    Future<void> Function() request,
-  ) async {
-    final needsOsSettings =
-        current == PermissionState.grantedAlways ||
-        current == PermissionState.grantedWhenInUse ||
-        current == PermissionState.permanentlyDenied ||
-        current == PermissionState.restricted;
-
-    if (needsOsSettings) {
-      await ph.openAppSettings();
-      await ref.read(settingViewModelProvider.notifier).refreshPermissions();
-      return;
-    }
-
-    await request();
-  }
-
-  String _batteryLabel(PermissionState state) {
-    if (!Platform.isAndroid) return '해당 없음';
-    switch (state) {
-      case PermissionState.grantedAlways:
-        return '제외됨';
-      case PermissionState.permanentlyDenied:
-        return '시스템에서 거부됨';
-      case PermissionState.restricted:
-        return '제한됨';
-      case PermissionState.denied:
-      case PermissionState.grantedWhenInUse:
-        return '미적용';
-      case PermissionState.serviceDisabled:
-        return '서비스 상태 불량';
-    }
-  }
-
-  Future<void> _handleBatteryOptimizationTap(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final granted = await AppRoutes.pushBatteryOptimizationGuide(context);
-    // 가이드 화면에서 돌아오면 상태를 재조회한다. 반응형 provider 도 함께 무효화.
-    ref.invalidate(batteryOptimizationStatusProvider);
-    if (!context.mounted) return;
-    await ref.read(settingViewModelProvider.notifier).refreshPermissions();
-    // granted 값 자체는 참고용이며, 실제 상태는 refresh 결과로 UI 에 반영된다.
-    if (granted && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('배터리 최적화 제외가 적용되었습니다.')));
-    }
-  }
-
-  String _permLabel(PermissionState state, {bool toggle = false}) {
-    if (toggle) {
-      return (state == PermissionState.grantedAlways ||
-              state == PermissionState.grantedWhenInUse)
-          ? '켜짐'
-          : '꺼짐';
-    }
-    switch (state) {
-      case PermissionState.grantedAlways:
-        return '항상 허용';
-      case PermissionState.grantedWhenInUse:
-        return '사용 중 허용';
-      default:
-        return '거부됨';
-    }
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          Text(
-            'Imhere © 2025',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 12.sp,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.55),
-              letterSpacing: -0.12,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            '위치 기반 알림 서비스',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 12.sp,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.55),
-              letterSpacing: -0.12,
-            ),
-          ),
-        ],
-      ),
+      permissionLabel: SettingLabelFormatter.permission,
+      onPermissionTap: SettingActionHandler.handlePermissionTap,
+      onBatteryOptimizationTap: SettingActionHandler.handleBatteryOptimizationTap,
+      onSupportTap: SettingActionHandler.openSupportPage,
     );
   }
 }

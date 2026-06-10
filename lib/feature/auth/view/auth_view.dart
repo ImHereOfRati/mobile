@@ -3,30 +3,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
+import 'package:iamhere/feature/auth/view/component/auth_hero_section.dart';
+import 'package:iamhere/feature/auth/view/component/auth_info_components.dart';
+import 'package:iamhere/feature/auth/view/component/auth_note_components.dart';
 import 'package:iamhere/feature/auth/view/component/login_button.dart';
 import 'package:iamhere/feature/auth/view/component/login_button_info.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
 import 'package:iamhere/common/base/result/result_feedback_handler.dart';
-import 'package:iamhere/common/base/result/result.dart';
 
 class AuthView extends ConsumerStatefulWidget {
   final AuthViewModel _authViewModel;
   const AuthView(this._authViewModel, {super.key});
 
-  static const _fontHanna = 'BMHANNAAir';
-  static const _fontGmarket = 'GmarketSans';
-
   static const _appTitle = 'ImHere';
-  static const _heroSubtitle = '정해진 장소를 지나면\n친구에게 자동으로 연락을 보내드릴게요.';
+  static const _heroSubtitle = '매번 연락하지 않아도 괜찮아요.\n도착하면 원하는 사람에게 자동으로 알려드릴게요.';
 
-  static const _permissionSectionTitle = '앱 사용에 필요한 권한';
+  static const _permissionSectionTitle = '이렇게 시작해요';
   static const _privacyNoteText = '내 위치는 기기 안에서만 처리돼요.\n외부 서버로는 전송되지 않아요.';
   static const _termsNoteText = '로그인 시 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.';
 
   static const _permissionItems = [
-    (Icons.notifications_outlined, '알림', '지오펜스 진입 시 알림'),
-    (Icons.people_outline, '연락처', '수신자 선택에 사용'),
-    (Icons.location_on_outlined, '위치', '백그라운드 위치 추적'),
+    (Icons.edit_location_alt_outlined, '알림 만들기', '도착 알림을 먼저 저장해요'),
+    (Icons.notifications_active_outlined, '자동 전송', '필요할 때만 준비를 마치면 돼요'),
+    (Icons.dashboard_customize_outlined, '알림 관리', '메인에서 준비 상태를 바로 확인해요'),
   ];
 
   @override
@@ -34,10 +33,6 @@ class AuthView extends ConsumerStatefulWidget {
 }
 
 class _AuthViewState extends ConsumerState<AuthView> {
-  ColorScheme get _colorSchema => Theme.of(context).colorScheme;
-
-  // ── 로그인 로직 ───────────────────────────────────────────────────
-
   Future<void> _handleLogin() async {
     final result = await widget._authViewModel.handleKakaoLogin();
     if (!mounted) return;
@@ -54,8 +49,6 @@ class _AuthViewState extends ConsumerState<AuthView> {
     ref.invalidate(authStateProvider);
     loginResult.navigate(context);
   }
-
-  // ── 빌드 ─────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -75,189 +68,30 @@ class _AuthViewState extends ConsumerState<AuthView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Spacer(flex: 2),
-        _buildHero(),
+        const AuthHeroSection(
+          appTitle: AuthView._appTitle,
+          subtitle: AuthView._heroSubtitle,
+        ),
         const Spacer(flex: 3),
-        _buildPermissionInfo(),
+        const AuthInfoCard(
+          title: AuthView._permissionSectionTitle,
+          items: AuthView._permissionItems,
+        ),
         SizedBox(height: 12.h),
-        _buildPrivacyNote(),
+        const AuthPrivacyNote(text: AuthView._privacyNoteText),
         SizedBox(height: 16.h),
         _buildLoginButton(),
         SizedBox(height: 12.h),
-        _buildTermsNote(),
+        const AuthTermsNote(text: AuthView._termsNoteText),
         SizedBox(height: 32.h),
       ],
     );
   }
 
-  // ── Hero ──────────────────────────────────────────────────────────
-
-  Widget _buildHero() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(Icons.location_on, size: 40.r, color: _colorSchema.primary),
-        SizedBox(height: 16.h),
-        _buildHeroTitle(),
-        SizedBox(height: 10.h),
-        _buildHeroSubtitle(),
-      ],
-    );
-  }
-
-  Widget _buildHeroTitle() {
-    return Text(
-      AuthView._appTitle,
-      style: TextStyle(
-        fontFamily: AuthView._fontGmarket,
-        fontSize: 52.sp,
-        fontWeight: FontWeight.w700,
-        color: _colorSchema.primary,
-        letterSpacing: -0.5,
-        height: 1.07,
-      ),
-    );
-  }
-
-  Widget _buildHeroSubtitle() {
-    return Text(
-      AuthView._heroSubtitle,
-      style: TextStyle(
-        fontFamily: AuthView._fontHanna,
-        fontSize: 17.sp,
-        color: _colorSchema.onSurface.withValues(alpha: 0.7),
-        letterSpacing: -0.374,
-        height: 1.47,
-      ),
-    );
-  }
-
-  // ── 권한 안내 카드 ─────────────────────────────────────────────────
-
-  Widget _buildPermissionInfo() {
-    return Container(
-      padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        color: _colorSchema.surface,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPermissionHeader(),
-          SizedBox(height: 12.h),
-          ...AuthView._permissionItems.map(_buildPermissionRow),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPermissionHeader() {
-    return Text(
-      AuthView._permissionSectionTitle,
-      style: TextStyle(
-        fontFamily: AuthView._fontHanna,
-        fontSize: 14.sp,
-        color: _colorSchema.onSurface.withValues(alpha: 0.5),
-        letterSpacing: -0.12,
-      ),
-    );
-  }
-
-  Widget _buildPermissionRow((IconData, String, String) item) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
-      child: Row(
-        children: [
-          Icon(item.$1, size: 18.r, color: _colorSchema.primary),
-          SizedBox(width: 10.w),
-          _buildPermissionLabel(item.$2),
-          SizedBox(width: 8.w),
-          _buildPermissionDesc(item.$3),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPermissionLabel(String label) {
-    return Text(
-      label,
-      style: TextStyle(
-        fontFamily: AuthView._fontHanna,
-        fontSize: 14.sp,
-        color: _colorSchema.onSurface,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.224,
-      ),
-    );
-  }
-
-  Widget _buildPermissionDesc(String desc) {
-    return Text(
-      desc,
-      style: TextStyle(
-        fontFamily: AuthView._fontHanna,
-        fontSize: 13.sp,
-        color: _colorSchema.onSurface.withValues(alpha: 0.5),
-        letterSpacing: -0.2,
-      ),
-    );
-  }
-
-  // ── 개인정보 안내 배너 ─────────────────────────────────────────────
-
-  Widget _buildPrivacyNote() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: _colorSchema.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: _colorSchema.primary.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.shield_outlined, size: 22.r, color: _colorSchema.primary),
-          SizedBox(width: 12.w),
-          _buildPrivacyText(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrivacyText() {
-    return Expanded(
-      child: Text(
-        AuthView._privacyNoteText,
-        style: TextStyle(
-          fontFamily: AuthView._fontHanna,
-          fontSize: 14.sp,
-          color: _colorSchema.onSurface.withValues(alpha: 0.85),
-          letterSpacing: -0.2,
-          height: 1.55,
-        ),
-      ),
-    );
-  }
-
-  // ── 하단 버튼 / 안내 ───────────────────────────────────────────────
-
   Widget _buildLoginButton() {
     return LoginButton(
       buttonInfo: LoginInfoData.kakao,
       onPressed: _handleLogin,
-    );
-  }
-
-  Widget _buildTermsNote() {
-    return Text(
-      AuthView._termsNoteText,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontFamily: AuthView._fontHanna,
-        fontSize: 11.sp,
-        color: _colorSchema.onSurface.withValues(alpha: 0.35),
-        letterSpacing: -0.12,
-        height: 1.5,
-      ),
     );
   }
 }

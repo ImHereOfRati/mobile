@@ -19,9 +19,9 @@ class GeofenceListView extends ConsumerWidget {
       data: (status) => status,
       orElse: () => PermissionState.denied,
     );
-    final isBatteryOptimizationMissing = batteryAsyncValue.maybeWhen(
-      data: (status) => status != PermissionState.grantedAlways,
-      orElse: () => false,
+    final batteryPermissionStatus = batteryAsyncValue.maybeWhen(
+      data: (status) => status,
+      orElse: () => PermissionState.denied,
     );
 
     return CustomScrollView(
@@ -29,7 +29,7 @@ class GeofenceListView extends ConsumerWidget {
         SliverToBoxAdapter(
           child: GeofenceHeader(
             permissionStatus: permissionStatus,
-            isBatteryOptimizationMissing: isBatteryOptimizationMissing,
+            batteryPermissionStatus: batteryPermissionStatus,
           ),
         ),
 

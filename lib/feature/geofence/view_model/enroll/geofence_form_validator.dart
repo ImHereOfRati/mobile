@@ -5,7 +5,7 @@ export '../dto/geofence_form_validation_result.dart';
 class GeofenceFormValidator {
   static GeofenceFormValidationResult validate(GeofenceEnrollFormState state) {
     if (state.name.trim().isEmpty) {
-      return GeofenceFormValidationResult(isValid: false, errorMessage: '지오펜스 이름을 입력해주세요');
+      return GeofenceFormValidationResult(isValid: false, errorMessage: '알림 이름을 입력해주세요');
     }
     if (state.selectedLocation == null) {
       return GeofenceFormValidationResult(isValid: false, errorMessage: '위치를 선택해주세요');

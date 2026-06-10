@@ -5,7 +5,7 @@ class NavigationTabs {
   static final List<NavTab> _navTabs = [
     NavTab(
       route: AppRoutes.geofence,
-      label: '메인',
+      label: '알림',
       icon: Icons.location_on_outlined,
       activeIcon: Icons.location_on,
     ),
@@ -17,7 +17,7 @@ class NavigationTabs {
     ),
     NavTab(
       route: AppRoutes.record,
-      label: '기록',
+      label: '활동',
       icon: Icons.history_outlined,
       activeIcon: Icons.history,
     ),
