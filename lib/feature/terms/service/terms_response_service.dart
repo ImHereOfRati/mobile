@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
@@ -13,7 +13,7 @@ class TermsResponseService {
 
   TermsResponseService(this._dio);
 
-  Future<APIResponse<AfterTermsAgreementAuthResponseDto>>
+  Future<ApiResponse<AfterTermsAgreementAuthResponseDto>>
   requestToAllAgreeAboutRequiredTerms(
     List<TermsConsentItemDto> consents,
   ) async {
@@ -26,7 +26,7 @@ class TermsResponseService {
       );
 
       if (response.statusCode == 200) {
-        return APIResponse.fromJson(
+        return ApiResponse.fromJson(
           response.data,
           (json) => AfterTermsAgreementAuthResponseDto.fromJson(
             json as Map<String, dynamic>,
@@ -45,7 +45,7 @@ class TermsResponseService {
     }
   }
 
-  Future<APIResponse<void>> requestToAgreeSingleTerm(
+  Future<ApiResponse<void>> requestToAgreeSingleTerm(
     int termDefinitionId,
   ) async {
     try {
@@ -55,7 +55,7 @@ class TermsResponseService {
       );
 
       if (response.statusCode == 200) {
-        return APIResponse<void>.fromJson(response.data, (_) {});
+        return ApiResponse<void>.fromJson(response.data, (_) {});
       }
 
       throw DioException(

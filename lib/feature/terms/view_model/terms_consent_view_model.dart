@@ -36,6 +36,9 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
           .requestToAllAgreeAboutRequiredTerms(consents);
 
       final dto = response.data;
+      if (dto == null) {
+        throw StateError('terms consent response data is null');
+      }
       final tokenStorage = GetIt.instance<TokenStorageService>();
       await tokenStorage.saveAccessToken(dto.accessToken);
       await tokenStorage.saveRefreshToken(dto.refreshToken);
@@ -50,7 +53,7 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
       final responseService = GetIt.instance<TermsResponseService>();
       final response =
           await responseService.requestToAgreeSingleTerm(termDefinitionId);
-      return response.code == 200;
+      return response.imhereResponseCode == 'SUCCESS';
     } catch (_) {
       return false;
     }

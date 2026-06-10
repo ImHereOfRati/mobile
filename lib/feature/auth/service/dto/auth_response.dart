@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'auth_response_dto.g.dart';
+part 'auth_response.g.dart';
 
 @JsonSerializable()
 class AuthResponseDto {

@@ -14,7 +14,7 @@ class TermsListViewModel extends _$TermsListViewModel {
   Future<List<TermsListRequestDto>> build() async {
     _requestService = GetIt.instance<TermsRequestService>();
     final apiResponse = await _requestService.requestTermsList();
-    return apiResponse.data.content;
+    return apiResponse.data!.content;
   }
 
   /// Refresh terms list
@@ -22,7 +22,7 @@ class TermsListViewModel extends _$TermsListViewModel {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final apiResponse = await _requestService.requestTermsList();
-      return apiResponse.data.content;
+      return apiResponse.data!.content;
     });
   }
 }

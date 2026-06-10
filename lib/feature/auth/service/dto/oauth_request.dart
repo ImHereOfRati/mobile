@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'oauth_request_dto.g.dart';
+part 'oauth_request.g.dart';
 
 @JsonSerializable()
 class OAuthRequestDto {

@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:iamhere/feature/auth/model/login_result.dart';
+import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model_interface.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';

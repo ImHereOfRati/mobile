@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
+import 'package:iamhere/infrastructure/network/properties/api_config.dart';
 import 'package:iamhere/common/base/api_response/page_response.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
@@ -14,13 +14,13 @@ class TermsRequestService {
 
   TermsRequestService(this._dio);
 
-  Future<APIResponse<PageResponse<TermsListRequestDto>>>
+  Future<ApiResponse<PageResponse<TermsListRequestDto>>>
   requestTermsList() async {
     try {
       final response = await _dio.get(ApiConfig.termsListPath);
 
       if (response.statusCode == 200) {
-        return APIResponse<PageResponse<TermsListRequestDto>>.fromJson(
+        return ApiResponse<PageResponse<TermsListRequestDto>>.fromJson(
           response.data,
           (json) => PageResponse<TermsListRequestDto>.fromJson(
             json as Map<String, dynamic>,
@@ -40,7 +40,7 @@ class TermsRequestService {
     }
   }
 
-  Future<APIResponse<TermsVersionResponseDto>> requestTermsDetail(
+  Future<ApiResponse<TermsVersionResponseDto>> requestTermsDetail(
     int termDefinitionId,
   ) async {
     try {
@@ -48,7 +48,7 @@ class TermsRequestService {
       final response = await _dio.get(path);
 
       if (response.statusCode == 200) {
-        return APIResponse<TermsVersionResponseDto>.fromJson(
+        return ApiResponse<TermsVersionResponseDto>.fromJson(
           response.data,
           (json) =>
               TermsVersionResponseDto.fromJson(json as Map<String, dynamic>),

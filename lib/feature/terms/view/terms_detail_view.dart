@@ -16,7 +16,7 @@ class TermsDetailView extends ConsumerStatefulWidget {
 
 class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
   late final TermsRequestService _service;
-  late Future<APIResponse<TermsVersionResponseDto>> _future;
+  late Future<ApiResponse<TermsVersionResponseDto>> _future;
 
   ColorScheme get _cs => Theme.of(context).colorScheme;
 
@@ -44,7 +44,7 @@ class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
           ),
         ),
       ),
-      body: FutureBuilder<APIResponse<TermsVersionResponseDto>>(
+      body: FutureBuilder<ApiResponse<TermsVersionResponseDto>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -53,7 +53,11 @@ class _TermsDetailViewState extends ConsumerState<TermsDetailView> {
           if (snapshot.hasError || !snapshot.hasData) {
             return _buildError();
           }
-          return _buildContent(snapshot.data!.data);
+          final data = snapshot.data!.data;
+          if (data == null) {
+            return _buildError();
+          }
+          return _buildContent(data);
         },
       ),
     );
