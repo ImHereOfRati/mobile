@@ -8,11 +8,18 @@ import 'package:iamhere/feature/terms/view_model/terms_agreement_provider.dart';
 import 'package:iamhere/feature/terms/view_model/terms_consent_view_model.dart';
 import 'package:iamhere/feature/terms/view_model/terms_list_view_model.dart';
 
-class TermsListView extends ConsumerWidget {
+class TermsListView extends ConsumerStatefulWidget {
   const TermsListView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TermsListView> createState() => _TermsListViewState();
+}
+
+class _TermsListViewState extends ConsumerState<TermsListView> {
+  bool _hasTriggeredAutoActivation = false;
+
+  @override
+  Widget build(BuildContext context) {
     final termsAsync = ref.watch(termsListViewModelProvider);
 
     return Scaffold(
@@ -36,6 +43,13 @@ class TermsListView extends ConsumerWidget {
     WidgetRef ref,
     List<TermsListRequestDto> terms,
   ) {
+    final consentState = ref.watch(termsConsentViewModelProvider);
+
+    if (terms.isEmpty) {
+      _scheduleAutoActivationIfNeeded();
+      return _buildAutoActivationBody(context, ref, consentState);
+    }
+
     final termIds = terms.map((t) => t.termDefinitionId).toList();
     final requiredIds = terms
         .where((t) => t.isRequired)
@@ -76,6 +90,71 @@ class TermsListView extends ConsumerWidget {
         ),
         _buildBottomAction(context, ref, allRequiredAgreed, terms),
       ],
+    );
+  }
+
+  void _scheduleAutoActivationIfNeeded() {
+    if (_hasTriggeredAutoActivation) return;
+    _hasTriggeredAutoActivation = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref
+          .read(termsConsentViewModelProvider.notifier)
+          .submitConsents(const [], const {});
+    });
+  }
+
+  Widget _buildAutoActivationBody(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<dynamic> consentState,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+
+    if (consentState.hasError) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Theme.of(context).dividerColor),
+            SizedBox(height: 16.h),
+            Text(
+              '시작 준비를 마치지 못했습니다.',
+              style: TextStyle(
+                fontFamily: 'BMHANNAAir',
+                fontSize: 15.sp,
+                color: cs.onSurface,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                ref
+                    .read(termsConsentViewModelProvider.notifier)
+                    .submitConsents(const [], const {});
+              },
+              child: const Text('다시 시도'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(color: cs.primary),
+          SizedBox(height: 20.h),
+          Text(
+            '시작 준비 중입니다...',
+            style: TextStyle(
+              fontFamily: 'BMHANNAAir',
+              fontSize: 16.sp,
+              color: cs.onSurface,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
