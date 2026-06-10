@@ -22,7 +22,13 @@ GoRouter router(Ref ref) {
 }
 
 ValueNotifier<void> _createNotifier(Ref ref) {
-  final notifier = ValueNotifier<void>(null);
-  ref.listen(authStateProvider, (_, __) => notifier.notifyListeners());
+  final notifier = _RouterRefreshNotifier();
+  ref.listen(authStateProvider, (_, __) => notifier.trigger());
   return notifier;
+}
+
+class _RouterRefreshNotifier extends ValueNotifier<void> {
+  _RouterRefreshNotifier() : super(null);
+
+  void trigger() => notifyListeners();
 }

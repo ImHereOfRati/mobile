@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-import '../../../shared/base/result/error_analyst.dart';
+import '../../../common/base/result/error_analyst.dart';
 import '../local_database_exception.dart';
 
 /// DB 호출의 공통 에러 변환 경로.

@@ -6,6 +6,8 @@ import '../../../../common/base/result/error_analyst.dart';
 import 'auth_token_refresh_coordinator.dart';
 
 class DioAuthInterceptor extends Interceptor {
+  static const authRequirementKey = 'requiresAuthentication';
+
   final TokenStorageService _tokenStorage;
   final AuthTokenRefreshCoordinator _coordinator;
 
@@ -16,7 +18,7 @@ class DioAuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    var isAuthRequire = (options.extra['AuthRequirement'] as bool);
+    final isAuthRequire = options.extra[authRequirementKey] == true;
     if (!isAuthRequire) {
       return handler.next(options);
     }

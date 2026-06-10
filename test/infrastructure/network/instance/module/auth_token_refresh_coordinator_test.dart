@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:iamhere/common/base/api_response/api_response.dart';
+import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/infrastructure/network/instance/module/auth_token_refresh_coordinator.dart';
 import 'package:iamhere/infrastructure/network/instance/module/pending_request.dart';
 import 'package:iamhere/infrastructure/network/instance/token_refresher.dart';
-import 'package:iamhere/infrastructure/network/response/api_response.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -119,5 +119,23 @@ void main() {
     // 두 요청 모두 큐에 추가되었어야 함
     verify(mockRetrier.addToQueue(requestOptions1, handler1)).called(1);
     verify(mockRetrier.addToQueue(requestOptions2, handler2)).called(1);
+  });
+
+  test('isRefreshRequest_리프레시_엔드포인트면_true를_반환한다', () {
+    expect(coordinator.isRefreshRequest('/api/auth/refresh'), isTrue);
+    expect(coordinator.isRefreshRequest('/api/friends'), isFalse);
+  });
+
+  test('forceLogout_토큰을_삭제하고_대기열을_실패처리한다', () async {
+    final requestOptions = RequestOptions(path: '/api/friends');
+    final handler = MockErrorInterceptorHandler();
+    final error = DioException(requestOptions: requestOptions);
+    when(mockStorage.deleteAllTokens()).thenAnswer((_) async {});
+
+    await coordinator.forceLogout(error, handler);
+
+    verify(mockStorage.deleteAllTokens()).called(1);
+    verify(mockRetrier.failAll(error)).called(1);
+    verify(handler.reject(error)).called(1);
   });
 }

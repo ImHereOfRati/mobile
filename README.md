@@ -12,6 +12,10 @@
 
 ## 0. 프로젝트 개요
 
+프로젝트 협업 규칙은 [`docs/project-rules.md`](./docs/project-rules.md) 의 `OMO(Oh My OpenAgent)` 기준으로 정리되어 있습니다.
+
+에이전트 하네스는 [`.omo/rules/imhere-mobile-harness.md`](./.omo/rules/imhere-mobile-harness.md) 에 있습니다.
+
 ### Motivation
 **"버스 도착하기 30분 전에는 꼭 연락하거라."**
 

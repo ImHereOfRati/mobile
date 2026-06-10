@@ -27,4 +27,7 @@ class PageResponse<T> {
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
   ) => _$PageResponseFromJson(json, fromJsonT);
+
+  Map<String, dynamic> toJson(Object? Function(T value) toJsonT) =>
+      _$PageResponseToJson(this, toJsonT);
 }

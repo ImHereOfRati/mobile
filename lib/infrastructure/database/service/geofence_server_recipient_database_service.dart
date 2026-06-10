@@ -11,7 +11,7 @@ class GeofenceServerRecipientDatabaseService
 
   Future<GeofenceServerRecipientEntity> save(
     GeofenceServerRecipientEntity entity,
-  ) => executeInsert(
+  ) => saveEntity(
     entityName: 'geofence_server_recipient',
     table: LocalDatabaseProperties.geofenceServerRecipientTableName,
     values: entity.toMap(),

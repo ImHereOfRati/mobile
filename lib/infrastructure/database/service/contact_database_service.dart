@@ -7,7 +7,7 @@ import 'package:injectable/injectable.dart';
 class ContactDatabaseService extends AbstractLocalDatabaseService {
   ContactDatabaseService(super.database);
 
-  Future<ContactEntity> save(ContactEntity entity) => executeInsert(
+  Future<ContactEntity> save(ContactEntity entity) => saveEntity(
     entityName: 'friend',
     table: LocalDatabaseProperties.contactTableName,
     values: entity.toMap(),
@@ -23,14 +23,14 @@ class ContactDatabaseService extends AbstractLocalDatabaseService {
     entityDetails: 'Contact: ${entity.name}',
   );
 
-  Future<List<ContactEntity>> findAll() => executeQuery(
+  Future<List<ContactEntity>> findAll() => findAllEntities(
     entityName: 'friend',
     table: LocalDatabaseProperties.contactTableName,
     fromMap: ContactEntity.fromMap,
     orderBy: 'name ASC',
   );
 
-  Future<void> delete(int id) => executeDelete(
+  Future<void> delete(int id) => deleteEntityById(
     entityName: 'friend',
     table: LocalDatabaseProperties.contactTableName,
     id: id,

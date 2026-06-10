@@ -8,7 +8,7 @@ import 'abstract_local_database_engine.dart';
 class GeofenceDatabaseService extends AbstractLocalDatabaseService {
   GeofenceDatabaseService(super.database);
 
-  Future<GeofenceEntity> save(GeofenceEntity entity) => executeInsert(
+  Future<GeofenceEntity> save(GeofenceEntity entity) => saveEntity(
     entityName: 'geofence',
     table: LocalDatabaseProperties.geofenceTableName,
     values: entity.toMap(),
@@ -42,7 +42,7 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
     );
   }
 
-  Future<void> delete(int id) => executeDelete(
+  Future<void> delete(int id) => deleteEntityById(
     entityName: 'geofence',
     table: LocalDatabaseProperties.geofenceTableName,
     id: id,

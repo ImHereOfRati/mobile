@@ -1,10 +1,13 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/common/base/api_response/api_response.dart';
 import 'package:iamhere/common/base/result/result_message.dart';
-import 'package:iamhere/infrastructure/network/response/api_response.dart';
 
 import '../../../common/base/result/error_analyst.dart';
 
 mixin DioHandler {
+  static const unknownErrorCode = 'UNKNOWN_ERROR';
+  static const networkErrorCode = 'NETWORK_900';
+
   Future<ApiResponse<T>> safeApiCall<T>(
     Future<ApiResponse<T>> Function() call,
   ) async {
@@ -16,8 +19,8 @@ mixin DioHandler {
     } catch (e, stack) {
       ErrorAnalyst.log("UNKNOWN Error: ${e.toString()}", stack);
       return ApiResponse.fail(
-        imhereErrorCode: 'UNKNOWN_ERROR',
-        errorMessage: e.toString(),
+        imhereErrorCode: unknownErrorCode,
+        errorMessage: ResultMessage.unknownError.message,
       );
     }
   }
@@ -39,8 +42,8 @@ mixin DioHandler {
     }
 
     return ApiResponse.fail(
-      imhereErrorCode: 'NETWORK_900',
-      errorMessage: exception.message ?? ResultMessage.dioException.toString(),
+      imhereErrorCode: networkErrorCode,
+      errorMessage: exception.message ?? ResultMessage.dioException.message,
     );
   }
 }

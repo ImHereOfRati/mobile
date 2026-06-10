@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/feature/auth/model/login_result.dart';
+import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 import 'package:iamhere/feature/auth/view/component/login_button.dart';
 import 'package:iamhere/feature/auth/view/component/login_button_info.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
+import 'package:iamhere/common/base/result/result_feedback_handler.dart';
 import 'package:iamhere/common/base/result/result.dart';
 
 class AuthView extends ConsumerStatefulWidget {

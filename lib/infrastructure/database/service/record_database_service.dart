@@ -9,7 +9,7 @@ class RecordDatabaseService extends AbstractLocalDatabaseService {
   RecordDatabaseService(super.database);
 
   Future<GeofenceRecordEntity> save(GeofenceRecordEntity entity) =>
-      executeInsert(
+      saveEntity(
         entityName: 'geofence record',
         table: LocalDatabaseProperties.recordTableName,
         values: entity.toMap(),
@@ -17,14 +17,14 @@ class RecordDatabaseService extends AbstractLocalDatabaseService {
         entityDetails: 'Geofence: ${entity.geofenceName}',
       );
 
-  Future<List<GeofenceRecordEntity>> findAll() => executeQuery(
+  Future<List<GeofenceRecordEntity>> findAll() => findAllEntities(
     entityName: 'geofence record',
     table: LocalDatabaseProperties.recordTableName,
     fromMap: GeofenceRecordEntity.fromMap,
     orderBy: 'created_at DESC',
   );
 
-  Future<void> deleteAll() => executeDelete(
+  Future<void> deleteAll() => deleteAllEntities(
     entityName: 'all geofence records',
     table: LocalDatabaseProperties.recordTableName,
     additionalDetails: 'Deleting all records',

@@ -18,7 +18,8 @@ import 'package:iamhere/feature/terms/view/terms_detail_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
 import 'package:iamhere/feature/user_permission/view/battery_optimization_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/location_permission_guide_view.dart';
-import 'package:iamhere/common/component/view_component/default_view/default_view.dart';
+import 'package:iamhere/common/component/navigation/default_view/default_view.dart';
+import 'package:iamhere/common/component/navigation/default_view/navigation_bar/navigation_tab_index_resolver.dart';
 
 import 'custom_page_transition/buttom_up_transition.dart';
 import 'custom_page_transition/simple_transition.dart';
@@ -63,7 +64,12 @@ final List<RouteBase> appRoutes = [
     ),
   ),
   ShellRoute(
-    builder: (context, state, child) => DefaultView(child: child),
+    builder: (context, state, child) => DefaultView(
+      tabIndexResolver: const NavigationTabIndexResolver(AppRoutes.mainTabs),
+      onCenterAddAuthorizedTap: (context) => context.push(AppRoutes.geofenceEnroll),
+      onCenterAddUnauthorizedTap: AppRoutes.pushLocationPermissionGuide,
+      child: child,
+    ),
     routes: [
       GoRoute(
         path: AppRoutes.geofence,

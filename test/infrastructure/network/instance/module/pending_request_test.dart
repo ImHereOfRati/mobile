@@ -47,4 +47,15 @@ void main() {
 
     verify(handler.reject(error)).called(1);
   });
+
+  test('retryAll_재시도_중_예외가_발생하면_해당_요청을_거절처리한다', () async {
+    final requestOptions = RequestOptions(path: '/api/test');
+    final handler = MockErrorInterceptorHandler();
+    retrier.addToQueue(requestOptions, handler);
+    when(mockDio.fetch(any)).thenThrow(Exception('network failed'));
+
+    await retrier.retryAll('new-access-token');
+
+    verify(handler.reject(any)).called(1);
+  });
 }

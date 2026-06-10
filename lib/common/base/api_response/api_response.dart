@@ -3,15 +3,42 @@ import 'package:json_annotation/json_annotation.dart';
 part 'api_response.g.dart';
 
 @JsonSerializable(genericArgumentFactories: true)
-class APIResponse<T> {
-  final int code;
-  final String? message;
-  final T data;
+class ApiResponse<T> {
+  final String imhereResponseCode;
+  final String message;
+  final T? data;
 
-  APIResponse({required this.code, required this.message, required this.data});
+  ApiResponse({
+    required this.imhereResponseCode,
+    required this.message,
+    this.data,
+  });
 
-  factory APIResponse.fromJson(
+  factory ApiResponse.success({T? data, String message = 'OK'}) {
+    return ApiResponse(
+      imhereResponseCode: 'SUCCESS',
+      message: message,
+      data: data,
+    );
+  }
+
+  factory ApiResponse.fail({
+    required String imhereErrorCode,
+    required String errorMessage,
+    T? data,
+  }) {
+    return ApiResponse(
+      imhereResponseCode: imhereErrorCode,
+      message: errorMessage,
+      data: data,
+    );
+  }
+
+  factory ApiResponse.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
-  ) => _$APIResponseFromJson(json, fromJsonT);
+  ) => _$ApiResponseFromJson(json, fromJsonT);
+
+  Map<String, dynamic> toJson(Object? Function(T value) toJsonT) =>
+      _$ApiResponseToJson(this, toJsonT);
 }

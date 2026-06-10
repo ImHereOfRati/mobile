@@ -8,7 +8,7 @@ import 'abstract_local_database_engine.dart';
 class NotificationDatabaseService extends AbstractLocalDatabaseService {
   NotificationDatabaseService(super.database);
 
-  Future<NotificationEntity> save(NotificationEntity entity) => executeInsert(
+  Future<NotificationEntity> save(NotificationEntity entity) => saveEntity(
     entityName: 'notification',
     table: LocalDatabaseProperties.notificationTableName,
     values: entity.toMap(),
@@ -16,14 +16,14 @@ class NotificationDatabaseService extends AbstractLocalDatabaseService {
     entityDetails: 'Notification: ${entity.title}',
   );
 
-  Future<List<NotificationEntity>> findAll() => executeQuery(
+  Future<List<NotificationEntity>> findAll() => findAllEntities(
     entityName: 'notification',
     table: LocalDatabaseProperties.notificationTableName,
     fromMap: NotificationEntity.fromMap,
     orderBy: 'created_at DESC',
   );
 
-  Future<void> deleteAll() => executeDelete(
+  Future<void> deleteAll() => deleteAllEntities(
     entityName: 'all notifications',
     table: LocalDatabaseProperties.notificationTableName,
     additionalDetails: 'Deleting all notifications',

@@ -5,9 +5,62 @@ import 'package:iamhere/infrastructure/database/util/database_handler.dart';
 import 'package:sqflite/sqflite.dart';
 
 abstract class AbstractLocalDatabaseService with DatabaseHandler {
+  static const _missingIdMessageTemplate = 'Cannot update {entity} without ID';
+  static const _notFoundMessageTemplate = '{entity} not found';
+
   final Database database;
 
   AbstractLocalDatabaseService(this.database);
+
+  Future<T> saveEntity<T>({
+    required String entityName,
+    required String table,
+    required Map<String, dynamic> values,
+    required T Function(int id) createEntity,
+    String? entityDetails,
+  }) {
+    return executeInsert(
+      entityName: entityName,
+      table: table,
+      values: values,
+      createEntity: createEntity,
+      entityDetails: entityDetails,
+    );
+  }
+
+  Future<List<T>> findAllEntities<T>({
+    required String entityName,
+    required String table,
+    required T Function(Map<String, dynamic>) fromMap,
+    String? orderBy,
+  }) {
+    return executeQuery(
+      entityName: entityName,
+      table: table,
+      fromMap: fromMap,
+      orderBy: orderBy,
+    );
+  }
+
+  Future<void> deleteAllEntities({
+    required String entityName,
+    required String table,
+    String? additionalDetails,
+  }) {
+    return executeDelete(
+      entityName: entityName,
+      table: table,
+      additionalDetails: additionalDetails,
+    );
+  }
+
+  Future<void> deleteEntityById({
+    required String entityName,
+    required String table,
+    required int id,
+  }) {
+    return executeDelete(entityName: entityName, table: table, id: id);
+  }
 
   Future<T> executeInsert<T>({
     required String entityName,
@@ -148,7 +201,7 @@ abstract class AbstractLocalDatabaseService with DatabaseHandler {
   ) {
     if (count == 0) {
       throw LocalDatabaseException(
-        '$entityName not found',
+        _notFoundMessageTemplate.replaceFirst('{entity}', entityName),
         details: 'ID: $entityId',
       );
     }
@@ -161,7 +214,7 @@ abstract class AbstractLocalDatabaseService with DatabaseHandler {
   ) {
     if (entityId == null) {
       throw LocalDatabaseException(
-        'Cannot update $entityName without ID',
+        _missingIdMessageTemplate.replaceFirst('{entity}', entityName),
         details: entityDetails,
       );
     }
