@@ -14,6 +14,8 @@ import 'oauth_provider.dart';
 @lazySingleton
 class AuthService {
   static const String _loginPath = '/api/auth/login';
+  static const String _registrationPath = '/api/auth/registration';
+  static const String _userNotFoundResponseCode = 'AUTH-300';
 
   final Dio _dio;
   final TokenStorageService _tokenStorage;
@@ -22,7 +24,21 @@ class AuthService {
 
   Future<MemberState> sendIdTokenToServer(String idToken) async {
     try {
-      final response = await _requestAuthenticationToServer(idToken);
+      var response = await _requestAuthenticationToServer(
+        path: _loginPath,
+        idToken: idToken,
+      );
+      var apiResponse = _convertResponseToDartObject(response);
+
+      if (apiResponse.imhereResponseCode == _userNotFoundResponseCode) {
+        response = await _requestAuthenticationToServer(
+          path: _registrationPath,
+          idToken: idToken,
+        );
+        apiResponse = _convertResponseToDartObject(response);
+      }
+
+      _handleErrorResponse(apiResponse);
       final (:code, :access, :refresh) = _parseToken(response);
 
       await _saveTokenToStorage(access, refresh);
@@ -43,7 +59,10 @@ class AuthService {
   }
 
   Future<Response<dynamic>> _requestAuthenticationToServer(
-    String idToken,
+    {
+    required String path,
+    required String idToken,
+  }
   ) async {
     final authRequestData = OAuthRequestDto(
       provider: OauthProvider.KAKAO.name,
@@ -51,15 +70,17 @@ class AuthService {
     );
 
     return await _dio.post(
-      _loginPath,
+      path,
       data: authRequestData,
-      options: Options(extra: const {'requiresAuth': false}),
+      options: Options(
+        extra: const {'requiresAuth': false},
+        validateStatus: (status) => status != null && status < 500,
+      ),
     );
   }
 
   ({int code, String access, String refresh}) _parseToken(Response response) {
     final apiResponse = _convertResponseToDartObject(response);
-    _handleErrorResponse(apiResponse);
     final responseStatusCode = response.statusCode ?? HttpStatusCode.ok;
 
     final authData = apiResponse.data;
@@ -78,16 +99,31 @@ class AuthService {
     final responseCode = apiResponse.imhereResponseCode;
 
     if (responseCode != 'SUCCESS') {
-      throw Exception(apiResponse.message ?? ResultMessage.serverError);
+      throw Exception(
+        apiResponse.message.isNotEmpty
+            ? apiResponse.message
+            : ResultMessage.serverError,
+      );
     }
   }
 
   ApiResponse<AuthResponseDto> _convertResponseToDartObject(
     Response<dynamic> response,
   ) {
-    return ApiResponse<AuthResponseDto>.fromJson(
+    final raw = ApiResponse<Object?>.fromJson(
       response.data as Map<String, dynamic>,
-      (json) => AuthResponseDto.fromJson(json as Map<String, dynamic>),
+      (json) => json,
+    );
+
+    final data = raw.data;
+    final authData = data is Map<String, dynamic> && data.isNotEmpty
+        ? AuthResponseDto.fromJson(data)
+        : null;
+
+    return ApiResponse<AuthResponseDto>(
+      imhereResponseCode: raw.imhereResponseCode,
+      message: raw.message,
+      data: authData,
     );
   }
 }
