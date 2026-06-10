@@ -46,11 +46,11 @@ void main() {
         },
       };
 
-      when(mockDio.get('/api/user/terms')).thenAnswer(
+      when(mockDio.get('/api/terms')).thenAnswer(
         (_) async => Response(
           data: responseData,
           statusCode: 200,
-          requestOptions: RequestOptions(path: '/api/user/terms'),
+          requestOptions: RequestOptions(path: '/api/terms'),
         ),
       );
 
@@ -58,26 +58,26 @@ void main() {
       final result = await termsService.requestTermsList();
 
       // Assert
-      expect(result.data.content, hasLength(2));
-      expect(result.data.content[0].termDefinitionId, 1);
-      expect(result.data.content[0].title, '서비스 이용약관');
-      expect(result.data.content[0].termsTypes, TermsType.service);
-      expect(result.data.content[0].isRequired, true);
-      expect(result.data.content[1].termDefinitionId, 2);
-      expect(result.data.content[1].title, '개인정보 처리방침');
-      expect(result.data.content[1].termsTypes, TermsType.privacy);
-      expect(result.data.content[1].isRequired, true);
+      expect(result.data!.content, hasLength(2));
+      expect(result.data!.content[0].termDefinitionId, 1);
+      expect(result.data!.content[0].title, '서비스 이용약관');
+      expect(result.data!.content[0].termsTypes, TermsType.service);
+      expect(result.data!.content[0].isRequired, true);
+      expect(result.data!.content[1].termDefinitionId, 2);
+      expect(result.data!.content[1].title, '개인정보 처리방침');
+      expect(result.data!.content[1].termsTypes, TermsType.privacy);
+      expect(result.data!.content[1].isRequired, true);
 
-      verify(mockDio.get('/api/user/terms')).called(1);
+      verify(mockDio.get('/api/terms')).called(1);
     });
 
     test('실패: 200이 아닌 상태 코드 시 예외를 발생해야 함', () async {
       // Arrange
-      when(mockDio.get('/api/user/terms')).thenAnswer(
+      when(mockDio.get('/api/terms')).thenAnswer(
         (_) async => Response(
           data: {},
           statusCode: 400,
-          requestOptions: RequestOptions(path: '/api/user/terms'),
+          requestOptions: RequestOptions(path: '/api/terms'),
         ),
       );
 
@@ -87,9 +87,9 @@ void main() {
 
     test('실패: Dio 예외 발생 시 예외를 전파해야 함', () async {
       // Arrange
-      final requestOptions = RequestOptions(path: '/api/user/terms');
+      final requestOptions = RequestOptions(path: '/api/terms');
       when(
-        mockDio.get('/api/user/terms'),
+        mockDio.get('/api/terms'),
       ).thenThrow(DioException(requestOptions: requestOptions));
 
       // Act & Assert
@@ -111,12 +111,12 @@ void main() {
         },
       };
 
-      when(mockDio.get('/api/user/terms/version/$termId')).thenAnswer(
+      when(mockDio.get('/api/terms')).thenAnswer(
         (_) async => Response(
           data: responseData,
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: '/api/user/terms/version/$termId',
+            path: '/api/terms',
           ),
         ),
       );
@@ -125,24 +125,24 @@ void main() {
       final result = await termsService.requestTermsDetail(termId);
 
       // Assert
-      expect(result.data.version, 'v1.0');
-      expect(result.data.content, contains('서비스 이용약관'));
-      expect(result.data.effectiveDate.year, 2024);
-      expect(result.data.effectiveDate.month, 1);
-      expect(result.data.effectiveDate.day, 1);
+      expect(result.data!.version, 'v1.0');
+      expect(result.data!.content, contains('서비스 이용약관'));
+      expect(result.data!.effectiveDate.year, 2024);
+      expect(result.data!.effectiveDate.month, 1);
+      expect(result.data!.effectiveDate.day, 1);
 
-      verify(mockDio.get('/api/user/terms/version/$termId')).called(1);
+      verify(mockDio.get('/api/terms')).called(1);
     });
 
     test('실패: 200이 아닌 상태 코드 시 예외를 발생해야 함', () async {
       // Arrange
       const termId = 1;
-      when(mockDio.get('/api/user/terms/version/$termId')).thenAnswer(
+      when(mockDio.get('/api/terms')).thenAnswer(
         (_) async => Response(
           data: {},
           statusCode: 404,
           requestOptions: RequestOptions(
-            path: '/api/user/terms/version/$termId',
+            path: '/api/terms',
           ),
         ),
       );
@@ -155,10 +155,10 @@ void main() {
       // Arrange
       const termId = 1;
       final requestOptions = RequestOptions(
-        path: '/api/user/terms/version/$termId',
+        path: '/api/terms',
       );
       when(
-        mockDio.get('/api/user/terms/version/$termId'),
+        mockDio.get('/api/terms'),
       ).thenThrow(DioException(requestOptions: requestOptions));
 
       // Act & Assert
