@@ -9,7 +9,8 @@ class GeofenceBasicInfo {
   const GeofenceBasicInfo({
     this.name = '',
     this.address = '',
-    this.message = '안녕하세요! {location}에 도착했습니다.',
+    // 비워두면 저장 시 이벤트 타입별 기본 메시지가 적용된다.
+    this.message = '',
     this.eventType = EventType.arrival,
   });
 

@@ -11,9 +11,11 @@ import 'package:injectable/injectable.dart';
 @Injectable(as: FriendRequestServiceInterface)
 class FriendRequestService implements FriendRequestServiceInterface {
   static const String _friendRequestPath = '/api/friends/requests';
-  static const String _friendRequestDetailPath = '/api/friends/requests/{id}';
-  static const String _friendRequestAcceptPath = '/api/friends/requests/{id}/accept';
-  static const String _friendRequestRejectPath = '/api/friends/requests/{id}/reject';
+  static String _friendRequestDetailPath(int id) => '/api/friends/requests/$id';
+  static String _friendRequestAcceptPath(int id) =>
+      '/api/friends/requests/$id/accept';
+  static String _friendRequestRejectPath(int id) =>
+      '/api/friends/requests/$id/reject';
 
   final Dio _dio;
 

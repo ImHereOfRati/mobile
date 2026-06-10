@@ -7,13 +7,12 @@ import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:iamhere/common/base/result/error_analyst.dart';
 import 'package:injectable/injectable.dart';
 
-import 'auth_service_interface.dart';
-import 'domain/oauth_provider.dart';
+import 'oauth_provider.dart';
 import 'dto/auth_response.dart';
 import 'dto/oauth_request.dart';
 
 @lazySingleton
-class AuthService implements AuthServiceInterface {
+class AuthService {
   static const String _loginPath = '/api/auth/login';
 
   final Dio _dio;
@@ -21,7 +20,6 @@ class AuthService implements AuthServiceInterface {
 
   AuthService(this._dio, this._tokenStorage);
 
-  @override
   Future<MemberState> sendIdTokenToServer(String idToken) async {
     try {
       final response = await _requestAuthenticationToServer(idToken);

@@ -36,14 +36,15 @@ void main() {
 
       when(
         mockDio.get(
-          '/api/users?nickname=테스트',
+          '/api/users',
+          queryParameters: {'keyword': '테스트'},
           options: anyNamed('options'),
         ),
       ).thenAnswer(
         (_) async => Response(
           data: responseData,
           statusCode: 200,
-          requestOptions: RequestOptions(path: '/api/users?nickname=테스트'),
+          requestOptions: RequestOptions(path: '/api/users'),
         ),
       );
 
@@ -62,16 +63,15 @@ void main() {
       // Arrange
       when(
         mockDio.get(
-          '/api/users?nickname=없는유저',
+          '/api/users',
+          queryParameters: {'keyword': '없는유저'},
           options: anyNamed('options'),
         ),
       ).thenAnswer(
         (_) async => Response(
           data: {'data': []},
           statusCode: 200,
-          requestOptions: RequestOptions(
-            path: '/api/users?nickname=없는유저',
-          ),
+          requestOptions: RequestOptions(path: '/api/users'),
         ),
       );
 
@@ -86,12 +86,13 @@ void main() {
       // Arrange
       when(
         mockDio.get(
-          '/api/users?nickname=에러',
+          '/api/users',
+          queryParameters: {'keyword': '에러'},
           options: anyNamed('options'),
         ),
       ).thenThrow(
         DioException(
-          requestOptions: RequestOptions(path: '/api/users?nickname=에러'),
+          requestOptions: RequestOptions(path: '/api/users'),
           message: 'Network error',
         ),
       );

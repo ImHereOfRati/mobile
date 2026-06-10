@@ -4,8 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../common/enroll_section_label.dart';
 import 'enroll_message_hint_banner.dart';
 
-const String _sectionMessage = '도착 알림 메시지';
-const String _messageHint = '안녕하세요! 서울시청에 도착했습니다.';
+const String _sectionMessage = '보낼 메시지 (선택)';
+const String _messageHint = '비워두면 기본 메시지를 자동으로 보내드려요';
 
 class EnrollMessageField extends StatelessWidget {
   final TextEditingController controller;

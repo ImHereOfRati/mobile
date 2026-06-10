@@ -71,7 +71,7 @@ void main() {
       );
 
       when(
-        mockDio.post(
+        mockDio.patch(
           '/api/friendships/uuid-1/alias',
           data: anyNamed('data'),
           options: anyNamed('options'),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
@@ -38,11 +39,29 @@ void main() {
   });
 
   Widget createWidgetUnderTest() {
+    // 로그인 성공 시 context.go 로 이동하므로 GoRouter 가 필요하다.
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, __) => AuthView(mockAuthViewModel),
+        ),
+        GoRoute(
+          path: '/geofence',
+          builder: (_, __) => const Scaffold(body: SizedBox()),
+        ),
+        GoRoute(
+          path: '/terms-consent',
+          builder: (_, __) => const Scaffold(body: SizedBox()),
+        ),
+      ],
+    );
+
     return ProviderScope(
       child: ScreenUtilInit(
         designSize: const Size(402, 874),
         builder: (context, child) {
-          return MaterialApp(home: AuthView(mockAuthViewModel));
+          return MaterialApp.router(routerConfig: router);
         },
       ),
     );

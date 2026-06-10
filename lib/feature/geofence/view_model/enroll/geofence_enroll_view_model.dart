@@ -116,6 +116,11 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
     final serverRecipients =
         state.selectedRecipients.whereType<ServerRecipient>().toList();
 
+    // 메시지를 비워두면 이벤트 타입별 기본 메시지를 사용한다.
+    final message = state.message.trim().isEmpty
+        ? state.eventType.messageTemplate
+        : state.message.trim();
+
     final vm = ref.read(geofenceViewModelInterfaceProvider);
     final saved = await vm.saveGeofence(SaveGeofenceRequest(
       id: _id,
@@ -124,7 +129,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
       lat: state.selectedLocation!.latitude,
       lng: state.selectedLocation!.longitude,
       radius: double.parse(state.radius.trim()),
-      message: state.message.trim(),
+      message: message,
       contactIds: contactIds,
       serverRecipients: serverRecipients,
       eventType: state.eventType.name,

@@ -17,6 +17,7 @@ class UserSearchService implements UserSearchServiceInterface {
     try {
       final response = await _dio.get(
         _userSearchPath,
+        queryParameters: {'keyword': keyword},
         options: Options(extra: const {'requiresAuth': true}),
       );
 

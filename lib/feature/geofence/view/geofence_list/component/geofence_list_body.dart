@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository_provider.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/geofence_enroll_view.dart';
+import 'package:iamhere/feature/geofence/view/geofence_list/component/geofence_empty_state.dart';
 import 'package:iamhere/feature/geofence/view/geofence_list/component/geofence_list_tile.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:iamhere/feature/user_permission/view_model/auto_send_readiness_provider.dart';
 import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
 import 'package:iamhere/common/component/dialog/app_confirm_dialog.dart';
@@ -19,7 +22,6 @@ const String _enrollFailure = '등록 실패: ';
 const String _deleteDialogTitle = '도착 알림 삭제';
 const String _deleteDialogSuffix = ' 알림을 삭제하시겠습니까?';
 const String _errorPrefix = '오류 발생: ';
-const String _emptyListMessage = '아직 만든 도착 알림이 없어요';
 
 class GeofenceListBody extends ConsumerStatefulWidget {
   const GeofenceListBody({super.key});
@@ -62,20 +64,36 @@ class _GeofenceListBodyState extends ConsumerState<GeofenceListBody>
       ),
       data: (geofences) {
         if (geofences.isEmpty) {
-          return SliverMessageView(
-            message: _emptyListMessage,
-            style: AppTextStyles.hannaAirRegular(16, cs.onSurfaceVariant),
-          );
+          return const GeofenceEmptyState();
         }
 
         return GeofenceListTile(
           geofences: geofences,
+          isAutoSendReady: ref.watch(autoSendReadinessProvider).isReady,
           onToggle: _handleToggle,
           onDelete: _handleDelete,
           onEdit: _handleEdit,
+          onCreateNew: _handleCreateNew,
         );
       },
     );
+  }
+
+  Future<void> _handleCreateNew() async {
+    final service = ref.read(locationPermissionServiceProvider);
+    var status = await service.checkPermissionStatus();
+    if (status == PermissionState.denied) {
+      status = await service.requestPermission();
+    }
+    if (!mounted) return;
+
+    final canEnroll = status == PermissionState.grantedAlways ||
+        status == PermissionState.grantedWhenInUse;
+    if (canEnroll) {
+      context.push(AppRoutes.geofenceEnroll);
+    } else {
+      await AppRoutes.pushLocationPermissionGuide(context);
+    }
   }
 
   void _handleEdit(GeofenceEntity geofence) async {

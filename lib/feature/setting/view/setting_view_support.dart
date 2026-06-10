@@ -16,16 +16,16 @@ class SettingLabelFormatter {
     if (!Platform.isAndroid) return '해당 없음';
     switch (state) {
       case PermissionState.grantedAlways:
-        return '제외됨';
+        return '준비 완료';
       case PermissionState.permanentlyDenied:
-        return '시스템에서 거부됨';
+        return '설정에서 변경 필요';
       case PermissionState.restricted:
         return '제한됨';
       case PermissionState.denied:
       case PermissionState.grantedWhenInUse:
-        return '미적용';
+        return '설정 필요';
       case PermissionState.serviceDisabled:
-        return '서비스 상태 불량';
+        return '상태 확인 필요';
     }
   }
 

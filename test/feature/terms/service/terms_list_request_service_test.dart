@@ -21,7 +21,7 @@ void main() {
     test('성공: 약관 목록을 올바르게 반환해야 함', () async {
       // Arrange
       final responseData = {
-        'code': 200,
+        'imhereResponseCode': 'SUCCESS',
         'message': 'success',
         'data': {
           'content': [
@@ -43,6 +43,7 @@ void main() {
           'number': 0,
           'size': 20,
           'last': true,
+          'first': true,
         },
       };
 
@@ -102,7 +103,7 @@ void main() {
       // Arrange
       const termId = 1;
       final responseData = {
-        'code': 200,
+        'imhereResponseCode': 'SUCCESS',
         'message': 'OK',
         'data': {
           'version': 'v1.0',

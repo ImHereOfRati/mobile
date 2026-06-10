@@ -18,7 +18,6 @@ import '../map_select/component/map_select_widgets.dart';
 import '../map_select/map_select_view.dart';
 import '../recipient_select/recipient_select_view.dart';
 
-const String _enrollSuccess = '도착 알림이 저장되었습니다';
 const String _enrollFailure = '저장 실패: ';
 
 class GeofenceEnrollView extends ConsumerStatefulWidget {
@@ -33,6 +32,9 @@ class GeofenceEnrollView extends ConsumerStatefulWidget {
 
 class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   final GlobalKey<EnrollInlineMapState> _mapRef = GlobalKey();
+
+  /// '알림 더 만들기'로 폼을 초기화할 때 폼/컨트롤러를 새로 만들기 위한 키.
+  int _formEpoch = 0;
 
   @override
   void initState() {
@@ -55,22 +57,18 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
 
     return Scaffold(
       body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            EnrollInlineMap(
-              key: _mapRef,
-              initialSelectedLocation: formState.selectedLocation,
-              onLocationPicked: (latlng) => ref
-                  .read(geofenceEnrollViewModelProvider.notifier)
-                  .updateLocation(latlng),
-              onOpenMapSelect: _openMapSelect,
-            ),
-            EnrollFormBody(
-              onOpenRecipientSelect: _openRecipientSelect,
-              onSave: _save,
-            ),
-          ],
+        child: EnrollFormBody(
+          key: ValueKey(_formEpoch),
+          mapSection: EnrollInlineMap(
+            key: _mapRef,
+            initialSelectedLocation: formState.selectedLocation,
+            onLocationPicked: (latlng) => ref
+                .read(geofenceEnrollViewModelProvider.notifier)
+                .updateLocation(latlng),
+            onOpenMapSelect: _openMapSelect,
+          ),
+          onOpenRecipientSelect: _openRecipientSelect,
+          onSave: _save,
         ),
       ),
     );
@@ -134,7 +132,7 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   void _showCompleteSheet() {
     final formState = ref.read(geofenceEnrollViewModelProvider);
     final readiness = ref.read(autoSendReadinessProvider);
-    final isReady = readiness.isEmpty; // empty = ready
+    final isReady = readiness.isReady;
 
     showModalBottomSheet(
       context: context,
@@ -150,6 +148,7 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
         onCreateAnother: () {
           Navigator.pop(context);
           ref.read(geofenceEnrollViewModelProvider.notifier).resetForm();
+          setState(() => _formEpoch++);
         },
         onBackToMain: () {
           Navigator.pop(context); // Close bottom sheet

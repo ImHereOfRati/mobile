@@ -153,7 +153,7 @@ class MapConfirmButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         elevation: 4,
       ),
-      child: Text('이 위치로 선택', style: AppTextStyles.hannaAirBold(16, cs.onPrimary)),
+      child: Text('이 장소로 선택', style: AppTextStyles.hannaAirBold(16, cs.onPrimary)),
     );
   }
 }

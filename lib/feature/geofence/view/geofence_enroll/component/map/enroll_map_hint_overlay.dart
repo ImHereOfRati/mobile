@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
 
-const String _mapHint = '지도에서 위치를 선택하세요';
+const String _mapHint = '알려드릴 장소를 지도에서 눌러 선택하세요';
 
 class EnrollMapHintOverlay extends StatelessWidget {
   const EnrollMapHintOverlay({super.key});

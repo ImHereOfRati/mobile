@@ -8,9 +8,9 @@ import 'package:injectable/injectable.dart';
 @Injectable(as: FriendRelationshipServiceInterface)
 class FriendRelationshipService implements FriendRelationshipServiceInterface {
   static const String _friendListPath = '/api/friendships';
-  static const String _friendAliasPath = '/api/friendships/{id}/alias';
-  static const String _friendBlockPath = '/api/friendships/{id}/block';
-  static const String _friendDeletePath = '/api/friendships/{id}';
+  static String _friendAliasPath(String id) => '/api/friendships/$id/alias';
+  static String _friendBlockPath(String id) => '/api/friendships/$id/block';
+  static String _friendDeletePath(String id) => '/api/friendships/$id';
 
   final Dio _dio;
 
@@ -50,8 +50,8 @@ class FriendRelationshipService implements FriendRelationshipServiceInterface {
     UpdateFriendAliasRequestDto request,
   ) async {
     try {
-      final response = await _dio.post(
-        _friendAliasPath,
+      final response = await _dio.patch(
+        _friendAliasPath(request.friendRelationshipId),
         data: request.toJson(),
         options: Options(extra: const {'requiresAuth': true}),
       );

@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/feature/auth/view_model/auth_view_model_interface.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
 import 'package:iamhere/common/base/result/error_analyst.dart';
 import 'package:iamhere/common/base/result/result.dart';
@@ -10,13 +9,12 @@ import 'package:injectable/injectable.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
 @injectable
-class AuthViewModel implements AuthViewModelInterface {
+class AuthViewModel {
   final AuthService _authService;
   final FcmTokenService _fcmTokenService;
 
   AuthViewModel(this._authService, this._fcmTokenService);
 
-  @override
   Future<Result<MemberState>> handleKakaoLogin() async {
     final result = await _doUserKakaoLogin();
 
@@ -27,7 +25,6 @@ class AuthViewModel implements AuthViewModelInterface {
     );
   }
 
-  @override
   Future<Result<ResultMessage>> requestFCMTokenAndSendToServer() async {
     final fcmToken = await _fcmTokenService.generateAndSaveFcmToken();
     if (fcmToken == null) {

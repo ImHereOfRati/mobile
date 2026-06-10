@@ -8,7 +8,8 @@ import 'package:injectable/injectable.dart';
 @Injectable(as: FriendRestrictionServiceInterface)
 class FriendRestrictionService implements FriendRestrictionServiceInterface {
   static const String _friendRestrictionPath = '/api/friends/restrictions';
-  static const String _friendRestrictionDeletePath = '/api/friends/restrictions/{id}';
+  static String _friendRestrictionDeletePath(int id) =>
+      '/api/friends/restrictions/$id';
 
   final Dio _dio;
 

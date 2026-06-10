@@ -190,10 +190,10 @@ void main() {
       ).thenAnswer((_) async => MemberState.existingUser); // 기존 사용자 반환
 
       // Act
-      final isNewUser = await mockAuthService.sendIdTokenToServer(testToken);
+      final memberState = await mockAuthService.sendIdTokenToServer(testToken);
 
       // Assert
-      expect(isNewUser, false);
+      expect(memberState, MemberState.existingUser);
       verify(mockAuthService.sendIdTokenToServer(testToken)).called(1);
     });
 

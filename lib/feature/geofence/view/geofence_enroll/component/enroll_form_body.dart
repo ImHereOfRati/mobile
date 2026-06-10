@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_model.dart';
 
 import 'radius/enroll_radius_section.dart';
+import 'common/enroll_section_label.dart';
 import 'fields/enroll_activate_toggle.dart';
 import 'enroll_check_card.dart';
 import 'fields/enroll_message_field.dart';
@@ -13,12 +14,16 @@ import 'enroll_save_button.dart';
 import 'event/enroll_event_section.dart';
 import 'repeat/enroll_repeat_section.dart';
 
+const String _sectionPlace = '어디에서 알려드릴까요?';
+
 class EnrollFormBody extends ConsumerStatefulWidget {
+  final Widget mapSection;
   final VoidCallback onOpenRecipientSelect;
   final VoidCallback onSave;
 
   const EnrollFormBody({
     super.key,
+    required this.mapSection,
     required this.onOpenRecipientSelect,
     required this.onSave,
   });
@@ -88,7 +93,14 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
             onChanged: notifier.updateEventType,
           ),
           h20Box,
-          // 반경 (위치 관련)
+          // 어디에서 알려드릴까요? (장소 + 반경)
+          const EnrollSectionLabel(_sectionPlace),
+          SizedBox(height: 10.h),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12.r),
+            child: widget.mapSection,
+          ),
+          h20Box,
           EnrollRadiusBlock(
             selected: state.radius,
             infoMessage: state.radiusInfoMessage,

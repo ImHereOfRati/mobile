@@ -1,8 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:iamhere/feature/auth/service/auth_state.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:mockito/annotations.dart';
@@ -33,7 +32,7 @@ void main() {
   });
 
   group('auth_state_provider_test', () {
-    test('AccessToken이 존재하면 true 를 반환한다.', () async {
+    test('AccessToken이 존재하면 authenticated 를 반환한다.', () async {
       //given
       final testAccessToken = 'access_token';
 
@@ -45,10 +44,10 @@ void main() {
       final result = await container.read(authStateProvider.future);
 
       //then
-      expect(result, true);
+      expect(result, AuthState.authenticated);
     });
 
-    test('없으면 false를 반환한다', () async {
+    test('없으면 unauthenticated 를 반환한다', () async {
       //given
       when(
         mockTokenStorageService.getAccessToken(),
@@ -58,11 +57,11 @@ void main() {
       final result = await container.read(authStateProvider.future);
 
       //then
-      expect(result, false);
+      expect(result, AuthState.unauthenticated);
       verify(mockTokenStorageService.getAccessToken()).called(1);
     });
 
-    test('빈 문자열이어도 false를 반환한다', () async {
+    test('빈 문자열이어도 unauthenticated 를 반환한다', () async {
       //given
       when(
         mockTokenStorageService.getAccessToken(),
@@ -72,7 +71,7 @@ void main() {
       final result = await container.read(authStateProvider.future);
 
       //then
-      expect(result, false);
+      expect(result, AuthState.unauthenticated);
       verify(mockTokenStorageService.getAccessToken()).called(1);
     });
   });

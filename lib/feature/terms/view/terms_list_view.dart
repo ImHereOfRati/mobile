@@ -105,7 +105,7 @@ class TermsListView extends ConsumerWidget {
         ),
         SizedBox(height: 12.h),
         Text(
-          '서비스를 시작하기 위해\n약관 동의가 필요해요',
+          '필수 약관에만 동의하면\n바로 시작할 수 있어요',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'BMHANNAAir',

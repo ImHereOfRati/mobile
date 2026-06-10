@@ -1,20 +1,12 @@
-import 'dart:isolate';
-import 'dart:ui';
-
-import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
-import 'package:iamhere/infrastructure/network/properties/api_config.dart';
-import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/record_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
-import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:iamhere/firebase_options.dart';
 import 'package:iamhere/integration/firebase/firebase_service.dart';
 import 'package:iamhere/common/base/result/result.dart';
@@ -58,18 +50,6 @@ Future<void> _bootstrapBackgroundIsolate() async {
 
   _backgroundIsolateBootstrapped = true;
   AppLogger.debug('BG_BOOT: Already Initialized');
-}
-
-Future<String> _resolveBaseUrlInBackground() async {
-  const fallback = 'https://fortuneki.site';
-  try {
-    final fbs = FirebaseService();
-    await fbs.initialize();
-    return fbs.remoteConfig.baseUrlOrNull ?? fallback;
-  } catch (e) {
-    AppLogger.warning('BG_BOOT: RemoteConfig unavailable, using fallback');
-    return fallback;
-  }
 }
 
 /// OS 가 지오펜스 진입 이벤트를 발생시키면 호출되는 최상위 함수.

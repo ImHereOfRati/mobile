@@ -1,12 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/infrastructure/network/util/dio_handler.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
-class FcmNotificationService with DioHandler {
+class FcmNotificationService {
   static const String _fcmNotificationPath = '/api/notifications';
   static const String _fcmDeliveryResultPath = '/api/notifications';
   static const String _fcmLocationTargetPath = '/api/notifications';
@@ -20,28 +19,14 @@ class FcmNotificationService with DioHandler {
     required String receiverEmail,
     required String type,
     required String body,
-  }) async {
-    return await safeApiCall(() async {
-      final dto = FcmNotificationRequestDto(
-        receiverEmail: receiverEmail,
-        type: type,
-        body: body,
-      );
-
-      final response = await _dio.post(
-        _fcmDeliveryResultPath,
-        data: dto.toJson(),
-        options: Options(extra: const {'requiresAuth': true}),
-      );
-
-      if (response.statusCode == 200) {
-        AppLogger.debug('Delivery result notification sent successfully');
-        return Success(null);
-      } else {
-        AppLogger.error('Failed to send delivery result: ${response.statusCode}');
-        return Failure('Failed to send delivery result: ${response.statusCode}');
-      }
-    });
+  }) {
+    return _send(
+      path: _fcmDeliveryResultPath,
+      receiverEmail: receiverEmail,
+      type: type,
+      body: body,
+      label: 'delivery result',
+    );
   }
 
   /// 일반 알림 FCM 발송 (친구 요청 등)
@@ -49,28 +34,14 @@ class FcmNotificationService with DioHandler {
     required String receiverEmail,
     required String type,
     required String body,
-  }) async {
-    return await safeApiCall(() async {
-      final dto = FcmNotificationRequestDto(
-        receiverEmail: receiverEmail,
-        type: type,
-        body: body,
-      );
-
-      final response = await _dio.post(
-        _fcmNotificationPath,
-        data: dto.toJson(),
-        options: Options(extra: const {'requiresAuth': true}),
-      );
-
-      if (response.statusCode == 200) {
-        AppLogger.debug('FCM notification sent successfully');
-        return Success(null);
-      } else {
-        AppLogger.error('Failed to send FCM notification: ${response.statusCode}');
-        return Failure('Failed to send FCM notification: ${response.statusCode}');
-      }
-    });
+  }) {
+    return _send(
+      path: _fcmNotificationPath,
+      receiverEmail: receiverEmail,
+      type: type,
+      body: body,
+      label: 'FCM notification',
+    );
   }
 
   /// 위치 수신 대상자 선정 알림 (앱 사용자 대상)
@@ -78,8 +49,24 @@ class FcmNotificationService with DioHandler {
     required String receiverEmail,
     required String type,
     required String body,
+  }) {
+    return _send(
+      path: _fcmLocationTargetPath,
+      receiverEmail: receiverEmail,
+      type: type,
+      body: body,
+      label: 'location target notification',
+    );
+  }
+
+  Future<Result<void>> _send({
+    required String path,
+    required String receiverEmail,
+    required String type,
+    required String body,
+    required String label,
   }) async {
-    return await safeApiCall(() async {
+    try {
       final dto = FcmNotificationRequestDto(
         receiverEmail: receiverEmail,
         type: type,
@@ -87,22 +74,20 @@ class FcmNotificationService with DioHandler {
       );
 
       final response = await _dio.post(
-        _fcmLocationTargetPath,
+        path,
         data: dto.toJson(),
         options: Options(extra: const {'requiresAuth': true}),
       );
 
-      if (response.statusCode == 200) {
-        AppLogger.debug('Location target notification sent successfully');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        AppLogger.debug('$label sent successfully');
         return Success(null);
-      } else {
-        AppLogger.error(
-          'Failed to send location target notification: ${response.statusCode}',
-        );
-        return Failure(
-          'Failed to send location target notification: ${response.statusCode}',
-        );
       }
-    });
+      AppLogger.error('Failed to send $label: ${response.statusCode}');
+      return Failure('Failed to send $label: ${response.statusCode}');
+    } on DioException catch (e) {
+      AppLogger.error('Failed to send $label: ${e.message}');
+      return Failure('Failed to send $label: ${e.message}');
+    }
   }
 }

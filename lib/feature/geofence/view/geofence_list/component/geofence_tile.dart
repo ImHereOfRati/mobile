@@ -6,6 +6,7 @@ const String _memberCountUnit = '명';
 
 class GeofenceTile extends StatelessWidget {
   final bool isToggleOn;
+  final bool isAutoSendReady;
   final ValueChanged<bool> onToggleChanged;
   final String homeName;
   final String address;
@@ -16,6 +17,7 @@ class GeofenceTile extends StatelessWidget {
   const GeofenceTile({
     super.key,
     required this.isToggleOn,
+    required this.isAutoSendReady,
     required this.onToggleChanged,
     required this.homeName,
     required this.address,
@@ -64,8 +66,27 @@ class GeofenceTile extends StatelessWidget {
           ),
           SizedBox(height: 6.h),
           _buildSubInfoRow(cs),
+          SizedBox(height: 8.h),
+          _buildReadinessChip(cs),
         ],
       ),
+    );
+  }
+
+  Widget _buildReadinessChip(ColorScheme cs) {
+    final (label, background, foreground) = switch ((isToggleOn, isAutoSendReady)) {
+      (false, _) => ('자동 전송 꺼짐', cs.surfaceContainerHighest, cs.onSurfaceVariant),
+      (true, true) => ('자동 전송 준비 완료', cs.primary.withValues(alpha: 0.12), cs.primary),
+      (true, false) => ('준비 필요', cs.errorContainer, cs.error),
+    };
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Text(label, style: AppTextStyles.hannaAirBold(11, foreground)),
     );
   }
 

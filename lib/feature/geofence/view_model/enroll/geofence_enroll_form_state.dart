@@ -1,5 +1,7 @@
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
+import 'package:iamhere/feature/geofence/model/repeat_schedule.dart';
 import 'package:iamhere/feature/geofence/utils/radius_helper.dart';
 import 'geofence_basic_info.dart';
 import 'geofence_area_info.dart';
@@ -47,6 +49,6 @@ class GeofenceEnrollFormState {
   bool get isActive => status.isActive;
 
   // New helpers
-  get eventType => basic.eventType;
-  get repeatSchedule => status.repeatSchedule;
+  EventType get eventType => basic.eventType;
+  RepeatSchedule get repeatSchedule => status.repeatSchedule;
 }

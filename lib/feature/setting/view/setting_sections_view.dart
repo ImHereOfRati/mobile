@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/setting/view/my_info_view.dart';
 import 'package:iamhere/feature/setting/view/privacy_view.dart';
 import 'package:iamhere/feature/setting/view/setting_components.dart';
+import 'package:iamhere/feature/setting/view/setting_diagnosis_section.dart';
 import 'package:iamhere/feature/setting/view/setting_layout_components.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model_state.dart';
@@ -60,6 +61,8 @@ class SettingSectionsView extends StatelessWidget {
         SettingSection(title: '앱 사용 권한', items: _permissionItems(context)),
         SizedBox(height: 20.h),
         SettingSection(title: '자동 전송 준비', items: _readinessItems(context, readiness)),
+        SizedBox(height: 20.h),
+        const SettingDiagnosisSection(),
         SizedBox(height: 20.h),
         SettingSection(title: '개인정보', items: _privacyItems(context)),
         SizedBox(height: 20.h),

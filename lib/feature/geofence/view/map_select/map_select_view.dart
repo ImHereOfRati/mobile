@@ -86,7 +86,7 @@ class _MapSelectViewState extends ConsumerState<MapSelectView> {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('위치를 선택해주세요')),
+                    const SnackBar(content: Text('장소를 선택해주세요')),
                   );
                 }
               }),
