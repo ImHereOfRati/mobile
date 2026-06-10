@@ -10,6 +10,8 @@ import 'fields/enroll_message_field.dart';
 import 'fields/enroll_name_field.dart';
 import 'recipient/enroll_recipient_section.dart';
 import 'enroll_save_button.dart';
+import 'event/enroll_event_section.dart';
+import 'repeat/enroll_repeat_section.dart';
 
 class EnrollFormBody extends ConsumerStatefulWidget {
   final VoidCallback onOpenRecipientSelect;
@@ -74,12 +76,32 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // 누구에게 알려드릴까요?
+          EnrollRecipientSection(
+            recipients: state.selectedRecipients,
+            onOpenSelect: widget.onOpenRecipientSelect,
+          ),
+          h20Box,
+          // 언제 알려드릴까요?
+          EnrollEventSection(
+            selectedType: state.eventType,
+            onChanged: notifier.updateEventType,
+          ),
+          h20Box,
+          // 반경 (위치 관련)
           EnrollRadiusBlock(
             selected: state.radius,
             infoMessage: state.radiusInfoMessage,
             onChanged: notifier.updateRadius,
           ),
           h20Box,
+          // 반복 설정
+          EnrollRepeatSection(
+            selectedSchedule: state.repeatSchedule,
+            onChanged: notifier.updateRepeatSchedule,
+          ),
+          h20Box,
+          // 이름/메시지
           EnrollNameField(controller: _nameController),
           h20Box,
           EnrollMessageField(controller: _messageController),
@@ -91,11 +113,6 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
           SizedBox(height: 12.h),
           const EnrollCheckCard(),
           h20Box,
-          EnrollRecipientSection(
-            recipients: state.selectedRecipients,
-            onOpenSelect: widget.onOpenRecipientSelect,
-          ),
-          SizedBox(height: 24.h),
           EnrollSaveButton(onPressed: widget.onSave),
           SizedBox(height: 16.h),
         ],

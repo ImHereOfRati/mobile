@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/common/enroll_section_label.dart';
 
 class EnrollEventSection extends StatelessWidget {
-  const EnrollEventSection({super.key});
+  final EventType selectedType;
+  final ValueChanged<EventType>? onChanged;
+
+  const EnrollEventSection({
+    super.key,
+    this.selectedType = EventType.arrival,
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +26,23 @@ class EnrollEventSection extends StatelessWidget {
         Wrap(
           spacing: 8.w,
           runSpacing: 8.h,
-          children: const [
-            _EventChip(label: '도착했을 때', isSelected: true),
-            _EventChip(label: '출발했을 때', isEnabled: false),
-            _EventChip(label: '도착/출발 모두', isEnabled: false),
+          children: [
+            _EventChip(
+              label: '도착했을 때',
+              isSelected: selectedType == EventType.arrival,
+              isEnabled: true,
+              onTap: onChanged != null ? () => onChanged!(EventType.arrival) : null,
+            ),
+            _EventChip(
+              label: '출발했을 때',
+              isSelected: false,
+              isEnabled: false,
+            ),
+            _EventChip(
+              label: '도착/출발 모두',
+              isSelected: false,
+              isEnabled: false,
+            ),
           ],
         ),
         SizedBox(height: 10.h),
@@ -46,11 +67,13 @@ class _EventChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final bool isEnabled;
+  final VoidCallback? onTap;
 
   const _EventChip({
     required this.label,
     this.isSelected = false,
     this.isEnabled = true,
+    this.onTap,
   });
 
   @override
@@ -63,7 +86,7 @@ class _EventChip extends StatelessWidget {
         ? cs.onPrimaryContainer
         : (isEnabled ? cs.onSurface : cs.onSurface.withValues(alpha: 0.45));
 
-    return Container(
+    final chip = Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: bgColor,
@@ -77,5 +100,9 @@ class _EventChip extends StatelessWidget {
         style: AppTextStyles.hannaAirBold(13, fgColor),
       ),
     );
+
+    return isEnabled && onTap != null
+        ? GestureDetector(onTap: onTap, child: chip)
+        : chip;
   }
 }
