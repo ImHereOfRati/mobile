@@ -6,10 +6,12 @@ import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_form_body.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/map/enroll_inline_map.dart';
+import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_complete_sheet.dart';
 import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:iamhere/feature/user_permission/view_model/auto_send_readiness_provider.dart';
 import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 
 import '../map_select/component/map_select_widgets.dart';
@@ -116,8 +118,7 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
       await ref.read(geofenceEnrollViewModelProvider.notifier).saveGeofence();
       ref.read(geofenceListViewModelProvider.notifier).refresh();
       if (mounted) {
-        AppSnackBar.showSuccess(context, _enrollSuccess);
-        Navigator.of(context).pop();
+        _showCompleteSheet();
       }
     } on MissingBackgroundLocationException {
       // 권한 사전 체크 후에도 사용자가 도중에 권한을 회수한 드문 케이스.
@@ -128,6 +129,34 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
         AppSnackBar.showError(context, '$_enrollFailure${e.toString()}');
       }
     }
+  }
+
+  void _showCompleteSheet() {
+    final formState = ref.read(geofenceEnrollViewModelProvider);
+    final readiness = ref.read(autoSendReadinessProvider);
+    final isReady = readiness.isEmpty; // empty = ready
+
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => EnrollCompleteSheet(
+        locationName: formState.name,
+        eventType: formState.eventType,
+        recipients: formState.selectedRecipients,
+        isAutoSendReady: isReady,
+        onEnableAutoSend: () {
+          Navigator.pop(context); // Close bottom sheet
+          AppRoutes.pushUserPermission(context);
+        },
+        onCreateAnother: () {
+          Navigator.pop(context);
+          ref.read(geofenceEnrollViewModelProvider.notifier).resetForm();
+        },
+        onBackToMain: () {
+          Navigator.pop(context); // Close bottom sheet
+          Navigator.pop(context); // Close enrollment view
+        },
+      ),
+    );
   }
 
   Future<bool> _ensureAlwaysPermission() async {
