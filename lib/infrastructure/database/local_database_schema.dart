@@ -20,7 +20,8 @@ class LocalDatabaseSchema {
   /// 스키마 변경마다 1씩 증가시킨다.
   /// v1: 초기 (contacts, geofence, records, notifications)
   /// v2: geofence.address, geofence_server_recipient, notifications.sender_*
-  static const int version = 2;
+  /// v3: geofence.event_type, geofence.repeat_type, geofence.custom_days_bitmask
+  static const int version = 3;
 
   static Future<void> onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
@@ -42,6 +43,9 @@ class LocalDatabaseSchema {
     if (oldVersion < 2) {
       await _migrateToV2(db);
     }
+    if (oldVersion < 3) {
+      await _migrateToV3(db);
+    }
   }
 
   static Future<void> _migrateToV2(Database db) async {
@@ -61,6 +65,25 @@ class LocalDatabaseSchema {
       db,
       'ALTER TABLE ${LocalDatabaseProperties.notificationTableName} '
       'ADD COLUMN sender_email TEXT DEFAULT ""',
+    );
+  }
+
+  static Future<void> _migrateToV3(Database db) async {
+    // v2 → v3: 이벤트 타입과 반복 설정 추가
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.geofenceTableName} '
+      'ADD COLUMN event_type TEXT DEFAULT "arrival"',
+    );
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.geofenceTableName} '
+      'ADD COLUMN repeat_type TEXT DEFAULT "none"',
+    );
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.geofenceTableName} '
+      'ADD COLUMN custom_days_bitmask INTEGER',
     );
   }
 
@@ -94,7 +117,10 @@ class LocalDatabaseSchema {
       'radius REAL, '
       'message TEXT, '
       'contact_ids TEXT, '
-      'is_active INTEGER DEFAULT 0)';
+      'is_active INTEGER DEFAULT 0, '
+      'event_type TEXT DEFAULT "arrival", '
+      'repeat_type TEXT DEFAULT "none", '
+      'custom_days_bitmask INTEGER)';
 
   static const String _createGeofenceServerRecipientTable =
       'CREATE TABLE IF NOT EXISTS '

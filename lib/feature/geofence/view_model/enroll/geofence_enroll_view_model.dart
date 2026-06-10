@@ -4,6 +4,8 @@ import 'package:iamhere/feature/friend/repository/contact_local_repository_provi
 import 'package:iamhere/feature/friend/view_model/contact.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
+import 'package:iamhere/feature/geofence/model/repeat_schedule.dart';
 import 'package:iamhere/feature/geofence/service/geocoding_service_provider.dart';
 import 'package:iamhere/feature/geofence/view_model/dto/save_geofence_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,11 +27,27 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
     List<ServerRecipient> serverRecipients,
   ) async {
     _id = geofence.id;
+
+    final eventType = EventType.values.firstWhere(
+      (e) => e.name == geofence.eventType,
+      orElse: () => EventType.arrival,
+    );
+
+    final repeatType = RepeatType.values.firstWhere(
+      (r) => r.name == geofence.repeatType,
+      orElse: () => RepeatType.none,
+    );
+
+    final repeatSchedule = repeatType == RepeatType.custom && geofence.customDaysBitmask != null
+        ? RepeatSchedule.fromBitmask(geofence.customDaysBitmask!)
+        : RepeatSchedule(type: repeatType);
+
     state = state.copyWith(
       basic: state.basic.copyWith(
         name: geofence.name,
         address: geofence.address,
         message: geofence.message,
+        eventType: eventType,
       ),
       area: state.area.copyWith(
         location: NLatLng(geofence.lat, geofence.lng),
@@ -37,6 +55,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
       ),
       status: state.status.copyWith(
         isActive: geofence.isActive,
+        repeatSchedule: repeatSchedule,
       ),
     );
 
@@ -77,6 +96,10 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
       state = state.copyWith(status: state.status.copyWith(recipients: r));
   void updateMessage(String m) =>
       state = state.copyWith(basic: state.basic.copyWith(message: m));
+  void updateEventType(EventType type) =>
+      state = state.copyWith(basic: state.basic.copyWith(eventType: type));
+  void updateRepeatSchedule(RepeatSchedule schedule) =>
+      state = state.copyWith(status: state.status.copyWith(repeatSchedule: schedule));
   void updateIsActive(bool a) =>
       state = state.copyWith(status: state.status.copyWith(isActive: a));
   void resetForm() => state = GeofenceEnrollFormState();
@@ -104,6 +127,9 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
       message: state.message.trim(),
       contactIds: contactIds,
       serverRecipients: serverRecipients,
+      eventType: state.eventType.name,
+      repeatType: state.repeatSchedule.type.name,
+      customDaysBitmask: state.repeatSchedule.customDaysBitmask,
     ));
 
     if (state.isActive && saved.id != null) {

@@ -45,4 +45,8 @@ class GeofenceEnrollFormState {
   String get radius => area.radius;
   List<Recipient> get selectedRecipients => status.recipients;
   bool get isActive => status.isActive;
+
+  // New helpers
+  get eventType => basic.eventType;
+  get repeatSchedule => status.repeatSchedule;
 }

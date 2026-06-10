@@ -10,6 +10,9 @@ class SaveGeofenceRequest {
   final String message;
   final List<int> contactIds;
   final List<ServerRecipient> serverRecipients;
+  final String? eventType; // arrival/departure/both
+  final String? repeatType; // none/daily/weekday/weekend/custom
+  final int? customDaysBitmask; // For custom repeat
 
   SaveGeofenceRequest({
     this.id,
@@ -21,5 +24,8 @@ class SaveGeofenceRequest {
     required this.message,
     required this.contactIds,
     required this.serverRecipients,
+    this.eventType,
+    this.repeatType,
+    this.customDaysBitmask,
   });
 }

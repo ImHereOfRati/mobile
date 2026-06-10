@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
-import 'package:iamhere/feature/auth/model/login_result.dart';
+import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/common/base/result/result_message.dart';
+import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/feature/auth/view/auth_view.dart';
 import 'package:iamhere/feature/auth/view/component/login_button.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
-import 'package:iamhere/common/base/result/result.dart';
-import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
