@@ -2,20 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_model.dart';
-
-import 'radius/enroll_radius_section.dart';
-import 'common/enroll_section_label.dart';
-import 'fields/enroll_activate_toggle.dart';
-import 'enroll_check_card.dart';
-import 'fields/enroll_message_field.dart';
-import 'fields/enroll_name_field.dart';
+import 'actions/enroll_action_section.dart';
+import 'details/enroll_details_section.dart';
+import 'location/enroll_location_section.dart';
 import 'recipient/enroll_recipient_section.dart';
-import 'enroll_save_button.dart';
 import 'event/enroll_event_section.dart';
 import 'repeat/enroll_repeat_section.dart';
-
-const String _sectionPlace = '어디에서 알려드릴까요?';
-
 class EnrollFormBody extends ConsumerStatefulWidget {
   final Widget mapSection;
   final VoidCallback onOpenRecipientSelect;
@@ -41,92 +33,62 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
     super.initState();
     _nameController.addListener(_onName);
     _messageController.addListener(_onMessage);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = ref.read(geofenceEnrollViewModelProvider);
-      if (state.name.isNotEmpty && _nameController.text.isEmpty) {
-        _nameController.text = state.name;
-      }
-      if (state.message.isNotEmpty && _messageController.text.isEmpty) {
-        _messageController.text = state.message;
-      }
+      if (state.name.isNotEmpty && _nameController.text.isEmpty) _nameController.text = state.name;
+      if (state.message.isNotEmpty && _messageController.text.isEmpty) _messageController.text = state.message;
     });
   }
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    _messageController.dispose();
-    super.dispose();
-  }
+  void dispose() { _nameController.dispose(); _messageController.dispose(); super.dispose(); }
 
-  void _onName() => ref
-      .read(geofenceEnrollViewModelProvider.notifier)
-      .updateName(_nameController.text);
+  void _onName() => ref.read(geofenceEnrollViewModelProvider.notifier).updateName(_nameController.text);
 
-  void _onMessage() => ref
-      .read(geofenceEnrollViewModelProvider.notifier)
-      .updateMessage(_messageController.text);
+  void _onMessage() => ref.read(geofenceEnrollViewModelProvider.notifier).updateMessage(_messageController.text);
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(geofenceEnrollViewModelProvider);
     final notifier = ref.read(geofenceEnrollViewModelProvider.notifier);
     final h20Box = SizedBox(height: 20.h);
-
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 누구에게 알려드릴까요?
           EnrollRecipientSection(
             recipients: state.selectedRecipients,
             onOpenSelect: widget.onOpenRecipientSelect,
           ),
           h20Box,
-          // 언제 알려드릴까요?
           EnrollEventSection(
             selectedType: state.eventType,
             onChanged: notifier.updateEventType,
           ),
           h20Box,
-          // 어디에서 알려드릴까요? (장소 + 반경)
-          const EnrollSectionLabel(_sectionPlace),
-          SizedBox(height: 10.h),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12.r),
-            child: widget.mapSection,
+          EnrollLocationSection(
+            mapSection: widget.mapSection,
+            selectedRadius: state.radius,
+            radiusInfoMessage: state.radiusInfoMessage,
+            onRadiusChanged: notifier.updateRadius,
           ),
           h20Box,
-          EnrollRadiusBlock(
-            selected: state.radius,
-            infoMessage: state.radiusInfoMessage,
-            onChanged: notifier.updateRadius,
-          ),
-          h20Box,
-          // 반복 설정
           EnrollRepeatSection(
             selectedSchedule: state.repeatSchedule,
             onChanged: notifier.updateRepeatSchedule,
           ),
           h20Box,
-          // 이름/메시지
-          EnrollNameField(controller: _nameController),
-          h20Box,
-          EnrollMessageField(controller: _messageController),
-          h20Box,
-          EnrollActivateToggle(
+          EnrollDetailsSection(
+            nameController: _nameController,
+            messageController: _messageController,
             isActive: state.isActive,
-            onChanged: notifier.updateIsActive,
+            onActiveChanged: notifier.updateIsActive,
           ),
-          SizedBox(height: 12.h),
-          const EnrollCheckCard(),
           h20Box,
-          EnrollSaveButton(onPressed: widget.onSave),
-          SizedBox(height: 16.h),
+          EnrollActionSection(onSave: widget.onSave),
         ],
       ),
     );

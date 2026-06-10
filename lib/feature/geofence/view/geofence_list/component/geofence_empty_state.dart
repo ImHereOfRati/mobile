@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
-import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:iamhere/feature/user_permission/view_model/location_permission_gate.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
 
 const String _emptyTitle = '아직 만든 도착 알림이 없어요';
@@ -59,15 +59,11 @@ class GeofenceEmptyState extends ConsumerWidget {
   }
 
   Future<void> _handleCreateTap(BuildContext context, WidgetRef ref) async {
-    final service = ref.read(locationPermissionServiceProvider);
-    var status = await service.checkPermissionStatus();
-    if (status == PermissionState.denied) {
-      status = await service.requestPermission();
-    }
+    final gate =
+        LocationPermissionGate(ref.read(locationPermissionServiceProvider));
+    final canEnroll = await gate.resolveForCreate();
     if (!context.mounted) return;
 
-    final canEnroll = status == PermissionState.grantedAlways ||
-        status == PermissionState.grantedWhenInUse;
     if (canEnroll) {
       context.push(AppRoutes.geofenceEnroll);
     } else {

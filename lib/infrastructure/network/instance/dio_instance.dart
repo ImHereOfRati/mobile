@@ -8,8 +8,9 @@ import 'module/dio_header_cleanup_interceptor.dart';
 
 @module
 abstract class DioInstance {
-  BaseOptions _baseOptions() {
+  BaseOptions _baseOptions(String baseUrl) {
     return BaseOptions(
+      baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {'Content-Type': 'application/json'},
@@ -19,7 +20,7 @@ abstract class DioInstance {
   @Named('retryDio')
   @lazySingleton
   Dio retryDio(@Named("baseUrl") String url) {
-    final retryDio = Dio(_baseOptions());
+    final retryDio = Dio(_baseOptions(url));
     retryDio.interceptors.add(DioHeaderCleanupInterceptor());
     return retryDio;
   }
@@ -30,7 +31,7 @@ abstract class DioInstance {
     @Named("baseUrl") String url,
     AuthTokenRefreshCoordinator coordinator,
   ) {
-    final defaultDio = Dio(_baseOptions());
+    final defaultDio = Dio(_baseOptions(url));
 
     defaultDio.interceptors.addAll([
       DioHeaderCleanupInterceptor(),

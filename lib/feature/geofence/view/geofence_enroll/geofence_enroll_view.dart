@@ -4,17 +4,15 @@ import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
-import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_form_body.dart';
-import 'package:iamhere/feature/geofence/view/geofence_enroll/component/map/enroll_inline_map.dart';
-import 'package:iamhere/feature/geofence/view/geofence_enroll/component/enroll_complete_sheet.dart';
+import 'package:iamhere/feature/geofence/view/geofence_enroll/component.dart';
 import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_model.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
-import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:iamhere/feature/user_permission/view_model/auto_send_readiness_provider.dart';
+import 'package:iamhere/feature/user_permission/view_model/location_permission_gate.dart';
 import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 
-import '../map_select/component/map_select_widgets.dart';
+import '../map_select/component.dart';
 import '../map_select/map_select_view.dart';
 import '../recipient_select/recipient_select_view.dart';
 
@@ -110,7 +108,11 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
 
   Future<void> _save() async {
     final formState = ref.read(geofenceEnrollViewModelProvider);
-    if (formState.isActive && !await _ensureAlwaysPermission()) return;
+    if (formState.isActive) {
+      final gate =
+          LocationPermissionGate(ref.read(locationPermissionServiceProvider));
+      if (!await gate.ensureAlways(context)) return;
+    }
 
     try {
       await ref.read(geofenceEnrollViewModelProvider.notifier).saveGeofence();
@@ -156,16 +158,5 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
         },
       ),
     );
-  }
-
-  Future<bool> _ensureAlwaysPermission() async {
-    final service = ref.read(locationPermissionServiceProvider);
-    final isAlways =
-        await service.checkPermissionStatus() == PermissionState.grantedAlways;
-    if (isAlways) return true;
-    if (!mounted) return false;
-    await AppRoutes.pushUserPermission(context);
-    if (!mounted) return false;
-    return await service.checkPermissionStatus() == PermissionState.grantedAlways;
   }
 }

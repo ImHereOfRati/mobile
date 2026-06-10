@@ -4,8 +4,7 @@ import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dar
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 
-import 'component/geofence_list_body.dart';
-import 'component/geofence_header.dart';
+import 'component.dart';
 
 class GeofenceListView extends ConsumerWidget {
   const GeofenceListView({super.key});

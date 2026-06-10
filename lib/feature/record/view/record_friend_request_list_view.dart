@@ -186,7 +186,7 @@ class RecordFriendRequestListView extends ConsumerWidget {
     }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? '친구 요청을 수락했습니��' : '수락에 실패했습니다')),
+      SnackBar(content: Text(success ? '친구 요청을 수락했습니다' : '수락에 실패했습니다')),
     );
   }
 

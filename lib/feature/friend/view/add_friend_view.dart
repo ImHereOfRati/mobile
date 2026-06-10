@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/dto/user_search_response_dto.dart';
 import 'package:iamhere/feature/friend/service/user_search_service_interface.dart';
+import 'package:iamhere/feature/friend/view_model/contact_view_model.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model_provider.dart';
 import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
+
+const List<String> _quickSearchSuggestions = ['엄마', '아빠', '회사', '학교'];
 
 class AddFriendView extends ConsumerStatefulWidget {
   const AddFriendView({super.key});
@@ -30,6 +33,7 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final contactsAsync = ref.watch(contactViewModelProvider);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -42,6 +46,12 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
             _buildPageHeader(context, cs),
             SizedBox(height: 24.h),
             _buildImportFromContactsButton(context),
+            SizedBox(height: 12.h),
+            _buildQuickSearchChips(
+              context,
+              cs,
+              contactsAsync.asData?.value.take(4).map((c) => c.name).toList() ?? const [],
+            ),
             SizedBox(height: 20.h),
             _buildOrDivider(context, cs),
             SizedBox(height: 20.h),
@@ -127,6 +137,68 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildQuickSearchChips(
+    BuildContext context,
+    ColorScheme cs,
+    List<String> contactNames,
+  ) {
+    final labels = <String>{
+      ...contactNames,
+      ..._quickSearchSuggestions,
+    }.toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '빠른 검색',
+          style: TextStyle(
+            fontFamily: 'GmarketSans',
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w700,
+            color: cs.onSurface,
+            letterSpacing: -0.2,
+          ),
+        ),
+        SizedBox(height: 8.h),
+        Wrap(
+          spacing: 8.w,
+          runSpacing: 8.h,
+          children: [
+            for (final label in labels)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _searchController.text = label;
+                    _searchResults = null;
+                    _errorMessage = null;
+                  });
+                  _onSearch();
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                  decoration: BoxDecoration(
+                    color: cs.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(999.r),
+                    border: Border.all(color: cs.primary.withValues(alpha: 0.16)),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: 'BMHANNAAir',
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: cs.primary,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 

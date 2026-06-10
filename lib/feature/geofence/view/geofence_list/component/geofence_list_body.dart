@@ -1,27 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:iamhere/infrastructure/routing/app_routes.dart';
-import 'package:iamhere/feature/geofence/model/recipient.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository_provider.dart';
-import 'package:iamhere/feature/geofence/view/geofence_enroll/geofence_enroll_view.dart';
-import 'package:iamhere/feature/geofence/view/geofence_list/component/geofence_empty_state.dart';
-import 'package:iamhere/feature/geofence/view/geofence_list/component/geofence_list_tile.dart';
+import 'geofence_list_actions.dart';
+import 'geofence_empty_state.dart';
+import 'geofence_list_tile.dart';
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
-import 'package:iamhere/feature/user_permission/model/permission_state.dart';
-import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:iamhere/feature/user_permission/view_model/auto_send_readiness_provider.dart';
-import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
-import 'package:iamhere/common/component/dialog/app_confirm_dialog.dart';
 import 'package:iamhere/common/component/layout/loading_body.dart';
 import 'package:iamhere/common/component/layout/sliver_message_view.dart';
-
-const String _enrollFailure = '등록 실패: ';
-const String _deleteDialogTitle = '도착 알림 삭제';
-const String _deleteDialogSuffix = ' 알림을 삭제하시겠습니까?';
-const String _errorPrefix = '오류 발생: ';
 
 class GeofenceListBody extends ConsumerStatefulWidget {
   const GeofenceListBody({super.key});
@@ -58,10 +44,7 @@ class _GeofenceListBodyState extends ConsumerState<GeofenceListBody>
 
     return geofencesAsync.when(
       loading: () => const LoadingBody(),
-      error: (err, _) => SliverMessageView(
-        message: '$_errorPrefix$err',
-        style: AppTextStyles.hannaAirRegular(16, cs.error),
-      ),
+      error: (err, _) => SliverMessageView(message: '오류 발생: $err', style: AppTextStyles.hannaAirRegular(16, cs.error)),
       data: (geofences) {
         if (geofences.isEmpty) {
           return const GeofenceEmptyState();
@@ -70,100 +53,12 @@ class _GeofenceListBodyState extends ConsumerState<GeofenceListBody>
         return GeofenceListTile(
           geofences: geofences,
           isAutoSendReady: ref.watch(autoSendReadinessProvider).isReady,
-          onToggle: _handleToggle,
-          onDelete: _handleDelete,
-          onEdit: _handleEdit,
-          onCreateNew: _handleCreateNew,
+          onToggle: (geofence, newValue) => handleToggle(context, ref, geofence, newValue),
+          onDelete: (geofence) => handleDelete(context, ref, geofence),
+          onEdit: (geofence) => handleEdit(context, ref, geofence),
+          onCreateNew: () => handleCreateNew(context, ref),
         );
       },
     );
-  }
-
-  Future<void> _handleCreateNew() async {
-    final service = ref.read(locationPermissionServiceProvider);
-    var status = await service.checkPermissionStatus();
-    if (status == PermissionState.denied) {
-      status = await service.requestPermission();
-    }
-    if (!mounted) return;
-
-    final canEnroll = status == PermissionState.grantedAlways ||
-        status == PermissionState.grantedWhenInUse;
-    if (canEnroll) {
-      context.push(AppRoutes.geofenceEnroll);
-    } else {
-      await AppRoutes.pushLocationPermissionGuide(context);
-    }
-  }
-
-  void _handleEdit(GeofenceEntity geofence) async {
-    final srvRepo = ref.read(geofenceServerRecipientLocalRepositoryProvider);
-    final srvRecipients = await srvRepo.findByGeofenceId(geofence.id!);
-    final serverRecipients = srvRecipients
-        .map((s) => ServerRecipient(
-              friendRelationshipId: s.friendRelationshipId,
-              friendEmail: s.friendEmail,
-              friendAlias: s.friendAlias,
-            ))
-        .toList();
-
-    if (!mounted) return;
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => GeofenceEnrollView(
-        geofence: geofence,
-        serverRecipients: serverRecipients,
-      ),
-    );
-    ref.read(geofenceListViewModelProvider.notifier).refresh();
-  }
-
-  void _handleToggle(GeofenceEntity geofence, bool newValue) async {
-    if (geofence.id == null) return;
-    if (newValue && !(await _ensureAlwaysPermission())) return;
-
-    try {
-      await ref
-          .read(geofenceListViewModelProvider.notifier)
-          .toggleActive(geofence.id!, newValue);
-    } catch (e) {
-      if (mounted) AppSnackBar.showError(context, '$_enrollFailure$e');
-    }
-  }
-
-  Future<bool> _ensureAlwaysPermission() async {
-    final service = ref.read(locationPermissionServiceProvider);
-    final isAlwaysPermission =
-        await service.checkPermissionStatus() == PermissionState.grantedAlways;
-
-    if (isAlwaysPermission) {
-      return true;
-    }
-
-    if (!mounted) return false;
-    await AppRoutes.pushUserPermission(context);
-    if (!mounted) return false;
-
-    return await service.checkPermissionStatus() == PermissionState.grantedAlways;
-  }
-
-  Future<void> _handleDelete(GeofenceEntity geofence) async {
-    final cs = Theme.of(context).colorScheme;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AppConfirmDialog(
-        title: _deleteDialogTitle,
-        content: '${geofence.name}$_deleteDialogSuffix',
-        confirmText: '삭제',
-        confirmTextColor: cs.error,
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    await ref.read(geofenceListViewModelProvider.notifier).delete(geofence.id!);
   }
 }

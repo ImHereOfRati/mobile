@@ -3,8 +3,7 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/feature/geofence/view_model/map/map_select_view_model.dart';
 import 'package:iamhere/feature/user_permission/service/concrete/locate_permission_service.dart';
-import 'component/map_select_overlay.dart';
-import 'component/map_select_widgets.dart';
+import 'component.dart';
 
 class MapSelectView extends ConsumerStatefulWidget {
   final NLatLng? initialLocation;

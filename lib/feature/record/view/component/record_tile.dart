@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/feature/record/model/activity_record_status.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 
 class RecordTile extends StatelessWidget {
@@ -68,7 +69,7 @@ class RecordTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(980.r),
                   ),
                   child: Text(
-                    '전송 완료',
+                    ActivityRecordStatus.completed.label,
                     style: tt.bodySmall?.copyWith(
                       color: cs.primary,
                       fontWeight: FontWeight.w600,
@@ -104,7 +105,7 @@ class RecordTile extends StatelessWidget {
                   color: cs.onSurface.withValues(alpha: 0.45),
                 ),
                 SizedBox(width: 4.w),
-                Text(targetName, style: tt.bodyMedium),
+                Text('$targetName에게 전송 완료', style: tt.bodyMedium),
 
                 SizedBox(width: 12.w),
 

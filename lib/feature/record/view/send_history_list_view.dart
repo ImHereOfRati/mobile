@@ -1,10 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/feature/record/view/component/record_tile.dart';
+import 'package:iamhere/feature/record/view/component/record_time_formatter.dart';
 import 'package:iamhere/feature/record/view_model/geofence_record_view_model.dart';
 
 class SendHistoryListView extends ConsumerWidget {
@@ -18,7 +17,7 @@ class SendHistoryListView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('나의 전송 기록', style: tt.headlineSmall),
+        title: Text('활동 기록', style: tt.headlineSmall),
         centerTitle: true,
         actions: [
           IconButton(
@@ -59,7 +58,7 @@ class SendHistoryListView extends ConsumerWidget {
           ),
           SizedBox(height: 12.h),
           Text(
-            '전송 기록이 없습니다',
+            '활동 기록이 없습니다',
             style: tt.bodyLarge?.copyWith(
               color: cs.onSurface.withValues(alpha: 0.4),
             ),
@@ -75,7 +74,7 @@ class SendHistoryListView extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '기록을 불러올 수 없습니다',
+            '활동 기록을 불러올 수 없습니다',
             style: tt.bodyMedium,
           ),
           SizedBox(height: 8.h),
@@ -93,21 +92,13 @@ class SendHistoryListView extends ConsumerWidget {
     return RecordTile(
       locationName: record.geofenceName,
       recordTime: record.createdAt,
-      message: record.message,
-      targetName: _formatRecipients(record.recipients),
+      message: RecordTimeFormatter.formatActivityLabel(
+        locationName: record.geofenceName,
+        message: record.message,
+      ),
+      targetName: RecordTimeFormatter.formatRecipients(record.recipients),
       sendMachine: record.sendMachine,
     );
-  }
-
-  String _formatRecipients(String recipientsJson) {
-    try {
-      final list = jsonDecode(recipientsJson) as List<dynamic>;
-      if (list.isEmpty) return '수신자';
-      if (list.length == 1) return list.first as String;
-      return '${list.first} 외 ${list.length - 1}명';
-    } catch (_) {
-      return '수신자';
-    }
   }
 
   void _confirmDeleteAll(BuildContext context, WidgetRef ref) {
@@ -117,9 +108,9 @@ class SendHistoryListView extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('전송 기록 삭제', style: tt.displaySmall),
+        title: Text('활동 기록 삭제', style: tt.displaySmall),
         content: Text(
-          '모든 전송 기록을 삭제할까요?\n삭제된 기록은 복구할 수 없습니다.',
+          '모든 활동 기록을 삭제할까요?\n삭제된 기록은 복구할 수 없습니다.',
           style: tt.bodyLarge,
         ),
         actions: [

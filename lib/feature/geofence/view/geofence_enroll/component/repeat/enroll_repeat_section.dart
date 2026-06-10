@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/input/selection_chip.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
 import 'package:iamhere/feature/geofence/model/repeat_schedule.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/component/common/enroll_section_label.dart';
@@ -39,7 +40,7 @@ class EnrollRepeatSection extends StatelessWidget {
           runSpacing: 8.h,
           children: [
             for (final type in repeatTypes)
-              _RepeatChip(
+              SelectionChip(
                 label: type.displayName,
                 isSelected: selectedSchedule.type == type,
                 onTap: onChanged != null
@@ -113,42 +114,3 @@ class _DayChip extends StatelessWidget {
   }
 }
 
-class _RepeatChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback? onTap;
-
-  const _RepeatChip({
-    required this.label,
-    this.isSelected = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final chip = Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: isSelected ? cs.primaryContainer : cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999.r),
-        border: Border.all(
-          color: isSelected ? cs.primary : cs.outlineVariant,
-        ),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.hannaAirBold(
-          13,
-          isSelected
-              ? cs.onPrimaryContainer
-              : cs.onSurface.withValues(alpha: 0.45),
-        ),
-      ),
-    );
-
-    return onTap != null
-        ? GestureDetector(onTap: onTap, child: chip)
-        : chip;
-  }
-}

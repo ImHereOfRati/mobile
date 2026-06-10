@@ -1,15 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
-import 'package:iamhere/infrastructure/network/properties/http_status_code.dart';
+import 'package:iamhere/common/base/result/error_analyst.dart';
+import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
-import 'package:iamhere/common/base/result/result_message.dart';
-import 'package:iamhere/common/base/result/error_analyst.dart';
+import 'package:iamhere/infrastructure/network/properties/http_status_code.dart';
 import 'package:injectable/injectable.dart';
 
-import 'oauth_provider.dart';
 import 'dto/auth_response.dart';
 import 'dto/oauth_request.dart';
+import 'oauth_provider.dart';
 
 @lazySingleton
 class AuthService {

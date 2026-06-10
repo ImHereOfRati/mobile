@@ -1,0 +1,63 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+class SettingItem extends StatelessWidget {
+  final String title;
+  final String? trailingText;
+  final bool isDestructive;
+  final VoidCallback? onTap;
+
+  const SettingItem({
+    super.key,
+    required this.title,
+    this.trailingText,
+    this.isDestructive = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final textColor = isDestructive ? cs.error : cs.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 13.h),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 16.sp,
+                  color: textColor,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+            if (trailingText != null)
+              Text(
+                trailingText!,
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 14.sp,
+                  color: cs.primary,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.224,
+                ),
+              )
+            else if (onTap != null)
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: Theme.of(context).dividerTheme.color,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
+import 'package:iamhere/feature/user_permission/view_model/location_permission_gate.dart';
 import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
-
-import 'center_add_action_resolver.dart';
 
 class CenterAddButton extends ConsumerWidget {
   const CenterAddButton({
@@ -22,8 +19,6 @@ class CenterAddButton extends ConsumerWidget {
 
   final void Function(BuildContext context) onAuthorizedTap;
   final Future<void> Function(BuildContext context) onUnauthorizedTap;
-
-  static const _actionResolver = CenterAddActionResolver();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,28 +57,16 @@ class CenterAddButton extends ConsumerWidget {
   Future<void> _handleTap(BuildContext context, WidgetRef ref) async {
     HapticFeedback.lightImpact();
 
-    final service = ref.read(locationPermissionServiceProvider);
-    final status = await _resolveStatusForCreate(service);
+    final gate =
+        LocationPermissionGate(ref.read(locationPermissionServiceProvider));
+    final canEnroll = await gate.resolveForCreate();
     if (!context.mounted) return;
 
-    switch (_actionResolver.resolve(status)) {
-      case CenterAddAction.enroll:
-        onAuthorizedTap(context);
-      case CenterAddAction.showPermissionGuide:
-        AppSnackBar.showError(context, _permissionRequiredMessage);
-        await onUnauthorizedTap(context);
+    if (canEnroll) {
+      onAuthorizedTap(context);
+    } else {
+      AppSnackBar.showError(context, _permissionRequiredMessage);
+      await onUnauthorizedTap(context);
     }
-  }
-
-  Future<PermissionState> _resolveStatusForCreate(
-    PermissionServiceInterface service,
-  ) async {
-    final status = await service.checkPermissionStatus();
-
-    if (status == PermissionState.denied) {
-      return service.requestPermission();
-    }
-
-    return status;
   }
 }
