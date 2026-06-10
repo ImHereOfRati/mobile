@@ -21,7 +21,8 @@ class LocalDatabaseSchema {
   /// v1: 초기 (contacts, geofence, records, notifications)
   /// v2: geofence.address, geofence_server_recipient, notifications.sender_*
   /// v3: geofence.event_type, geofence.repeat_type, geofence.custom_days_bitmask
-  static const int version = 3;
+  /// v4: geofence_delivery_queue
+  static const int version = 4;
 
   static Future<void> onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
@@ -33,6 +34,7 @@ class LocalDatabaseSchema {
     await db.execute(_createGeofenceServerRecipientTable);
     await db.execute(_createRecordsTable);
     await db.execute(_createNotificationsTable);
+    await db.execute(_createGeofenceDeliveryQueueTable);
   }
 
   static Future<void> onUpgrade(
@@ -45,6 +47,9 @@ class LocalDatabaseSchema {
     }
     if (oldVersion < 3) {
       await _migrateToV3(db);
+    }
+    if (oldVersion < 4) {
+      await _migrateToV4(db);
     }
   }
 
@@ -85,6 +90,10 @@ class LocalDatabaseSchema {
       'ALTER TABLE ${LocalDatabaseProperties.geofenceTableName} '
       'ADD COLUMN custom_days_bitmask INTEGER',
     );
+  }
+
+  static Future<void> _migrateToV4(Database db) async {
+    await _safeExec(db, _createGeofenceDeliveryQueueTable);
   }
 
   /// onUpgrade 가 부분 실행된 적이 있는 기기 등에서 같은 마이그레이션을
@@ -151,4 +160,17 @@ class LocalDatabaseSchema {
       'sender_nickname TEXT DEFAULT "", '
       'sender_email TEXT DEFAULT "", '
       'created_at TEXT)';
+
+  static const String _createGeofenceDeliveryQueueTable =
+      'CREATE TABLE IF NOT EXISTS '
+      '${LocalDatabaseProperties.geofenceDeliveryQueueTableName}'
+      '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
+      'dedupe_key TEXT NOT NULL UNIQUE, '
+      'snapshot_json TEXT NOT NULL, '
+      'status TEXT NOT NULL DEFAULT "pending", '
+      'retry_count INTEGER NOT NULL DEFAULT 0, '
+      'next_attempt_at TEXT NOT NULL, '
+      'last_error TEXT NOT NULL DEFAULT "", '
+      'created_at TEXT NOT NULL, '
+      'updated_at TEXT NOT NULL)';
 }

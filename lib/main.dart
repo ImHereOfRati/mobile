@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/infrastructure/routing/router_provider.dart';
+import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
@@ -143,6 +144,11 @@ Future<void> _syncNativeGeofencesOnStart() async {
     final all = await repo.findAll();
     final active = all.where((g) => g.isActive).toList();
     await registrar.syncAll(active);
+    try {
+      await getIt<GeofenceDeliveryPipeline>().processPending();
+    } catch (e, st) {
+      AppLogger.error('백그라운드 전송 큐 처리 실패', e, st);
+    }
   } on MissingBackgroundLocationException catch (e) {
     // 첫 실행 또는 권한 미허용 상태에서는 정상 시나리오. 사용자가 가이드 뷰에서
     // '항상 허용' 으로 상향한 뒤 토글/저장 시점에 자연스럽게 등록된다.

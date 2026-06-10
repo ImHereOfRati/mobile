@@ -2,16 +2,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
-import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
-import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
-import 'package:iamhere/feature/geofence/service/record_service.dart';
-import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
 import 'package:iamhere/firebase_options.dart';
 import 'package:iamhere/integration/firebase/firebase_service.dart';
-import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:native_geofence/native_geofence.dart';
+import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 
 bool _backgroundIsolateBootstrapped = false;
 
@@ -68,7 +64,7 @@ Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
     for (final zone in params.geofences) {
       final id = int.tryParse(zone.id);
       if (id != null) {
-        await _dispatchArrival(id);
+        await _dispatchArrival(id, params.event);
       }
     }
   } catch (e, st) {
@@ -76,9 +72,10 @@ Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
   }
 }
 
-Future<void> _dispatchArrival(int geofenceId) async {
+Future<void> _dispatchArrival(int geofenceId, GeofenceEvent event) async {
   final getIt = GetIt.instance;
   final repo = getIt<GeofenceLocalRepository>();
+  final pipeline = getIt<GeofenceDeliveryPipeline>();
 
   final all = await repo.findAll();
   final geofence = all.where((g) => g.id == geofenceId).firstOrNull;
@@ -93,79 +90,6 @@ Future<void> _dispatchArrival(int geofenceId) async {
     return;
   }
 
-  AppLogger.debug('BG_PROCESS: Processing "${geofence.name}"');
-
-  final contactResolver = getIt<ContactResolutionService>();
-  final smsNotifier = getIt<SmsNotificationService>();
-  final fcmArrival = getIt<FcmArrivalService>();
-  final recordService = getIt<RecordService>();
-
-  final localRecipients = await contactResolver.resolveContacts(geofence);
-  final serverRecipients =
-      await contactResolver.resolveServerRecipients(geofence);
-
-  var anySuccess = false;
-
-  // 1. SMS 전송 시도
-  if (localRecipients.isNotEmpty) {
-    final numbers = contactResolver.extractPhoneNumbers(localRecipients);
-    if (numbers.isNotEmpty) {
-      AppLogger.debug('BG_NOTIFY: Sending SMS to ${numbers.length} recipients');
-      final r = await smsNotifier.sendSmsToRecipients(
-        phoneNumbers: numbers,
-        location: geofence.fullLocation,
-      );
-      if (r is Success) {
-        anySuccess = true;
-      }
-    }
-  }
-
-  // 2. FCM 전송 시도
-  if (serverRecipients.isNotEmpty) {
-    final emails = contactResolver.extractServerEmails(serverRecipients);
-    if (emails.isNotEmpty) {
-      AppLogger.debug('BG_NOTIFY: Sending FCM to ${emails.length} recipients');
-      final body =
-          geofence.message.replaceAll('{location}', geofence.fullLocation);
-      final r = await fcmArrival.sendArrivalNotifications(
-        receiverEmails: emails,
-        body: body,
-        location: geofence.fullLocation,
-      );
-      if (r is Success) {
-        anySuccess = true;
-      }
-    }
-  }
-
-  // 3. 본인 알림
-  if (anySuccess) {
-    AppLogger.debug('BG_NOTIFY: Attempting self-notification...');
-    await fcmArrival.notifyDeliveryResultToMe(geofence.fullLocation);
-  }
-
-  if (!anySuccess) {
-    AppLogger.warning('BG_NOTIFY: All notification attempts failed');
-  }
-
-  // 4. 기록 저장
-  await recordService.saveGeofenceRecord(
-    geofence: geofence,
-    recipientNames: [
-      ...localRecipients.map((c) => c.name),
-      ...serverRecipients.map(
-          (s) => s.friendAlias.isNotEmpty ? s.friendAlias : s.friendEmail),
-    ],
-  );
-
-  // 5. 비활성화 및 정리
-  try {
-    await repo.updateActiveStatus(geofenceId, false);
-    await NativeGeofenceManager.instance
-        .removeGeofenceById(geofenceId.toString());
-    AppLogger.debug('BG_PROCESS: "${geofence.name}" COMPLETED');
-  } catch (e) {
-    AppLogger.error('BG_PROCESS: Post-dispatch cleanup failed', e);
-  }
+  AppLogger.debug('BG_PROCESS: Queueing "${geofence.name}" from ${event.name}');
+  await pipeline.enqueueTriggeredGeofence(geofence: geofence, event: event);
 }

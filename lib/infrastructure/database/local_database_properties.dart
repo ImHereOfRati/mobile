@@ -6,4 +6,6 @@ class LocalDatabaseProperties {
       'geofence_server_recipient';
   static const String recordTableName = 'records';
   static const String notificationTableName = 'notifications';
+  static const String geofenceDeliveryQueueTableName =
+      'geofence_delivery_queue';
 }

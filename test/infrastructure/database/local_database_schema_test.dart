@@ -31,6 +31,7 @@ void main() {
           LocalDatabaseProperties.geofenceServerRecipientTableName,
           LocalDatabaseProperties.recordTableName,
           LocalDatabaseProperties.notificationTableName,
+          LocalDatabaseProperties.geofenceDeliveryQueueTableName,
         ]),
       );
     });
@@ -89,6 +90,14 @@ void main() {
         LocalDatabaseProperties.notificationTableName,
       );
       expect(cols, containsAll(['sender_nickname', 'sender_email']));
+    });
+
+    test('v1 에 없던 geofence_delivery_queue 테이블이 마이그레이션 후 추가된다', () async {
+      final handle = await TestDatabaseFactory.openMigratedFromV1();
+      addTearDown(handle.dispose);
+
+      final names = await _tableNames(handle.database);
+      expect(names, contains(LocalDatabaseProperties.geofenceDeliveryQueueTableName));
     });
 
     test('마이그레이션 시 v1 에서 적재된 행은 그대로 보존된다', () async {
