@@ -226,9 +226,9 @@ class _LocationPermissionGuideViewState
             colorScheme.error,
             Icons.location_off
           ),
-          PermissionState.grantedAlways: ('항상 허용', Colors.green, Icons.check_circle),
+          PermissionState.grantedAlways: ('항상 허용', colorScheme.primary, Icons.check_circle),
           PermissionState.grantedWhenInUse:
-              ('앱 사용 중에만 허용', Colors.orange, Icons.info),
+              ('앱 사용 중에만 허용', colorScheme.tertiary, Icons.info),
           PermissionState.denied: ('거부됨', colorScheme.error, Icons.cancel),
           PermissionState.permanentlyDenied:
               ('영구 거부됨', colorScheme.error, Icons.block),

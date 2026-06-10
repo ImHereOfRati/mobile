@@ -227,7 +227,7 @@ class _BatteryOptimizationGuideViewState
   ) {
     switch (status) {
       case PermissionState.grantedAlways:
-        return ('제외 완료', Colors.green, Icons.check_circle);
+        return ('제외 완료', colorScheme.primary, Icons.check_circle);
       case PermissionState.denied:
         return ('미적용', colorScheme.error, Icons.cancel);
       case PermissionState.permanentlyDenied:
