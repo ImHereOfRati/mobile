@@ -32,12 +32,9 @@ class PageTitle extends StatelessWidget {
           children: [
             _buildPageTitle(colorScheme),
             SizedBox(height: 2.h),
-
             _buildPageDescription(colorScheme),
             SizedBox(height: 4.h),
-
             _buildInfoCount(colorScheme),
-
             if (bottomSpacing > 0) SizedBox(height: bottomSpacing),
             if (actions.isNotEmpty) ...actions,
           ],

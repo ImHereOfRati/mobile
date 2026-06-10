@@ -6,7 +6,7 @@ import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_mode
 import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/common/component/view_component/page_title.dart';
+import 'package:iamhere/common/component/layout/page_title.dart';
 
 import 'geofence_warning_banner.dart';
 import 'gps_status_card.dart';

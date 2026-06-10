@@ -18,7 +18,7 @@ import 'package:iamhere/integration/firebase/firebase_service.dart';
 import 'package:iamhere/common/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/common/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/common/component/theme/theme_mode_provider.dart';
-import 'package:iamhere/common/component/view_component/initialization_error_app.dart';
+import 'package:iamhere/common/component/feedback/initialization_error_app.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 

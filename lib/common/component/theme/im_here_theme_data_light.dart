@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_feedback_colors.dart';
 
 // ── Apple Design Tokens ──────────────────────────────────────────
 const _appleBlue = Color(0xFF0071E3);
@@ -12,6 +13,9 @@ final ThemeData lightTheme = ThemeData(
   scaffoldBackgroundColor: _appleGray,
   splashColor: Colors.transparent,
   highlightColor: Colors.transparent,
+  extensions: const [
+    AppFeedbackColors(success: Color(0xFF34C759)),
+  ],
 
   colorScheme: const ColorScheme(
     brightness: Brightness.light,

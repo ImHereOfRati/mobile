@@ -33,7 +33,7 @@ class InitializationErrorApp extends StatelessWidget {
 
   Widget _buildTitle() {
     return const Text(
-      '인터넷 연결을 확인해주세요',
+      '네트워크 연결을 확인해주세요',
       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }

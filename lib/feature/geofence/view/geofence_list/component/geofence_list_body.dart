@@ -9,11 +9,11 @@ import 'package:iamhere/feature/geofence/view/geofence_list/component/geofence_l
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/common/base/snack_bar/app_snack_bar.dart';
+import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
-import 'package:iamhere/common/component/view_component/app_confirm_dialog.dart';
-import 'package:iamhere/common/component/view_component/loading_body.dart';
-import 'package:iamhere/common/component/view_component/sliver_message_view.dart';
+import 'package:iamhere/common/component/dialog/app_confirm_dialog.dart';
+import 'package:iamhere/common/component/layout/loading_body.dart';
+import 'package:iamhere/common/component/layout/sliver_message_view.dart';
 
 const String _enrollFailure = '등록 실패: ';
 const String _deleteDialogTitle = '지오펜스 삭제';

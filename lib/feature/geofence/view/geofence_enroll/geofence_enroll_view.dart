@@ -10,7 +10,7 @@ import 'package:iamhere/feature/geofence/view_model/enroll/geofence_enroll_view_
 import 'package:iamhere/feature/geofence/view_model/list/geofence_list_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
-import 'package:iamhere/common/base/snack_bar/app_snack_bar.dart';
+import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 
 import '../map_select/component/map_select_widgets.dart';
 import '../map_select/map_select_view.dart';
