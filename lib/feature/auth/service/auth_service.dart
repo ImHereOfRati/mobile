@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
 import 'package:iamhere/common/base/result/error_analyst.dart';
 import 'package:iamhere/common/base/result/result_message.dart';
+import 'package:iamhere/feature/auth/service/auth_exception.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/infrastructure/network/properties/http_status_code.dart';
@@ -24,6 +25,8 @@ class AuthService {
 
   Future<MemberState> sendIdTokenToServer(String idToken) async {
     try {
+      _validateIdToken(idToken);
+
       var response = await _requestAuthenticationToServer(
         path: _loginPath,
         idToken: idToken,
@@ -53,9 +56,19 @@ class AuthService {
     }
   }
 
+  void _validateIdToken(String idToken) {
+    if (idToken.isEmpty || idToken.trim().isEmpty) {
+      throw InvalidTokenException();
+    }
+  }
+
   Future<void> _saveTokenToStorage(String access, String refresh) async {
-    await _tokenStorage.saveAccessToken(access);
-    await _tokenStorage.saveRefreshToken(refresh);
+    try {
+      await _tokenStorage.saveAccessToken(access);
+      await _tokenStorage.saveRefreshToken(refresh);
+    } catch (e, st) {
+      throw TokenStorageException(e.toString(), stackTrace: st);
+    }
   }
 
   Future<Response<dynamic>> _requestAuthenticationToServer(
@@ -69,40 +82,58 @@ class AuthService {
       idToken: idToken,
     );
 
-    return await _dio.post(
-      path,
-      data: authRequestData,
-      options: Options(
-        extra: const {'requiresAuth': false},
-        validateStatus: (status) => status != null && status < 500,
-      ),
-    );
+    try {
+      return await _dio.post(
+        path,
+        data: authRequestData,
+        options: Options(
+          extra: const {'requiresAuth': false},
+          validateStatus: (status) => status != null && (status >= 200 && status < 300 || status == 404),
+        ),
+      );
+    } on DioException catch (e, st) {
+      throw NetworkException(e.message ?? 'Unknown error', stackTrace: st);
+    }
   }
 
   ({int code, String access, String refresh}) _parseToken(Response response) {
     final apiResponse = _convertResponseToDartObject(response);
-    final responseStatusCode = response.statusCode ?? HttpStatusCode.ok;
+    final responseStatusCode = response.statusCode;
+
+    if (responseStatusCode == null || (responseStatusCode < 200 || responseStatusCode >= 300) && responseStatusCode != 404) {
+      throw InvalidResponseException('Invalid status code: $responseStatusCode');
+    }
 
     final authData = apiResponse.data;
     if (authData == null) {
-      throw Exception(ResultMessage.serverError);
+      throw TokenParseException();
+    }
+
+    final accessToken = authData.accessToken;
+    final refreshToken = authData.refreshToken;
+
+    if (accessToken == null || accessToken.isEmpty) {
+      throw TokenParseException();
+    }
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw TokenParseException();
     }
 
     return (
       code: responseStatusCode,
-      access: authData.accessToken,
-      refresh: authData.refreshToken,
+      access: accessToken,
+      refresh: refreshToken,
     );
   }
 
   void _handleErrorResponse(ApiResponse<AuthResponseDto> apiResponse) {
     final responseCode = apiResponse.imhereResponseCode;
 
-    if (responseCode != 'SUCCESS') {
-      throw Exception(
-        apiResponse.message.isNotEmpty
-            ? apiResponse.message
-            : ResultMessage.serverError,
+    if (responseCode != 'SUCCESS' && responseCode != 'AUTH-300') {
+      final msg = apiResponse.message?.toString() ?? '';
+      throw ServerAuthException(
+        responseCode,
+        msg.isNotEmpty ? msg : ResultMessage.serverError.toString(),
       );
     }
   }
@@ -110,20 +141,29 @@ class AuthService {
   ApiResponse<AuthResponseDto> _convertResponseToDartObject(
     Response<dynamic> response,
   ) {
-    final raw = ApiResponse<Object?>.fromJson(
-      response.data as Map<String, dynamic>,
-      (json) => json,
-    );
+    try {
+      if (response.data is! Map<String, dynamic>) {
+        throw InvalidResponseException('Response data is not a map');
+      }
 
-    final data = raw.data;
-    final authData = data is Map<String, dynamic> && data.isNotEmpty
-        ? AuthResponseDto.fromJson(data)
-        : null;
+      final raw = ApiResponse<Object?>.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => json,
+      );
 
-    return ApiResponse<AuthResponseDto>(
-      imhereResponseCode: raw.imhereResponseCode,
-      message: raw.message,
-      data: authData,
-    );
+      final data = raw.data;
+      final authData = data is Map<String, dynamic> && data.isNotEmpty
+          ? AuthResponseDto.fromJson(data)
+          : null;
+
+      return ApiResponse<AuthResponseDto>(
+        imhereResponseCode: raw.imhereResponseCode,
+        message: raw.message.toString(),
+        data: authData,
+      );
+    } catch (e, st) {
+      if (e is AuthException) rethrow;
+      throw InvalidResponseException(e.toString(), stackTrace: st);
+    }
   }
 }
