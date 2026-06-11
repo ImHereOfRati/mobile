@@ -84,14 +84,31 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
   static const Locale _fixedLocale = Locale('ko', 'KR');
 
   bool _hasResolvedInitialAuth = false;
+  late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
     super.initState();
+    _lifecycleListener = AppLifecycleListener(
+      onResume: _drainDeliveryQueueOnResume,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setupMessageTapHandler(ref.read(routerProvider));
       await _syncNativeGeofencesOnStart();
     });
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  void _drainDeliveryQueueOnResume() {
+    if (!getIt.isRegistered<GeofenceDeliveryPipeline>()) return;
+    getIt<GeofenceDeliveryPipeline>().processPending().catchError(
+      (e, st) => AppLogger.error('포그라운드 전환 시 전송 큐 처리 실패', e, st),
+    );
   }
 
   @override
