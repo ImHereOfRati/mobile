@@ -6,6 +6,17 @@ import 'package:iamhere/common/component/style/app_text_styles.dart';
 const String _questionMark = '?';
 const String _imHere = 'ImHere';
 
+const List<Color> _avatarColors = [
+  Color(0xFF7986CB), // Indigo
+  Color(0xFF4DB6AC), // Teal
+  Color(0xFF81C784), // Green
+  Color(0xFFFFB74D), // Amber
+  Color(0xFFE57373), // Red
+  Color(0xFFBA68C8), // Purple
+  Color(0xFF64B5F6), // Blue
+  Color(0xFFFF8A65), // Orange
+];
+
 class RecipientTile extends StatelessWidget {
   final Recipient recipient;
   final bool isSelected;
@@ -28,40 +39,45 @@ class RecipientTile extends StatelessWidget {
         decoration: _recipientDecoration(context),
         child: Row(
           children: [
-            Checkbox(
-              value: isSelected,
-              onChanged: (_) => onTap(),
-              activeColor: colorScheme.primary,
-            ),
-            SizedBox(width: 12.w),
             _buildCircleAvatar(colorScheme),
             SizedBox(width: 16.w),
             _buildNameAndSubtitle(colorScheme),
-            if (isSelected)
-              Icon(Icons.check_circle, color: colorScheme.primary, size: 24.sp),
+            Icon(
+              isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+              color: isSelected ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.3),
+              size: 24.sp,
+            ),
           ],
         ),
       ),
     );
   }
 
-  CircleAvatar _buildCircleAvatar(ColorScheme colorScheme) {
+  Widget _buildCircleAvatar(ColorScheme colorScheme) {
     final name = recipient.displayName;
-    return CircleAvatar(
-      radius: 24.r,
-      backgroundColor: isSelected
-          ? colorScheme.primary.withValues(alpha: 0.25)
-          : colorScheme.onSurface.withValues(alpha: 0.15),
-      child: Text(
-        name.isNotEmpty ? name[0] : _questionMark,
-        style: AppTextStyles.hannaAirBold(
-          18,
-          isSelected
-              ? colorScheme.primary
-              : colorScheme.onSurface.withValues(alpha: 0.7),
+    final baseColor = _colorFor(name);
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        CircleAvatar(
+          radius: 24.r,
+          backgroundColor: baseColor.withValues(alpha: isSelected ? 0.85 : 0.7),
+          child: Text(
+            name.isNotEmpty ? name[0] : _questionMark,
+            style: AppTextStyles.hannaAirBold(18, Colors.white),
+          ),
         ),
-      ),
+        if (isSelected)
+          CircleAvatar(
+            radius: 24.r,
+            backgroundColor: colorScheme.primary.withValues(alpha: 0.25),
+          ),
+      ],
     );
+  }
+
+  Color _colorFor(String name) {
+    return _avatarColors[name.hashCode.abs() % _avatarColors.length];
   }
 
   Expanded _buildNameAndSubtitle(ColorScheme colorScheme) {
@@ -125,8 +141,11 @@ class RecipientTile extends StatelessWidget {
   BoxDecoration _recipientDecoration(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return BoxDecoration(
-      color: isSelected ? colorScheme.primary.withValues(alpha: 0.08) : null,
+      color: isSelected ? colorScheme.primary.withValues(alpha: 0.10) : null,
       border: Border(
+        left: isSelected
+            ? BorderSide(color: colorScheme.primary, width: 3.w)
+            : BorderSide.none,
         bottom: BorderSide(
           color: colorScheme.onSurface.withValues(alpha: 0.12),
           width: 1,

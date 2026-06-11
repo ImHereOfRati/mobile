@@ -114,7 +114,7 @@ class LocalDatabaseSchema {
 
   static const String _createContactsTable =
       'CREATE TABLE ${LocalDatabaseProperties.contactTableName}'
-      '(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, number TEXT)';
+      '(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, number TEXT UNIQUE)';
 
   static const String _createGeofenceTable =
       'CREATE TABLE ${LocalDatabaseProperties.geofenceTableName}'

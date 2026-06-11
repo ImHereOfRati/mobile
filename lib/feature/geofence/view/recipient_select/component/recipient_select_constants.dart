@@ -7,3 +7,6 @@ const String contactAddedSuffix = '님을 연락처에 추가했어요';
 const String emptyList = '아직 선택할 연락처가 없어요';
 const String memberCountUnit = '명';
 const String slash = ' / ';
+const String confirmButton = '완료';
+const String selectedCountSuffix = '명 선택됨';
+const String retryPrompt = '잠시 후 다시 시도해주세요';

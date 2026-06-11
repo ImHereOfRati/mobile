@@ -5,3 +5,4 @@ export 'component/recipient_select_widgets.dart';
 export 'component/recipient_sliver_list.dart';
 export 'component/recipient_section_header.dart';
 export 'component/recipient_tile.dart';
+export 'component/selected_chip_row.dart';

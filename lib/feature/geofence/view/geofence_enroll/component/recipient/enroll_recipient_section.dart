@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/common/component/style/app_text_styles.dart';
+import 'package:iamhere/feature/geofence/model/recipient.dart';
 
 import 'enroll_recipient_chip.dart';
 
@@ -32,7 +32,6 @@ class EnrollRecipientSection extends StatelessWidget {
               sectionRecipient,
               style: AppTextStyles.gSansBold(15, cs.onSurface),
             ),
-            GestureDetector(onTap: onOpenSelect, child: _addText(cs)),
           ],
         ),
         SizedBox(height: 10.h),

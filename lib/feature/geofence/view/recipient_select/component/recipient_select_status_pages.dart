@@ -18,10 +18,10 @@ class RecipientSelectErrorPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline, size: 48.sp, color: cs.error),
-            SizedBox(height: 16.h),
+            SizedBox(height: 20.h),
             Text(loadContactFailed, style: AppTextStyles.gSansBold(18, cs.onSurface)),
             SizedBox(height: 8.h),
-            Text(error?.toString() ?? '', textAlign: TextAlign.center, style: AppTextStyles.hannaAirRegular(14, cs.onSurface.withValues(alpha: 0.55))),
+            Text(retryPrompt, textAlign: TextAlign.center, style: AppTextStyles.hannaAirRegular(14, cs.onSurface.withValues(alpha: 0.55))),
           ],
         ),
       ),
@@ -37,31 +37,46 @@ class RecipientSelectEmptyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.contacts_outlined, size: 64.sp, color: cs.onSurface.withValues(alpha: 0.3)),
-          SizedBox(height: 16.h),
-          Text(emptyList, style: AppTextStyles.gSansBold(18, cs.onSurface.withValues(alpha: 0.7))),
-          SizedBox(height: 8.h),
-          Text(addFriendPrompt, textAlign: TextAlign.center, style: AppTextStyles.hannaAirRegular(14, cs.onSurface.withValues(alpha: 0.55))),
-          SizedBox(height: 24.h),
-          ElevatedButton.icon(
-            onPressed: () async {
-              final result = await vmInterface.selectContact();
-              if (result != null && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${result.name}$contactAddedSuffix')));
-              }
-            },
-            icon: const Icon(Icons.person_add),
-            label: Text(addContactButton),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: cs.primary,
-              foregroundColor: cs.onPrimary,
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+      child: Padding(
+        padding: EdgeInsets.all(20.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.contacts_outlined, size: 64.sp, color: cs.onSurface.withValues(alpha: 0.25)),
+            SizedBox(height: 20.h),
+            Text(emptyList, style: AppTextStyles.gSansBold(18, cs.onSurface.withValues(alpha: 0.7))),
+            SizedBox(height: 8.h),
+            Text(addFriendPrompt, textAlign: TextAlign.center, style: AppTextStyles.hannaAirRegular(14, cs.onSurface.withValues(alpha: 0.55))),
+            SizedBox(height: 24.h),
+            ElevatedButton.icon(
+              onPressed: () async {
+                try {
+                  final result = await vmInterface.selectContact();
+                  if (result != null && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${result.name}$contactAddedSuffix')));
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString().replaceFirst('Exception: ', '')),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.person_add),
+              label: Text(addContactButton),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cs.primary,
+                foregroundColor: cs.onPrimary,
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

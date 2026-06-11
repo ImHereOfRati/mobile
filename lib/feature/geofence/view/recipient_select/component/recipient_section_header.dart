@@ -10,15 +10,14 @@ class RecipientSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-      color: cs.onSurface.withValues(alpha: 0.04),
+    return Padding(
+      padding: EdgeInsets.only(left: 16.w, right: 16.w, top: 16.h, bottom: 12.h),
       child: Text(
         title,
         style: AppTextStyles.hannaAirBold(
-          13,
-          cs.onSurface.withValues(alpha: 0.6),
-        ).copyWith(letterSpacing: -0.2),
+          14,
+          cs.onSurface.withValues(alpha: 0.7),
+        ).copyWith(letterSpacing: -0.3),
       ),
     );
   }

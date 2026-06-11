@@ -48,6 +48,16 @@ class ContactViewModel extends _$ContactViewModel
       if (result != null) {
         final contact = Contact.fromJson(Map<String, dynamic>.from(result));
 
+        // 중복 검사
+        final existingContact = state.value?.firstWhere(
+          (c) => c.number == contact.number,
+          orElse: () => null,
+        );
+
+        if (existingContact != null) {
+          throw Exception('이미 추가된 연락처입니다: ${existingContact.name}');
+        }
+
         final savedEntity = await _repository.save(
           ContactAdapter.toEntity(contact),
         );
