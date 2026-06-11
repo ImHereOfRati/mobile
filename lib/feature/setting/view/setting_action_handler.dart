@@ -41,21 +41,21 @@ class SettingActionHandler {
 
     await ref.read(settingViewModelProvider.notifier).refreshPermissions();
     if (granted && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('배터리 최적화 제외가 적용되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('배터리 최적화 제외가 적용되었습니다.')));
     }
   }
 
   static Future<void> openSupportPage(BuildContext context) async {
     final url = Uri.parse(
-      'https://dsko.notion.site/d75b9924c10c47f0b91e4da6ee4251ec?pvs=105',
+      'https://dsko.notion.site/37c2776ec1898041b254ee2870657dcc?pvs=105',
     );
     if (!await launchUrl(url, mode: LaunchMode.inAppWebView)) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('문의하기 페이지를 열 수 없습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('문의하기 페이지를 열 수 없습니다.')));
       }
     }
   }

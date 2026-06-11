@@ -71,9 +71,9 @@ class GeofenceListTile extends StatelessWidget {
         ),
         style: OutlinedButton.styleFrom(
           padding: EdgeInsets.symmetric(vertical: 14.h),
-          side: BorderSide(color: cs.primary.withValues(alpha: 0.4)),
+          side: BorderSide(color: cs.primary.withValues(alpha: 0.4), width: 1.2.r),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(12.r),
           ),
         ),
       ),

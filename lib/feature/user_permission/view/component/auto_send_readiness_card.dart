@@ -41,10 +41,7 @@ class AutoSendReadinessCard extends StatelessWidget {
                   fontSize: 14.sp,
                 ),
               ),
-              Divider(
-                height: 24.h,
-                color: cs.outlineVariant,
-              ),
+              Divider(height: 24.h, color: cs.outlineVariant),
               _buildActionRow(cs),
             ],
           ),
@@ -86,10 +83,7 @@ class AutoSendReadinessCard extends StatelessWidget {
     return Container(
       width: 40.w,
       height: 40.w,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
       child: Center(
         child: Icon(
           isReady ? Icons.check_circle : Icons.warning_amber_rounded,
@@ -133,10 +127,7 @@ class AutoSendReadinessCard extends StatelessWidget {
             fontSize: 14.sp,
           ),
         ),
-        Icon(
-          Icons.chevron_right,
-          color: cs.primary,
-        ),
+        Icon(Icons.chevron_right, color: cs.primary),
       ],
     );
   }

@@ -17,6 +17,7 @@ part 'contact_view_model.g.dart';
 class ContactViewModel extends _$ContactViewModel
     implements ContactViewModelInterface {
   late ContactRepository _repository;
+  String? _lastError;
 
   /// AsyncNotifierProvider 초기화
   @override
@@ -29,12 +30,15 @@ class ContactViewModel extends _$ContactViewModel
     }).toList();
   }
 
+  String? get lastError => _lastError;
+
   static const channelName = 'com.iamhere.app/contacts';
   static const methodChannel = MethodChannel(channelName);
 
   ///methodChannel (Native Linking Code)
   @override
   Future<Contact?> selectContact() async {
+    _lastError = null;
     final contactPermissionService = getIt<PermissionServiceInterface>(
       instanceName: 'friend',
     );
@@ -49,13 +53,13 @@ class ContactViewModel extends _$ContactViewModel
         final contact = Contact.fromJson(Map<String, dynamic>.from(result));
 
         // 중복 검사
-        final existingContact = state.value?.firstWhere(
-          (c) => c.number == contact.number,
-          orElse: () => null,
-        );
+        final existingContact = state.value
+            ?.where((c) => c.number == contact.number)
+            .firstOrNull;
 
         if (existingContact != null) {
-          throw Exception('이미 추가된 연락처입니다: ${existingContact.name}');
+          _lastError = '이미 추가된 연락처입니다: ${existingContact.name}';
+          return null;
         }
 
         final savedEntity = await _repository.save(
@@ -69,7 +73,7 @@ class ContactViewModel extends _$ContactViewModel
       }
     } on PlatformException catch (e) {
       log("네이티브에서 연락처 선택 실패 : [이유] -> $e");
-      throw Exception("연락처 선택에 실패하였습니다");
+      _lastError = "연락처 선택에 실패하였습니다";
     }
     return null;
   }

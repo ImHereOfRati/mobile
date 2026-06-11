@@ -17,19 +17,49 @@ class GeofenceReadinessChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final (label, background, foreground) = switch ((isToggleOn, isAutoSendReady)) {
-      (false, _) => ('자동 전송 꺼짐', cs.surfaceContainerHighest, cs.onSurfaceVariant),
-      (true, true) => ('자동 전송 준비 완료', cs.primary.withValues(alpha: 0.12), cs.primary),
-      (true, false) => ('준비 필요', cs.errorContainer, cs.error),
+    final (label, background, foreground, iconData) = switch ((isToggleOn, isAutoSendReady)) {
+      (false, _) => (
+          '자동 전송 꺼짐',
+          cs.onSurface.withValues(alpha: 0.06),
+          cs.onSurface.withValues(alpha: 0.45),
+          Icons.power_settings_new_rounded,
+        ),
+      (true, true) => (
+          '자동 전송 준비 완료',
+          cs.primary.withValues(alpha: 0.08),
+          cs.primary,
+          Icons.check_circle_rounded,
+        ),
+      (true, false) => (
+          '준비 필요',
+          cs.error.withValues(alpha: 0.08),
+          cs.error,
+          Icons.warning_rounded,
+        ),
     };
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(20.r),
       ),
-      child: Text(label, style: AppTextStyles.hannaAirBold(11, foreground)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            iconData,
+            size: 12.r,
+            color: foreground,
+          ),
+          SizedBox(width: 4.w),
+          Text(
+            label,
+            style: AppTextStyles.hannaAirBold(11, foreground),
+          ),
+        ],
+      ),
     );
   }
 }

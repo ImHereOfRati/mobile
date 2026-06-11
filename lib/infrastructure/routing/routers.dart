@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/infrastructure/di/di_setup.dart';
-import 'package:iamhere/infrastructure/routing/app_routes.dart';
+import 'package:iamhere/common/component/navigation/default_view/default_view.dart';
+import 'package:iamhere/common/component/navigation/default_view/navigation_bar/navigation_tab_index_resolver.dart';
 import 'package:iamhere/feature/auth/view/auth_view.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
 import 'package:iamhere/feature/friend/view/add_friend_view.dart';
@@ -19,8 +19,8 @@ import 'package:iamhere/feature/terms/view/terms_list_view.dart';
 import 'package:iamhere/feature/user_permission/view/battery_optimization_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/location_permission_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/user_permission_prep_view.dart';
-import 'package:iamhere/common/component/navigation/default_view/default_view.dart';
-import 'package:iamhere/common/component/navigation/default_view/navigation_bar/navigation_tab_index_resolver.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 
 import 'custom_page_transition/buttom_up_transition.dart';
 import 'custom_page_transition/simple_transition.dart';
@@ -49,14 +49,6 @@ final List<RouteBase> appRoutes = [
     ),
   ),
   GoRoute(
-    path: AppRoutes.userPermission,
-    pageBuilder: (context, state) => buildPageWithSimpleTransition(
-      context: context,
-      state: state,
-      child: const UserPermissionPrepView(),
-    ),
-  ),
-  GoRoute(
     path: AppRoutes.locationPermissionGuide,
     pageBuilder: (context, state) => buildPageWithBottomUpTransition(
       context: context,
@@ -75,7 +67,8 @@ final List<RouteBase> appRoutes = [
   ShellRoute(
     builder: (context, state, child) => DefaultView(
       tabIndexResolver: const NavigationTabIndexResolver(AppRoutes.mainTabs),
-      onCenterAddAuthorizedTap: (context) => context.push(AppRoutes.geofenceEnroll),
+      onCenterAddAuthorizedTap: (context) =>
+          context.push(AppRoutes.geofenceEnroll),
       onCenterAddUnauthorizedTap: AppRoutes.pushLocationPermissionGuide,
       child: child,
     ),
@@ -172,6 +165,14 @@ final List<RouteBase> appRoutes = [
           context: context,
           state: state,
           child: const SettingView(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.userPermission,
+        pageBuilder: (context, state) => buildPageWithSimpleTransition(
+          context: context,
+          state: state,
+          child: const UserPermissionPrepView(),
         ),
       ),
     ],

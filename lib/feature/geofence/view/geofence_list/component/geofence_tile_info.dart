@@ -26,6 +26,8 @@ class GeofenceTileInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final titleColor = isToggleOn ? cs.onSurface : cs.onSurface.withValues(alpha: 0.55);
+    final subColor = isToggleOn ? cs.onSurfaceVariant : cs.onSurfaceVariant.withValues(alpha: 0.5);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,12 +35,12 @@ class GeofenceTileInfo extends StatelessWidget {
       children: [
         Text(
           homeName,
-          style: AppTextStyles.gSansBold(19, cs.onSurface),
+          style: AppTextStyles.gSansBold(18, titleColor),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(height: 6.h),
-        _buildSubInfoRow(cs),
+        SizedBox(height: 5.h),
+        _buildSubInfoRow(cs, subColor),
         SizedBox(height: 8.h),
         GeofenceReadinessChip(
           isToggleOn: isToggleOn,
@@ -48,13 +50,14 @@ class GeofenceTileInfo extends StatelessWidget {
     );
   }
 
-  Widget _buildSubInfoRow(ColorScheme cs) {
+  Widget _buildSubInfoRow(ColorScheme cs, Color textColor) {
     return Row(
       children: [
         Flexible(
           child: _IconText(
             icon: Icons.location_on_outlined,
             text: address,
+            textColor: textColor,
             isFlexible: true,
           ),
         ),
@@ -62,6 +65,7 @@ class GeofenceTileInfo extends StatelessWidget {
         _IconText(
           icon: Icons.people_outline,
           text: '$memberCount$_memberCountUnit',
+          textColor: textColor,
         ),
       ],
     );
@@ -71,29 +75,31 @@ class GeofenceTileInfo extends StatelessWidget {
 class _IconText extends StatelessWidget {
   final IconData icon;
   final String text;
+  final Color textColor;
   final bool isFlexible;
 
   const _IconText({
     required this.icon,
     required this.text,
+    required this.textColor,
     this.isFlexible = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final label = Text(
       text,
-      style: AppTextStyles.hannaAirRegular(13, cs.onSurfaceVariant),
+      style: AppTextStyles.hannaAirRegular(12, textColor),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
 
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 14.r, color: cs.onSurfaceVariant),
-        SizedBox(width: 3.w),
+        Icon(icon, size: 13.r, color: textColor),
+        SizedBox(width: 4.w),
         isFlexible ? Flexible(child: label) : label,
       ],
     );

@@ -6,7 +6,6 @@ import 'package:iamhere/infrastructure/routing/app_routes.dart';
 
 import 'setting_components.dart';
 import 'setting_layout_components.dart';
-import 'setting_view_support.dart';
 
 /// 자동 전송 준비 섹션 (준비 상태 보기 / 배터리 최적화 제외).
 class SettingReadinessSection extends ConsumerWidget {
@@ -25,17 +24,9 @@ class SettingReadinessSection extends ConsumerWidget {
       title: '자동 전송 준비',
       items: [
         SettingItem(
-          title: '자동 전송 준비 보기',
+          title: '자동 전송 준비 상태',
           trailingText: readiness.isReady ? '완료' : '설정 필요',
           onTap: () => AppRoutes.pushUserPermission(context),
-        ),
-        SettingItem(
-          title: '배터리 최적화 제외',
-          trailingText: SettingLabelFormatter.battery(
-            state.batteryOptimizationPermission,
-          ),
-          onTap: () =>
-              SettingActionHandler.handleBatteryOptimizationTap(context, ref),
         ),
       ],
     );

@@ -17,7 +17,6 @@ class UserPermissionPrepView extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('자동 전송 준비')),
       body: SafeArea(
         child: locationAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -42,12 +41,16 @@ class UserPermissionPrepView extends ConsumerWidget {
     return Center(
       child: Text(
         '준비 상태를 불러오지 못했어요.',
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: cs.onSurface),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(color: cs.onSurface),
       ),
     );
   }
 }
 
-final geofenceViewModelProviderForPrep = FutureProvider<PermissionState>((ref) async {
+final geofenceViewModelProviderForPrep = FutureProvider<PermissionState>((
+  ref,
+) async {
   return ref.watch(geofenceViewModelProvider.future);
 });

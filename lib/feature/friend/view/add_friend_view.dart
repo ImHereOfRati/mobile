@@ -111,13 +111,38 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
       height: 52.h,
       child: ElevatedButton.icon(
         onPressed: () async {
-          final result = await vmInterface.selectContact();
-          if (!context.mounted) return;
-          if (result != null) {
+          try {
+            final result = await vmInterface.selectContact();
+            if (!context.mounted) return;
+            if (result != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${result.name}님이 친구로 추가되었습니다!'),
+                  behavior: SnackBarBehavior.floating,
+                  margin: EdgeInsets.all(16.w),
+                ),
+              );
+              context.pop();
+            } else {
+              final contactVm = ref.read(contactViewModelProvider.notifier);
+              final errorMessage = contactVm.lastError ?? '연락처 선택에 실패했습니다';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(errorMessage),
+                  behavior: SnackBarBehavior.floating,
+                  margin: EdgeInsets.all(16.w),
+                ),
+              );
+            }
+          } catch (e) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${result.name}님이 친구로 추가되었습니다!')),
+              SnackBar(
+                content: Text('오류: $e'),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.all(16.w),
+              ),
             );
-            context.pop();
           }
         },
         icon: Icon(Icons.contacts_outlined, size: 20.r),
@@ -611,7 +636,11 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
               final message = messageController.text.trim();
               if (message.length < 10) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('메시지는 10자 이상 입력해주세요')),
+                  SnackBar(
+                    content: const Text('메시지는 10자 이상 입력해주세요'),
+                    behavior: SnackBarBehavior.floating,
+                    margin: EdgeInsets.all(16.w),
+                  ),
                 );
                 return;
               }
@@ -644,6 +673,8 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
               ? '${user.userNickname}님에게 친구 요청을 보냈습니다'
               : '친구 요청 전송에 실패했습니다',
         ),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(16.w),
       ),
     );
   }
