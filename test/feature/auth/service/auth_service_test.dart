@@ -53,7 +53,167 @@ void main() {
     tokenStorage = _FakeTokenStorageService();
   });
 
-  group('AuthService.sendIdTokenToServer', () {
+  group('AuthService.sendIdTokenToServer - Input Validation', () {
+    test('empty idToken 을 거부한다', () async {
+      final dio = _FakeDio({});
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer(''),
+        throwsA(isA<Exception>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Invalid'),
+        )),
+      );
+    });
+
+    test('whitespace-only idToken 을 거부한다', () async {
+      final dio = _FakeDio({});
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer('   '),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
+  group('AuthService.sendIdTokenToServer - Response Validation', () {
+    test('missing accessToken 을 거부한다', () async {
+      final dio = _FakeDio({
+        '/api/auth/login': Response(
+          requestOptions: RequestOptions(path: '/api/auth/login'),
+          statusCode: 200,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'refreshToken': 'refresh-token',
+              // accessToken 누락
+            },
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer(idToken),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('missing refreshToken 을 거부한다', () async {
+      final dio = _FakeDio({
+        '/api/auth/login': Response(
+          requestOptions: RequestOptions(path: '/api/auth/login'),
+          statusCode: 200,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'accessToken': 'access-token',
+              // refreshToken 누락
+            },
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer(idToken),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('empty accessToken 을 거부한다', () async {
+      final dio = _FakeDio({
+        '/api/auth/login': Response(
+          requestOptions: RequestOptions(path: '/api/auth/login'),
+          statusCode: 200,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'accessToken': '',
+              'refreshToken': 'refresh-token',
+            },
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer(idToken),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('null data 를 거부한다', () async {
+      final dio = _FakeDio({
+        '/api/auth/login': Response(
+          requestOptions: RequestOptions(path: '/api/auth/login'),
+          statusCode: 200,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': null,
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer(idToken),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('invalid HTTP status code 을 거부한다', () async {
+      final dio = _FakeDio({
+        '/api/auth/login': Response(
+          requestOptions: RequestOptions(path: '/api/auth/login'),
+          statusCode: 400,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'accessToken': 'access-token',
+              'refreshToken': 'refresh-token',
+            },
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer(idToken),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('서버 에러 (AUTH-300 아님) 을 거부한다', () async {
+      final dio = _FakeDio({
+        '/api/auth/login': Response(
+          requestOptions: RequestOptions(path: '/api/auth/login'),
+          statusCode: 200,
+          data: {
+            'imhereResponseCode': 'SERVER_ERROR',
+            'message': 'Internal error',
+            'data': null,
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer(idToken),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
+  group('AuthService.sendIdTokenToServer - Happy Path', () {
     test('AUTH-300 이면 registration 으로 폴백해 신규 사용자로 처리한다', () async {
       final dio = _FakeDio({
         '/api/auth/login': Response(
