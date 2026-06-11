@@ -19,8 +19,18 @@ class AuthViewModel {
     final result = await _doUserKakaoLogin();
 
     return result.when(
-      success: (idToken) async =>
-          Success(await _authService.sendIdTokenToServer(idToken!)),
+      success: (idToken) async {
+        if (idToken == null || idToken.isEmpty) {
+          return Failure(ResultMessage.kakaoLoginFail.toString());
+        }
+        try {
+          final state = await _authService.sendIdTokenToServer(idToken);
+          return Success(state);
+        } catch (e, st) {
+          ErrorAnalyst.log(e.toString(), st);
+          return Failure(e.toString());
+        }
+      },
       failure: (msg) async => Failure(msg),
     );
   }
