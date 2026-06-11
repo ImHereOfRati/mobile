@@ -116,8 +116,7 @@ class GeofenceDeliveryQueueDatabaseService extends AbstractLocalDatabaseService 
   }
 
   int _backoffMinutes(int retryCount) {
-    if (retryCount <= 0) return 1;
-    final capped = retryCount.clamp(1, 5);
-    return [1, 5, 15, 30, 60][capped - 1];
+    final capped = retryCount.clamp(0, 4);
+    return [1, 5, 15, 30, 60][capped];
   }
 }
