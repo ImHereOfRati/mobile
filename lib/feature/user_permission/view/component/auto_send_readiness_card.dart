@@ -18,49 +18,34 @@ class AutoSendReadinessCard extends StatelessWidget {
     final isReady = readiness.isReady;
 
     return Material(
-      color: isReady ? cs.primaryContainer : cs.errorContainer,
+      color: cs.surface,
       borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16.r),
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: cs.outlineVariant),
+            borderRadius: BorderRadius.circular(16.r),
+          ),
           padding: EdgeInsets.all(16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(cs, isReady),
-              SizedBox(height: 10.h),
-              Text(
-                readiness.summaryTitle,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: isReady ? cs.onPrimaryContainer : cs.onErrorContainer,
-                ),
-              ),
-              SizedBox(height: 6.h),
+              _buildTopRow(cs, isReady),
+              SizedBox(height: 8.h),
               Text(
                 readiness.summaryDescription,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: (isReady ? cs.onPrimaryContainer : cs.onErrorContainer)
-                      .withValues(alpha: 0.82),
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.76),
+                  fontSize: 14.sp,
                 ),
               ),
-              SizedBox(height: 12.h),
-              Row(
-                children: [
-                  Text(
-                    readiness.primaryActionLabel,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: isReady ? cs.onPrimaryContainer : cs.onErrorContainer,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(width: 4.w),
-                  Icon(
-                    Icons.chevron_right,
-                    color: isReady ? cs.onPrimaryContainer : cs.onErrorContainer,
-                  ),
-                ],
+              Divider(
+                height: 24.h,
+                color: cs.outlineVariant,
               ),
+              _buildActionRow(cs),
             ],
           ),
         ),
@@ -68,35 +53,91 @@ class AutoSendReadinessCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(ColorScheme cs, bool isReady) {
-    final bgColor = isReady ? cs.primary : cs.error;
-    final fgColor = isReady ? cs.onPrimary : cs.onError;
+  Widget _buildTopRow(ColorScheme cs, bool isReady) {
+    return Row(
+      children: [
+        _buildIconBlock(cs, isReady),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusBadge(cs, isReady),
+              SizedBox(height: 4.h),
+              Text(
+                readiness.summaryTitle,
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconBlock(ColorScheme cs, bool isReady) {
+    final bgColor = isReady ? cs.primaryContainer : cs.errorContainer;
+    final iconColor = isReady ? cs.primary : cs.error;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      width: 40.w,
+      height: 40.w,
+      decoration: BoxDecoration(
+        color: bgColor,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Icon(
+          isReady ? Icons.check_circle : Icons.warning_amber_rounded,
+          color: iconColor,
+          size: 24.sp,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(ColorScheme cs, bool isReady) {
+    final bgColor = isReady ? cs.primary : cs.error;
+    final fgColor = cs.onPrimary;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(999.r),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isReady ? Icons.check_circle_outline : Icons.warning_amber_rounded,
-            size: 16.sp,
-            color: fgColor,
-          ),
-          SizedBox(width: 6.w),
-          Text(
-            isReady ? '자동 전송 사용 가능' : '자동 전송 준비 필요',
-            style: TextStyle(
-              color: fgColor,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+      child: Text(
+        isReady ? '자동 전송 사용 가능' : '자동 전송 준비 필요',
+        style: TextStyle(
+          color: fgColor,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w700,
+        ),
       ),
+    );
+  }
+
+  Widget _buildActionRow(ColorScheme cs) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          readiness.primaryActionLabel,
+          style: TextStyle(
+            color: cs.primary,
+            fontWeight: FontWeight.w700,
+            fontSize: 14.sp,
+          ),
+        ),
+        Icon(
+          Icons.chevron_right,
+          color: cs.primary,
+        ),
+      ],
     );
   }
 }

@@ -12,7 +12,7 @@ class SettingFooter extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Imhere © 2025',
+            'Imhere by rati',
             style: TextStyle(
               fontFamily: 'BMHANNAAir',
               fontSize: 12.sp,
@@ -22,7 +22,7 @@ class SettingFooter extends StatelessWidget {
           ),
           SizedBox(height: 4.h),
           Text(
-            '도착 알림 자동 연락 서비스',
+            '위치 기반 자동 알림 서비스',
             style: TextStyle(
               fontFamily: 'BMHANNAAir',
               fontSize: 12.sp,

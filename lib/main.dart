@@ -8,8 +8,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:iamhere/common/component/feedback/bootstrap_splash_view.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/infrastructure/routing/router_provider.dart';
+import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
@@ -80,6 +83,8 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
   static final String _appTitle = "ImHere";
   static const Locale _fixedLocale = Locale('ko', 'KR');
 
+  bool _hasResolvedInitialAuth = false;
+
   @override
   void initState() {
     super.initState();
@@ -91,30 +96,71 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
 
   @override
   Widget build(BuildContext context) {
-    final routerConfig = ref.watch(routerProvider);
+    final authState = ref.watch(authStateProvider);
     final themeMode = ref.watch(appThemeModeProvider);
+    final hasResolvedInitialAuth =
+        _hasResolvedInitialAuth || !authState.isLoading;
+
+    if (hasResolvedInitialAuth && !_hasResolvedInitialAuth) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _hasResolvedInitialAuth = true);
+      });
+    }
+
+    final GoRouter? routerConfig = hasResolvedInitialAuth
+        ? ref.watch(routerProvider)
+        : null;
+
     return ScreenUtilInit(
       designSize: const Size(402, 874),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: _appTitle,
-          theme: lightTheme,
-          darkTheme: darkTheme,
-          themeMode: themeMode,
-          routerConfig: routerConfig,
-          locale: _fixedLocale,
-          supportedLocales: const [_fixedLocale],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          localeResolutionCallback: (_, __) => _fixedLocale,
-        );
+        if (routerConfig == null) {
+          return _buildBootstrapSplashApp(themeMode);
+        }
+
+        return _buildRouterApp(themeMode, routerConfig);
       },
+    );
+  }
+
+  MaterialApp _buildBootstrapSplashApp(ThemeMode themeMode) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: _appTitle,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: themeMode,
+      locale: _fixedLocale,
+      supportedLocales: const [_fixedLocale],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      localeResolutionCallback: (_, __) => _fixedLocale,
+      home: const BootstrapSplashView(),
+    );
+  }
+
+  MaterialApp _buildRouterApp(ThemeMode themeMode, GoRouter routerConfig) {
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      title: _appTitle,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: themeMode,
+      routerConfig: routerConfig,
+      locale: _fixedLocale,
+      supportedLocales: const [_fixedLocale],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      localeResolutionCallback: (_, __) => _fixedLocale,
     );
   }
 }

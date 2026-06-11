@@ -53,7 +53,7 @@ class AutoSendReadiness {
       return '기기의 위치 서비스를 켜면 도착 알림이 현재 위치를 확인할 수 있어요.';
     }
     if (needsAlwaysLocation) {
-      return '자동 전송을 사용하려면 위치를 항상 허용으로 바꿔야 해요.';
+      return '위치를 항상 허용으로 해주어야\n자동으로 알람 발송이 가능해요.';
     }
     if (needsBatteryOptimization) {
       return '앱이 닫혀 있어도 자동 전송이 끊기지 않게 배터리 최적화 제외가 필요해요.';

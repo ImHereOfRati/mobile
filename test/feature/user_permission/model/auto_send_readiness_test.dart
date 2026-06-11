@@ -24,7 +24,7 @@ void main() {
 
       expect(readiness.isReady, false);
       expect(readiness.remainingSteps, 1);
-      expect(readiness.summaryDescription, '자동 전송을 사용하려면 위치를 항상 허용으로 바꿔야 해요.');
+      expect(readiness.summaryDescription, '위치를 항상 허용으로 해주어야\n자동으로 알람 발송이 가능해요.');
       expect(readiness.locationStatusLabel, '사용 중 허용');
     });
 

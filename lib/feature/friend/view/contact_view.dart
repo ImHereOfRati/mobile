@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
 import 'package:iamhere/feature/friend/view_model/contact.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model.dart';
 import 'package:iamhere/feature/friend/view_model/friend_list_view_model.dart';
-import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
 
 import 'component/contact_tile.dart';
+import 'component/friend_request_row.dart';
+import 'component/friend_header.dart';
+import 'component/friend_empty_state.dart';
+import 'component/add_friend_button.dart';
+import 'component/consonant_header.dart';
+import 'component/blocked_friends_button.dart';
+import 'component/friend_list_footer_tip.dart';
 
 class ContactView extends ConsumerStatefulWidget {
   const ContactView({super.key});
@@ -62,354 +67,128 @@ class _ContactViewState extends ConsumerState<ContactView> {
 
     return CustomScrollView(
       slivers: [
-        // 팁 카드
-        SliverToBoxAdapter(child: _buildTipCard(context)),
-
-        // 내 친구 헤더
-        SliverToBoxAdapter(child: _buildFriendHeader(context, totalCount)),
-
-        // 받은 친구 요청
-        SliverToBoxAdapter(child: _buildFriendRequestRow(context)),
-
-        // 새로운 친구 추가하기
-        SliverToBoxAdapter(child: _buildAddFriendButton(context)),
-
+        SliverToBoxAdapter(child: FriendHeader(count: totalCount)),
+        SliverToBoxAdapter(child: FriendRequestRow()),
+        SliverToBoxAdapter(child: AddFriendButton()),
         if (totalCount == 0)
-          SliverFillRemaining(
-            child: Center(
-              child: Text(
-                '등록된 친구가 없습니다.\n위 버튼을 눌러 친구를 추가하세요.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'BMHANNAAir',
-                  fontSize: 15.sp,
-                  color: cs.onSurface.withValues(alpha: 0.45),
-                  height: 1.5,
-                ),
-              ),
-            ),
-          )
-        else ...[
-          // 서버 친구 (ImHere 앱 유저)
-          if (serverFriends.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: _buildConsonantHeader(context, 'imhere'),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final friend = serverFriends[index];
-                return Column(
-                  children: [
-                    ContactTile(
-                      key: ValueKey(friend.friendRelationshipId),
-                      contactName: friend.friendAlias.isNotEmpty
-                          ? friend.friendAlias
-                          : friend.friendEmail,
-                      phoneNumber: friend.friendEmail,
-                      status: 'Imhere',
-                      onDelete: () => _deleteServerFriend(
-                        context,
-                        friend.friendRelationshipId,
-                        friend.friendAlias.isNotEmpty
-                            ? friend.friendAlias
-                            : friend.friendEmail,
-                      ),
-                      onTap: () => _showServerFriendActions(
-                        context,
-                        friend.friendRelationshipId,
-                        friend.friendAlias.isNotEmpty
-                            ? friend.friendAlias
-                            : friend.friendEmail,
-                      ),
-                    ),
-                    Divider(
-                      height: 0.5,
-                      thickness: 0.5,
-                      color: cs.onSurface.withValues(alpha: 0.1),
-                      indent: 20.w,
-                      endIndent: 20.w,
-                    ),
-                  ],
-                );
-              }, childCount: serverFriends.length),
-            ),
-          ],
-
-          // 로컬 연락처 (내 기기)
-          for (final consonant in consonants) ...[
-            SliverToBoxAdapter(
-              child: _buildConsonantHeader(context, consonant),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final contact = grouped[consonant]![index];
-                return Column(
-                  children: [
-                    ContactTile(
-                      key: ValueKey(contact.number),
-                      contactName: contact.name,
-                      phoneNumber: contact.number,
-                      status: '내 기기',
-                      onDelete: () => _deleteLocalContact(
-                        context,
-                        vm,
-                        contact.id!,
-                        contact.name,
-                      ),
-                      onTap: () => _showLocalContactActions(
-                        context,
-                        vm,
-                        contact.id!,
-                        contact.name,
-                      ),
-                    ),
-                    Divider(
-                      height: 0.5,
-                      thickness: 0.5,
-                      color: cs.onSurface.withValues(alpha: 0.1),
-                      indent: 20.w,
-                      endIndent: 20.w,
-                    ),
-                  ],
-                );
-              }, childCount: grouped[consonant]!.length),
-            ),
-          ],
-
-          // 차단/거절한 친구 보기
-          SliverToBoxAdapter(child: _buildBlockedFriendsButton(context)),
-        ],
-
+          SliverFillRemaining(child: FriendEmptyState())
+        else
+          ..._buildContactLists(context, cs, vm, serverFriends, grouped, consonants),
+        SliverToBoxAdapter(child: FriendListFooterTip()),
         SliverToBoxAdapter(child: SizedBox(height: 32.h)),
       ],
     );
   }
 
-  // ── 팁 카드 ─────────────────────────────────────────────────────────
-  Widget _buildTipCard(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E7),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: const Color(0xFFFFE082), width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('💡', style: TextStyle(fontSize: 18.sp)),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '알아두면 좋아요!',
-                  style: TextStyle(
-                    fontFamily: 'BMHANNAAir',
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFFE65100),
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  '친구가 앱을 삭제하면 위치 알람 전송이 실패할 수 있어요',
-                  style: TextStyle(
-                    fontFamily: 'BMHANNAAir',
-                    fontSize: 13.sp,
-                    color: cs.onSurface.withValues(alpha: 0.7),
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+
+  List<Widget> _buildContactLists(
+    BuildContext context,
+    ColorScheme cs,
+    ContactViewModel vm,
+    List<FriendRelationshipResponseDto> serverFriends,
+    Map<String, List<Contact>> grouped,
+    List<String> consonants,
+  ) {
+    return [
+      if (serverFriends.isNotEmpty) ...[
+        SliverToBoxAdapter(child: ConsonantHeader(consonant: 'imhere')),
+        _buildServerFriendList(context, cs, serverFriends),
+      ],
+      for (final consonant in consonants) ...[
+        SliverToBoxAdapter(child: ConsonantHeader(consonant: consonant)),
+        _buildLocalContactList(context, cs, vm, grouped[consonant]!),
+      ],
+      SliverToBoxAdapter(child: BlockedFriendsButton()),
+    ];
+  }
+
+  Widget _buildServerFriendList(
+    BuildContext context,
+    ColorScheme cs,
+    List<FriendRelationshipResponseDto> serverFriends,
+  ) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final friend = serverFriends[index];
+          final name = friend.friendAlias.isNotEmpty
+              ? friend.friendAlias
+              : friend.friendEmail;
+          return _buildFriendTile(
+            context,
+            cs,
+            name: name,
+            number: friend.friendEmail,
+            status: 'Imhere',
+            onDelete: () => _deleteServerFriend(context, friend.friendRelationshipId, name),
+            onTap: () => _showServerFriendActions(context, friend.friendRelationshipId, name),
+          );
+        },
+        childCount: serverFriends.length,
       ),
     );
   }
 
-  // ── 내 친구 헤더 ─────────────────────────────────────────────────────
-  Widget _buildFriendHeader(BuildContext context, int count) {
-    final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 4.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '내 친구',
-            style: TextStyle(
-              fontFamily: 'GmarketSans',
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w700,
-              color: cs.onSurface,
-              letterSpacing: -0.3,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            '메시지 보는 알람을 받을 수 있는 친구들을 관리하세요',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 13.sp,
-              color: cs.onSurface.withValues(alpha: 0.55),
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            '$count명 등록됨',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w600,
-              color: cs.primary,
-            ),
-          ),
-          SizedBox(height: 16.h),
-        ],
+  Widget _buildLocalContactList(
+    BuildContext context,
+    ColorScheme cs,
+    ContactViewModel vm,
+    List<Contact> contacts,
+  ) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final contact = contacts[index];
+          return _buildFriendTile(
+            context,
+            cs,
+            name: contact.name,
+            number: contact.number,
+            status: '내 기기',
+            onDelete: () => _deleteLocalContact(context, vm, contact.id!, contact.name),
+            onTap: () => _showLocalContactActions(context, vm, contact.id!, contact.name),
+          );
+        },
+        childCount: contacts.length,
       ),
     );
   }
 
-  // ── 받은 친구 요청 ───────────────────────────────────────────────────
-  Widget _buildFriendRequestRow(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final requestsAsync = ref.watch(friendRequestViewModelProvider);
-    final count = requestsAsync.value?.length ?? 0;
-
-    return GestureDetector(
-      onTap: () => AppRoutes.goToFriendRequests(context),
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
-      child: Row(
-        children: [
-          Text(
-            '받은 친구 요청',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w600,
-              color: cs.onSurface,
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-            decoration: BoxDecoration(
-              color: count > 0 ? cs.primary : cs.onSurface.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-            child: Text(
-              '$count건',
-              style: TextStyle(
-                fontFamily: 'BMHANNAAir',
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: cs.onPrimary,
-              ),
-            ),
-          ),
-          const Spacer(),
-          Icon(Icons.play_arrow_rounded, size: 20.r, color: cs.primary),
-        ],
-      ),
-    ),
-    );
-  }
-
-  // ── 새로운 친구 추가하기 ──────────────────────────────────────────────
-  Widget _buildAddFriendButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
-      child: SizedBox(
-        width: double.infinity,
-        height: 52.h,
-        child: ElevatedButton(
-          onPressed: () => AppRoutes.goToContactAdd(context),
-          style: ElevatedButton.styleFrom(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-          ),
-          child: Text(
-            '새로운 친구 추가하기',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.2,
-            ),
-          ),
+  Widget _buildFriendTile(
+    BuildContext context,
+    ColorScheme cs, {
+    required String name,
+    required String number,
+    required String status,
+    required Future<bool> Function() onDelete,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      children: [
+        ContactTile(
+          key: ValueKey(number),
+          contactName: name,
+          phoneNumber: number,
+          status: status,
+          onDelete: onDelete,
+          onTap: onTap,
         ),
-      ),
-    );
-  }
-
-  // ── 초성 섹션 헤더 ───────────────────────────────────────────────────
-  Widget _buildConsonantHeader(BuildContext context, String consonant) {
-    final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            consonant,
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w600,
-              color: cs.onSurface.withValues(alpha: 0.45),
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Divider(
-            height: 0.5,
-            thickness: 0.5,
-            color: cs.onSurface.withValues(alpha: 0.12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── 차단/거절한 친구 보기 ─────────────────────────────────────────────
-  Widget _buildBlockedFriendsButton(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 24.h),
-      child: Center(
-        child: GestureDetector(
-          onTap: () => AppRoutes.goToFriendRestrictions(context),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.shield_outlined,
-                size: 16.r,
-                color: cs.onSurface.withValues(alpha: 0.38),
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                '차단/거절한 친구 보기',
-                style: TextStyle(
-                  fontFamily: 'BMHANNAAir',
-                  fontSize: 13.sp,
-                  color: cs.onSurface.withValues(alpha: 0.38),
-                ),
-              ),
-            ],
-          ),
+        Divider(
+          height: 0.5,
+          thickness: 0.5,
+          color: cs.onSurface.withValues(alpha: 0.1),
+          indent: 20.w,
+          endIndent: 20.w,
         ),
-      ),
+      ],
     );
   }
+
+
+
+
+
+
 
   // ── 로컬 연락처 삭제 (밀어서 삭제) ───────────────────────────────────
   Future<bool> _deleteLocalContact(
