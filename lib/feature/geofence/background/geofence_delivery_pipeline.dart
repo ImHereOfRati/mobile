@@ -164,4 +164,12 @@ class GeofenceDeliveryPipeline {
     final bucket = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 5000;
     return '$geofenceId:${event.name}:$bucket';
   }
+
+  // ignore: unused_element
+  Future<void> _promoteForegroundServiceIfNeeded() async {
+    // TODO: start a short-lived foreground service here when delivery
+    // latency exceeds a threshold. Requires flutter_foreground_task or
+    // equivalent. The NativeGeofenceForegroundService is already declared
+    // in AndroidManifest.xml with foregroundServiceType="location".
+  }
 }
