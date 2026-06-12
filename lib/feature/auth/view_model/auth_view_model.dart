@@ -1,10 +1,10 @@
 import 'package:flutter/services.dart';
-import 'package:iamhere/feature/auth/service/login_result.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
 import 'package:iamhere/common/base/result/error_analyst.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/common/base/result/result_message.dart';
+import 'package:iamhere/feature/auth/service/auth_service.dart';
+import 'package:iamhere/feature/auth/service/login_result.dart';
+import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
@@ -21,7 +21,7 @@ class AuthViewModel {
     return result.when(
       success: (idToken) async {
         if (idToken == null || idToken.isEmpty) {
-          return Failure(ResultMessage.kakaoLoginFail.toString());
+          return Failure(ResultMessage.kakaoAccountLoginFail.toString());
         }
         try {
           final state = await _authService.sendIdTokenToServer(idToken);
