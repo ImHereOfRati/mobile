@@ -6,15 +6,21 @@ part 'terms_list_request_dto.g.dart';
 
 @JsonSerializable()
 class TermsListRequestDto {
-  final int termDefinitionId;
+  final int id;
+  final int version;
+  final TermsType type;
   final String title;
-  final TermsType termsTypes;
+  final String content;
+  final DateTime effectiveDate;
   final bool isRequired;
 
   TermsListRequestDto({
-    required this.termDefinitionId,
+    required this.id,
+    required this.version,
+    required this.type,
     required this.title,
-    required this.termsTypes,
+    required this.content,
+    required this.effectiveDate,
     required this.isRequired,
   });
 

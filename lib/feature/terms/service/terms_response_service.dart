@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
+import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
@@ -9,7 +10,6 @@ import 'dto/terms_consent_request_dto.dart';
 @lazySingleton
 class TermsResponseService {
   static const String _allTermsConsentPath = '/api/auth/activation';
-  static const String _termConsentPath = '/api/auth/activation';
 
   final Dio _dio;
 
@@ -28,12 +28,9 @@ class TermsResponseService {
       );
 
       if (response.statusCode == 200) {
-        return ApiResponse.fromJson(
-          response.data,
-          (json) => AfterTermsAgreementAuthResponseDto.fromJson(
-            json as Map<String, dynamic>,
-          ),
-        );
+        return ApiResponseParser.parseObject<
+          AfterTermsAgreementAuthResponseDto
+        >(response.data, AfterTermsAgreementAuthResponseDto.fromJson);
       }
 
       throw DioException(
@@ -43,32 +40,6 @@ class TermsResponseService {
       );
     } catch (e) {
       AppLogger.error('TermsListRequestService.requestTermsList 에러: $e');
-      rethrow;
-    }
-  }
-
-  Future<ApiResponse<void>> requestToAgreeSingleTerm(
-    int termDefinitionId,
-  ) async {
-    try {
-      final response = await _dio.post(
-        _termConsentPath,
-        options: Options(extra: const {'requiresAuth': true}),
-      );
-
-      if (response.statusCode == 200) {
-        return ApiResponse<void>.fromJson(response.data, (_) {});
-      }
-
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        message: "서버 응답 오류: ${response.statusCode}",
-      );
-    } catch (e) {
-      AppLogger.error(
-        'TermsResponseService.requestToAgreeSingleTerm 에러 (id=$termDefinitionId): $e',
-      );
       rethrow;
     }
   }

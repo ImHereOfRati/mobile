@@ -5,7 +5,7 @@ part 'terms_agreement_notifier.g.dart';
 /// State for tracking terms agreement
 @riverpod
 class TermsAgreementNotifier extends _$TermsAgreementNotifier {
-  /// Maps termDefinitionId to agreement status
+  /// Maps term id to agreement status
   final Map<int, bool> _agreedTerms = {};
 
   @override
@@ -14,9 +14,9 @@ class TermsAgreementNotifier extends _$TermsAgreementNotifier {
   }
 
   /// Toggle agreement for a specific term
-  void toggleAgreement(int termDefinitionId) {
-    final current = _agreedTerms[termDefinitionId] ?? false;
-    _agreedTerms[termDefinitionId] = !current;
+  void toggleAgreement(int termId) {
+    final current = _agreedTerms[termId] ?? false;
+    _agreedTerms[termId] = !current;
     state = Map.from(_agreedTerms);
   }
 
@@ -41,8 +41,8 @@ class TermsAgreementNotifier extends _$TermsAgreementNotifier {
   }
 
   /// Check if a specific term is agreed
-  bool isTermAgreed(int termDefinitionId) {
-    return _agreedTerms[termDefinitionId] ?? false;
+  bool isTermAgreed(int termId) {
+    return _agreedTerms[termId] ?? false;
   }
 
   /// Check if all required terms are agreed

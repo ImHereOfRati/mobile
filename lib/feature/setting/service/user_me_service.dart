@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/setting/service/dto/change_nickname_request_dto.dart';
 import 'package:iamhere/feature/setting/service/dto/user_me_response_dto.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
@@ -23,14 +24,10 @@ class UserMeService implements UserMeServiceInterface {
       );
 
       if (response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic>
-            ? (body['data'] ?? body)
-            : body;
-
-        if (data is Map<String, dynamic>) {
-          return UserMeResponseDto.fromJson(data);
-        }
+        return ApiResponseParser.parseObject<UserMeResponseDto>(
+          response.data,
+          UserMeResponseDto.fromJson,
+        ).data;
       }
 
       return null;
@@ -46,21 +43,17 @@ class UserMeService implements UserMeServiceInterface {
   @override
   Future<UserMeResponseDto?> changeNickname(String newNickname) async {
     try {
-      final response = await _dio.post(
+      final response = await _dio.patch(
         _userNicknamePath,
-        data: ChangeNicknameRequestDto(newNickname: newNickname).toJson(),
+        data: ChangeNicknameRequestDto(nickname: newNickname).toJson(),
         options: Options(extra: const {'requiresAuth': true}),
       );
 
       if (response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic>
-            ? (body['data'] ?? body)
-            : body;
-
-        if (data is Map<String, dynamic>) {
-          return UserMeResponseDto.fromJson(data);
-        }
+        return ApiResponseParser.parseObject<UserMeResponseDto>(
+          response.data,
+          UserMeResponseDto.fromJson,
+        ).data;
       }
 
       return null;

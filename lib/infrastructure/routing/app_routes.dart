@@ -14,8 +14,6 @@ class AppRoutes {
   static const String batteryOptimizationGuide = '/battery-optimization-guide';
   static const String auth = '/auth';
   static const String termsConsent = '/terms-consent';
-  static String termsDetail(int termDefinitionId) =>
-      '/terms-detail/$termDefinitionId';
 
   // ── Main (ShellRoute) ─────────────────────────────────────────────
   static const String geofence = '/geofence';
@@ -63,6 +61,4 @@ class AppRoutes {
   static void goToRecordSendHistory(BuildContext context) =>
       context.push(recordSendHistory);
   static void goToGeofence(BuildContext context) => context.go(geofence);
-  static void pushTermsDetail(BuildContext context, int termDefinitionId) =>
-      context.push(termsDetail(termDefinitionId));
 }

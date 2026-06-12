@@ -14,7 +14,6 @@ import 'package:iamhere/feature/record/view/record_friend_request_list_view.dart
 import 'package:iamhere/feature/record/view/record_view.dart';
 import 'package:iamhere/feature/record/view/send_history_list_view.dart';
 import 'package:iamhere/feature/setting/view/setting_view.dart';
-import 'package:iamhere/feature/terms/view/terms_detail_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
 import 'package:iamhere/feature/user_permission/view/battery_optimization_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/location_permission_guide_view.dart';
@@ -36,16 +35,6 @@ final List<RouteBase> appRoutes = [
       context: context,
       state: state,
       child: const TermsListView(),
-    ),
-  ),
-  GoRoute(
-    path: '/terms-detail/:termId',
-    pageBuilder: (context, state) => buildPageWithSimpleTransition(
-      context: context,
-      state: state,
-      child: TermsDetailView(
-        termDefinitionId: int.parse(state.pathParameters['termId']!),
-      ),
     ),
   ),
   GoRoute(

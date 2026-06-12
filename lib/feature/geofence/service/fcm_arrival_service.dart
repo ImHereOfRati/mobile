@@ -5,7 +5,6 @@ import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:iamhere/common/base/result/result.dart';
-import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 /// 서버 친구(ImHere 앱 유저)에게 목적지 도착 FCM 알림 발송
@@ -89,16 +88,16 @@ class FcmArrivalService {
   Future<void> notifyDeliveryResultToMe(String location) async {
     try {
       dev.log('!!!! BG_SELF_NOTIFY: Method Start');
-      
+
       final myInfo = await _userMeService.fetchMyInfo().timeout(
         const Duration(seconds: 10),
         onTimeout: () => throw 'fetchMyInfo Timeout',
       );
-      
+
       if (myInfo != null) {
-        dev.log('!!!! BG_SELF_NOTIFY: Email found ${myInfo.userEmail}');
+        dev.log('!!!! BG_SELF_NOTIFY: Email found ${myInfo.email}');
         final result = await _fcmNotificationService.notifyDeliveryResult(
-          receiverEmail: myInfo.userEmail,
+          receiverEmail: myInfo.email,
           type: 'ARRIVAL',
           body: '$location 도착 알림이 성공적으로 전송되었습니다.',
         );
@@ -106,7 +105,9 @@ class FcmArrivalService {
         if (result is Success) {
           dev.log('!!!! BG_SELF_NOTIFY: POST Success');
         } else {
-          dev.log('!!!! BG_SELF_NOTIFY: POST Failed: ${(result as Failure).message}');
+          dev.log(
+            '!!!! BG_SELF_NOTIFY: POST Failed: ${(result as Failure).message}',
+          );
         }
       } else {
         dev.log('!!!! BG_SELF_NOTIFY: myInfo is NULL');

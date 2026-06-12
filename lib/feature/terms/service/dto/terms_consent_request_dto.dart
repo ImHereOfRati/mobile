@@ -4,13 +4,10 @@ part 'terms_consent_request_dto.g.dart';
 
 @JsonSerializable()
 class TermsConsentItemDto {
-  final int termDefinitionId;
+  final int id;
   final bool agreed;
 
-  const TermsConsentItemDto({
-    required this.termDefinitionId,
-    required this.agreed,
-  });
+  const TermsConsentItemDto({required this.id, required this.agreed});
 
   factory TermsConsentItemDto.fromJson(Map<String, dynamic> json) =>
       _$TermsConsentItemDtoFromJson(json);

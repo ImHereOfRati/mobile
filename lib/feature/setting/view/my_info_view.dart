@@ -47,14 +47,14 @@ class MyInfoView extends ConsumerWidget {
               _buildInfoCard(context, [
                 _InfoRow(
                   label: '닉네임',
-                  value: userInfo.userNickname,
+                  value: userInfo.nickname,
                   onEdit: () => _showEditNicknameDialog(
                     context,
                     ref,
-                    currentNickname: userInfo.userNickname,
+                    currentNickname: userInfo.nickname,
                   ),
                 ),
-                _InfoRow(label: '이메일', value: userInfo.userEmail),
+                _InfoRow(label: '이메일', value: userInfo.email),
               ]),
             ],
           );
@@ -167,7 +167,7 @@ class MyInfoView extends ConsumerWidget {
         content: TextField(
           controller: controller,
           autofocus: true,
-          maxLength: 20,
+          maxLength: 5,
           style: TextStyle(fontFamily: 'BMHANNAAir', fontSize: 15.sp),
           decoration: InputDecoration(
             hintText: '새 닉네임 입력',

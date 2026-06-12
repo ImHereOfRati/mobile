@@ -20,9 +20,13 @@ void main() {
     test('내 정보 조회 성공 시 UserMeResponseDto를 반환해야 함', () async {
       // Arrange
       final responseData = {
+        'imhereResponseCode': 'SUCCESS',
+        'message': 'OK',
         'data': {
-          'userEmail': 'test@example.com',
-          'userNickname': '테스트유저',
+          'id': '365b7106-da29-4818-b816-967aef946354',
+          'email': 'test@example.com',
+          'nickname': '테스트유저',
+          'oAuth2Provider': 'KAKAO',
         },
       };
 
@@ -41,8 +45,10 @@ void main() {
 
       // Assert
       expect(result, isNotNull);
-      expect(result!.userEmail, 'test@example.com');
-      expect(result.userNickname, '테스트유저');
+      expect(result!.id, '365b7106-da29-4818-b816-967aef946354');
+      expect(result.email, 'test@example.com');
+      expect(result.nickname, '테스트유저');
+      expect(result.oAuth2Provider, 'KAKAO');
     });
 
     test('서버 에러 시 null을 반환해야 함', () async {
@@ -80,6 +86,47 @@ void main() {
 
       // Assert
       expect(result, isNull);
+    });
+  });
+
+  group('UserMeService - changeNickname', () {
+    test('닉네임 변경 성공 시 patch와 스펙 body를 사용해야 함', () async {
+      final responseData = {
+        'imhereResponseCode': 'SUCCESS',
+        'message': 'OK',
+        'data': {
+          'id': '365b7106-da29-4818-b816-967aef946354',
+          'email': 'test@example.com',
+          'nickname': '새닉네임',
+          'oAuth2Provider': 'KAKAO',
+        },
+      };
+
+      when(
+        mockDio.patch(
+          '/api/users/my',
+          data: {'nickname': '새닉네임'},
+          options: anyNamed('options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/api/users/my'),
+        ),
+      );
+
+      final result = await service.changeNickname('새닉네임');
+
+      expect(result, isNotNull);
+      expect(result!.nickname, '새닉네임');
+      verify(
+        mockDio.patch(
+          '/api/users/my',
+          data: {'nickname': '새닉네임'},
+          options: anyNamed('options'),
+        ),
+      ).called(1);
     });
   });
 }

@@ -1,34 +1,27 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
-import 'package:iamhere/common/base/api_response/page_response.dart';
+import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 import 'dto/terms_list_request_dto.dart';
-import 'dto/terms_version_response_dto.dart';
 
 @lazySingleton
 class TermsRequestService {
   static const String _termsListPath = '/api/terms';
-  static const String _termsVersionPath = '/api/terms';
 
   final Dio _dio;
 
   TermsRequestService(this._dio);
 
-  Future<ApiResponse<PageResponse<TermsListRequestDto>>>
-  requestTermsList() async {
+  Future<ApiResponse<List<TermsListRequestDto>>> requestTermsList() async {
     try {
       final response = await _dio.get(_termsListPath);
 
       if (response.statusCode == 200) {
-        return ApiResponse<PageResponse<TermsListRequestDto>>.fromJson(
+        return ApiResponseParser.parseList<TermsListRequestDto>(
           response.data,
-          (json) => PageResponse<TermsListRequestDto>.fromJson(
-            json as Map<String, dynamic>,
-            (itemJson) =>
-                TermsListRequestDto.fromJson(itemJson as Map<String, dynamic>),
-          ),
+          TermsListRequestDto.fromJson,
         );
       }
       throw DioException(
@@ -38,27 +31,6 @@ class TermsRequestService {
       );
     } catch (e) {
       AppLogger.error('TermsListRequestService.requestTermsList 에러: $e');
-      rethrow;
-    }
-  }
-
-  Future<ApiResponse<TermsVersionResponseDto>> requestTermsDetail(
-    int termDefinitionId,
-  ) async {
-    try {
-      final response = await _dio.get(_termsVersionPath);
-
-      if (response.statusCode == 200) {
-        return ApiResponse<TermsVersionResponseDto>.fromJson(
-          response.data,
-          (json) =>
-              TermsVersionResponseDto.fromJson(json as Map<String, dynamic>),
-        );
-      }
-
-      throw Exception("상세 조회 실패 (ID: $termDefinitionId)");
-    } catch (e) {
-      AppLogger.error('TermsListRequestService.requestTermsDetail 에러: $e');
       rethrow;
     }
   }

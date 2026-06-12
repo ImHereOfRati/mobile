@@ -15,7 +15,7 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
     return const AsyncValue.data(null);
   }
 
-  /// [terms] 전체 약관 목록, [agreementsMap] 동의 여부 맵 (termDefinitionId → agreed)
+  /// [terms] 전체 약관 목록, [agreementsMap] 동의 여부 맵 (id -> agreed)
   Future<void> submitConsents(
     List<TermsListRequestDto> terms,
     Map<int, bool> agreementsMap,
@@ -25,8 +25,8 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
       final consents = terms
           .map(
             (term) => TermsConsentItemDto(
-              termDefinitionId: term.termDefinitionId,
-              agreed: agreementsMap[term.termDefinitionId] ?? false,
+              id: term.id,
+              agreed: agreementsMap[term.id] ?? false,
             ),
           )
           .toList();
@@ -45,17 +45,5 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
 
       return dto;
     });
-  }
-
-  /// 단건 약관 동의. 성공 시 true 반환.
-  Future<bool> submitSingleConsent(int termDefinitionId) async {
-    try {
-      final responseService = GetIt.instance<TermsResponseService>();
-      final response =
-          await responseService.requestToAgreeSingleTerm(termDefinitionId);
-      return response.imhereResponseCode == 'SUCCESS';
-    } catch (_) {
-      return false;
-    }
   }
 }

@@ -40,26 +40,26 @@
 - [x] 현 시점 Swagger 기준 일반 사용자 엔드포인트에서 `PageResponse` 직접 사용처는 사실상 제거 대상임을 확인
 
 ## 약관 기능 정리
-- [ ] `GET /api/terms`를 `ApiResponse<List<Terms...Dto>>` 구조로 수정
-- [ ] 약관 DTO 필드를 Swagger 기준으로 변경
-- [ ] `termDefinitionId` -> `id` 전환
-- [ ] `termsTypes` -> `type` 전환
-- [ ] `version` 타입을 실제 스펙에 맞게 조정
-- [ ] `content`, `effectiveDate`, `isRequired` 반영
-- [ ] 단건 약관 조회 관련 서비스 제거 또는 호출 차단
-- [ ] `TermsDetailView`, 라우트, 진입 경로 제거 범위 점검
-- [ ] 단일 약관 동의 관련 서비스 제거 또는 호출 차단
-- [ ] 약관 전체 동의 요청 body를 Swagger 기준으로 수정
-- [ ] `consents[].termDefinitionId` -> `consents[].id` 전환
-- [ ] 약관 화면/상태관리에서 단건 상세 이동 의존성 제거
+- [x] `GET /api/terms`를 `ApiResponse<List<Terms...Dto>>` 구조로 수정
+- [x] 약관 DTO 필드를 Swagger 기준으로 변경
+- [x] `termDefinitionId` -> `id` 전환
+- [x] `termsTypes` -> `type` 전환
+- [x] `version` 타입을 실제 스펙에 맞게 조정
+- [x] `content`, `effectiveDate`, `isRequired` 반영
+- [x] 단건 약관 조회 관련 서비스 제거 또는 호출 차단
+- [x] `TermsDetailView`, 라우트, 진입 경로 제거 범위 점검
+- [x] 단일 약관 동의 관련 서비스 제거 또는 호출 차단
+- [x] 약관 전체 동의 요청 body를 Swagger 기준으로 수정
+- [x] `consents[].termDefinitionId` -> `consents[].id` 전환
+- [x] 약관 화면/상태관리에서 단건 상세 이동 의존성 제거
 
 ## 내 정보 기능 정리
-- [ ] `GET /api/users/my` 응답 DTO를 Swagger 기준으로 수정
-- [ ] `userEmail`, `userNickname` 필드명 의존 제거
-- [ ] `id`, `email`, `nickname`, `oAuth2Provider` 반영
-- [ ] 닉네임 변경 API를 `POST`에서 `PATCH`로 수정
-- [ ] 닉네임 변경 request body를 `{ "nickname": ... }`로 수정
-- [ ] `my_info_view.dart` 및 관련 ViewModel 필드명 반영
+- [x] `GET /api/users/my` 응답 DTO를 Swagger 기준으로 수정
+- [x] `userEmail`, `userNickname` 필드명 의존 제거
+- [x] `id`, `email`, `nickname`, `oAuth2Provider` 반영
+- [x] 닉네임 변경 API를 `POST`에서 `PATCH`로 수정
+- [x] 닉네임 변경 request body를 `{ "nickname": ... }`로 수정
+- [x] `my_info_view.dart` 및 관련 ViewModel 필드명 반영
 
 ## 사용자 검색 기능 정리
 - [ ] `GET /api/users`를 `ApiResponse<SliceResponse<UserSearchResponseDto>>`로 수정
@@ -131,12 +131,12 @@
 - [x] 불필요한 `PageResponse` 사용 지점 식별 완료
 
 ### Milestone 2. 약관/내 정보 정렬
-- [ ] 약관 목록 API 파싱 수정
-- [ ] 단건 약관 조회 제거 반영
-- [ ] 단일 약관 동의 제거 반영
-- [ ] 전체 약관 동의 body 수정
-- [ ] 내 정보 조회 DTO 수정
-- [ ] 닉네임 변경 method/body 수정
+- [x] 약관 목록 API 파싱 수정
+- [x] 단건 약관 조회 제거 반영
+- [x] 단일 약관 동의 제거 반영
+- [x] 전체 약관 동의 body 수정
+- [x] 내 정보 조회 DTO 수정
+- [x] 닉네임 변경 method/body 수정
 
 ### Milestone 3. 친구 도메인 정렬
 - [ ] 사용자 검색 slice 파싱 수정

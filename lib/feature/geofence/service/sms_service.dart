@@ -21,7 +21,7 @@ class SmsService {
   SmsService(this._dio, this._fcmNotificationService, this._userMeService);
 
   /// Send SMS to one or more recipients
-  /// Returns Result<void> indicating success or failure
+  /// Returns `Result<void>` indicating success or failure
   Future<Result<void>> sendSms({
     required List<String> phoneNumbers,
     required String location,
@@ -137,12 +137,14 @@ class SmsService {
     try {
       final myInfo = await _userMeService.fetchMyInfo();
       if (myInfo == null) {
-        log('Warning: Could not fetch user info for delivery result notification');
+        log(
+          'Warning: Could not fetch user info for delivery result notification',
+        );
         return;
       }
 
       final result = await _fcmNotificationService.notifyDeliveryResult(
-        receiverEmail: myInfo.userEmail,
+        receiverEmail: myInfo.email,
         type: 'ARRIVAL',
         body: '$location 도착 알림이 성공적으로 전송되었습니다.',
       );

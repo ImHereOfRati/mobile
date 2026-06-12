@@ -50,10 +50,10 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
       return _buildAutoActivationBody(context, ref, consentState);
     }
 
-    final termIds = terms.map((t) => t.termDefinitionId).toList();
+    final termIds = terms.map((t) => t.id).toList();
     final requiredIds = terms
         .where((t) => t.isRequired)
-        .map((t) => t.termDefinitionId)
+        .map((t) => t.id)
         .toList();
 
     final agreedMap = ref.watch(termsAgreementProvider);
@@ -116,7 +116,11 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).dividerColor),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).dividerColor,
+            ),
             SizedBox(height: 16.h),
             Text(
               '시작 준비를 마치지 못했습니다.',
@@ -239,7 +243,7 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
   ) {
     final cs = Theme.of(context).colorScheme;
     final isAgreed = ref.watch(
-      termsAgreementProvider.select((m) => m[term.termDefinitionId] ?? false),
+      termsAgreementProvider.select((m) => m[term.id] ?? false),
     );
 
     return Padding(
@@ -249,7 +253,7 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
           GestureDetector(
             onTap: () => ref
                 .read(termsAgreementProvider.notifier)
-                .toggleAgreement(term.termDefinitionId),
+                .toggleAgreement(term.id),
             child: _buildCircleCheckbox(context, isAgreed),
           ),
           SizedBox(width: 12.w),
@@ -278,17 +282,6 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
                 ),
               ],
             ),
-          ),
-          IconButton(
-            onPressed: () =>
-                AppRoutes.pushTermsDetail(context, term.termDefinitionId),
-            icon: Icon(
-              Icons.chevron_right,
-              color: Theme.of(context).dividerColor,
-              size: 20,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
