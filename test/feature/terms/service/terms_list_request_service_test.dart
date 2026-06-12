@@ -45,7 +45,7 @@ void main() {
         ],
       };
 
-      when(mockDio.get('/api/terms', options: anyNamed('options'))).thenAnswer(
+      when(mockDio.get('/api/terms', queryParameters: anyNamed('queryParameters'), options: anyNamed('options'))).thenAnswer(
         (_) async => Response(
           data: responseData,
           statusCode: 200,
@@ -70,12 +70,12 @@ void main() {
       expect(result.data![1].type, TermsType.privacy);
       expect(result.data![1].isRequired, true);
 
-      verify(mockDio.get('/api/terms', options: anyNamed('options'))).called(1);
+      verify(mockDio.get('/api/terms', queryParameters: anyNamed('queryParameters'), options: anyNamed('options'))).called(1);
     });
 
     test('실패: 200이 아닌 상태 코드 시 예외를 발생해야 함', () async {
       // Arrange
-      when(mockDio.get('/api/terms', options: anyNamed('options'))).thenAnswer(
+      when(mockDio.get('/api/terms', queryParameters: anyNamed('queryParameters'), options: anyNamed('options'))).thenAnswer(
         (_) async => Response(
           data: {},
           statusCode: 400,
@@ -91,7 +91,7 @@ void main() {
       // Arrange
       final requestOptions = RequestOptions(path: '/api/terms');
       when(
-        mockDio.get('/api/terms', options: anyNamed('options')),
+        mockDio.get('/api/terms', queryParameters: anyNamed('queryParameters'), options: anyNamed('options')),
       ).thenThrow(DioException(requestOptions: requestOptions));
 
       // Act & Assert

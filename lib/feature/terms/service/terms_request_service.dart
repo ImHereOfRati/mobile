@@ -18,6 +18,7 @@ class TermsRequestService {
     try {
       final response = await _dio.get(
         _termsListPath,
+        queryParameters: {'isActive': true},
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
