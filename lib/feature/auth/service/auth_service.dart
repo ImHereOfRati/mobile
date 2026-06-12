@@ -42,10 +42,13 @@ class AuthService {
       }
 
       _handleErrorResponse(apiResponse);
-      final (:code, :access, :refresh) = _parseToken(response);
+      final (:code, :access, :refresh, :status) = _parseToken(response);
 
       await _saveTokenToStorage(access, refresh);
 
+      if (status == 'PENDING') {
+        return MemberState.pending;
+      }
       if (code == HttpStatusCode.created) {
         return MemberState.newUser;
       }
@@ -96,7 +99,7 @@ class AuthService {
     }
   }
 
-  ({int code, String access, String refresh}) _parseToken(Response response) {
+  ({int code, String access, String refresh, String? status}) _parseToken(Response response) {
     final apiResponse = _convertResponseToDartObject(response);
     final responseStatusCode = response.statusCode;
 
@@ -123,6 +126,7 @@ class AuthService {
       code: responseStatusCode,
       access: accessToken,
       refresh: refreshToken,
+      status: authData.status,
     );
   }
 

@@ -214,6 +214,44 @@ void main() {
   });
 
   group('AuthService.sendIdTokenToServer - Happy Path', () {
+    test('PENDING 상태 사용자는 PENDING으로 처리한다', () async {
+      final dio = _FakeDio({
+        '/api/auth/login': Response(
+          requestOptions: RequestOptions(path: '/api/auth/login'),
+          statusCode: 404,
+          data: {
+            'imhereResponseCode': 'AUTH-300',
+            'message': '사용자 정보를 찾을 수 없습니다.',
+            'data': <String, dynamic>{},
+          },
+        ),
+        '/api/auth/registration': Response(
+          requestOptions: RequestOptions(path: '/api/auth/registration'),
+          statusCode: 201,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'accessToken': 'access-token',
+              'refreshToken': 'refresh-token',
+              'status': 'PENDING',
+            },
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      final result = await authService.sendIdTokenToServer(idToken);
+
+      expect(result, MemberState.pending);
+      expect(
+        dio.requestedPaths,
+        ['/api/auth/login', '/api/auth/registration'],
+      );
+      expect(tokenStorage.accessToken, 'access-token');
+      expect(tokenStorage.refreshToken, 'refresh-token');
+    });
+
     test('AUTH-300 이면 registration 으로 폴백해 신규 사용자로 처리한다', () async {
       final dio = _FakeDio({
         '/api/auth/login': Response(
