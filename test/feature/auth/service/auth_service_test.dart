@@ -234,7 +234,7 @@ void main() {
             'data': {
               'accessToken': 'access-token',
               'refreshToken': 'refresh-token',
-              'status': 'PENDING',
+              'userStatus': 'PENDING',
             },
           },
         ),

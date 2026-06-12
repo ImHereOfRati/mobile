@@ -6,12 +6,12 @@ part 'auth_response.g.dart';
 class AuthResponseDto {
   final String accessToken;
   final String refreshToken;
-  final String? status;
+  final String? userStatus;
 
   AuthResponseDto({
     required this.accessToken,
     required this.refreshToken,
-    this.status,
+    this.userStatus,
   });
 
   factory AuthResponseDto.fromJson(Map<String, dynamic> json) =>
