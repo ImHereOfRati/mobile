@@ -8,5 +8,8 @@ class ChangeNicknameRequestDto {
 
   ChangeNicknameRequestDto({required this.nickname});
 
+  factory ChangeNicknameRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$ChangeNicknameRequestDtoFromJson(json);
+
   Map<String, dynamic> toJson() => _$ChangeNicknameRequestDtoToJson(this);
 }

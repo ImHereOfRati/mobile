@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/common/util/app_logger.dart';
@@ -68,9 +69,10 @@ class FcmNotificationService {
   }) async {
     try {
       final dto = FcmNotificationRequestDto(
-        receiverEmail: receiverEmail,
+        notificationMethod: 'FCM',
+        targetId: receiverEmail,
         type: type,
-        body: body,
+        extraData: {'body': body},
       );
 
       final response = await _dio.post(
@@ -79,7 +81,8 @@ class FcmNotificationService {
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 202) {
+        ApiResponseParser.parseVoid(response.data);
         AppLogger.debug('$label sent successfully');
         return Success(null);
       }

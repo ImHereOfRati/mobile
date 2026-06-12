@@ -40,7 +40,7 @@ class FriendRequestViewModel extends _$FriendRequestViewModel {
 
     await _fcmService.sendFcmNotification(
       receiverEmail: receiverEmail,
-      type: 'FRIEND_REQUEST',
+      type: 'FRIEND_REQUEST_RECEIVED',
       body: '친구 요청이 왔습니다.',
     );
     return true;

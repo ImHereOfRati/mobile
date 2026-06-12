@@ -24,7 +24,8 @@ class FcmTokenRepository {
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
-      if (response.statusCode == HttpStatusCode.ok) {
+      if (response.statusCode == HttpStatusCode.ok ||
+          response.statusCode == 201) {
         AppLogger.debug('FCM token enrolled successfully');
         return true;
       } else {

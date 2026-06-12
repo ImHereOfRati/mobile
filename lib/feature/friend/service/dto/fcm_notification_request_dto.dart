@@ -4,14 +4,17 @@ part 'fcm_notification_request_dto.g.dart';
 
 @JsonSerializable()
 class FcmNotificationRequestDto {
-  final String receiverEmail;
+  final String notificationMethod;
+  @JsonKey(name: 'targetId')
+  final String targetId;
   final String type;
-  final String body;
+  final Map<String, dynamic> extraData;
 
   FcmNotificationRequestDto({
-    required this.receiverEmail,
+    required this.notificationMethod,
+    required this.targetId,
     required this.type,
-    required this.body,
+    this.extraData = const {},
   });
 
   factory FcmNotificationRequestDto.fromJson(Map<String, dynamic> json) =>

@@ -1,9 +1,10 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:iamhere/common/base/api_response/api_response_parser.dart';
+import 'package:iamhere/feature/friend/service/dto/batch_notification_request_dto.dart';
+import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
-import 'package:iamhere/feature/geofence/model/message_send_request.dart';
-import 'package:iamhere/feature/geofence/model/multiple_message_send_request.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
@@ -70,19 +71,22 @@ class SmsService {
     try {
       final response = await _dio.post(
         _smsArrivalPath,
-        data: MessageSendRequest(
-          location: location,
-          receiverNumber: phoneNumber,
+        data: FcmNotificationRequestDto(
+          notificationMethod: 'SMS',
+          targetId: phoneNumber,
+          type: 'ARRIVAL',
+          extraData: {'location': location},
         ).toJson(),
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
-      final isSuccess =
-          (response.statusCode == 200 || response.statusCode == 201);
+      final isSuccess = response.statusCode == 202;
 
       if (!isSuccess) {
         return Failure('SMS send failed with status ${response.statusCode}');
       }
+
+      ApiResponseParser.parseVoid(response.data);
 
       // 본인 알림은 지오펜스 비활성화 로직을 방해하지 않도록 비동기로 처리 (await 제거)
       _notifyDeliveryResultToMe(location).catchError((e) {
@@ -102,25 +106,24 @@ class SmsService {
     required String location,
   }) async {
     try {
-      final requests = phoneNumbers
-          .map(
-            (phone) =>
-                MessageSendRequest(location: location, receiverNumber: phone),
-          )
-          .toList();
-
       final response = await _dio.post(
         _smsMultipleArrivalPath,
-        data: MultipleMessageSendRequest(requests: requests).toJson(),
+        data: BatchNotificationRequestDto(
+          notificationMethod: 'SMS',
+          targetIds: phoneNumbers,
+          type: 'ARRIVAL',
+          extraData: {'location': location},
+        ).toJson(),
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
-      final isSuccess =
-          (response.statusCode == 200 || response.statusCode == 201);
+      final isSuccess = response.statusCode == 202;
 
       if (!isSuccess) {
         return Failure('SMS send failed with status ${response.statusCode}');
       }
+
+      ApiResponseParser.parseVoid(response.data);
 
       // 본인 알림은 지오펜스 비활성화 로직을 방해하지 않도록 비동기로 처리 (await 제거)
       _notifyDeliveryResultToMe(location).catchError((e) {

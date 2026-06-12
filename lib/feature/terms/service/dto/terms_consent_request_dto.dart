@@ -15,7 +15,7 @@ class TermsConsentItemDto {
   Map<String, dynamic> toJson() => _$TermsConsentItemDtoToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class TermsAllConsentRequestDto {
   final List<TermsConsentItemDto> consents;
 

@@ -100,25 +100,25 @@
 - [x] 차단 목록 화면/뷰모델 필드 참조 수정
 
 ## 알림 기능 정리
-- [ ] `/api/notifications` 요청 DTO를 Swagger 계약 기준으로 재작성
-- [ ] `/api/notifications/batch` 요청 DTO를 Swagger 계약 기준으로 재작성
-- [ ] `notificationMethod`, `targetId`, `targetIds`, `type`, `extraData` 구조 반영
-- [ ] FCM 전송 코드에서 `receiverEmail`, `body` 중심 구조 제거
-- [ ] SMS 전송 코드에서 기존 `requests[]` 구조 제거
-- [ ] 성공 코드를 `202 Accepted` 기준으로 처리
-- [ ] 알림 발송 실패 로그와 사용자 메시지 정리
+- [x] `/api/notifications` 요청 DTO를 Swagger 계약 기준으로 재작성
+- [x] `/api/notifications/batch` 요청 DTO를 Swagger 계약 기준으로 재작성
+- [x] `notificationMethod`, `targetId`, `targetIds`, `type`, `extraData` 구조 반영
+- [x] FCM 전송 코드에서 `receiverEmail`, `body` 중심 구조 제거
+- [x] SMS 전송 코드에서 기존 `requests[]` 구조 제거
+- [x] 성공 코드를 `202 Accepted` 기준으로 처리
+- [x] 알림 발송 실패 로그와 사용자 메시지 정리
 
 ## FCM 토큰 등록 정리
-- [ ] `/api/fcm-tokens` 성공 코드를 `201`까지 허용
-- [ ] 기존 `200` 고정 처리 제거
-- [ ] 성공/실패 로그 문구 정리
+- [x] `/api/fcm-tokens` 성공 코드를 `201`까지 허용
+- [x] 기존 `200` 고정 처리 제거
+- [x] 성공/실패 로그 문구 정리
 
 ## 화면/상태관리 영향 범위 반영
-- [ ] ViewModel 시그니처 변경 반영
-- [ ] `int` 기반 ID를 `String`으로 통일
-- [ ] DTO 필드명 변경에 따른 UI 참조 수정
-- [ ] 약관 상세 라우트 제거 범위 반영
-- [ ] 삭제된 단건 동의/단건 조회 기능으로 이어지는 버튼, 이동, 상태 코드 제거
+- [x] ViewModel 시그니처 변경 반영
+- [x] `int` 기반 ID를 `String`으로 통일
+- [x] DTO 필드명 변경에 따른 UI 참조 수정
+- [x] 약관 상세 라우트 제거 범위 반영
+- [x] 삭제된 단건 동의/단건 조회 기능으로 이어지는 버튼, 이동, 상태 코드 제거
 
 ## 마일스톤
 
@@ -146,28 +146,28 @@
 - [x] UUID string 전환 완료
 
 ### Milestone 4. 알림 도메인 정렬
-- [ ] FCM 알림 payload 수정
-- [ ] SMS 단건 payload 수정
-- [ ] SMS 다건 payload 수정
-- [ ] `202` 성공 처리 반영
-- [ ] FCM 토큰 등록 `201` 처리 반영
+- [x] FCM 알림 payload 수정
+- [x] SMS 단건 payload 수정
+- [x] SMS 다건 payload 수정
+- [x] `202` 성공 처리 반영
+- [x] FCM 토큰 등록 `201` 처리 반영
 
 ### Milestone 5. 화면/상태관리 후속 반영
-- [ ] ViewModel 시그니처 수정
-- [ ] UI 필드 참조 수정
-- [ ] 삭제된 기능의 라우트/버튼/호출 제거
-- [ ] 지오펜스 수신자 모델 영향 반영
+- [x] ViewModel 시그니처 수정
+- [x] UI 필드 참조 수정
+- [x] 삭제된 기능의 라우트/버튼/호출 제거
+- [x] 지오펜스 수신자 모델 영향 반영
 
 ### Milestone 6. 검증
-- [ ] 약관 목록 조회 검증
-- [ ] 전체 약관 동의 검증
-- [ ] 내 정보 조회/닉네임 변경 검증
-- [ ] 사용자 검색 검증
-- [ ] 친구 요청 조회/수락/거절 검증
-- [ ] 친구 목록/별명 변경/삭제 검증
-- [ ] 차단 목록/차단 해제 검증
-- [ ] 알림 발송 검증
-- [ ] FCM 토큰 등록 검증
+- [x] 약관 목록 조회 검증
+- [x] 전체 약관 동의 검증
+- [x] 내 정보 조회/닉네임 변경 검증
+- [x] 사용자 검색 검증
+- [x] 친구 요청 조회/수락/거절 검증
+- [x] 친구 목록/별명 변경/삭제 검증
+- [x] 차단 목록/차단 해제 검증
+- [x] 알림 발송 검증
+- [x] FCM 토큰 등록 검증
 
 ## 구현 원칙
 - [x] 가능한 한 공통 응답 포맷 재사용
