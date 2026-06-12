@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 
 import 'module/dio_auth_interceptor.dart';
 import 'module/dio_header_cleanup_interceptor.dart';
+import 'module/retry_interceptor.dart';
 
 @module
 abstract class DioInstance {
@@ -21,7 +22,10 @@ abstract class DioInstance {
   @lazySingleton
   Dio retryDio(@Named("baseUrl") String url) {
     final retryDio = Dio(_baseOptions(url));
-    retryDio.interceptors.add(DioHeaderCleanupInterceptor());
+    retryDio.interceptors.addAll([
+      RetryInterceptor(),
+      DioHeaderCleanupInterceptor(),
+    ]);
     return retryDio;
   }
 
