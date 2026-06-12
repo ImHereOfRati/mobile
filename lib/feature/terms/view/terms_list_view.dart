@@ -247,69 +247,101 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
     );
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
-      child: Column(
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
+      child: Row(
         children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => ref
-                    .read(termsAgreementProvider.notifier)
-                    .toggleAgreement(term.id),
-                child: _buildCircleCheckbox(context, isAgreed),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Row(
-                  children: [
-                    Text(
-                      term.isRequired ? '[필수] ' : '[선택] ',
-                      style: TextStyle(
-                        fontFamily: 'BMHANNAAir',
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                        color: term.isRequired
-                            ? cs.primary
-                            : cs.onSurface.withValues(alpha: 0.45),
-                      ),
-                    ),
-                    Text(
-                      term.title,
-                      style: TextStyle(
-                        fontFamily: 'BMHANNAAir',
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w500,
-                        color: cs.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          GestureDetector(
+            onTap: () => ref
+                .read(termsAgreementProvider.notifier)
+                .toggleAgreement(term.id),
+            child: _buildCircleCheckbox(context, isAgreed),
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 34.w, top: 8.h, right: 12.w),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: cs.onSurface.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Text(
-                term.content,
-                style: TextStyle(
-                  fontFamily: 'BMHANNAAir',
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w400,
-                  color: cs.onSurface.withValues(alpha: 0.7),
-                  height: 1.5,
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Row(
+              children: [
+                Text(
+                  term.isRequired ? '[필수] ' : '[선택] ',
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: term.isRequired
+                        ? cs.primary
+                        : cs.onSurface.withValues(alpha: 0.45),
+                  ),
                 ),
+                Text(
+                  term.title,
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w500,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _showTermsDetailDialog(context, term),
+            child: Text(
+              '상세보기',
+              style: TextStyle(
+                fontFamily: 'BMHANNAAir',
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+                color: cs.primary,
+                decoration: TextDecoration.underline,
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showTermsDetailDialog(BuildContext context, TermsListRequestDto term) {
+    final cs = Theme.of(context).colorScheme;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            term.title,
+            style: TextStyle(
+              fontFamily: 'BMHANNAAir',
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w700,
+              color: cs.onSurface,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Text(
+              term.content,
+              style: TextStyle(
+                fontFamily: 'BMHANNAAir',
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w400,
+                color: cs.onSurface,
+                height: 1.6,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                '닫기',
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  color: cs.primary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
