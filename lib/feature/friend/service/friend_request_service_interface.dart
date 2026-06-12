@@ -6,9 +6,10 @@ import 'package:iamhere/feature/friend/service/dto/received_friend_request_respo
 
 abstract class FriendRequestServiceInterface {
   Future<CreateFriendRequestResponseDto?> sendRequest(
-      CreateFriendRequestDto request);
+    CreateFriendRequestDto request,
+  );
   Future<List<ReceivedFriendRequestResponseDto>> fetchReceivedRequests();
-  Future<ReceivedFriendRequestDetailDto?> fetchRequestDetail(int requestId);
-  Future<FriendRelationshipResponseDto?> acceptRequest(int requestId);
-  Future<bool> rejectRequest(int requestId);
+  Future<ReceivedFriendRequestDetailDto?> fetchRequestDetail(String requestId);
+  Future<FriendRelationshipResponseDto?> acceptRequest(String requestId);
+  Future<bool> rejectRequest(String requestId);
 }

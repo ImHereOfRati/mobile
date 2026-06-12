@@ -4,15 +4,19 @@ part 'create_friend_request_dto.g.dart';
 
 @JsonSerializable()
 class CreateFriendRequestDto {
-  final String receiverId;
-  final String receiverEmail;
+  @JsonKey(name: 'targetId')
+  final String targetId;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? receiverEmail;
   final String message;
 
   CreateFriendRequestDto({
-    required this.receiverId,
-    required this.receiverEmail,
+    required this.targetId,
+    this.receiverEmail,
     required this.message,
   });
+
+  String get receiverId => targetId;
 
   factory CreateFriendRequestDto.fromJson(Map<String, dynamic> json) =>
       _$CreateFriendRequestDtoFromJson(json);

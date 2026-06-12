@@ -64,7 +64,7 @@ class FcmArrivalService {
       final response = await _dio.post(
         _fcmArrivalPath,
         data: dto.toJson(),
-        options: Options(extra: const {'requiresAuth': true}).copyWith(
+        options: Options(extra: const {'requiresAuthentication': true}).copyWith(
           sendTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
         ),

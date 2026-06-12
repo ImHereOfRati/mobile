@@ -74,6 +74,7 @@ class SmsService {
           location: location,
           receiverNumber: phoneNumber,
         ).toJson(),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       final isSuccess =
@@ -111,6 +112,7 @@ class SmsService {
       final response = await _dio.post(
         _smsMultipleArrivalPath,
         data: MultipleMessageSendRequest(requests: requests).toJson(),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       final isSuccess =

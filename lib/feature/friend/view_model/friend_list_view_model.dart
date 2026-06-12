@@ -21,12 +21,13 @@ class FriendListViewModel extends _$FriendListViewModel {
     state = await AsyncValue.guard(() => _service.fetchFriendList());
   }
 
-  Future<bool> updateAlias(
-      String friendRelationshipId, String newAlias) async {
-    final result = await _service.updateAlias(UpdateFriendAliasRequestDto(
-      friendRelationshipId: friendRelationshipId,
-      newFriendAlias: newAlias,
-    ));
+  Future<bool> updateAlias(String friendRelationshipId, String newAlias) async {
+    final result = await _service.updateAlias(
+      UpdateFriendAliasRequestDto(
+        friendRelationshipId: friendRelationshipId,
+        alias: newAlias,
+      ),
+    );
     if (result != null) {
       await refresh();
       return true;

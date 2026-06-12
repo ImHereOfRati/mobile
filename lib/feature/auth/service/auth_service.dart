@@ -87,7 +87,7 @@ class AuthService {
         path,
         data: authRequestData,
         options: Options(
-          extra: const {'requiresAuth': false},
+          extra: const {'requiresAuthentication': false},
           validateStatus: (status) => status != null && (status >= 200 && status < 300 || status == 404),
         ),
       );

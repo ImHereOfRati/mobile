@@ -76,7 +76,7 @@ class FcmNotificationService {
       final response = await _dio.post(
         path,
         data: dto.toJson(),
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

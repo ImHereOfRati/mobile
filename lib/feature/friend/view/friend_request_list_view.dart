@@ -31,9 +31,11 @@ class FriendRequestListView extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.mail_outline,
-                        size: 48.r,
-                        color: cs.onSurface.withValues(alpha: 0.3)),
+                    Icon(
+                      Icons.mail_outline,
+                      size: 48.r,
+                      color: cs.onSurface.withValues(alpha: 0.3),
+                    ),
                     SizedBox(height: 12.h),
                     Text(
                       '받은 친구 요청이 없습니다',
@@ -47,8 +49,7 @@ class FriendRequestListView extends ConsumerWidget {
                 ),
               )
             : ListView.separated(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16.w, vertical: 12.h),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 itemCount: requests.length,
                 separatorBuilder: (_, __) => SizedBox(height: 8.h),
                 itemBuilder: (context, index) =>
@@ -57,7 +58,8 @@ class FriendRequestListView extends ConsumerWidget {
         loading: () => const Center(
           child: CircularProgressIndicator(color: Color(0xFF0071E3)),
         ),
-        error: (_, __) => const Center(child: Text('요청 목록을 불러오는 중 오류가 발생했습니다.')),
+        error: (_, __) =>
+            const Center(child: Text('요청 목록을 불러오는 중 오류가 발생했습니다.')),
       ),
     );
   }
@@ -175,7 +177,10 @@ class FriendRequestListView extends ConsumerWidget {
   }
 
   Future<void> _onAccept(
-      BuildContext context, WidgetRef ref, int requestId) async {
+    BuildContext context,
+    WidgetRef ref,
+    String requestId,
+  ) async {
     final vm = ref.read(friendRequestViewModelProvider.notifier);
     final success = await vm.acceptRequest(requestId);
     if (success) {
@@ -183,19 +188,20 @@ class FriendRequestListView extends ConsumerWidget {
     }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(success ? '친구 요청을 수락했습니다' : '수락에 실패했습니다')),
+      SnackBar(content: Text(success ? '친구 요청을 수락했습니다' : '수락에 실패했습니다')),
     );
   }
 
   Future<void> _onReject(
-      BuildContext context, WidgetRef ref, int requestId) async {
+    BuildContext context,
+    WidgetRef ref,
+    String requestId,
+  ) async {
     final vm = ref.read(friendRequestViewModelProvider.notifier);
     final success = await vm.rejectRequest(requestId);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(success ? '친구 요청을 거절했습니다' : '거절에 실패했습니다')),
+      SnackBar(content: Text(success ? '친구 요청을 거절했습니다' : '거절에 실패했습니다')),
     );
   }
 }

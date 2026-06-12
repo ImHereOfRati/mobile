@@ -14,5 +14,8 @@ class FcmNotificationRequestDto {
     required this.body,
   });
 
+  factory FcmNotificationRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$FcmNotificationRequestDtoFromJson(json);
+
   Map<String, dynamic> toJson() => _$FcmNotificationRequestDtoToJson(this);
 }

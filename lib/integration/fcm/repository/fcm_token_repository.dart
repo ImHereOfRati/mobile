@@ -21,7 +21,7 @@ class FcmTokenRepository {
       final response = await _dio.post(
         _fcmEnrollPath,
         data: request.toJson(),
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == HttpStatusCode.ok) {

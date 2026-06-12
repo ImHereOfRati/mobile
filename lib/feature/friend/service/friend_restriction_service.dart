@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/feature/friend/service/dto/friend_restriction_deleted_response_dto.dart';
+import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_response_dto.dart';
 import 'package:iamhere/feature/friend/service/friend_restriction_service_interface.dart';
 import 'package:iamhere/common/util/app_logger.dart';
@@ -8,7 +8,7 @@ import 'package:injectable/injectable.dart';
 @Injectable(as: FriendRestrictionServiceInterface)
 class FriendRestrictionService implements FriendRestrictionServiceInterface {
   static const String _friendRestrictionPath = '/api/friends/restrictions';
-  static String _friendRestrictionDeletePath(int id) =>
+  static String _friendRestrictionDeletePath(String id) =>
       '/api/friends/restrictions/$id';
 
   final Dio _dio;
@@ -20,22 +20,15 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
     try {
       final response = await _dio.get(
         _friendRestrictionPath,
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic> ? body['data'] : body;
-
-        if (data is List) {
-          return data
-              .map(
-                (e) => FriendRestrictionResponseDto.fromJson(
-                  e as Map<String, dynamic>,
-                ),
-              )
-              .toList();
-        }
+        return ApiResponseParser.parseSlice<FriendRestrictionResponseDto>(
+              response.data,
+              FriendRestrictionResponseDto.fromJson,
+            ).data?.content ??
+            const [];
       }
       return [];
     } on DioException catch (e) {
@@ -45,28 +38,22 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
   }
 
   @override
-  Future<FriendRestrictionDeletedResponseDto?> deleteRestriction(
-    int friendRestrictionId,
-  ) async {
+  Future<bool> deleteRestriction(String friendRestrictionId) async {
     try {
       final response = await _dio.delete(
         _friendRestrictionDeletePath(friendRestrictionId),
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic>
-            ? (body['data'] ?? body)
-            : body;
-        if (data is Map<String, dynamic>) {
-          return FriendRestrictionDeletedResponseDto.fromJson(data);
-        }
+      if (response.statusCode == 200) {
+        ApiResponseParser.parseVoid(response.data);
+        return true;
       }
-      return null;
+
+      return false;
     } on DioException catch (e) {
       AppLogger.error('제한 해제 실패: ${e.message}');
-      return null;
+      return false;
     }
   }
 }

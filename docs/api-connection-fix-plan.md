@@ -62,42 +62,42 @@
 - [x] `my_info_view.dart` 및 관련 ViewModel 필드명 반영
 
 ## 사용자 검색 기능 정리
-- [ ] `GET /api/users`를 `ApiResponse<SliceResponse<UserSearchResponseDto>>`로 수정
-- [ ] `data.content` 기준 파싱으로 통일
-- [ ] 검색 DTO를 Swagger 필드명 기준으로 수정
-- [ ] `userId`, `userEmail`, `userNickname` 의존 제거
-- [ ] `id`, `email`, `nickname`, `oAuth2Provider` 반영
-- [ ] 검색 결과 UI와 친구 요청 진입부 필드명 반영
+- [x] `GET /api/users`를 `ApiResponse<SliceResponse<UserSearchResponseDto>>`로 수정
+- [x] `data.content` 기준 파싱으로 통일
+- [x] 검색 DTO를 Swagger 필드명 기준으로 수정
+- [x] `userId`, `userEmail`, `userNickname` 의존 제거
+- [x] `id`, `email`, `nickname`, `oAuth2Provider` 반영
+- [x] 검색 결과 UI와 친구 요청 진입부 필드명 반영
 
 ## 친구 요청 기능 정리
-- [ ] 목록 조회 시 `type=SENT|RECEIVED` 쿼리 반영
-- [ ] 친구 요청 목록 응답을 `ApiResponse<SliceResponse<...>>`로 수정
-- [ ] 친구 요청 상세/수락/거절 ID 타입을 `int`에서 `String UUID`로 통일
-- [ ] 생성 요청 body를 Swagger 기준으로 수정
-- [ ] `receiverId`, `receiverEmail` 중심 구조 재검토
-- [ ] `targetId`, `message` 기준으로 단순화
-- [ ] 요청/상세/수락/거절 DTO를 nested user 구조 기준으로 재작성
-- [ ] `requester`, `receiver` 객체 구조 반영
-- [ ] 받은 요청 목록/레코드 화면 필드 참조 수정
+- [x] 목록 조회 시 `type=SENT|RECEIVED` 쿼리 반영
+- [x] 친구 요청 목록 응답을 `ApiResponse<SliceResponse<...>>`로 수정
+- [x] 친구 요청 상세/수락/거절 ID 타입을 `int`에서 `String UUID`로 통일
+- [x] 생성 요청 body를 Swagger 기준으로 수정
+- [x] `receiverId`, `receiverEmail` 중심 구조 재검토
+- [x] `targetId`, `message` 기준으로 단순화
+- [x] 요청/상세/수락/거절 DTO를 nested user 구조 기준으로 재작성
+- [x] `requester`, `receiver` 객체 구조 반영
+- [x] 받은 요청 목록/레코드 화면 필드 참조 수정
 
 ## 친구 관계 기능 정리
-- [ ] 친구 목록 응답을 `ApiResponse<SliceResponse<...>>`로 수정
-- [ ] DTO를 nested user 구조 기준으로 수정
-- [ ] `friendRelationshipId` 중심 필드 의존 제거 여부 검토
-- [ ] 필요 시 DTO 내부에서 호환성 getter 제공 여부 판단
-- [ ] 별명 수정 body를 `{ "alias": ... }`로 수정
-- [ ] path id와 body를 분리
-- [ ] 친구 삭제 성공 코드를 `204`까지 허용하도록 수정
-- [ ] 친구 차단 성공 응답을 `data: null` 기준으로 처리
-- [ ] 연락처/지오펜스 수신자 모델 영향 범위 반영
+- [x] 친구 목록 응답을 `ApiResponse<SliceResponse<...>>`로 수정
+- [x] DTO를 nested user 구조 기준으로 수정
+- [x] `friendRelationshipId` 중심 필드 의존 제거 여부 검토
+- [x] 필요 시 DTO 내부에서 호환성 getter 제공 여부 판단
+- [x] 별명 수정 body를 `{ "alias": ... }`로 수정
+- [x] path id와 body를 분리
+- [x] 친구 삭제 성공 코드를 `204`까지 허용하도록 수정
+- [x] 친구 차단 성공 응답을 `data: null` 기준으로 처리
+- [x] 연락처/지오펜스 수신자 모델 영향 범위 반영
 
 ## 친구 제한 기능 정리
-- [ ] 제한 목록 응답을 `ApiResponse<SliceResponse<...>>`로 수정
-- [ ] 제한 삭제 ID 타입을 `String UUID`로 통일
-- [ ] 삭제 응답을 객체 파싱하지 않고 성공 여부 중심으로 처리
-- [ ] 제한 DTO를 nested user 구조 기준으로 수정
-- [ ] `restrictor`, `restricted`, `type`, `expiredAt` 반영
-- [ ] 차단 목록 화면/뷰모델 필드 참조 수정
+- [x] 제한 목록 응답을 `ApiResponse<SliceResponse<...>>`로 수정
+- [x] 제한 삭제 ID 타입을 `String UUID`로 통일
+- [x] 삭제 응답을 객체 파싱하지 않고 성공 여부 중심으로 처리
+- [x] 제한 DTO를 nested user 구조 기준으로 수정
+- [x] `restrictor`, `restricted`, `type`, `expiredAt` 반영
+- [x] 차단 목록 화면/뷰모델 필드 참조 수정
 
 ## 알림 기능 정리
 - [ ] `/api/notifications` 요청 DTO를 Swagger 계약 기준으로 재작성
@@ -139,11 +139,11 @@
 - [x] 닉네임 변경 method/body 수정
 
 ### Milestone 3. 친구 도메인 정렬
-- [ ] 사용자 검색 slice 파싱 수정
-- [ ] 친구 요청 DTO/서비스 수정
-- [ ] 친구 관계 DTO/서비스 수정
-- [ ] 친구 제한 DTO/서비스 수정
-- [ ] UUID string 전환 완료
+- [x] 사용자 검색 slice 파싱 수정
+- [x] 친구 요청 DTO/서비스 수정
+- [x] 친구 관계 DTO/서비스 수정
+- [x] 친구 제한 DTO/서비스 수정
+- [x] UUID string 전환 완료
 
 ### Milestone 4. 알림 도메인 정렬
 - [ ] FCM 알림 payload 수정

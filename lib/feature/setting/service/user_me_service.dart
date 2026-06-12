@@ -20,7 +20,7 @@ class UserMeService implements UserMeServiceInterface {
     try {
       final response = await _dio.get(
         _userMePath,
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {
@@ -46,7 +46,7 @@ class UserMeService implements UserMeServiceInterface {
       final response = await _dio.patch(
         _userNicknamePath,
         data: ChangeNicknameRequestDto(nickname: newNickname).toJson(),
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {

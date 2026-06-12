@@ -20,7 +20,7 @@ void main() {
   group('sendRequest', () {
     test('성공 시 생성된 요청 ID를 반환해야 함', () async {
       final request = CreateFriendRequestDto(
-        receiverId: 'uuid-receiver',
+        targetId: 'uuid-receiver',
         receiverEmail: 'receiver@test.com',
         message: '안녕하세요! 친구 요청 드립니다.',
       );
@@ -34,7 +34,9 @@ void main() {
       ).thenAnswer(
         (_) async => Response(
           data: {
-            'data': {'friendRequestId': 42},
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {'friendRequestId': 'uuid-request'},
           },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/api/friends/requests'),
@@ -44,12 +46,12 @@ void main() {
       final result = await service.sendRequest(request);
 
       expect(result, isNotNull);
-      expect(result!.friendRequestId, 42);
+      expect(result!.friendRequestId, 'uuid-request');
     });
 
     test('실패 시 null을 반환해야 함', () async {
       final request = CreateFriendRequestDto(
-        receiverId: 'uuid-receiver',
+        targetId: 'uuid-receiver',
         receiverEmail: 'receiver@test.com',
         message: '안녕하세요! 친구 요청 드립니다.',
       );
@@ -74,17 +76,39 @@ void main() {
   group('fetchReceivedRequests', () {
     test('성공 시 받은 요청 목록을 반환해야 함', () async {
       when(
-        mockDio.get('/api/friends/requests', options: anyNamed('options')),
+        mockDio.get(
+          '/api/friends/requests',
+          queryParameters: const {'type': 'RECEIVED'},
+          options: anyNamed('options'),
+        ),
       ).thenAnswer(
         (_) async => Response(
           data: {
-            'data': [
-              {
-                'friendRequestId': 1,
-                'requesterEmail': 'sender@test.com',
-                'requesterNickname': '보낸사람',
-              },
-            ],
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'content': [
+                {
+                  'id': 'request-1',
+                  'requester': {
+                    'id': 'sender-id',
+                    'email': 'sender@test.com',
+                    'nickname': '보낸사람',
+                    'oAuth2Provider': 'KAKAO',
+                  },
+                  'receiver': {
+                    'id': 'receiver-id',
+                    'email': 'receiver@test.com',
+                    'nickname': '받는사람',
+                    'oAuth2Provider': 'KAKAO',
+                  },
+                  'message': '보낸 요청 목록용 메시지',
+                  'createdAt': '2026-06-11T20:51:35.552912939',
+                  'updatedAt': '2026-06-11T20:51:35.552912939',
+                },
+              ],
+              'hasNext': false,
+            },
           },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/api/friends/requests'),
@@ -94,7 +118,7 @@ void main() {
       final result = await service.fetchReceivedRequests();
 
       expect(result.length, 1);
-      expect(result[0].friendRequestId, 1);
+      expect(result[0].friendRequestId, 'request-1');
       expect(result[0].requesterNickname, '보낸사람');
     });
   });
@@ -103,27 +127,41 @@ void main() {
     test('성공 시 상세 정보를 반환해야 함', () async {
       when(
         mockDio.get(
-          '/api/friends/requests/1',
+          '/api/friends/requests/request-1',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
         (_) async => Response(
           data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
             'data': {
-              'friendRequestId': 1,
-              'requesterEmail': 'sender@test.com',
-              'requesterNickname': '보낸사람',
+              'id': 'request-1',
+              'requester': {
+                'id': 'sender-id',
+                'email': 'sender@test.com',
+                'nickname': '보낸사람',
+                'oAuth2Provider': 'KAKAO',
+              },
+              'receiver': {
+                'id': 'receiver-id',
+                'email': 'receiver@test.com',
+                'nickname': '받는사람',
+                'oAuth2Provider': 'KAKAO',
+              },
               'message': '안녕하세요! 친구 해요!',
+              'createdAt': '2026-06-11T20:51:36.192650026',
+              'updatedAt': '2026-06-11T20:51:36.192650026',
             },
           },
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: '/api/friends/requests/1',
+            path: '/api/friends/requests/request-1',
           ),
         ),
       );
 
-      final result = await service.fetchRequestDetail(1);
+      final result = await service.fetchRequestDetail('request-1');
 
       expect(result, isNotNull);
       expect(result!.message, '안녕하세요! 친구 해요!');
@@ -134,26 +172,41 @@ void main() {
     test('성공 시 친구 관계 정보를 반환해야 함', () async {
       when(
         mockDio.post(
-          '/api/friends/requests/1/accept',
+          '/api/friends/requests/request-1/accept',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
         (_) async => Response(
           data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
             'data': {
-              'friendRelationshipId': 'uuid-new',
-              'friendEmail': 'sender@test.com',
+              'id': 'uuid-new',
+              'owner': {
+                'id': 'receiver-id',
+                'email': 'receiver@test.com',
+                'nickname': '받는사람',
+                'oAuth2Provider': 'KAKAO',
+              },
+              'friend': {
+                'id': 'sender-id',
+                'email': 'sender@test.com',
+                'nickname': '보낸사람',
+                'oAuth2Provider': 'KAKAO',
+              },
               'friendAlias': '보낸사람',
+              'createdAt': '2026-06-11T20:51:35.809056333',
+              'updatedAt': '2026-06-11T20:51:35.809056333',
             },
           },
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: '/api/friends/requests/1/accept',
+            path: '/api/friends/requests/request-1/accept',
           ),
         ),
       );
 
-      final result = await service.acceptRequest(1);
+      final result = await service.acceptRequest('request-1');
 
       expect(result, isNotNull);
       expect(result!.friendRelationshipId, 'uuid-new');
@@ -164,20 +217,42 @@ void main() {
     test('성공 시 true를 반환해야 함', () async {
       when(
         mockDio.post(
-          '/api/friends/requests/1/reject',
+          '/api/friends/requests/request-1/reject',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
         (_) async => Response(
-          data: {'status': 200, 'message': 'success'},
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'id': 'restriction-1',
+              'restrictor': {
+                'id': 'receiver-id',
+                'email': 'receiver@test.com',
+                'nickname': '받는사람',
+                'oAuth2Provider': 'KAKAO',
+              },
+              'restricted': {
+                'id': 'sender-id',
+                'email': 'sender@test.com',
+                'nickname': '보낸사람',
+                'oAuth2Provider': 'KAKAO',
+              },
+              'type': 'REJECT',
+              'createdAt': '2026-06-11T20:51:36.325685306',
+              'updatedAt': '2026-06-11T20:51:36.325685306',
+              'expiredAt': '2026-07-11T20:51:36.323990396',
+            },
+          },
           statusCode: 200,
           requestOptions: RequestOptions(
-            path: '/api/friends/requests/1/reject',
+            path: '/api/friends/requests/request-1/reject',
           ),
         ),
       );
 
-      final result = await service.rejectRequest(1);
+      final result = await service.rejectRequest('request-1');
       expect(result, isTrue);
     });
   });

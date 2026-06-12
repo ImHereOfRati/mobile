@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/user_search_response_dto.dart';
 import 'package:iamhere/feature/friend/service/user_search_service_interface.dart';
 import 'package:iamhere/common/util/app_logger.dart';
@@ -18,21 +19,15 @@ class UserSearchService implements UserSearchServiceInterface {
       final response = await _dio.get(
         _userSearchPath,
         queryParameters: {'keyword': keyword},
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic> ? body['data'] : body;
-
-        if (data is List) {
-          return data
-              .map(
-                (e) =>
-                    UserSearchResponseDto.fromJson(e as Map<String, dynamic>),
-              )
-              .toList();
-        }
+        return ApiResponseParser.parseSlice<UserSearchResponseDto>(
+              response.data,
+              UserSearchResponseDto.fromJson,
+            ).data?.content ??
+            const [];
       }
 
       return [];

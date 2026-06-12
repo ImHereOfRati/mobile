@@ -20,18 +20,25 @@ void main() {
     test('닉네임 검색 성공 시 유저 리스트를 반환해야 함', () async {
       // Arrange
       final responseData = {
-        'data': [
-          {
-            'userId': '550e8400-e29b-41d4-a716-446655440000',
-            'userEmail': 'test1@example.com',
-            'userNickname': '테스트유저1',
-          },
-          {
-            'userId': '550e8400-e29b-41d4-a716-446655440001',
-            'userEmail': 'test2@example.com',
-            'userNickname': '테스트유저2',
-          },
-        ],
+        'imhereResponseCode': 'SUCCESS',
+        'message': 'OK',
+        'data': {
+          'content': [
+            {
+              'id': '550e8400-e29b-41d4-a716-446655440000',
+              'email': 'test1@example.com',
+              'nickname': '테스트유저1',
+              'oAuth2Provider': 'KAKAO',
+            },
+            {
+              'id': '550e8400-e29b-41d4-a716-446655440001',
+              'email': 'test2@example.com',
+              'nickname': '테스트유저2',
+              'oAuth2Provider': 'KAKAO',
+            },
+          ],
+          'hasNext': false,
+        },
       };
 
       when(
@@ -69,7 +76,11 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => Response(
-          data: {'data': []},
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {'content': [], 'hasNext': false},
+          },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/api/users'),
         ),

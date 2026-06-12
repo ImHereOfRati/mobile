@@ -16,7 +16,10 @@ class TermsRequestService {
 
   Future<ApiResponse<List<TermsListRequestDto>>> requestTermsList() async {
     try {
-      final response = await _dio.get(_termsListPath);
+      final response = await _dio.get(
+        _termsListPath,
+        options: Options(extra: const {'requiresAuthentication': true}),
+      );
 
       if (response.statusCode == 200) {
         return ApiResponseParser.parseList<TermsListRequestDto>(

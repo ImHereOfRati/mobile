@@ -49,8 +49,7 @@ class RecordFriendRequestListView extends ConsumerWidget {
                 ),
               )
             : ListView.separated(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 itemCount: requests.length,
                 separatorBuilder: (_, __) => SizedBox(height: 8.h),
                 itemBuilder: (context, index) =>
@@ -178,7 +177,10 @@ class RecordFriendRequestListView extends ConsumerWidget {
   }
 
   Future<void> _onAccept(
-      BuildContext context, WidgetRef ref, int requestId) async {
+    BuildContext context,
+    WidgetRef ref,
+    String requestId,
+  ) async {
     final vm = ref.read(friendRequestViewModelProvider.notifier);
     final success = await vm.acceptRequest(requestId);
     if (success) {
@@ -191,7 +193,10 @@ class RecordFriendRequestListView extends ConsumerWidget {
   }
 
   Future<void> _onReject(
-      BuildContext context, WidgetRef ref, int requestId) async {
+    BuildContext context,
+    WidgetRef ref,
+    String requestId,
+  ) async {
     final vm = ref.read(friendRequestViewModelProvider.notifier);
     final success = await vm.rejectRequest(requestId);
     if (!context.mounted) return;

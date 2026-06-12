@@ -24,7 +24,7 @@ class TermsResponseService {
       final response = await _dio.post(
         _allTermsConsentPath,
         data: body,
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {

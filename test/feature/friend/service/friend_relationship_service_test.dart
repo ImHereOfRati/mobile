@@ -24,18 +24,49 @@ void main() {
       ).thenAnswer(
         (_) async => Response(
           data: {
-            'data': [
-              {
-                'friendRelationshipId': 'uuid-1',
-                'friendEmail': 'a@test.com',
-                'friendAlias': '친구A',
-              },
-              {
-                'friendRelationshipId': 'uuid-2',
-                'friendEmail': 'b@test.com',
-                'friendAlias': '친구B',
-              },
-            ],
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'content': [
+                {
+                  'id': 'uuid-1',
+                  'owner': {
+                    'id': 'owner-id',
+                    'email': 'owner@test.com',
+                    'nickname': '나',
+                    'oAuth2Provider': 'KAKAO',
+                  },
+                  'friend': {
+                    'id': 'friend-1',
+                    'email': 'a@test.com',
+                    'nickname': '친구A',
+                    'oAuth2Provider': 'KAKAO',
+                  },
+                  'friendAlias': '친구A',
+                  'createdAt': '2026-06-11T20:51:42.260523562',
+                  'updatedAt': '2026-06-11T20:51:42.260523562',
+                },
+                {
+                  'id': 'uuid-2',
+                  'owner': {
+                    'id': 'owner-id',
+                    'email': 'owner@test.com',
+                    'nickname': '나',
+                    'oAuth2Provider': 'KAKAO',
+                  },
+                  'friend': {
+                    'id': 'friend-2',
+                    'email': 'b@test.com',
+                    'nickname': '친구B',
+                    'oAuth2Provider': 'KAKAO',
+                  },
+                  'friendAlias': '친구B',
+                  'createdAt': '2026-06-11T20:51:42.260523562',
+                  'updatedAt': '2026-06-11T20:51:42.260523562',
+                },
+              ],
+              'hasNext': false,
+            },
           },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/api/friendships'),
@@ -67,7 +98,7 @@ void main() {
     test('성공 시 변경된 친구 정보를 반환해야 함', () async {
       final request = UpdateFriendAliasRequestDto(
         friendRelationshipId: 'uuid-1',
-        newFriendAlias: '새별명',
+        alias: '새별명',
       );
 
       when(
@@ -79,10 +110,25 @@ void main() {
       ).thenAnswer(
         (_) async => Response(
           data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
             'data': {
-              'friendRelationshipId': 'uuid-1',
-              'friendEmail': 'a@test.com',
+              'id': 'uuid-1',
+              'owner': {
+                'id': 'owner-id',
+                'email': 'owner@test.com',
+                'nickname': '나',
+                'oAuth2Provider': 'KAKAO',
+              },
+              'friend': {
+                'id': 'friend-1',
+                'email': 'a@test.com',
+                'nickname': '친구A',
+                'oAuth2Provider': 'KAKAO',
+              },
               'friendAlias': '새별명',
+              'createdAt': '2026-06-11T20:51:42.103264033',
+              'updatedAt': '2026-06-11T20:51:42.103264033',
             },
           },
           statusCode: 200,
@@ -104,9 +150,13 @@ void main() {
           '/api/friendships/uuid-1/block',
           options: anyNamed('options'),
         ),
-      ).thenAnswer(
+        ).thenAnswer(
         (_) async => Response(
-          data: {'status': 200, 'message': 'success'},
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': null,
+          },
           statusCode: 200,
           requestOptions: RequestOptions(
             path: '/api/friendships/uuid-1/block',
@@ -126,10 +176,14 @@ void main() {
           '/api/friendships/uuid-1',
           options: anyNamed('options'),
         ),
-      ).thenAnswer(
+        ).thenAnswer(
         (_) async => Response(
-          data: {'status': 200, 'message': 'success'},
-          statusCode: 200,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': null,
+          },
+          statusCode: 204,
           requestOptions: RequestOptions(
             path: '/api/friendships/uuid-1',
           ),

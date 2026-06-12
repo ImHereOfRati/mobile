@@ -26,15 +26,32 @@ void main() {
       ).thenAnswer(
         (_) async => Response(
           data: {
-            'data': [
-              {
-                'friendRestrictionId': 1,
-                'targetEmail': 'blocked@test.com',
-                'targetNickname': '차단된유저',
-                'restrictionType': 'BLOCK',
-                'createdAt': '2026-04-15T10:00:00',
-              },
-            ],
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'content': [
+                {
+                  'id': 'restriction-1',
+                  'restrictor': {
+                    'id': 'restrictor-id',
+                    'email': 'owner@test.com',
+                    'nickname': '나',
+                    'oAuth2Provider': 'KAKAO',
+                  },
+                  'restricted': {
+                    'id': 'target-id',
+                    'email': 'blocked@test.com',
+                    'nickname': '차단된유저',
+                    'oAuth2Provider': 'KAKAO',
+                  },
+                  'type': 'BLOCK',
+                  'createdAt': '2026-04-15T10:00:00',
+                  'updatedAt': '2026-04-15T10:00:00',
+                  'expiredAt': null,
+                },
+              ],
+              'hasNext': false,
+            },
           },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/api/friends/restrictions'),
@@ -66,46 +83,47 @@ void main() {
   });
 
   group('deleteRestriction', () {
-    test('성공 시 해제된 대상 이메일을 반환해야 함', () async {
+    test('성공 시 true를 반환해야 함', () async {
       when(
         mockDio.delete(
-          '/api/friends/restrictions/1',
+          '/api/friends/restrictions/restriction-1',
           options: anyNamed('options'),
         ),
       ).thenAnswer(
         (_) async => Response(
           data: {
-            'data': {'targetEmail': 'unblocked@test.com'},
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': null,
           },
-          statusCode: 201,
+          statusCode: 200,
           requestOptions: RequestOptions(
-            path: '/api/friends/restrictions/1',
+            path: '/api/friends/restrictions/restriction-1',
           ),
         ),
       );
 
-      final result = await service.deleteRestriction(1);
+      final result = await service.deleteRestriction('restriction-1');
 
-      expect(result, isNotNull);
-      expect(result!.targetEmail, 'unblocked@test.com');
+      expect(result, isTrue);
     });
 
-    test('실패 시 null을 반환해야 함', () async {
+    test('실패 시 false를 반환해야 함', () async {
       when(
         mockDio.delete(
-          '/api/friends/restrictions/1',
+          '/api/friends/restrictions/restriction-1',
           options: anyNamed('options'),
         ),
       ).thenThrow(
         DioException(
           requestOptions: RequestOptions(
-            path: '/api/friends/restrictions/1',
+            path: '/api/friends/restrictions/restriction-1',
           ),
         ),
       );
 
-      final result = await service.deleteRestriction(1);
-      expect(result, isNull);
+      final result = await service.deleteRestriction('restriction-1');
+      expect(result, isFalse);
     });
   });
 }

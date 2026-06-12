@@ -4,11 +4,9 @@ part 'create_friend_request_response_dto.g.dart';
 
 @JsonSerializable()
 class CreateFriendRequestResponseDto {
-  final int friendRequestId;
+  final String friendRequestId;
 
-  CreateFriendRequestResponseDto({
-    required this.friendRequestId,
-  });
+  CreateFriendRequestResponseDto({required this.friendRequestId});
 
   factory CreateFriendRequestResponseDto.fromJson(Map<String, dynamic> json) =>
       _$CreateFriendRequestResponseDtoFromJson(json);

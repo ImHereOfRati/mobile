@@ -20,9 +20,9 @@ class FriendRestrictionViewModel extends _$FriendRestrictionViewModel {
     state = await AsyncValue.guard(() => _service.fetchRestrictions());
   }
 
-  Future<bool> unblock(int friendRestrictionId) async {
+  Future<bool> unblock(String friendRestrictionId) async {
     final result = await _service.deleteRestriction(friendRestrictionId);
-    if (result != null) {
+    if (result) {
       await refresh();
       return true;
     }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
@@ -11,10 +12,11 @@ import 'package:injectable/injectable.dart';
 @Injectable(as: FriendRequestServiceInterface)
 class FriendRequestService implements FriendRequestServiceInterface {
   static const String _friendRequestPath = '/api/friends/requests';
-  static String _friendRequestDetailPath(int id) => '/api/friends/requests/$id';
-  static String _friendRequestAcceptPath(int id) =>
+  static String _friendRequestDetailPath(String id) =>
+      '/api/friends/requests/$id';
+  static String _friendRequestAcceptPath(String id) =>
       '/api/friends/requests/$id/accept';
-  static String _friendRequestRejectPath(int id) =>
+  static String _friendRequestRejectPath(String id) =>
       '/api/friends/requests/$id/reject';
 
   final Dio _dio;
@@ -29,17 +31,14 @@ class FriendRequestService implements FriendRequestServiceInterface {
       final response = await _dio.post(
         _friendRequestPath,
         data: request.toJson(),
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic>
-            ? (body['data'] ?? body)
-            : body;
-        if (data is Map<String, dynamic>) {
-          return CreateFriendRequestResponseDto.fromJson(data);
-        }
+        return ApiResponseParser.parseObject<CreateFriendRequestResponseDto>(
+          response.data,
+          CreateFriendRequestResponseDto.fromJson,
+        ).data;
       }
       return null;
     } on DioException catch (e) {
@@ -53,22 +52,16 @@ class FriendRequestService implements FriendRequestServiceInterface {
     try {
       final response = await _dio.get(
         _friendRequestPath,
-        options: Options(extra: const {'requiresAuth': true}),
+        queryParameters: const {'type': 'RECEIVED'},
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic> ? body['data'] : body;
-
-        if (data is List) {
-          return data
-              .map(
-                (e) => ReceivedFriendRequestResponseDto.fromJson(
-                  e as Map<String, dynamic>,
-                ),
-              )
-              .toList();
-        }
+        return ApiResponseParser.parseSlice<ReceivedFriendRequestResponseDto>(
+              response.data,
+              ReceivedFriendRequestResponseDto.fromJson,
+            ).data?.content ??
+            const [];
       }
       return [];
     } on DioException catch (e) {
@@ -79,22 +72,19 @@ class FriendRequestService implements FriendRequestServiceInterface {
 
   @override
   Future<ReceivedFriendRequestDetailDto?> fetchRequestDetail(
-    int requestId,
+    String requestId,
   ) async {
     try {
       final response = await _dio.get(
         _friendRequestDetailPath(requestId),
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic>
-            ? (body['data'] ?? body)
-            : body;
-        if (data is Map<String, dynamic>) {
-          return ReceivedFriendRequestDetailDto.fromJson(data);
-        }
+        return ApiResponseParser.parseObject<ReceivedFriendRequestDetailDto>(
+          response.data,
+          ReceivedFriendRequestDetailDto.fromJson,
+        ).data;
       }
       return null;
     } on DioException catch (e) {
@@ -104,21 +94,18 @@ class FriendRequestService implements FriendRequestServiceInterface {
   }
 
   @override
-  Future<FriendRelationshipResponseDto?> acceptRequest(int requestId) async {
+  Future<FriendRelationshipResponseDto?> acceptRequest(String requestId) async {
     try {
       final response = await _dio.post(
         _friendRequestAcceptPath(requestId),
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
 
       if (response.statusCode == 200) {
-        final body = response.data;
-        final data = body is Map<String, dynamic>
-            ? (body['data'] ?? body)
-            : body;
-        if (data is Map<String, dynamic>) {
-          return FriendRelationshipResponseDto.fromJson(data);
-        }
+        return ApiResponseParser.parseObject<FriendRelationshipResponseDto>(
+          response.data,
+          FriendRelationshipResponseDto.fromJson,
+        ).data;
       }
       return null;
     } on DioException catch (e) {
@@ -128,11 +115,11 @@ class FriendRequestService implements FriendRequestServiceInterface {
   }
 
   @override
-  Future<bool> rejectRequest(int requestId) async {
+  Future<bool> rejectRequest(String requestId) async {
     try {
       final response = await _dio.post(
         _friendRequestRejectPath(requestId),
-        options: Options(extra: const {'requiresAuth': true}),
+        options: Options(extra: const {'requiresAuthentication': true}),
       );
       return response.statusCode == 200;
     } on DioException catch (e) {

@@ -4,13 +4,14 @@ part 'update_friend_alias_request_dto.g.dart';
 
 @JsonSerializable()
 class UpdateFriendAliasRequestDto {
-  final String friendRelationshipId;
-  final String newFriendAlias;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? friendRelationshipId;
+  @JsonKey(name: 'alias')
+  final String alias;
 
-  UpdateFriendAliasRequestDto({
-    required this.friendRelationshipId,
-    required this.newFriendAlias,
-  });
+  UpdateFriendAliasRequestDto({this.friendRelationshipId, required this.alias});
+
+  String get newFriendAlias => alias;
 
   factory UpdateFriendAliasRequestDto.fromJson(Map<String, dynamic> json) =>
       _$UpdateFriendAliasRequestDtoFromJson(json);

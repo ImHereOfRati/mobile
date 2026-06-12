@@ -29,11 +29,13 @@ class FriendRequestViewModel extends _$FriendRequestViewModel {
     required String receiverEmail,
     required String message,
   }) async {
-    final result = await _service.sendRequest(CreateFriendRequestDto(
-      receiverId: receiverId,
-      receiverEmail: receiverEmail,
-      message: message,
-    ));
+    final result = await _service.sendRequest(
+      CreateFriendRequestDto(
+        targetId: receiverId,
+        receiverEmail: receiverEmail,
+        message: message,
+      ),
+    );
     if (result == null) return false;
 
     await _fcmService.sendFcmNotification(
@@ -44,7 +46,7 @@ class FriendRequestViewModel extends _$FriendRequestViewModel {
     return true;
   }
 
-  Future<bool> acceptRequest(int requestId) async {
+  Future<bool> acceptRequest(String requestId) async {
     final result = await _service.acceptRequest(requestId);
     if (result != null) {
       await refresh();
@@ -53,7 +55,7 @@ class FriendRequestViewModel extends _$FriendRequestViewModel {
     return false;
   }
 
-  Future<bool> rejectRequest(int requestId) async {
+  Future<bool> rejectRequest(String requestId) async {
     final result = await _service.rejectRequest(requestId);
     if (result) await refresh();
     return result;

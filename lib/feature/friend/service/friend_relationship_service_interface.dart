@@ -4,7 +4,8 @@ import 'package:iamhere/feature/friend/service/dto/update_friend_alias_request_d
 abstract class FriendRelationshipServiceInterface {
   Future<List<FriendRelationshipResponseDto>> fetchFriendList();
   Future<FriendRelationshipResponseDto?> updateAlias(
-      UpdateFriendAliasRequestDto request);
+    UpdateFriendAliasRequestDto request,
+  );
   Future<bool> blockFriend(String friendRelationshipId);
   Future<bool> deleteFriend(String friendRelationshipId);
 }
