@@ -247,40 +247,65 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
     );
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
-      child: Row(
+      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
+      child: Column(
         children: [
-          GestureDetector(
-            onTap: () => ref
-                .read(termsAgreementProvider.notifier)
-                .toggleAgreement(term.id),
-            child: _buildCircleCheckbox(context, isAgreed),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => ref
+                    .read(termsAgreementProvider.notifier)
+                    .toggleAgreement(term.id),
+                child: _buildCircleCheckbox(context, isAgreed),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      term.isRequired ? '[필수] ' : '[선택] ',
+                      style: TextStyle(
+                        fontFamily: 'BMHANNAAir',
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                        color: term.isRequired
+                            ? cs.primary
+                            : cs.onSurface.withValues(alpha: 0.45),
+                      ),
+                    ),
+                    Text(
+                      term.title,
+                      style: TextStyle(
+                        fontFamily: 'BMHANNAAir',
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Row(
-              children: [
-                Text(
-                  term.isRequired ? '[필수] ' : '[선택] ',
-                  style: TextStyle(
-                    fontFamily: 'BMHANNAAir',
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
-                    color: term.isRequired
-                        ? cs.primary
-                        : cs.onSurface.withValues(alpha: 0.45),
-                  ),
+          Padding(
+            padding: EdgeInsets.only(left: 34.w, top: 8.h, right: 12.w),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: cs.onSurface.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Text(
+                term.content,
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w400,
+                  color: cs.onSurface.withValues(alpha: 0.7),
+                  height: 1.5,
                 ),
-                Text(
-                  term.title,
-                  style: TextStyle(
-                    fontFamily: 'BMHANNAAir',
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w500,
-                    color: cs.onSurface,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
