@@ -24,12 +24,29 @@ class TokenRefresher {
       throw Exception(notFoundTokenErrorMessage);
     }
 
-    final response = await _dio.post(
-      tokenRefreshEndPoint,
-      data: {'refreshToken': refreshToken},
-    );
+    try {
+      final response = await _dio.post(
+        tokenRefreshEndPoint,
+        data: {'refreshToken': refreshToken},
+      );
 
-    return _saveTokens(response);
+      return _saveTokens(response);
+    } on DioException catch (e) {
+      final response = e.response;
+      if (response == null || response.data is! Map<String, dynamic>) {
+        rethrow;
+      }
+
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => json as Map<String, dynamic>,
+      );
+
+      return ApiResponse.fail(
+        imhereErrorCode: apiResponse.imhereResponseCode,
+        errorMessage: apiResponse.message,
+      );
+    }
   }
 
   Future<ApiResponse<String>> _saveTokens(Response response) async {
@@ -50,6 +67,6 @@ class TokenRefresher {
 
     await _tokenStorage.saveAccessToken(access as String);
     await _tokenStorage.saveRefreshToken(refresh as String);
-    return ApiResponse.success(data: '재로그인 성공');
+    return ApiResponse.success(data: access);
   }
 }

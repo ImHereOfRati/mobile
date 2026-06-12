@@ -47,7 +47,7 @@ void main() {
 
     expect(result, isA<ApiResponse<String>>());
     expect(result.imhereResponseCode, 'SUCCESS');
-    expect(result.data, '재로그인 성공');
+    expect(result.data, 'access-token');
     verify(mockStorage.saveAccessToken('access-token')).called(1);
     verify(mockStorage.saveRefreshToken('next-refresh-token')).called(1);
   });
@@ -58,15 +58,18 @@ void main() {
     ).thenAnswer((_) async => 'refresh-token');
     when(
       mockDio.post(any, data: anyNamed('data'), options: anyNamed('options')),
-    ).thenAnswer(
-      (_) async => Response(
+    ).thenThrow(
+      DioException(
         requestOptions: RequestOptions(path: '/api/auth/refresh'),
-        statusCode: 401,
-        data: {
-          'imhereResponseCode': 'AUTH-104',
-          'message': 'refresh token expired',
-          'data': null,
-        },
+        response: Response(
+          requestOptions: RequestOptions(path: '/api/auth/refresh'),
+          statusCode: 401,
+          data: {
+            'imhereResponseCode': 'AUTH-104',
+            'message': 'refresh token expired',
+            'data': null,
+          },
+        ),
       ),
     );
 
