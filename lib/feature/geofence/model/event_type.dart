@@ -7,6 +7,18 @@ enum EventType {
 
   const EventType(this.displayName);
 
+  bool get allowsArrival => this == EventType.arrival || this == EventType.both;
+
+  bool get allowsDeparture =>
+      this == EventType.departure || this == EventType.both;
+
+  static EventType fromName(String? name) {
+    return EventType.values.firstWhere(
+      (eventType) => eventType.name == name,
+      orElse: () => EventType.arrival,
+    );
+  }
+
   String get messageTemplate {
     switch (this) {
       case EventType.arrival:

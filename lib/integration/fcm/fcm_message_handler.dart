@@ -1,39 +1,38 @@
+import 'dart:convert';
+import 'dart:ui' as ui;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/infrastructure/di/di_setup.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
-import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 
-/// 로컬 알림 플러그인 인스턴스
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-/// FCM 백그라운드 메시지 핸들러
-///
-/// 이 함수는 앱이 백그라운드에 있을 때 FCM 메시지를 처리합니다.
-/// - 최상위 함수여야 합니다
-/// - 익명 함수가 아니어야 합니다
-/// - @pragma('vm:entry-point')로 주석 처리되어야 합니다
+GoRouter? _messageTapRouter;
+String? _pendingNotificationPath;
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Firebase를 초기화합니다 (백그라운드에서 다른 Firebase 서비스 사용 시 필요)
+  ui.DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp();
 
-  AppLogger.debug('백그라운드 메시지 수신: ${message.messageId}');
-  
-  // 데이터 기반 알림 표시 시도
-  final String title = message.notification?.title ?? message.data['title'] ?? 'ImHere 알림';
+  AppLogger.debug('Background FCM message received: ${message.messageId}');
+
+  final String title =
+      message.notification?.title ?? message.data['title'] ?? 'ImHere 알림';
   final String body = message.notification?.body ?? message.data['body'] ?? '';
-  
+  final String? path = extractNotificationPath(message.data);
+
   if (body.isNotEmpty) {
-    await _showNotification(title: title, body: body);
+    await _showNotification(title: title, body: body, payload: path);
   }
 }
 
-/// 로컬 알림 플러그인을 초기화합니다.
 Future<void> initializeLocalNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -45,35 +44,36 @@ Future<void> initializeLocalNotifications() async {
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
     onDidReceiveNotificationResponse: (details) {
-      // 알림 클릭 시 처리 (필요시 추가)
+      _handlePayloadNavigation(details.payload);
     },
   );
 }
 
-/// FCM 포그라운드 메시지 리스너를 설정합니다.
 Future<void> setupForegroundMessageListener() async {
-  // 로컬 알림 초기화
   await initializeLocalNotifications();
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-    AppLogger.debug('포그라운드 메시지 수신: ${message.messageId}');
-    
-    // 알림 정보를 추출 (notification 객체 우선, 없으면 data 객체 참조)
-    final String title = message.notification?.title ?? message.data['title'] ?? 'ImHere 알림';
-    final String body = message.notification?.body ?? message.data['body'] ?? '';
+    AppLogger.debug('Foreground FCM message received: ${message.messageId}');
 
-    // 알림을 로컬 DB에 저장
+    final String title =
+        message.notification?.title ?? message.data['title'] ?? 'ImHere 알림';
+    final String body =
+        message.notification?.body ?? message.data['body'] ?? '';
+    final String? path = extractNotificationPath(message.data);
+
     await _saveNotificationToLocal(message, title, body);
 
-    // 알림 표시
     if (body.isNotEmpty) {
-      await _showNotification(title: title, body: body);
+      await _showNotification(title: title, body: body, payload: path);
     }
   });
 }
 
-/// FCM 메시지를 로컬 DB에 저장합니다.
-Future<void> _saveNotificationToLocal(RemoteMessage message, String title, String body) async {
+Future<void> _saveNotificationToLocal(
+  RemoteMessage message,
+  String title,
+  String body,
+) async {
   try {
     final repository = getIt<NotificationLocalRepository>();
     final entity = NotificationEntity(
@@ -84,21 +84,21 @@ Future<void> _saveNotificationToLocal(RemoteMessage message, String title, Strin
       createdAt: DateTime.now(),
     );
     await repository.save(entity);
-    AppLogger.debug('알림 로컬 DB 저장 완료');
+    AppLogger.debug('Notification saved to local DB');
   } catch (e) {
-    AppLogger.error('알림 로컬 DB 저장 실패: $e');
+    AppLogger.error('Failed to save notification to local DB: $e');
   }
 }
 
-/// 로컬 알림을 표시합니다.
 Future<void> _showNotification({
   required String title,
   required String body,
+  String? payload,
 }) async {
   const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'high_importance_channel', // MainActivity에서 생성한 채널 ID와 동일
+    'high_importance_channel',
     'High Importance Notifications',
-    channelDescription: '앱의 중요한 알림을 표시하는 채널입니다',
+    channelDescription: 'Channel for important notifications',
     importance: Importance.max,
     priority: Priority.high,
     enableVibration: true,
@@ -110,47 +110,124 @@ Future<void> _showNotification({
   );
 
   await flutterLocalNotificationsPlugin.show(
-    0, // 알림 ID
+    0,
     title,
     body,
     notificationDetails,
+    payload: payload,
   );
 }
 
-/// 알림 탭 시 `data['path']`를 읽어 GoRouter로 이동시킨다.
-///
-/// - 백그라운드 상태에서 탭: `onMessageOpenedApp` 스트림 사용
-/// - 종료 상태에서 탭하여 앱 콜드 스타트: `getInitialMessage()` 사용
-///
-/// 인증 상태는 `RouterLogic.handleRedirect`가 자동 처리하므로
-/// 로그인이 안 된 사용자는 자동으로 `/auth`로 리다이렉트된다.
 void setupMessageTapHandler(GoRouter router) {
+  _messageTapRouter = router;
+  _drainPendingNotificationPath();
+
+  initializeLocalNotifications().then((_) {
+    flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails().then((
+      details,
+    ) {
+      final payload = details?.notificationResponse?.payload;
+      _handlePayloadNavigation(payload);
+    });
+  });
+
   FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
     if (message != null) {
-      AppLogger.debug('앱 종료 상태에서 메시지 탭: ${message.messageId}');
+      AppLogger.debug('Initial FCM tap received: ${message.messageId}');
       _handleNavigation(router, message);
     }
   });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    AppLogger.debug('백그라운드 상태에서 메시지 탭: ${message.messageId}');
+    AppLogger.debug('Background tap received: ${message.messageId}');
     _handleNavigation(router, message);
   });
 }
 
 void _handleNavigation(GoRouter router, RemoteMessage message) {
-  final raw = message.data['path'];
-  if (raw is! String) return;
+  _navigateToPath(router, extractNotificationPath(message.data));
+}
 
-  final path = raw.trim();
-  if (path.isEmpty || !path.startsWith('/')) {
-    AppLogger.error('알림 path 형식 오류: "$raw"');
+String? extractNotificationPath(Map<String, dynamic> data) {
+  final candidates = <Object?>[
+    data['path'],
+    _extractNestedPath(data['extraData']),
+    _extractNestedPath(data['extra_data']),
+  ];
+
+  for (final candidate in candidates) {
+    final path = _normalizePath(candidate as String?);
+    if (path != null) return path;
+  }
+
+  return null;
+}
+
+String? _extractNestedPath(Object? raw) {
+  if (raw is Map<String, dynamic>) {
+    final nestedPath = raw['path'];
+    return nestedPath is String ? nestedPath : null;
+  }
+
+  if (raw is String) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return null;
+
+    try {
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map<String, dynamic>) {
+        final nestedPath = decoded['path'];
+        return nestedPath is String ? nestedPath : null;
+      }
+    } catch (_) {
+      return trimmed;
+    }
+  }
+
+  return null;
+}
+
+void _handlePayloadNavigation(String? raw) {
+  final path = _normalizePath(raw);
+  if (path == null) return;
+
+  final router = _messageTapRouter;
+  if (router == null) {
+    _pendingNotificationPath = path;
     return;
   }
+
+  _navigateToPath(router, path);
+}
+
+void _drainPendingNotificationPath() {
+  final router = _messageTapRouter;
+  final pendingPath = _pendingNotificationPath;
+  if (router == null || pendingPath == null) return;
+
+  _pendingNotificationPath = null;
+  _navigateToPath(router, pendingPath);
+}
+
+void _navigateToPath(GoRouter router, String? raw) {
+  final path = _normalizePath(raw);
+  if (path == null) return;
 
   try {
     router.push(path);
   } catch (e) {
-    AppLogger.error('알림 네비게이션 실패 (path=$path): $e');
+    AppLogger.error('Notification navigation failed (path=$path): $e');
   }
+}
+
+String? _normalizePath(String? raw) {
+  if (raw == null) return null;
+
+  final path = raw.trim();
+  if (path.isEmpty || !path.startsWith('/')) {
+    AppLogger.error('Invalid notification path: "$raw"');
+    return null;
+  }
+
+  return path;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:iamhere/feature/record/model/activity_record_status.dart';
 import 'package:iamhere/infrastructure/database/service/record_database_service.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 
@@ -29,6 +30,10 @@ void main() {
         recipients: '["a@example.com"]',
         createdAt: createdAt ?? DateTime(2026, 4, 29, 10),
         sendMachine: machine,
+        status: ActivityRecordStatus.pending,
+        deliveryKey: 'key-$name',
+        retryCount: 2,
+        lastError: 'temporary network error',
       );
 
   test('save → findAll round-trip 시 enum/datetime 이 정확히 복원된다', () async {
@@ -37,7 +42,33 @@ void main() {
     final all = await sut.findAll();
     expect(all, hasLength(1));
     expect(all.single.sendMachine, SendMachine.server);
+    expect(all.single.status, ActivityRecordStatus.pending);
+    expect(all.single.deliveryKey, 'key-집');
+    expect(all.single.retryCount, 2);
+    expect(all.single.lastError, 'temporary network error');
     expect(all.single.createdAt, DateTime(2026, 4, 29, 10));
+  });
+
+  test('delivery_key 로 저장된 기록을 조회하고 상태를 갱신할 수 있다', () async {
+    await sut.save(makeRecord(name: '회사'));
+
+    final found = await sut.findByDeliveryKey('key-회사');
+    expect(found, isNotNull);
+    expect(found!.status, ActivityRecordStatus.pending);
+
+    await sut.update(
+      found.copyWith(
+        status: ActivityRecordStatus.completed,
+        retryCount: 3,
+        lastError: '',
+      ),
+    );
+
+    final updated = await sut.findByDeliveryKey('key-회사');
+    expect(updated, isNotNull);
+    expect(updated!.status, ActivityRecordStatus.completed);
+    expect(updated.retryCount, 3);
+    expect(updated.lastError, '');
   });
 
   test('findAll 은 created_at 내림차순(최신부터) 으로 반환한다', () async {

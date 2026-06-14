@@ -14,6 +14,9 @@ class FcmToken {
 
   FcmToken({required this.fcmToken, required this.deviceType});
 
+  factory FcmToken.fromJson(Map<String, dynamic> json) =>
+      _$FcmTokenFromJson(json);
+
   factory FcmToken.fromCurrentPlatform({required String fcmToken}) {
     return FcmToken(
       fcmToken: fcmToken,

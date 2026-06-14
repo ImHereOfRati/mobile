@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/common/base/api_response/api_response.dart';
+import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/infrastructure/network/instance/module/auth_token_refresh_coordinator.dart';
 import 'package:iamhere/infrastructure/network/instance/module/pending_request.dart';
@@ -15,21 +16,25 @@ import 'auth_token_refresh_coordinator_test.mocks.dart';
   TokenRefresher,
   RequestRetrier,
   ErrorInterceptorHandler,
+  AuthInvalidationNotifier,
 ])
 void main() {
   late MockTokenStorageService mockStorage;
   late MockTokenRefresher mockRefresher;
   late MockRequestRetrier mockRetrier;
+  late MockAuthInvalidationNotifier mockAuthInvalidationNotifier;
   late AuthTokenRefreshCoordinator coordinator;
 
   setUp(() {
     mockStorage = MockTokenStorageService();
     mockRefresher = MockTokenRefresher();
     mockRetrier = MockRequestRetrier();
+    mockAuthInvalidationNotifier = MockAuthInvalidationNotifier();
     coordinator = AuthTokenRefreshCoordinator(
       mockStorage,
       mockRefresher,
       mockRetrier,
+      mockAuthInvalidationNotifier,
     );
   });
 
@@ -131,10 +136,12 @@ void main() {
     final handler = MockErrorInterceptorHandler();
     final error = DioException(requestOptions: requestOptions);
     when(mockStorage.deleteAllTokens()).thenAnswer((_) async {});
+    when(mockAuthInvalidationNotifier.requestInvalidation()).thenReturn(null);
 
     await coordinator.forceLogout(error, handler);
 
     verify(mockStorage.deleteAllTokens()).called(1);
+    verify(mockAuthInvalidationNotifier.requestInvalidation()).called(1);
     verify(mockRetrier.failAll(error)).called(1);
     verify(handler.reject(error)).called(1);
   });

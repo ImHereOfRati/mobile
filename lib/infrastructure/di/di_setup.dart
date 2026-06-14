@@ -1,3 +1,4 @@
+import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:sqflite/sqflite.dart';
@@ -25,9 +26,14 @@ Future<void> enrollBaseUrlGlobally({required String baseUrl}) async {
 
   if (!getIt.isRegistered<GeofenceDeliveryQueueDatabaseService>()) {
     getIt.registerLazySingleton<GeofenceDeliveryQueueDatabaseService>(
-      () => GeofenceDeliveryQueueDatabaseService(
-        getIt<Database>(),
-      ),
+      () => GeofenceDeliveryQueueDatabaseService(getIt<Database>()),
+    );
+  }
+
+  if (!getIt.isRegistered<GeofenceRetryScheduler>()) {
+    getIt.registerLazySingleton<GeofenceRetryScheduler>(
+      () =>
+          GeofenceRetryScheduler(getIt<GeofenceDeliveryQueueDatabaseService>()),
     );
   }
 
@@ -41,6 +47,7 @@ Future<void> enrollBaseUrlGlobally({required String baseUrl}) async {
         getIt<SmsNotificationService>(),
         getIt<FcmArrivalService>(),
         getIt<RecordService>(),
+        getIt<GeofenceRetryScheduler>(),
       ),
     );
   }

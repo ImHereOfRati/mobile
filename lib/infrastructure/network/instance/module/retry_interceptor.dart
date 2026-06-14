@@ -3,9 +3,15 @@ import 'package:dio/dio.dart';
 class RetryInterceptor extends Interceptor {
   static const int maxRetries = 3;
   static const int initialDelayMs = 100;
+  final Dio _dio;
+
+  RetryInterceptor(this._dio);
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final requestOptions = err.requestOptions;
 
     if (_shouldRetry(err) && _getRetryCount(requestOptions) < maxRetries) {
@@ -15,18 +21,7 @@ class RetryInterceptor extends Interceptor {
       await Future.delayed(Duration(milliseconds: delayMs));
 
       try {
-        final response = await Dio().request(
-          requestOptions.path,
-          options: Options(
-            method: requestOptions.method,
-            headers: requestOptions.headers,
-            contentType: requestOptions.contentType,
-            responseType: requestOptions.responseType,
-            extra: requestOptions.extra,
-          ),
-          data: requestOptions.data,
-          queryParameters: requestOptions.queryParameters,
-        );
+        final response = await _dio.fetch<dynamic>(requestOptions);
         return handler.resolve(response);
       } catch (e) {
         return handler.next(err);
@@ -46,7 +41,10 @@ class RetryInterceptor extends Interceptor {
     if (err.response?.statusCode == null) return true;
 
     final statusCode = err.response!.statusCode;
-    return statusCode == 429 || statusCode == 503 || statusCode == 502 || statusCode == 504;
+    return statusCode == 429 ||
+        statusCode == 503 ||
+        statusCode == 502 ||
+        statusCode == 504;
   }
 
   int _getRetryCount(RequestOptions options) {

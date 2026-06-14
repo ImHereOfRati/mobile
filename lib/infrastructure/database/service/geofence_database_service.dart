@@ -31,7 +31,8 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
     // 서브쿼리로 서버 친구 숫자(server_recipient_count)까지 한 번에 조회.
     return executeRawQuery<GeofenceEntity>(
       entityName: 'geofence',
-      sql: '''
+      sql:
+          '''
         SELECT g.*,
                (SELECT COUNT(*) FROM $rTable r WHERE r.geofence_id = g.id)
                  as server_recipient_count
@@ -48,13 +49,23 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
     id: id,
   );
 
-  Future<void> updateActiveStatus(int id, bool isActive) => executePartialUpdate(
-    entityName: 'geofence active status',
-    table: LocalDatabaseProperties.geofenceTableName,
-    values: {'is_active': isActive ? 1 : 0},
-    id: id,
-    entityDetails: 'ID: $id, isActive: $isActive',
-  );
+  Future<void> updateActiveStatus(int id, bool isActive) =>
+      executePartialUpdate(
+        entityName: 'geofence active status',
+        table: LocalDatabaseProperties.geofenceTableName,
+        values: {'is_active': isActive ? 1 : 0, 'awaiting_departure': 0},
+        id: id,
+        entityDetails: 'ID: $id, isActive: $isActive',
+      );
+
+  Future<void> updateAwaitingDeparture(int id, bool awaitingDeparture) =>
+      executePartialUpdate(
+        entityName: 'geofence departure wait state',
+        table: LocalDatabaseProperties.geofenceTableName,
+        values: {'awaiting_departure': awaitingDeparture ? 1 : 0},
+        id: id,
+        entityDetails: 'ID: $id, awaitingDeparture: $awaitingDeparture',
+      );
 
   Future<void> updateAddress(int id, String address) => executePartialUpdate(
     entityName: 'geofence address',

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
 import 'package:iamhere/infrastructure/network/instance/module/pending_request.dart';
 import 'package:iamhere/infrastructure/network/instance/token_refresher.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
@@ -11,12 +12,14 @@ class AuthTokenRefreshCoordinator {
   final TokenStorageService _tokenStorage;
   final TokenRefresher _refresher;
   final RequestRetrier _retrier;
+  final AuthInvalidationNotifier _authInvalidationNotifier;
   bool _isRefreshing = false;
 
   AuthTokenRefreshCoordinator(
     this._tokenStorage,
     this._refresher,
     this._retrier,
+    this._authInvalidationNotifier,
   );
 
   bool isRefreshRequest(String requestPath) {
@@ -56,6 +59,7 @@ class AuthTokenRefreshCoordinator {
     ErrorInterceptorHandler handler,
   ) async {
     await _tokenStorage.deleteAllTokens();
+    _authInvalidationNotifier.requestInvalidation();
     _retrier.failAll(dioException);
     handler.reject(dioException);
   }

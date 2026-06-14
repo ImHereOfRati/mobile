@@ -8,7 +8,7 @@ import 'dto/terms_list_request_dto.dart';
 
 @lazySingleton
 class TermsRequestService {
-  static const String _termsListPath = '/api/terms';
+  static const String _termsListPath = '/api/terms?isActive=true';
 
   final Dio _dio;
 
@@ -18,7 +18,6 @@ class TermsRequestService {
     try {
       final response = await _dio.get(
         _termsListPath,
-        queryParameters: {'isActive': true},
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
 
 import '../enroll_check_card.dart';
 import '../fields/enroll_activate_toggle.dart';
@@ -9,6 +10,7 @@ import '../fields/enroll_name_field.dart';
 class EnrollDetailsSection extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController messageController;
+  final EventType eventType;
   final bool isActive;
   final ValueChanged<bool> onActiveChanged;
 
@@ -16,6 +18,7 @@ class EnrollDetailsSection extends StatelessWidget {
     super.key,
     required this.nameController,
     required this.messageController,
+    required this.eventType,
     required this.isActive,
     required this.onActiveChanged,
   });
@@ -27,12 +30,9 @@ class EnrollDetailsSection extends StatelessWidget {
       children: [
         EnrollNameField(controller: nameController),
         SizedBox(height: 20.h),
-        EnrollMessageField(controller: messageController),
+        EnrollMessageField(controller: messageController, eventType: eventType),
         SizedBox(height: 20.h),
-        EnrollActivateToggle(
-          isActive: isActive,
-          onChanged: onActiveChanged,
-        ),
+        EnrollActivateToggle(isActive: isActive, onChanged: onActiveChanged),
         SizedBox(height: 12.h),
         const EnrollCheckCard(),
       ],

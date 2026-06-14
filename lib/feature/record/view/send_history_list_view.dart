@@ -1,16 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/feature/record/view/component/record_tile.dart';
 import 'package:iamhere/feature/record/view/component/record_time_formatter.dart';
 import 'package:iamhere/feature/record/view_model/geofence_record_view_model.dart';
 
-class SendHistoryListView extends ConsumerWidget {
+class SendHistoryListView extends ConsumerStatefulWidget {
   const SendHistoryListView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SendHistoryListView> createState() =>
+      _SendHistoryListViewState();
+}
+
+class _SendHistoryListViewState extends ConsumerState<SendHistoryListView> {
+  late final AppLifecycleListener _lifecycleListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(onResume: _refreshRecords);
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  void _refreshRecords() {
+    if (!mounted) return;
+    ref.invalidate(geofenceRecordViewModelProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final recordsAsync = ref.watch(geofenceRecordViewModelProvider);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
@@ -38,9 +64,7 @@ class SendHistoryListView extends ConsumerWidget {
                 itemBuilder: (context, index) =>
                     _buildRecordTile(records[index]),
               ),
-        loading: () => Center(
-          child: CircularProgressIndicator(color: cs.primary),
-        ),
+        loading: () => const Center(child: ImHereLoadingIndicator()),
         error: (_, __) => _buildErrorState(cs, tt, ref),
       ),
     );
@@ -94,10 +118,13 @@ class SendHistoryListView extends ConsumerWidget {
       recordTime: record.createdAt,
       message: RecordTimeFormatter.formatActivityLabel(
         locationName: record.geofenceName,
-        message: record.message,
+        deliveryEventType: record.deliveryEventType,
       ),
       targetName: RecordTimeFormatter.formatRecipients(record.recipients),
       sendMachine: record.sendMachine,
+      status: record.status,
+      retryCount: record.retryCount,
+      lastError: record.lastError,
     );
   }
 

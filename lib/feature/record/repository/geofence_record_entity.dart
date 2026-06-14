@@ -1,3 +1,5 @@
+import 'package:iamhere/feature/record/model/activity_record_status.dart';
+
 class GeofenceRecordEntity {
   final int? id;
   final int geofenceId; // 지오펜스 ID
@@ -6,6 +8,11 @@ class GeofenceRecordEntity {
   final String recipients; // 수신자 목록 (JSON 형태, 예: "[\"홍길동\", \"김철수\"]")
   final DateTime createdAt; // 기록 생성 시간
   final SendMachine sendMachine; // 전송한 기기
+  final ActivityRecordStatus status;
+  final String? deliveryKey;
+  final int retryCount;
+  final String lastError;
+  final String deliveryEventType;
 
   GeofenceRecordEntity({
     this.id,
@@ -15,6 +22,11 @@ class GeofenceRecordEntity {
     required this.recipients,
     required this.createdAt,
     required this.sendMachine,
+    this.status = ActivityRecordStatus.completed,
+    this.deliveryKey,
+    this.retryCount = 0,
+    this.lastError = '',
+    this.deliveryEventType = 'arrival',
   });
 
   GeofenceRecordEntity copyWith({
@@ -25,6 +37,11 @@ class GeofenceRecordEntity {
     String? recipients,
     DateTime? createdAt,
     SendMachine? sendMachine,
+    ActivityRecordStatus? status,
+    String? deliveryKey,
+    int? retryCount,
+    String? lastError,
+    String? deliveryEventType,
   }) {
     return GeofenceRecordEntity(
       id: id ?? this.id,
@@ -34,6 +51,11 @@ class GeofenceRecordEntity {
       recipients: recipients ?? this.recipients,
       createdAt: createdAt ?? this.createdAt,
       sendMachine: sendMachine ?? this.sendMachine,
+      status: status ?? this.status,
+      deliveryKey: deliveryKey ?? this.deliveryKey,
+      retryCount: retryCount ?? this.retryCount,
+      lastError: lastError ?? this.lastError,
+      deliveryEventType: deliveryEventType ?? this.deliveryEventType,
     );
   }
 
@@ -46,6 +68,11 @@ class GeofenceRecordEntity {
       'recipients': recipients,
       'created_at': createdAt.toIso8601String(),
       'send_machine': sendMachine.name,
+      'status': status.name,
+      'delivery_key': deliveryKey,
+      'retry_count': retryCount,
+      'last_error': lastError,
+      'delivery_event_type': deliveryEventType,
     };
   }
 
@@ -61,6 +88,14 @@ class GeofenceRecordEntity {
         (e) => e.name == map['send_machine'],
         orElse: () => SendMachine.mobile,
       ),
+      status: ActivityRecordStatus.values.firstWhere(
+        (e) => e.name == map['status'],
+        orElse: () => ActivityRecordStatus.completed,
+      ),
+      deliveryKey: map['delivery_key'] as String?,
+      retryCount: map['retry_count'] as int? ?? 0,
+      lastError: map['last_error'] as String? ?? '',
+      deliveryEventType: map['delivery_event_type'] as String? ?? 'arrival',
     );
   }
 }

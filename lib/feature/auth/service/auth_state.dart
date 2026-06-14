@@ -1,1 +1,1 @@
-enum AuthState { authenticated, unauthenticated }
+enum AuthState { authenticated, inactive, pending, unauthenticated }

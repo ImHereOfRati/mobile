@@ -3,6 +3,7 @@ import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -20,12 +21,14 @@ class FcmNotificationService {
     required String receiverEmail,
     required String type,
     required String body,
+    String? path,
   }) {
     return _send(
       path: _fcmDeliveryResultPath,
       receiverEmail: receiverEmail,
       type: type,
       body: body,
+      routePath: path ?? AppRoutes.recordNotifications,
       label: 'delivery result',
     );
   }
@@ -35,12 +38,14 @@ class FcmNotificationService {
     required String receiverEmail,
     required String type,
     required String body,
+    String? path,
   }) {
     return _send(
       path: _fcmNotificationPath,
       receiverEmail: receiverEmail,
       type: type,
       body: body,
+      routePath: path,
       label: 'FCM notification',
     );
   }
@@ -50,12 +55,14 @@ class FcmNotificationService {
     required String receiverEmail,
     required String type,
     required String body,
+    String? path,
   }) {
     return _send(
       path: _fcmLocationTargetPath,
       receiverEmail: receiverEmail,
       type: type,
       body: body,
+      routePath: path,
       label: 'location target notification',
     );
   }
@@ -65,6 +72,7 @@ class FcmNotificationService {
     required String receiverEmail,
     required String type,
     required String body,
+    String? routePath,
     required String label,
   }) async {
     try {
@@ -72,7 +80,10 @@ class FcmNotificationService {
         notificationMethod: 'FCM',
         targetId: receiverEmail,
         type: type,
-        extraData: {'body': body},
+        extraData: {
+          'body': body,
+          if (routePath != null) 'path': routePath,
+        },
       );
 
       final response = await _dio.post(

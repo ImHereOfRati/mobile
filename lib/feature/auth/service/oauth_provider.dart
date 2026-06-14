@@ -1,1 +1,1 @@
-enum OauthProvider { KAKAO }
+enum OauthProvider { kakao }

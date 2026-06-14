@@ -5,10 +5,11 @@ import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
-/// 서버 친구(ImHere 앱 유저)에게 목적지 도착 FCM 알림 발송
+/// 서버 친구(ImHere 앱 유저)에게 위치 이벤트 FCM 알림 발송
 @lazySingleton
 class FcmArrivalService {
   static const String _fcmArrivalPath = '/api/notifications';
@@ -23,13 +24,14 @@ class FcmArrivalService {
     this._userMeService,
   );
 
-  /// 여러 서버 친구에게 도착 알림 FCM 발송
+  /// 여러 서버 친구에게 위치 이벤트 FCM 발송
   /// [body]는 이미 {location} 등 치환이 완료된 최종 본문이어야 한다.
   /// [location]은 본인 알림용으로 사용된다.
-  Future<Result<void>> sendArrivalNotifications({
+  Future<Result<void>> sendGeofenceNotifications({
     required List<String> receiverEmails,
     required String body,
     required String location,
+    required String type,
   }) async {
     if (receiverEmails.isEmpty) {
       return Failure('No server recipients');
@@ -37,7 +39,11 @@ class FcmArrivalService {
 
     int successCount = 0;
     for (final email in receiverEmails) {
-      final result = await _sendOne(receiverEmail: email, body: body);
+      final result = await _sendOne(
+        receiverEmail: email,
+        body: body,
+        type: type,
+      );
       if (result is Success) {
         successCount++;
       }
@@ -55,13 +61,14 @@ class FcmArrivalService {
   Future<Result<void>> _sendOne({
     required String receiverEmail,
     required String body,
+    required String type,
   }) async {
     try {
       final dto = FcmNotificationRequestDto(
         notificationMethod: 'FCM',
         targetId: receiverEmail,
-        type: 'ARRIVAL',
-        extraData: {'body': body},
+        type: type,
+        extraData: {'body': body, 'path': AppRoutes.recordNotifications},
       );
       final response = await _dio.post(
         _fcmArrivalPath,
@@ -76,20 +83,23 @@ class FcmArrivalService {
       final ok = response.statusCode == 202;
       if (!ok) {
         dev.log(
-          'FCM arrival failed ($receiverEmail): status=${response.statusCode}',
+          'FCM geofence notify failed ($receiverEmail): status=${response.statusCode}',
         );
-        return Failure('FCM arrival failed: ${response.statusCode}');
+        return Failure('FCM geofence notify failed: ${response.statusCode}');
       }
       ApiResponseParser.parseVoid(response.data);
       return Success(null);
     } catch (e) {
-      dev.log('FCM arrival error ($receiverEmail): $e');
-      return Failure('FCM arrival error: $e');
+      dev.log('FCM geofence notify error ($receiverEmail): $e');
+      return Failure('FCM geofence notify error: $e');
     }
   }
 
   /// FCM 발송 성공 후 본인에게 FCM으로 발송 결과 통보
-  Future<void> notifyDeliveryResultToMe(String location) async {
+  Future<void> notifyDeliveryResultToMe({
+    required String location,
+    required String type,
+  }) async {
     try {
       dev.log('!!!! BG_SELF_NOTIFY: Method Start');
 
@@ -100,10 +110,12 @@ class FcmArrivalService {
 
       if (myInfo != null) {
         dev.log('!!!! BG_SELF_NOTIFY: Email found ${myInfo.email}');
+        final actionLabel = type == 'DEPARTURE' ? '출발' : '도착';
         final result = await _fcmNotificationService.notifyDeliveryResult(
           receiverEmail: myInfo.email,
-          type: 'ARRIVAL',
-          body: '$location 도착 알림이 성공적으로 전송되었습니다.',
+          type: type,
+          body: '$location $actionLabel 알림이 성공적으로 전송되었습니다.',
+          path: AppRoutes.recordSendHistory,
         );
 
         if (result is Success) {

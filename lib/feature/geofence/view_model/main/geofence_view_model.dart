@@ -14,13 +14,15 @@ import 'package:iamhere/feature/geofence/service/native_geofence_registrar_inter
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'geofence_view_model_interface.dart';
 
 part 'geofence_view_model.g.dart';
 
 @Riverpod(keepAlive: true)
-class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModelInterface {
+class GeofenceViewModel extends _$GeofenceViewModel
+    implements GeofenceViewModelInterface {
   late GeofenceLocalRepository _repo;
   late GeofenceServerRecipientLocalRepository _srvRepo;
   late PermissionServiceInterface _permSrv;
@@ -39,6 +41,10 @@ class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModel
 
   @override
   Future<GeofenceEntity> saveGeofence(SaveGeofenceRequest request) async {
+    final existing = request.id == null
+        ? null
+        : (await _repo.findAll()).where((g) => g.id == request.id).firstOrNull;
+
     final entity = GeofenceEntity(
       id: request.id,
       name: request.name,
@@ -48,6 +54,11 @@ class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModel
       radius: request.radius,
       message: request.message,
       contactIds: jsonEncode(request.contactIds),
+      isActive: existing?.isActive ?? false,
+      awaitingDeparture: existing?.awaitingDeparture ?? false,
+      eventType: request.eventType ?? 'arrival',
+      repeatType: request.repeatType ?? 'none',
+      customDaysBitmask: request.customDaysBitmask,
     );
 
     GeofenceEntity finalEntity;
@@ -61,16 +72,19 @@ class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModel
 
     if (finalEntity.id != null) {
       for (final r in request.serverRecipients) {
-        await _srvRepo.save(GeofenceServerRecipientEntity(
-          geofenceId: finalEntity.id!,
-          friendRelationshipId: r.friendRelationshipId,
-          friendEmail: r.friendEmail,
-          friendAlias: r.friendAlias,
-        ));
+        await _srvRepo.save(
+          GeofenceServerRecipientEntity(
+            geofenceId: finalEntity.id!,
+            friendRelationshipId: r.friendRelationshipId,
+            friendEmail: r.friendEmail,
+            friendAlias: r.friendAlias,
+          ),
+        );
         _fcm.notifyLocationTarget(
           receiverEmail: r.friendEmail,
           type: 'LOCATION_TARGET',
           body: '위치 알림 대상자로 등록되었습니다.',
+          path: AppRoutes.recordNotifications,
         );
       }
     }
@@ -78,8 +92,8 @@ class GeofenceViewModel extends _$GeofenceViewModel implements GeofenceViewModel
     // 수정 시 활성화 상태였다면 OS 에도 변경사항 반영
     if (request.id != null) {
       final all = await _repo.findAll();
-      final updated = all.firstWhere((g) => g.id == request.id);
-      if (updated.isActive) {
+      final updated = all.where((g) => g.id == request.id).firstOrNull;
+      if (updated != null && updated.isActive) {
         await _reg.register(updated);
       }
     }

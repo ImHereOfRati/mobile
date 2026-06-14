@@ -7,7 +7,18 @@ part 'auth_state_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 Future<AuthState> authState(Ref ref) async {
-  final accessToken = await getIt<TokenStorageService>().getAccessToken();
+  final tokenStorage = getIt<TokenStorageService>();
+  final accessToken = await tokenStorage.getAccessToken();
   final hasToken = accessToken != null && accessToken.isNotEmpty;
-  return hasToken ? AuthState.authenticated : AuthState.unauthenticated;
+  if (!hasToken) return AuthState.unauthenticated;
+
+  final isPending = await tokenStorage.getPendingAuth();
+  if (isPending || await tokenStorage.getUserStatus() == 'PENDING') {
+    return AuthState.pending;
+  }
+
+  final isActive = await tokenStorage.getIsActive();
+  if (isActive == false) return AuthState.inactive;
+
+  return AuthState.authenticated;
 }

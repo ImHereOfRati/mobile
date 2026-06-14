@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 
 import 'component/record_empty_section.dart';
 import 'component/record_error_section.dart';
@@ -32,7 +33,7 @@ class RecordSendHistorySection extends StatelessWidget {
         ),
         recordsAsync.when(
           loading: () => const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: ImHereLoadingIndicator()),
           ),
           error: (_, __) => SliverToBoxAdapter(
             child: RecordErrorSection(ref: ref),

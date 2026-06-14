@@ -8,10 +8,13 @@ class GeofenceEntity {
   final String message; // 알림 메시지
   final String contactIds; // 연락처 ID 리스트 (JSON 형태로 저장, 예: "[1,2,3]")
   final bool isActive; // 활성화 상태
+  final bool awaitingDeparture; // both 알림의 도착 이후 출발 대기 상태
   final int serverRecipientCount; // IMHERE 서버 친구 숫자
   final String eventType; // EventType enum name (arrival/departure/both)
-  final String repeatType; // RepeatType enum name (none/daily/weekday/weekend/custom)
-  final int? customDaysBitmask; // Bitmask for custom days (only if repeatType == custom)
+  final String
+  repeatType; // RepeatType enum name (none/daily/weekday/weekend/custom)
+  final int?
+  customDaysBitmask; // Bitmask for custom days (only if repeatType == custom)
 
   GeofenceEntity({
     this.id,
@@ -23,6 +26,7 @@ class GeofenceEntity {
     required this.message,
     required this.contactIds,
     this.isActive = false,
+    this.awaitingDeparture = false,
     this.serverRecipientCount = 0, // 기본값 0 보장
     this.eventType = 'arrival',
     this.repeatType = 'none',
@@ -30,8 +34,7 @@ class GeofenceEntity {
   });
 
   /// SMS 발송 시 사용할 location 문자열: "장소명 (주소)"
-  String get fullLocation =>
-      address.isNotEmpty ? '$name ($address)' : name;
+  String get fullLocation => address.isNotEmpty ? '$name ($address)' : name;
 
   // isActive를 변경한 새 인스턴스 생성
   GeofenceEntity copyWith({
@@ -44,6 +47,7 @@ class GeofenceEntity {
     String? message,
     String? contactIds,
     bool? isActive,
+    bool? awaitingDeparture,
     int? serverRecipientCount,
     String? eventType,
     String? repeatType,
@@ -59,6 +63,7 @@ class GeofenceEntity {
       message: message ?? this.message,
       contactIds: contactIds ?? this.contactIds,
       isActive: isActive ?? this.isActive,
+      awaitingDeparture: awaitingDeparture ?? this.awaitingDeparture,
       serverRecipientCount: serverRecipientCount ?? this.serverRecipientCount,
       eventType: eventType ?? this.eventType,
       repeatType: repeatType ?? this.repeatType,
@@ -77,6 +82,7 @@ class GeofenceEntity {
       'message': message,
       'contact_ids': contactIds,
       'is_active': isActive ? 1 : 0,
+      'awaiting_departure': awaitingDeparture ? 1 : 0,
       'event_type': eventType,
       'repeat_type': repeatType,
       'custom_days_bitmask': customDaysBitmask,
@@ -94,6 +100,7 @@ class GeofenceEntity {
       message: map['message'] as String,
       contactIds: map['contact_ids'] as String? ?? '[]',
       isActive: (map['is_active'] as int? ?? 0) == 1,
+      awaitingDeparture: (map['awaiting_departure'] as int? ?? 0) == 1,
       serverRecipientCount: map['server_recipient_count'] as int? ?? 0,
       eventType: map['event_type'] as String? ?? 'arrival',
       repeatType: map['repeat_type'] as String? ?? 'none',

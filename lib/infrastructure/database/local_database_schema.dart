@@ -22,7 +22,11 @@ class LocalDatabaseSchema {
   /// v2: geofence.address, geofence_server_recipient, notifications.sender_*
   /// v3: geofence.event_type, geofence.repeat_type, geofence.custom_days_bitmask
   /// v4: geofence_delivery_queue
-  static const int version = 4;
+  /// v5: records.status, records.delivery_key
+  /// v6: records.retry_count, records.last_error
+  /// v7: geofence.awaiting_departure
+  /// v8: records.delivery_event_type
+  static const int version = 8;
 
   static Future<void> onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
@@ -50,6 +54,18 @@ class LocalDatabaseSchema {
     }
     if (oldVersion < 4) {
       await _migrateToV4(db);
+    }
+    if (oldVersion < 5) {
+      await _migrateToV5(db);
+    }
+    if (oldVersion < 6) {
+      await _migrateToV6(db);
+    }
+    if (oldVersion < 7) {
+      await _migrateToV7(db);
+    }
+    if (oldVersion < 8) {
+      await _migrateToV8(db);
     }
   }
 
@@ -96,6 +112,48 @@ class LocalDatabaseSchema {
     await _safeExec(db, _createGeofenceDeliveryQueueTable);
   }
 
+  static Future<void> _migrateToV5(Database db) async {
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.recordTableName} '
+      'ADD COLUMN status TEXT DEFAULT "completed"',
+    );
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.recordTableName} '
+      'ADD COLUMN delivery_key TEXT',
+    );
+  }
+
+  static Future<void> _migrateToV6(Database db) async {
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.recordTableName} '
+      'ADD COLUMN retry_count INTEGER DEFAULT 0',
+    );
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.recordTableName} '
+      'ADD COLUMN last_error TEXT DEFAULT ""',
+    );
+  }
+
+  static Future<void> _migrateToV7(Database db) async {
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.geofenceTableName} '
+      'ADD COLUMN awaiting_departure INTEGER DEFAULT 0',
+    );
+  }
+
+  static Future<void> _migrateToV8(Database db) async {
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.recordTableName} '
+      'ADD COLUMN delivery_event_type TEXT DEFAULT "arrival"',
+    );
+  }
+
   /// onUpgrade 가 부분 실행된 적이 있는 기기 등에서 같은 마이그레이션을
   /// 다시 시도해도 앱을 죽이지 않도록 한다.
   static Future<void> _safeExec(Database db, String sql) async {
@@ -127,6 +185,7 @@ class LocalDatabaseSchema {
       'message TEXT, '
       'contact_ids TEXT, '
       'is_active INTEGER DEFAULT 0, '
+      'awaiting_departure INTEGER DEFAULT 0, '
       'event_type TEXT DEFAULT "arrival", '
       'repeat_type TEXT DEFAULT "none", '
       'custom_days_bitmask INTEGER)';
@@ -150,7 +209,12 @@ class LocalDatabaseSchema {
       'message TEXT, '
       'recipients TEXT, '
       'created_at TEXT, '
-      'send_machine TEXT)';
+      'send_machine TEXT, '
+      'status TEXT DEFAULT "completed", '
+      'delivery_key TEXT, '
+      'retry_count INTEGER DEFAULT 0, '
+      'last_error TEXT DEFAULT "", '
+      'delivery_event_type TEXT DEFAULT "arrival")';
 
   static const String _createNotificationsTable =
       'CREATE TABLE ${LocalDatabaseProperties.notificationTableName}'

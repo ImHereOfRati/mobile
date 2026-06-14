@@ -150,6 +150,23 @@ void main() {
       // Assert
       verify(mockStorage.delete(key: 'access_token')).called(1);
       verify(mockStorage.delete(key: 'refresh_token')).called(1);
+      verify(mockStorage.delete(key: 'pending_auth')).called(1);
+    });
+
+    test('savePendingAuth/getPendingAuth: pending 상태를 저장하고 조회해야 함', () async {
+      when(
+        mockStorage.write(key: anyNamed('key'), value: anyNamed('value')),
+      ).thenAnswer((_) async => Future.value());
+      when(
+        mockStorage.read(key: 'pending_auth'),
+      ).thenAnswer((_) async => 'true');
+
+      await tokenStorageService.savePendingAuth(true);
+      final result = await tokenStorageService.getPendingAuth();
+
+      expect(result, isTrue);
+      verify(mockStorage.write(key: 'pending_auth', value: 'true')).called(1);
+      verify(mockStorage.read(key: 'pending_auth')).called(1);
     });
 
     test('통합: Access Token 저장 후 조회 시나리오', () async {

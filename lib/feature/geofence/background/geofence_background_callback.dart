@@ -1,62 +1,23 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
-import 'package:iamhere/infrastructure/di/di_setup.dart';
-import 'package:iamhere/firebase_options.dart';
-import 'package:iamhere/integration/firebase/firebase_service.dart';
 import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/feature/geofence/background/geofence_background_runtime.dart';
+import 'package:iamhere/feature/geofence/background/geofence_event_filter.dart';
 import 'package:native_geofence/native_geofence.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/model/delivery_event.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
-
-bool _backgroundIsolateBootstrapped = false;
-
-/// 백그라운드 아이솔레이트에서 DI / Firebase 를 초기화한다.
-Future<void> _bootstrapBackgroundIsolate() async {
-  if (_backgroundIsolateBootstrapped) return;
-
-  WidgetsFlutterBinding.ensureInitialized();
-  AppLogger.debug('BG_BOOT: Starting...');
-
-  try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      AppLogger.debug('BG_BOOT: Firebase Initialized');
-    }
-  } catch (e) {
-    AppLogger.error('BG_BOOT: Firebase Error', e);
-  }
-
-  if (!GetIt.instance.isRegistered<String>(instanceName: 'baseUrl')) {
-    try {
-      final fbs = FirebaseService();
-      await fbs.initialize();
-      final String baseUrl =
-          fbs.remoteConfig.baseUrlOrNull ?? 'https://fortuneki.site';
-      await enrollBaseUrlGlobally(baseUrl: baseUrl);
-      _backgroundIsolateBootstrapped = true;
-      AppLogger.debug('BG_BOOT: DI Initialized ($baseUrl)');
-    } catch (e) {
-      AppLogger.error('BG_BOOT: DI Error', e);
-    }
-    return;
-  }
-
-  _backgroundIsolateBootstrapped = true;
-  AppLogger.debug('BG_BOOT: Already Initialized');
-}
 
 /// OS 가 지오펜스 진입 이벤트를 발생시키면 호출되는 최상위 함수.
 @pragma('vm:entry-point')
 Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
   try {
     AppLogger.debug('BG_EVENT: ${params.event}');
-    await _bootstrapBackgroundIsolate();
+    await bootstrapBackgroundRuntime();
 
-    final allowedEvents = {GeofenceEvent.enter, GeofenceEvent.dwell};
-    if (!allowedEvents.contains(params.event)) {
+    final deliveryEvent = DeliveryEvent.fromNativeEvent(params.event);
+    if (deliveryEvent == null) {
       AppLogger.debug('BG_EVENT: Ignored (${params.event})');
       return;
     }
@@ -64,7 +25,7 @@ Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
     for (final zone in params.geofences) {
       final id = int.tryParse(zone.id);
       if (id != null) {
-        await _dispatchArrival(id, params.event);
+        await _dispatchTriggeredEvent(id, params.event, deliveryEvent);
       }
     }
   } catch (e, st) {
@@ -72,7 +33,11 @@ Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
   }
 }
 
-Future<void> _dispatchArrival(int geofenceId, GeofenceEvent event) async {
+Future<void> _dispatchTriggeredEvent(
+  int geofenceId,
+  GeofenceEvent nativeEvent,
+  DeliveryEvent deliveryEvent,
+) async {
   final getIt = GetIt.instance;
   final repo = getIt<GeofenceLocalRepository>();
   final pipeline = getIt<GeofenceDeliveryPipeline>();
@@ -86,10 +51,50 @@ Future<void> _dispatchArrival(int geofenceId, GeofenceEvent event) async {
   }
 
   if (!geofence.isActive) {
-    AppLogger.debug('BG_PROCESS: Geofence already inactive ("${geofence.name}")');
+    AppLogger.debug(
+      'BG_PROCESS: Geofence already inactive ("${geofence.name}")',
+    );
     return;
   }
 
-  AppLogger.debug('BG_PROCESS: Queueing "${geofence.name}" from ${event.name}');
-  await pipeline.enqueueTriggeredGeofence(geofence: geofence, event: event);
+  final eventType = EventType.fromName(geofence.eventType);
+  if (!_shouldHandleEvent(geofence, eventType, deliveryEvent)) {
+    AppLogger.debug(
+      'BG_PROCESS: Ignored ${deliveryEvent.name} for "${geofence.name}"',
+    );
+    return;
+  }
+
+  AppLogger.debug(
+    'BG_PROCESS: Queueing "${geofence.name}" from ${nativeEvent.name}/${deliveryEvent.name}',
+  );
+  await pipeline.enqueueTriggeredGeofence(geofence: geofence, event: deliveryEvent);
+  await _applyGeofenceStateAfterQueueAccepted(
+    repo: repo,
+    geofence: geofence,
+    eventType: eventType,
+    deliveryEvent: deliveryEvent,
+  );
+}
+
+bool _shouldHandleEvent(
+  GeofenceEntity geofence,
+  EventType eventType,
+  DeliveryEvent deliveryEvent,
+) => GeofenceEventFilter.shouldHandle(geofence, eventType, deliveryEvent);
+
+Future<void> _applyGeofenceStateAfterQueueAccepted({
+  required GeofenceLocalRepository repo,
+  required GeofenceEntity geofence,
+  required EventType eventType,
+  required DeliveryEvent deliveryEvent,
+}) async {
+  if (geofence.id == null) return;
+
+  if (eventType == EventType.both && deliveryEvent == DeliveryEvent.arrival) {
+    await repo.updateAwaitingDeparture(geofence.id!, true);
+    return;
+  }
+
+  await repo.updateActiveStatus(geofence.id!, false);
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 import 'package:iamhere/feature/auth/view/component/auth_hero_section.dart';
@@ -21,6 +22,7 @@ class AuthView extends ConsumerStatefulWidget {
   static const _permissionSectionTitle = '이렇게 시작해요';
   static const _privacyNoteText = '내 위치는 기기 안에서만 처리돼요.\n외부 서버로는 전송되지 않아요.';
   static const _termsNoteText = '로그인 시 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.';
+  static const _inactiveNotice = '현재 계정이 비활성 상태입니다. 운영자에게 문의하거나 다시 로그인해 주세요.';
 
   static const _permissionItems = [
     (Icons.edit_location_alt_outlined, '알림 만들기', '도착 알림을 먼저 저장해요'),
@@ -47,6 +49,30 @@ class _AuthViewState extends ConsumerState<AuthView> {
     await widget._authViewModel.requestFCMTokenAndSendToServer();
     if (!mounted) return;
     ref.invalidate(authStateProvider);
+
+    final redirectPath = GoRouterState.of(
+      context,
+    ).uri.queryParameters['redirect'];
+    if (loginResult == MemberState.existingUser &&
+        redirectPath != null &&
+        redirectPath.startsWith('/')) {
+      context.go(redirectPath);
+      return;
+    }
+
+    if ((loginResult == MemberState.pending ||
+            loginResult == MemberState.newUser) &&
+        redirectPath != null &&
+        redirectPath.startsWith('/')) {
+      context.go(
+        Uri(
+          path: '/terms-consent',
+          queryParameters: {'redirect': redirectPath},
+        ).toString(),
+      );
+      return;
+    }
+
     loginResult.navigate(context);
   }
 
@@ -64,6 +90,8 @@ class _AuthViewState extends ConsumerState<AuthView> {
   }
 
   Widget _buildContent() {
+    final reason = GoRouterState.of(context).uri.queryParameters['reason'];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -79,6 +107,10 @@ class _AuthViewState extends ConsumerState<AuthView> {
         ),
         SizedBox(height: 12.h),
         const AuthPrivacyNote(text: AuthView._privacyNoteText),
+        if (reason == 'inactive') ...[
+          SizedBox(height: 12.h),
+          _buildInactiveNotice(),
+        ],
         SizedBox(height: 16.h),
         _buildLoginButton(),
         SizedBox(height: 12.h),
@@ -92,6 +124,25 @@ class _AuthViewState extends ConsumerState<AuthView> {
     return LoginButton(
       buttonInfo: LoginInfoData.kakao,
       onPressed: _handleLogin,
+    );
+  }
+
+  Widget _buildInactiveNotice() {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: cs.errorContainer,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Text(
+        AuthView._inactiveNotice,
+        style: TextStyle(
+          fontFamily: 'BMHANNAAir',
+          fontSize: 13.sp,
+          color: cs.onErrorContainer,
+        ),
+      ),
     );
   }
 }

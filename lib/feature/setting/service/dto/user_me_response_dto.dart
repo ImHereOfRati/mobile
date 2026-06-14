@@ -8,12 +8,16 @@ class UserMeResponseDto {
   final String email;
   final String nickname;
   final String oAuth2Provider;
+  final bool? isActive;
+  final String? userStatus;
 
   UserMeResponseDto({
     required this.id,
     required this.email,
     required this.nickname,
     required this.oAuth2Provider,
+    this.isActive,
+    this.userStatus,
   });
 
   factory UserMeResponseDto.fromJson(Map<String, dynamic> json) =>

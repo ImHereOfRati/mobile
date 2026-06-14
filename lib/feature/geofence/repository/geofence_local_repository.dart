@@ -35,6 +35,14 @@ class GeofenceLocalRepository implements GeofenceRepository {
   }
 
   @override
+  Future<void> updateAwaitingDeparture(int id, bool awaitingDeparture) async {
+    await _geofenceDatabaseService.updateAwaitingDeparture(
+      id,
+      awaitingDeparture,
+    );
+  }
+
+  @override
   Future<void> updateAddress(int id, String address) async {
     await _geofenceDatabaseService.updateAddress(id, address);
   }

@@ -8,14 +8,44 @@ class AuthRedirectPolicy {
   String? resolve({
     required AuthState? authState,
     required String matchedLocation,
+    required Uri requestedUri,
   }) {
+    final isPending = authState == AuthState.pending;
+    final isInactive = authState == AuthState.inactive;
     final isAuthenticated = authState == AuthState.authenticated;
 
-    if (!isAuthenticated) {
-      return matchedLocation == AppRoutes.auth ? null : AppRoutes.auth;
+    if (!isAuthenticated && !isPending && !isInactive) {
+      if (matchedLocation == AppRoutes.auth) return null;
+
+      return Uri(
+        path: AppRoutes.auth,
+        queryParameters: {'redirect': requestedUri.toString()},
+      ).toString();
     }
 
-    if (matchedLocation == AppRoutes.auth) {
+    if (isPending) {
+      if (matchedLocation == AppRoutes.termsConsent) return null;
+      return Uri(
+        path: AppRoutes.termsConsent,
+        queryParameters: {'redirect': requestedUri.toString()},
+      ).toString();
+    }
+
+    if (isInactive) {
+      if (matchedLocation == AppRoutes.auth) return null;
+      return Uri(
+        path: AppRoutes.auth,
+        queryParameters: {'reason': 'inactive'},
+      ).toString();
+    }
+
+    if (matchedLocation == AppRoutes.auth ||
+        matchedLocation == AppRoutes.termsConsent) {
+      final redirect = requestedUri.queryParameters['redirect'];
+      if (redirect != null && redirect.startsWith('/')) {
+        return redirect;
+      }
+
       return AppRoutes.geofence;
     }
 

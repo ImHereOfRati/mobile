@@ -13,10 +13,12 @@ class SmsNotificationService {
   SmsNotificationService(this._smsService);
 
   /// Send SMS to multiple recipients
-  /// Returns Result<void> indicating success or failure
+  /// Returns [Result<void>] indicating success or failure.
   Future<Result<void>> sendSmsToRecipients({
     required List<String> phoneNumbers,
+    required String body,
     required String location,
+    required String type,
   }) async {
     try {
       if (phoneNumbers.isEmpty) {
@@ -26,14 +28,16 @@ class SmsNotificationService {
 
       final result = await _smsService.sendSms(
         phoneNumbers: phoneNumbers,
+        body: body,
         location: location,
+        type: type,
       );
 
       if (result is Success) {
         log('SMS sent successfully to ${phoneNumbers.length} recipients');
         return Success(null);
       } else {
-        log('SMS sending failed: ${result}');
+        log('SMS sending failed: $result');
         return Failure('Failed to send SMS');
       }
     } catch (e) {

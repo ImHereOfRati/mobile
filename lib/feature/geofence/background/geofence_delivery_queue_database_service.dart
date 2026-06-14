@@ -3,7 +3,8 @@ import 'package:iamhere/infrastructure/database/local_database_properties.dart';
 import 'package:iamhere/infrastructure/database/local_database_exception.dart';
 import 'package:iamhere/infrastructure/database/service/abstract_local_database_engine.dart';
 
-class GeofenceDeliveryQueueDatabaseService extends AbstractLocalDatabaseService {
+class GeofenceDeliveryQueueDatabaseService
+    extends AbstractLocalDatabaseService {
   static const _processingStaleAfter = Duration(minutes: 15);
 
   GeofenceDeliveryQueueDatabaseService(super.database);
@@ -36,7 +37,8 @@ class GeofenceDeliveryQueueDatabaseService extends AbstractLocalDatabaseService 
         .toIso8601String();
     return await executeRawQuery(
       entityName: 'geofence delivery queue item',
-      sql: '''
+      sql:
+          '''
         SELECT *
         FROM ${LocalDatabaseProperties.geofenceDeliveryQueueTableName}
         WHERE (status = ? AND next_attempt_at <= ?)
@@ -63,10 +65,7 @@ class GeofenceDeliveryQueueDatabaseService extends AbstractLocalDatabaseService 
         .toIso8601String();
     final count = await database.update(
       LocalDatabaseProperties.geofenceDeliveryQueueTableName,
-      {
-        'status': GeofenceDeliveryQueueEntity.processing,
-        'updated_at': now,
-      },
+      {'status': GeofenceDeliveryQueueEntity.processing, 'updated_at': now},
       where: '''
         id = ? AND (
           (status = ? AND next_attempt_at <= ?)
@@ -115,8 +114,53 @@ class GeofenceDeliveryQueueDatabaseService extends AbstractLocalDatabaseService 
     );
   }
 
+  Future<DateTime?> findEarliestPendingAttemptAt() async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final staleThreshold = DateTime.now()
+        .toUtc()
+        .subtract(_processingStaleAfter)
+        .toIso8601String();
+
+    final staleRows = await database.query(
+      LocalDatabaseProperties.geofenceDeliveryQueueTableName,
+      columns: const ['id'],
+      where: 'status = ? AND updated_at <= ?',
+      whereArgs: [GeofenceDeliveryQueueEntity.processing, staleThreshold],
+      limit: 1,
+    );
+    if (staleRows.isNotEmpty) {
+      return DateTime.now().toUtc();
+    }
+
+    final rows = await database.query(
+      LocalDatabaseProperties.geofenceDeliveryQueueTableName,
+      columns: const ['next_attempt_at'],
+      where: 'status = ?',
+      whereArgs: [GeofenceDeliveryQueueEntity.pending],
+      orderBy: 'next_attempt_at ASC',
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+
+    final nextAttemptAt = rows.first['next_attempt_at'] as String?;
+    if (nextAttemptAt == null || nextAttemptAt.isEmpty) {
+      return DateTime.parse(now);
+    }
+    return DateTime.parse(nextAttemptAt);
+  }
+
   int _backoffMinutes(int retryCount) {
-    final capped = retryCount.clamp(0, 4);
-    return [1, 5, 15, 30, 60][capped];
+    switch (retryCount) {
+      case 1:
+        return 1;
+      case 2:
+        return 5;
+      case 3:
+        return 15;
+      case 4:
+        return 30;
+      default:
+        return 60;
+    }
   }
 }

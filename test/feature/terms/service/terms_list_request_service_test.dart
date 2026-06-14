@@ -45,11 +45,13 @@ void main() {
         ],
       };
 
-      when(mockDio.get('/api/terms', queryParameters: anyNamed('queryParameters'), options: anyNamed('options'))).thenAnswer(
+      when(
+        mockDio.get('/api/terms?isActive=true', options: anyNamed('options')),
+      ).thenAnswer(
         (_) async => Response(
           data: responseData,
           statusCode: 200,
-          requestOptions: RequestOptions(path: '/api/terms'),
+          requestOptions: RequestOptions(path: '/api/terms?isActive=true'),
         ),
       );
 
@@ -70,16 +72,20 @@ void main() {
       expect(result.data![1].type, TermsType.privacy);
       expect(result.data![1].isRequired, true);
 
-      verify(mockDio.get('/api/terms', queryParameters: anyNamed('queryParameters'), options: anyNamed('options'))).called(1);
+      verify(
+        mockDio.get('/api/terms?isActive=true', options: anyNamed('options')),
+      ).called(1);
     });
 
     test('실패: 200이 아닌 상태 코드 시 예외를 발생해야 함', () async {
       // Arrange
-      when(mockDio.get('/api/terms', queryParameters: anyNamed('queryParameters'), options: anyNamed('options'))).thenAnswer(
+      when(
+        mockDio.get('/api/terms?isActive=true', options: anyNamed('options')),
+      ).thenAnswer(
         (_) async => Response(
           data: {},
           statusCode: 400,
-          requestOptions: RequestOptions(path: '/api/terms'),
+          requestOptions: RequestOptions(path: '/api/terms?isActive=true'),
         ),
       );
 
@@ -89,9 +95,9 @@ void main() {
 
     test('실패: Dio 예외 발생 시 예외를 전파해야 함', () async {
       // Arrange
-      final requestOptions = RequestOptions(path: '/api/terms');
+      final requestOptions = RequestOptions(path: '/api/terms?isActive=true');
       when(
-        mockDio.get('/api/terms', queryParameters: anyNamed('queryParameters'), options: anyNamed('options')),
+        mockDio.get('/api/terms?isActive=true', options: anyNamed('options')),
       ).thenThrow(DioException(requestOptions: requestOptions));
 
       // Act & Assert

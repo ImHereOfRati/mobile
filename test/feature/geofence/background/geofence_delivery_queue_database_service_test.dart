@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_database_service.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
 
 import '../../../infrastructure/database/_helpers/test_database_factory.dart';
 
@@ -23,18 +22,20 @@ void main() {
     String status = GeofenceDeliveryQueueEntity.pending,
     DateTime? nextAttemptAt,
     int retryCount = 0,
-    String snapshotJson = '{"geofence":{"id":1,"name":"집","address":"","lat":37.0,"lng":127.0,"radius":250.0,"message":"도착","contactIds":"[]","isActive":true},"recipientNames":[],"smsPhoneNumbers":[],"serverEmails":[],"eventName":"enter"}',
-  }) =>
-      GeofenceDeliveryQueueEntity(
-        dedupeKey: dedupeKey,
-        snapshotJson: snapshotJson,
-        status: status,
-        retryCount: retryCount,
-        nextAttemptAt: nextAttemptAt ?? DateTime.now().toUtc().subtract(const Duration(seconds: 1)),
-        lastError: '',
-        createdAt: DateTime.now().toUtc(),
-        updatedAt: DateTime.now().toUtc(),
-      );
+    String snapshotJson =
+        '{"geofence":{"id":1,"name":"집","address":"","lat":37.0,"lng":127.0,"radius":250.0,"message":"도착","contactIds":"[]","isActive":true},"recipientNames":[],"smsPhoneNumbers":[],"serverEmails":[],"eventName":"enter"}',
+  }) => GeofenceDeliveryQueueEntity(
+    dedupeKey: dedupeKey,
+    snapshotJson: snapshotJson,
+    status: status,
+    retryCount: retryCount,
+    nextAttemptAt:
+        nextAttemptAt ??
+        DateTime.now().toUtc().subtract(const Duration(seconds: 1)),
+    lastError: '',
+    createdAt: DateTime.now().toUtc(),
+    updatedAt: DateTime.now().toUtc(),
+  );
 
   group('enqueue', () {
     test('saves item and assigns id', () async {
@@ -80,7 +81,7 @@ void main() {
       );
 
       final saved1 = await sut.enqueue(dueSoon);
-      final saved2 = await sut.enqueue(notYet);
+      await sut.enqueue(notYet);
 
       final dueItems = await sut.takeDue(limit: 10);
 
@@ -95,7 +96,7 @@ void main() {
         status: GeofenceDeliveryQueueEntity.processing,
         nextAttemptAt: now,
       );
-      final saved = await sut.enqueue(entity);
+      await sut.enqueue(entity);
 
       final dueItems = await sut.takeDue(limit: 10);
       expect(dueItems, isEmpty);
@@ -106,19 +107,16 @@ void main() {
       final staleTime = now.subtract(const Duration(minutes: 20));
 
       // Manually insert a stale processing row
-      await handle.database.insert(
-        'geofence_delivery_queue',
-        {
-          'dedupe_key': 'g1:stale',
-          'snapshot_json': '{}',
-          'status': GeofenceDeliveryQueueEntity.processing,
-          'retry_count': 1,
-          'next_attempt_at': now.toIso8601String(),
-          'last_error': 'network timeout',
-          'created_at': staleTime.toIso8601String(),
-          'updated_at': staleTime.toIso8601String(),
-        },
-      );
+      await handle.database.insert('geofence_delivery_queue', {
+        'dedupe_key': 'g1:stale',
+        'snapshot_json': '{}',
+        'status': GeofenceDeliveryQueueEntity.processing,
+        'retry_count': 1,
+        'next_attempt_at': now.toIso8601String(),
+        'last_error': 'network timeout',
+        'created_at': staleTime.toIso8601String(),
+        'updated_at': staleTime.toIso8601String(),
+      });
 
       final dueItems = await sut.takeDue(limit: 10);
       expect(dueItems, hasLength(1));
@@ -197,26 +195,31 @@ void main() {
       final now = DateTime.now().toUtc();
       await sut.reschedule(id: id, retryCount: 1, lastError: 'network error');
 
-      final all = await handle.database.query('geofence_delivery_queue', where: 'id = ?', whereArgs: [id]);
+      final all = await handle.database.query(
+        'geofence_delivery_queue',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
       expect(all, hasLength(1));
       final updated = all.first;
       expect(updated['status'], GeofenceDeliveryQueueEntity.pending);
       expect(updated['retry_count'], 1);
       expect(updated['last_error'], 'network error');
 
-      final nextAttemptAt = DateTime.parse(updated['next_attempt_at'] as String);
+      final nextAttemptAt = DateTime.parse(
+        updated['next_attempt_at'] as String,
+      );
       final delayMinutes = nextAttemptAt.difference(now).inMinutes;
-      expect(delayMinutes, 5); // retry 1 → 5 min backoff
+      expect(delayMinutes, 1); // retry 1 → 1 min backoff
     });
 
-    test('exponential backoff: 0→1, 1→5, 2→15, 3→30, 4→60, 5+→60', () async {
+    test('exponential backoff: 1→1, 2→5, 3→15, 4→30, 5+→60', () async {
       final testCases = [
-        (0, 1),   // 0th retry → 1 min
-        (1, 5),   // 1st retry → 5 min
-        (2, 15),  // 2nd retry → 15 min
-        (3, 30),  // 3rd retry → 30 min
-        (4, 60),  // 4th retry → 60 min
-        (5, 60),  // 5th+ retry → 60 min (capped)
+        (1, 1), // 1st retry → 1 min
+        (2, 5), // 2nd retry → 5 min
+        (3, 15), // 3rd retry → 15 min
+        (4, 30), // 4th retry → 30 min
+        (5, 60), // 5th+ retry → 60 min (capped)
       ];
 
       for (final (retryCount, expectedMinutes) in testCases) {
@@ -227,11 +230,21 @@ void main() {
         final now = DateTime.now().toUtc();
         await sut.reschedule(id: id, retryCount: retryCount, lastError: '');
 
-        final all = await handle.database.query('geofence_delivery_queue', where: 'id = ?', whereArgs: [id]);
+        final all = await handle.database.query(
+          'geofence_delivery_queue',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
         final updated = all.first;
-        final nextAttemptAt = DateTime.parse(updated['next_attempt_at'] as String);
+        final nextAttemptAt = DateTime.parse(
+          updated['next_attempt_at'] as String,
+        );
         final delayMinutes = nextAttemptAt.difference(now).inMinutes;
-        expect(delayMinutes, expectedMinutes, reason: 'retry $retryCount should backoff $expectedMinutes min');
+        expect(
+          delayMinutes,
+          expectedMinutes,
+          reason: 'retry $retryCount should backoff $expectedMinutes min',
+        );
       }
     });
 
@@ -242,7 +255,11 @@ void main() {
 
       for (int i = 0; i < 3; i++) {
         await sut.reschedule(id: id, retryCount: i, lastError: 'attempt $i');
-        final all = await handle.database.query('geofence_delivery_queue', where: 'id = ?', whereArgs: [id]);
+        final all = await handle.database.query(
+          'geofence_delivery_queue',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
         final updated = all.first;
         expect(updated['retry_count'], i);
       }

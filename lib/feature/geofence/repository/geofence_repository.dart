@@ -11,5 +11,7 @@ abstract class GeofenceRepository {
 
   Future<void> updateActiveStatus(int id, bool isActive);
 
+  Future<void> updateAwaitingDeparture(int id, bool awaitingDeparture);
+
   Future<void> updateAddress(int id, String address);
 }

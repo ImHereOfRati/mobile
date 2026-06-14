@@ -9,6 +9,8 @@ class RecordOverviewItemBase extends StatelessWidget {
   final TextStyle? titleStyle;
   final TextStyle? subtitleStyle;
   final Widget? trailing;
+  final Widget? footer;
+  final int subtitleMaxLines;
 
   const RecordOverviewItemBase({
     super.key,
@@ -18,6 +20,8 @@ class RecordOverviewItemBase extends StatelessWidget {
     this.titleStyle,
     this.subtitleStyle,
     this.trailing,
+    this.footer,
+    this.subtitleMaxLines = 1,
   });
 
   @override
@@ -40,7 +44,16 @@ class RecordOverviewItemBase extends StatelessWidget {
                   children: [
                     Text(title, style: titleStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
                     SizedBox(height: 2.h),
-                    Text(subtitle, style: subtitleStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(
+                      subtitle,
+                      style: subtitleStyle,
+                      maxLines: subtitleMaxLines,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (footer != null) ...[
+                      SizedBox(height: 6.h),
+                      footer!,
+                    ],
                   ],
                 ),
               ),

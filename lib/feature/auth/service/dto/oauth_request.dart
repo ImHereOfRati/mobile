@@ -9,5 +9,8 @@ class OAuthRequestDto {
 
   OAuthRequestDto({required this.provider, required this.idToken});
 
+  factory OAuthRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$OAuthRequestDtoFromJson(json);
+
   Map<String, dynamic> toJson() => _$OAuthRequestDtoToJson(this);
 }

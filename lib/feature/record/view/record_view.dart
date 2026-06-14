@@ -10,11 +10,35 @@ import 'record_friend_requests_section.dart';
 import 'record_notifications_section.dart';
 import 'record_send_history_section.dart';
 
-class RecordView extends ConsumerWidget {
+class RecordView extends ConsumerStatefulWidget {
   const RecordView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RecordView> createState() => _RecordViewState();
+}
+
+class _RecordViewState extends ConsumerState<RecordView> {
+  late final AppLifecycleListener _lifecycleListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(onResume: _refreshRecords);
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  void _refreshRecords() {
+    if (!mounted) return;
+    ref.invalidate(geofenceRecordViewModelProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final recordsAsync = ref.watch(geofenceRecordViewModelProvider);
     final notificationsAsync = ref.watch(notificationViewModelProvider);
     final friendRequestsAsync = ref.watch(friendRequestViewModelProvider);

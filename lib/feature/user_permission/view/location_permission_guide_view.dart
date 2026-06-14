@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
@@ -53,6 +54,7 @@ class _LocationPermissionGuideViewState
 
     // '항상 허용' 이 확인되면 자동으로 true 반환하며 닫는다.
     if (status == PermissionState.grantedAlways) {
+      ref.invalidate(geofenceViewModelProvider);
       Navigator.of(context).pop(true);
     }
   }
@@ -224,14 +226,24 @@ class _LocationPermissionGuideViewState
           PermissionState.serviceDisabled: (
             'GPS 꺼짐',
             colorScheme.error,
-            Icons.location_off
+            Icons.location_off,
           ),
-          PermissionState.grantedAlways: ('항상 허용', colorScheme.primary, Icons.check_circle),
-          PermissionState.grantedWhenInUse:
-              ('앱 사용 중에만 허용', colorScheme.tertiary, Icons.info),
+          PermissionState.grantedAlways: (
+            '항상 허용',
+            colorScheme.primary,
+            Icons.check_circle,
+          ),
+          PermissionState.grantedWhenInUse: (
+            '앱 사용 중에만 허용',
+            colorScheme.tertiary,
+            Icons.info,
+          ),
           PermissionState.denied: ('거부됨', colorScheme.error, Icons.cancel),
-          PermissionState.permanentlyDenied:
-              ('영구 거부됨', colorScheme.error, Icons.block),
+          PermissionState.permanentlyDenied: (
+            '영구 거부됨',
+            colorScheme.error,
+            Icons.block,
+          ),
           PermissionState.restricted: ('제한됨', colorScheme.error, Icons.lock),
         }[status] ??
         ('알 수 없음', colorScheme.onSurface, Icons.help_outline);

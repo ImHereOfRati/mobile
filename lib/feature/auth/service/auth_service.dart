@@ -42,9 +42,15 @@ class AuthService {
       }
 
       _handleErrorResponse(apiResponse);
-      final (:code, :access, :refresh, :userStatus) = _parseToken(response);
+      final (:code, :access, :refresh, :userStatus, :isActive) = _parseToken(
+        response,
+      );
 
       await _saveTokenToStorage(access, refresh);
+      await _tokenStorage.saveAuthSnapshot(
+        userStatus: userStatus,
+        isActive: isActive,
+      );
 
       if (userStatus == 'PENDING') {
         return MemberState.pending;
@@ -74,24 +80,22 @@ class AuthService {
     }
   }
 
-  Future<Response<dynamic>> _requestAuthenticationToServer(
-    {
+  Future<Response<dynamic>> _requestAuthenticationToServer({
     required String path,
     required String idToken,
-  }
-  ) async {
+  }) async {
     final authRequestData = OAuthRequestDto(
-      provider: OauthProvider.KAKAO.name,
+      provider: OauthProvider.kakao.name.toUpperCase(),
       idToken: idToken,
     );
 
     try {
       return await _dio.post(
         path,
-        data: authRequestData,
+        data: authRequestData.toJson(),
         options: Options(
           extra: const {'requiresAuthentication': false},
-          validateStatus: (status) => status != null && (status >= 200 && status < 300 || status == 404),
+          validateStatus: (status) => status != null && status < 500,
         ),
       );
     } on DioException catch (e, st) {
@@ -99,12 +103,23 @@ class AuthService {
     }
   }
 
-  ({int code, String access, String refresh, String? userStatus}) _parseToken(Response response) {
+  ({
+    int code,
+    String access,
+    String refresh,
+    String? userStatus,
+    bool? isActive,
+  })
+  _parseToken(Response response) {
     final apiResponse = _convertResponseToDartObject(response);
     final responseStatusCode = response.statusCode;
 
-    if (responseStatusCode == null || (responseStatusCode < 200 || responseStatusCode >= 300) && responseStatusCode != 404) {
-      throw InvalidResponseException('Invalid status code: $responseStatusCode');
+    if (responseStatusCode == null ||
+        ((responseStatusCode < 200 || responseStatusCode >= 300) &&
+            responseStatusCode != 404)) {
+      throw InvalidResponseException(
+        'Invalid status code: $responseStatusCode',
+      );
     }
 
     final authData = apiResponse.data;
@@ -115,10 +130,10 @@ class AuthService {
     final accessToken = authData.accessToken;
     final refreshToken = authData.refreshToken;
 
-    if (accessToken == null || accessToken.isEmpty) {
+    if (accessToken.isEmpty) {
       throw TokenParseException();
     }
-    if (refreshToken == null || refreshToken.isEmpty) {
+    if (refreshToken.isEmpty) {
       throw TokenParseException();
     }
 
@@ -127,6 +142,7 @@ class AuthService {
       access: accessToken,
       refresh: refreshToken,
       userStatus: authData.userStatus,
+      isActive: authData.isActive,
     );
   }
 
@@ -134,7 +150,7 @@ class AuthService {
     final responseCode = apiResponse.imhereResponseCode;
 
     if (responseCode != 'SUCCESS' && responseCode != 'AUTH-300') {
-      final msg = apiResponse.message?.toString() ?? '';
+      final msg = apiResponse.message.toString();
       throw ServerAuthException(
         responseCode,
         msg.isNotEmpty ? msg : ResultMessage.serverError.toString(),

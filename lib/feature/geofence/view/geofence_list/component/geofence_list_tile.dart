@@ -45,6 +45,7 @@ class GeofenceListTile extends StatelessWidget {
             key: ValueKey('${g.id}_${g.isActive}'), // ID와 활성 상태를 조합한 키 사용
             homeName: g.name,
             address: g.address.isNotEmpty ? g.address : _loadingAddress,
+            eventType: g.eventType,
             memberCount: _parseCount(g.contactIds) + g.serverRecipientCount,
             isToggleOn: g.isActive,
             isAutoSendReady: isAutoSendReady,
@@ -71,7 +72,10 @@ class GeofenceListTile extends StatelessWidget {
         ),
         style: OutlinedButton.styleFrom(
           padding: EdgeInsets.symmetric(vertical: 14.h),
-          side: BorderSide(color: cs.primary.withValues(alpha: 0.4), width: 1.2.r),
+          side: BorderSide(
+            color: cs.primary.withValues(alpha: 0.4),
+            width: 1.2.r,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
           ),

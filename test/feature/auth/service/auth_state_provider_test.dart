@@ -39,12 +39,51 @@ void main() {
       when(
         mockTokenStorageService.getAccessToken(),
       ).thenAnswer((_) async => testAccessToken);
+      when(
+        mockTokenStorageService.getPendingAuth(),
+      ).thenAnswer((_) async => false);
+      when(
+        mockTokenStorageService.getUserStatus(),
+      ).thenAnswer((_) async => null);
+      when(mockTokenStorageService.getIsActive()).thenAnswer((_) async => true);
 
       //when
       final result = await container.read(authStateProvider.future);
 
       //then
       expect(result, AuthState.authenticated);
+    });
+
+    test('pending 플래그가 있으면 pending 을 반환한다.', () async {
+      when(
+        mockTokenStorageService.getAccessToken(),
+      ).thenAnswer((_) async => 'access_token');
+      when(
+        mockTokenStorageService.getPendingAuth(),
+      ).thenAnswer((_) async => true);
+
+      final result = await container.read(authStateProvider.future);
+
+      expect(result, AuthState.pending);
+    });
+
+    test('isActive 가 false 이면 inactive 를 반환한다.', () async {
+      when(
+        mockTokenStorageService.getAccessToken(),
+      ).thenAnswer((_) async => 'access_token');
+      when(
+        mockTokenStorageService.getPendingAuth(),
+      ).thenAnswer((_) async => false);
+      when(
+        mockTokenStorageService.getUserStatus(),
+      ).thenAnswer((_) async => 'ACTIVE');
+      when(
+        mockTokenStorageService.getIsActive(),
+      ).thenAnswer((_) async => false);
+
+      final result = await container.read(authStateProvider.future);
+
+      expect(result, AuthState.inactive);
     });
 
     test('없으면 unauthenticated 를 반환한다', () async {

@@ -17,12 +17,34 @@ class RecordDatabaseService extends AbstractLocalDatabaseService {
         entityDetails: 'Geofence: ${entity.geofenceName}',
       );
 
+  Future<void> update(GeofenceRecordEntity entity) async {
+    await executeUpdate(
+      entityName: 'geofence record',
+      entityId: entity.id,
+      table: LocalDatabaseProperties.recordTableName,
+      values: entity.toMap()..remove('id'),
+      entityDetails: 'Geofence: ${entity.geofenceName}',
+    );
+  }
+
   Future<List<GeofenceRecordEntity>> findAll() => findAllEntities(
     entityName: 'geofence record',
     table: LocalDatabaseProperties.recordTableName,
     fromMap: GeofenceRecordEntity.fromMap,
     orderBy: 'created_at DESC',
   );
+
+  Future<GeofenceRecordEntity?> findByDeliveryKey(String deliveryKey) async {
+    final rows = await database.query(
+      LocalDatabaseProperties.recordTableName,
+      where: 'delivery_key = ?',
+      whereArgs: [deliveryKey],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) return null;
+    return GeofenceRecordEntity.fromMap(rows.first);
+  }
 
   Future<void> deleteAll() => deleteAllEntities(
     entityName: 'all geofence records',

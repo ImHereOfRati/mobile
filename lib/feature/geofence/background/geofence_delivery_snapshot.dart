@@ -7,14 +7,14 @@ class GeofenceDeliverySnapshot {
   final List<String> recipientNames;
   final List<String> smsPhoneNumbers;
   final List<String> serverEmails;
-  final String eventName;
+  final String deliveryEventType;
 
   const GeofenceDeliverySnapshot({
     required this.geofence,
     required this.recipientNames,
     required this.smsPhoneNumbers,
     required this.serverEmails,
-    required this.eventName,
+    required this.deliveryEventType,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,7 +23,7 @@ class GeofenceDeliverySnapshot {
       'recipientNames': recipientNames,
       'smsPhoneNumbers': smsPhoneNumbers,
       'serverEmails': serverEmails,
-      'eventName': eventName,
+      'deliveryEventType': deliveryEventType,
     };
   }
 
@@ -43,7 +43,22 @@ class GeofenceDeliverySnapshot {
       recipientNames: List<String>.from(map['recipientNames'] as List),
       smsPhoneNumbers: List<String>.from(map['smsPhoneNumbers'] as List),
       serverEmails: List<String>.from(map['serverEmails'] as List),
-      eventName: map['eventName'] as String? ?? 'enter',
+      deliveryEventType: _normalizeStoredDeliveryEventType(
+        map['deliveryEventType'] as String? ?? map['eventName'] as String?,
+      ),
     );
+  }
+
+  static String _normalizeStoredDeliveryEventType(String? raw) {
+    switch (raw) {
+      case 'departure':
+      case 'exit':
+        return 'departure';
+      case 'arrival':
+      case 'enter':
+      case 'dwell':
+      default:
+        return 'arrival';
+    }
   }
 }

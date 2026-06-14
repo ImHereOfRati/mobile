@@ -1,6 +1,5 @@
-import 'dart:developer' as dev;
-
 import 'package:iamhere/feature/geofence/background/geofence_background_callback.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
@@ -44,7 +43,9 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
   Future<void> _ensureBackgroundLocationPermission() async {
     final state = await _permissionService.checkPermissionStatus();
     if (state != PermissionState.grantedAlways) {
-      AppLogger.warning('NativeGeofenceRegistrar: Permission check failed. Current: ${state.name}');
+      AppLogger.warning(
+        'NativeGeofenceRegistrar: Permission check failed. Current: ${state.name}',
+      );
       throw MissingBackgroundLocationException(
         state,
         '백그라운드 위치 권한(항상 허용)이 필요합니다. 현재: ${state.name}',
@@ -55,41 +56,56 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
   @override
   Future<void> register(GeofenceEntity geofence) async {
     if (geofence.id == null) {
-      AppLogger.warning('NativeGeofenceRegistrar: register skipped - geofence.id is null (${geofence.name})');
+      AppLogger.warning(
+        'NativeGeofenceRegistrar: register skipped - geofence.id is null (${geofence.name})',
+      );
       return;
     }
     if (!geofence.isActive) {
-      AppLogger.debug('NativeGeofenceRegistrar: register skipped - geofence inactive (${geofence.name})');
+      AppLogger.debug(
+        'NativeGeofenceRegistrar: register skipped - geofence inactive (${geofence.name})',
+      );
       return;
     }
     await _ensureBackgroundLocationPermission();
     await initialize();
 
+    final eventType = EventType.fromName(geofence.eventType);
+    final triggers = _toTriggers(eventType);
+    final initialTriggers = _toInitialTriggers(eventType);
+
     final zone = Geofence(
       id: geofence.id!.toString(),
       location: Location(latitude: geofence.lat, longitude: geofence.lng),
       radiusMeters: geofence.radius,
-      triggers: const {GeofenceEvent.enter, GeofenceEvent.dwell},
+      triggers: triggers,
       iosSettings: IosGeofenceSettings(initialTrigger: true),
       androidSettings: AndroidGeofenceSettings(
-        initialTriggers: const {GeofenceEvent.enter, GeofenceEvent.dwell},
+        initialTriggers: initialTriggers,
         expiration: null,
         loiteringDelay: Duration.zero,
         notificationResponsiveness: Duration.zero,
       ),
     );
 
-    AppLogger.debug('NativeGeofenceRegistrar: Registering "${geofence.name}" (ID: ${geofence.id}) '
-        'at [${geofence.lat}, ${geofence.lng}] with radius ${geofence.radius}m');
+    AppLogger.debug(
+      'NativeGeofenceRegistrar: Registering "${geofence.name}" (ID: ${geofence.id}) '
+      'at [${geofence.lat}, ${geofence.lng}] with radius ${geofence.radius}m',
+    );
 
     try {
       await NativeGeofenceManager.instance.createGeofence(
         zone,
         geofenceTriggered,
       );
-      AppLogger.debug('NativeGeofenceRegistrar: Successfully registered "${geofence.name}"');
+      AppLogger.debug(
+        'NativeGeofenceRegistrar: Successfully registered "${geofence.name}"',
+      );
     } catch (e) {
-      AppLogger.error('NativeGeofenceRegistrar: Registration failed for "${geofence.name}"', e);
+      AppLogger.error(
+        'NativeGeofenceRegistrar: Registration failed for "${geofence.name}"',
+        e,
+      );
       rethrow;
     }
   }
@@ -101,16 +117,23 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
       await NativeGeofenceManager.instance.removeGeofenceById(
         geofenceId.toString(),
       );
-      AppLogger.debug('NativeGeofenceRegistrar: Unregistered geofence ID: $geofenceId');
+      AppLogger.debug(
+        'NativeGeofenceRegistrar: Unregistered geofence ID: $geofenceId',
+      );
     } catch (e) {
-      AppLogger.error('NativeGeofenceRegistrar: Unregister failed for ID: $geofenceId', e);
+      AppLogger.error(
+        'NativeGeofenceRegistrar: Unregister failed for ID: $geofenceId',
+        e,
+      );
     }
   }
 
   @override
   Future<void> syncAll(List<GeofenceEntity> activeGeofences) async {
-    AppLogger.debug('NativeGeofenceRegistrar: Starting syncAll with ${activeGeofences.length} items');
-    
+    AppLogger.debug(
+      'NativeGeofenceRegistrar: Starting syncAll with ${activeGeofences.length} items',
+    );
+
     // iOS 20개 제한 대응: 앞의 N개만 선택 (정책: id 오름차순 = 등록순).
     final selected = activeGeofences.where((g) => g.isActive).toList();
     selected.sort((a, b) => (a.id ?? 0).compareTo(b.id ?? 0));
@@ -132,20 +155,30 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
     try {
       final registered = await NativeGeofenceManager.instance
           .getRegisteredGeofenceIds();
-      AppLogger.debug('NativeGeofenceRegistrar: Currently registered in OS: $registered');
-      
+      AppLogger.debug(
+        'NativeGeofenceRegistrar: Currently registered in OS: $registered',
+      );
+
       for (final id in registered) {
         if (!effectiveIds.contains(id)) {
           try {
             await NativeGeofenceManager.instance.removeGeofenceById(id);
-            AppLogger.debug('NativeGeofenceRegistrar: Removed stale geofence ID: $id');
+            AppLogger.debug(
+              'NativeGeofenceRegistrar: Removed stale geofence ID: $id',
+            );
           } catch (e) {
-            AppLogger.error('NativeGeofenceRegistrar: Failed to remove stale geofence ID: $id', e);
+            AppLogger.error(
+              'NativeGeofenceRegistrar: Failed to remove stale geofence ID: $id',
+              e,
+            );
           }
         }
       }
     } catch (e) {
-      AppLogger.error('NativeGeofenceRegistrar: syncAll - getRegisteredGeofenceIds failed', e);
+      AppLogger.error(
+        'NativeGeofenceRegistrar: syncAll - getRegisteredGeofenceIds failed',
+        e,
+      );
     }
 
     // 목록에 있는 것 등록.
@@ -156,7 +189,7 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
     final skipped = selected.length - effective.length;
     if (skipped > 0) {
       AppLogger.warning(
-        'NativeGeofenceRegistrar: syncAll - $skipped geofence(s) skipped due to iOS ${_maxIosRegions}-region cap',
+        'NativeGeofenceRegistrar: syncAll - $skipped geofence(s) skipped due to iOS $_maxIosRegions-region cap',
       );
     }
     AppLogger.debug('NativeGeofenceRegistrar: syncAll completed');
@@ -166,12 +199,38 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
   Future<List<String>> getRegisteredIds() async {
     await initialize();
     try {
-      final ids = await NativeGeofenceManager.instance.getRegisteredGeofenceIds();
+      final ids = await NativeGeofenceManager.instance
+          .getRegisteredGeofenceIds();
       AppLogger.debug('NativeGeofenceRegistrar: Registered IDs: $ids');
       return ids;
     } catch (e) {
       AppLogger.error('NativeGeofenceRegistrar: getRegisteredIds failed', e);
       return const [];
+    }
+  }
+
+  Set<GeofenceEvent> _toTriggers(EventType eventType) {
+    switch (eventType) {
+      case EventType.arrival:
+        return const {GeofenceEvent.enter, GeofenceEvent.dwell};
+      case EventType.departure:
+        return const {GeofenceEvent.exit};
+      case EventType.both:
+        return const {
+          GeofenceEvent.enter,
+          GeofenceEvent.dwell,
+          GeofenceEvent.exit,
+        };
+    }
+  }
+
+  Set<GeofenceEvent> _toInitialTriggers(EventType eventType) {
+    switch (eventType) {
+      case EventType.departure:
+        return const {GeofenceEvent.exit};
+      case EventType.arrival:
+      case EventType.both:
+        return const {GeofenceEvent.enter, GeofenceEvent.dwell};
     }
   }
 }

@@ -7,7 +7,7 @@ import 'details/enroll_details_section.dart';
 import 'location/enroll_location_section.dart';
 import 'recipient/enroll_recipient_section.dart';
 import 'event/enroll_event_section.dart';
-import 'repeat/enroll_repeat_section.dart';
+
 class EnrollFormBody extends ConsumerStatefulWidget {
   final Widget mapSection;
   final VoidCallback onOpenRecipientSelect;
@@ -36,17 +36,29 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = ref.read(geofenceEnrollViewModelProvider);
-      if (state.name.isNotEmpty && _nameController.text.isEmpty) _nameController.text = state.name;
-      if (state.message.isNotEmpty && _messageController.text.isEmpty) _messageController.text = state.message;
+      if (state.name.isNotEmpty && _nameController.text.isEmpty) {
+        _nameController.text = state.name;
+      }
+      if (state.message.isNotEmpty && _messageController.text.isEmpty) {
+        _messageController.text = state.message;
+      }
     });
   }
 
   @override
-  void dispose() { _nameController.dispose(); _messageController.dispose(); super.dispose(); }
+  void dispose() {
+    _nameController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
 
-  void _onName() => ref.read(geofenceEnrollViewModelProvider.notifier).updateName(_nameController.text);
+  void _onName() => ref
+      .read(geofenceEnrollViewModelProvider.notifier)
+      .updateName(_nameController.text);
 
-  void _onMessage() => ref.read(geofenceEnrollViewModelProvider.notifier).updateMessage(_messageController.text);
+  void _onMessage() => ref
+      .read(geofenceEnrollViewModelProvider.notifier)
+      .updateMessage(_messageController.text);
 
   @override
   Widget build(BuildContext context) {
@@ -76,14 +88,10 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
             onRadiusChanged: notifier.updateRadius,
           ),
           h20Box,
-          EnrollRepeatSection(
-            selectedSchedule: state.repeatSchedule,
-            onChanged: notifier.updateRepeatSchedule,
-          ),
-          h20Box,
           EnrollDetailsSection(
             nameController: _nameController,
             messageController: _messageController,
+            eventType: state.eventType,
             isActive: state.isActive,
             onActiveChanged: notifier.updateIsActive,
           ),

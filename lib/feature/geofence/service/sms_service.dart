@@ -4,28 +4,26 @@ import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/batch_notification_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
-import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
-import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 /// SMS sending service with proper dependency injection and error handling
 @lazySingleton
 class SmsService {
-  static const String _smsArrivalPath = '/api/notifications';
-  static const String _smsMultipleArrivalPath = '/api/notifications/batch';
+  static const String _smsNotificationPath = '/api/notifications';
+  static const String _smsBatchNotificationPath = '/api/notifications/batch';
 
   final Dio _dio;
-  final FcmNotificationService _fcmNotificationService;
-  final UserMeServiceInterface _userMeService;
 
-  SmsService(this._dio, this._fcmNotificationService, this._userMeService);
+  SmsService(this._dio);
 
   /// Send SMS to one or more recipients
   /// Returns `Result<void>` indicating success or failure
   Future<Result<void>> sendSms({
     required List<String> phoneNumbers,
+    required String body,
     required String location,
+    required String type,
   }) async {
     try {
       if (phoneNumbers.isEmpty) {
@@ -41,12 +39,16 @@ class SmsService {
       if (cleanPhoneNumbers.length == 1) {
         return await _sendSingleSms(
           phoneNumber: cleanPhoneNumbers[0],
+          body: body,
           location: location,
+          type: type,
         );
       } else {
         return await _sendMultiSms(
           phoneNumbers: cleanPhoneNumbers,
+          body: body,
           location: location,
+          type: type,
         );
       }
     } catch (e) {
@@ -66,16 +68,18 @@ class SmsService {
   /// Send SMS to a single recipient
   Future<Result<void>> _sendSingleSms({
     required String phoneNumber,
+    required String body,
     required String location,
+    required String type,
   }) async {
     try {
       final response = await _dio.post(
-        _smsArrivalPath,
+        _smsNotificationPath,
         data: FcmNotificationRequestDto(
           notificationMethod: 'SMS',
           targetId: phoneNumber,
-          type: 'ARRIVAL',
-          extraData: {'location': location},
+          type: type,
+          extraData: {'body': body, 'location': location},
         ).toJson(),
         options: Options(extra: const {'requiresAuthentication': true}),
       );
@@ -87,11 +91,6 @@ class SmsService {
       }
 
       ApiResponseParser.parseVoid(response.data);
-
-      // 본인 알림은 지오펜스 비활성화 로직을 방해하지 않도록 비동기로 처리 (await 제거)
-      _notifyDeliveryResultToMe(location).catchError((e) {
-        log('Secondary notification failed: $e');
-      });
 
       return Success(null);
     } catch (e) {
@@ -103,16 +102,18 @@ class SmsService {
   /// Send SMS to multiple recipients
   Future<Result<void>> _sendMultiSms({
     required List<String> phoneNumbers,
+    required String body,
     required String location,
+    required String type,
   }) async {
     try {
       final response = await _dio.post(
-        _smsMultipleArrivalPath,
+        _smsBatchNotificationPath,
         data: BatchNotificationRequestDto(
           notificationMethod: 'SMS',
           targetIds: phoneNumbers,
-          type: 'ARRIVAL',
-          extraData: {'location': location},
+          type: type,
+          extraData: {'body': body, 'location': location},
         ).toJson(),
         options: Options(extra: const {'requiresAuthentication': true}),
       );
@@ -125,40 +126,10 @@ class SmsService {
 
       ApiResponseParser.parseVoid(response.data);
 
-      // 본인 알림은 지오펜스 비활성화 로직을 방해하지 않도록 비동기로 처리 (await 제거)
-      _notifyDeliveryResultToMe(location).catchError((e) {
-        log('Secondary notification failed: $e');
-      });
-
       return Success(null);
     } catch (e) {
       log('Error sending multi SMS: $e');
       return Failure('Error sending SMS: $e');
-    }
-  }
-
-  /// SMS 발송 성공 후 본인에게 FCM으로 발송 결과 통보
-  Future<void> _notifyDeliveryResultToMe(String location) async {
-    try {
-      final myInfo = await _userMeService.fetchMyInfo();
-      if (myInfo == null) {
-        log(
-          'Warning: Could not fetch user info for delivery result notification',
-        );
-        return;
-      }
-
-      final result = await _fcmNotificationService.notifyDeliveryResult(
-        receiverEmail: myInfo.email,
-        type: 'ARRIVAL',
-        body: '$location 도착 알림이 성공적으로 전송되었습니다.',
-      );
-
-      if (result is Failure) {
-        log('Warning: SMS sent but delivery result notification failed');
-      }
-    } catch (e) {
-      log('Warning: SMS sent but delivery result notification error: $e');
     }
   }
 }

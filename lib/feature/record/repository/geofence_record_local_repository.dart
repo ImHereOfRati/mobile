@@ -20,6 +20,16 @@ class GeofenceRecordLocalRepository implements GeofenceRecordRepository {
   }
 
   @override
+  Future<void> update(GeofenceRecordEntity entity) async {
+    await _recordDatabase.update(entity);
+  }
+
+  @override
+  Future<GeofenceRecordEntity?> findByDeliveryKey(String deliveryKey) async {
+    return await _recordDatabase.findByDeliveryKey(deliveryKey);
+  }
+
+  @override
   Future<void> deleteAll() async {
     await _recordDatabase.deleteAll();
   }

@@ -42,6 +42,10 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
       final tokenStorage = GetIt.instance<TokenStorageService>();
       await tokenStorage.saveAccessToken(dto.accessToken);
       await tokenStorage.saveRefreshToken(dto.refreshToken);
+      await tokenStorage.saveAuthSnapshot(
+        userStatus: dto.userStatus ?? 'ACTIVE',
+        isActive: dto.isActive ?? true,
+      );
 
       return dto;
     });

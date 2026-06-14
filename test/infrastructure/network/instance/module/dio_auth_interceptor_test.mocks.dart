@@ -74,6 +74,72 @@ class MockTokenStorageService extends _i1.Mock
           as _i4.Future<String?>);
 
   @override
+  _i4.Future<void> savePendingAuth(bool? isPending) =>
+      (super.noSuchMethod(
+            Invocation.method(#savePendingAuth, [isPending]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<bool> getPendingAuth() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPendingAuth, []),
+            returnValue: _i4.Future<bool>.value(false),
+            returnValueForMissingStub: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  _i4.Future<void> saveUserStatus(String? userStatus) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveUserStatus, [userStatus]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<String?> getUserStatus() =>
+      (super.noSuchMethod(
+            Invocation.method(#getUserStatus, []),
+            returnValue: _i4.Future<String?>.value(),
+            returnValueForMissingStub: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<void> saveIsActive(bool? isActive) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveIsActive, [isActive]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<bool?> getIsActive() =>
+      (super.noSuchMethod(
+            Invocation.method(#getIsActive, []),
+            returnValue: _i4.Future<bool?>.value(),
+            returnValueForMissingStub: _i4.Future<bool?>.value(),
+          )
+          as _i4.Future<bool?>);
+
+  @override
+  _i4.Future<void> saveAuthSnapshot({String? userStatus, bool? isActive}) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveAuthSnapshot, [], {
+              #userStatus: userStatus,
+              #isActive: isActive,
+            }),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
   _i4.Future<void> deleteAllTokens() =>
       (super.noSuchMethod(
             Invocation.method(#deleteAllTokens, []),

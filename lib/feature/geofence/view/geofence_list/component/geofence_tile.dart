@@ -9,6 +9,7 @@ class GeofenceTile extends StatelessWidget {
   final ValueChanged<bool> onToggleChanged;
   final String homeName;
   final String address;
+  final String eventType;
   final int memberCount;
   final VoidCallback? onLongPress;
   final VoidCallback? onTap;
@@ -20,6 +21,7 @@ class GeofenceTile extends StatelessWidget {
     required this.onToggleChanged,
     required this.homeName,
     required this.address,
+    required this.eventType,
     required this.memberCount,
     this.onLongPress,
     this.onTap,
@@ -59,10 +61,7 @@ class GeofenceTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: borderColor,
-          width: isToggleOn ? 1.5.r : 1.r,
-        ),
+        border: Border.all(color: borderColor, width: isToggleOn ? 1.5.r : 1.r),
         boxShadow: shadows,
       ),
       child: ClipRRect(
@@ -84,6 +83,7 @@ class GeofenceTile extends StatelessWidget {
                     child: GeofenceTileInfo(
                       homeName: homeName,
                       address: address,
+                      eventType: eventType,
                       memberCount: memberCount,
                       isToggleOn: isToggleOn,
                       isAutoSendReady: isAutoSendReady,

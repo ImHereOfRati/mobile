@@ -45,8 +45,10 @@ class FriendRestrictionService implements FriendRestrictionServiceInterface {
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
-      if (response.statusCode == 200) {
-        ApiResponseParser.parseVoid(response.data);
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        if (response.data != null) {
+          ApiResponseParser.parseVoid(response.data);
+        }
         return true;
       }
 

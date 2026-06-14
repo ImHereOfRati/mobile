@@ -33,7 +33,7 @@ void main() {
   test('findAll 은 이름 오름차순으로 반환한다', () async {
     await sut.save(ContactEntity(name: '회사', number: '02'));
     await sut.save(ContactEntity(name: '집', number: '031'));
-    await sut.save(ContactEntity(name: '학교', number: '02'));
+    await sut.save(ContactEntity(name: '학교', number: '032'));
 
     final names = (await sut.findAll()).map((e) => e.name).toList();
     expect(names, ['집', '학교', '회사']);
@@ -59,7 +59,7 @@ void main() {
 
   test('delete 는 해당 id 의 행만 제거한다', () async {
     final a = await sut.save(ContactEntity(name: '엄마', number: '010'));
-    await sut.save(ContactEntity(name: '아빠', number: '010'));
+    await sut.save(ContactEntity(name: '아빠', number: '011'));
 
     await sut.delete(a.id!);
 

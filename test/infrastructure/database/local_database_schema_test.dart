@@ -56,6 +56,22 @@ void main() {
       final result = await db.rawQuery('PRAGMA user_version');
       expect(result.first.values.first, LocalDatabaseSchema.version);
     });
+
+    test('geofence 테이블에 awaiting_departure 컬럼이 존재한다', () async {
+      final cols = await _columnNames(
+        db,
+        LocalDatabaseProperties.geofenceTableName,
+      );
+      expect(cols, contains('awaiting_departure'));
+    });
+
+    test('records 테이블에 delivery_event_type 컬럼이 존재한다', () async {
+      final cols = await _columnNames(
+        db,
+        LocalDatabaseProperties.recordTableName,
+      );
+      expect(cols, contains('delivery_event_type'));
+    });
   });
 
   group('LocalDatabaseSchema (옛 v1 → 최신, onUpgrade)', () {
@@ -156,6 +172,80 @@ void main() {
       ''');
       expect(rows, hasLength(1));
       expect(rows.first['server_recipient_count'], 0);
+    });
+  });
+
+  group('LocalDatabaseSchema (v6 → 최신, onUpgrade)', () {
+    test('v6 → 최신 마이그레이션 후 geofence.awaiting_departure 컬럼이 추가된다', () async {
+      final handle = await TestDatabaseFactory.openMigratedFromV6();
+      addTearDown(handle.dispose);
+
+      final cols = await _columnNames(
+        handle.database,
+        LocalDatabaseProperties.geofenceTableName,
+      );
+      expect(cols, contains('awaiting_departure'));
+    });
+
+    test('v6 → 최신 마이그레이션 후 records.delivery_event_type 컬럼이 추가된다', () async {
+      final handle = await TestDatabaseFactory.openMigratedFromV6();
+      addTearDown(handle.dispose);
+
+      final cols = await _columnNames(
+        handle.database,
+        LocalDatabaseProperties.recordTableName,
+      );
+      expect(cols, contains('delivery_event_type'));
+    });
+
+    test('기존 geofence 행은 awaiting_departure 기본값 0 으로 보존된다', () async {
+      final handle = await TestDatabaseFactory.openMigratedFromV6(
+        seed: (db) async {
+          await db.insert('geofence', {
+            'name': '테스트',
+            'lat': 37.0,
+            'lng': 127.0,
+            'radius': 100.0,
+            'message': '도착',
+            'contact_ids': '[]',
+            'is_active': 0,
+            'event_type': 'arrival',
+            'repeat_type': 'none',
+            'address': '서울',
+          });
+        },
+      );
+      addTearDown(handle.dispose);
+
+      final rows = await handle.database.query(
+        LocalDatabaseProperties.geofenceTableName,
+      );
+      expect(rows, hasLength(1));
+      expect(rows.first['awaiting_departure'], 0);
+    });
+
+    test('기존 record 행은 delivery_event_type 기본값 "arrival" 로 보존된다', () async {
+      final handle = await TestDatabaseFactory.openMigratedFromV6(
+        seed: (db) async {
+          await db.insert('records', {
+            'geofence_name': '집',
+            'message': '도착',
+            'recipients': '[]',
+            'created_at': '2026-01-01T00:00:00Z',
+            'send_machine': 'sms',
+            'status': 'completed',
+            'retry_count': 0,
+            'last_error': '',
+          });
+        },
+      );
+      addTearDown(handle.dispose);
+
+      final rows = await handle.database.query(
+        LocalDatabaseProperties.recordTableName,
+      );
+      expect(rows, hasLength(1));
+      expect(rows.first['delivery_event_type'], 'arrival');
     });
   });
 }

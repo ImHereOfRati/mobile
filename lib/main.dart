@@ -10,10 +10,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/common/component/feedback/bootstrap_splash_view.dart';
+import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
+import 'package:iamhere/feature/auth/service/auth_session_sync_service.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/infrastructure/routing/router_provider.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
+import 'package:iamhere/feature/geofence/background/geofence_retry_workmanager.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
@@ -25,9 +29,11 @@ import 'package:iamhere/common/component/theme/theme_mode_provider.dart';
 import 'package:iamhere/common/component/feedback/initialization_error_app.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
+import 'package:workmanager/workmanager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await _initializeBackgroundWork();
   _configureSystemChrome();
 
   // 인터넷 안내 화면은 '실제로 네트워크가 끊겨 있을 때' 만 노출한다.
@@ -82,26 +88,64 @@ class ImHereApp extends ConsumerStatefulWidget {
 class _ImHereAppState extends ConsumerState<ImHereApp> {
   static final String _appTitle = "ImHere";
   static const Locale _fixedLocale = Locale('ko', 'KR');
+  static const Duration _deliveryQueuePollInterval = Duration(seconds: 30);
 
   bool _hasResolvedInitialAuth = false;
   late final AppLifecycleListener _lifecycleListener;
+  Timer? _deliveryRetryTimer;
+  AuthInvalidationNotifier? _authInvalidationNotifier;
 
   @override
   void initState() {
     super.initState();
+    _subscribeToAuthInvalidation();
+    _startDeliveryRetryTimer();
     _lifecycleListener = AppLifecycleListener(
-      onResume: _drainDeliveryQueueOnResume,
+      onResume: () {
+        _startDeliveryRetryTimer();
+        _drainDeliveryQueueOnResume();
+        unawaited(_syncAuthSession());
+      },
+      onPause: _stopDeliveryRetryTimer,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setupMessageTapHandler(ref.read(routerProvider));
       await _syncNativeGeofencesOnStart();
+      await _syncAuthSession();
     });
+  }
+
+  void _subscribeToAuthInvalidation() {
+    if (!getIt.isRegistered<AuthInvalidationNotifier>()) return;
+    _authInvalidationNotifier = getIt<AuthInvalidationNotifier>();
+    _authInvalidationNotifier!.addListener(_onAuthInvalidationRequested);
+  }
+
+  void _onAuthInvalidationRequested() {
+    if (!mounted) return;
+    ref.invalidate(authStateProvider);
   }
 
   @override
   void dispose() {
+    _authInvalidationNotifier?.removeListener(_onAuthInvalidationRequested);
+    _stopDeliveryRetryTimer();
     _lifecycleListener.dispose();
     super.dispose();
+  }
+
+  void _startDeliveryRetryTimer() {
+    _deliveryRetryTimer ??= Timer.periodic(_deliveryQueuePollInterval, (_) {
+      if (!getIt.isRegistered<GeofenceDeliveryPipeline>()) return;
+      getIt<GeofenceDeliveryPipeline>().processPending().catchError(
+        (e, st) => AppLogger.error('주기적 전송 큐 처리 실패', e, st),
+      );
+    });
+  }
+
+  void _stopDeliveryRetryTimer() {
+    _deliveryRetryTimer?.cancel();
+    _deliveryRetryTimer = null;
   }
 
   void _drainDeliveryQueueOnResume() {
@@ -109,6 +153,17 @@ class _ImHereAppState extends ConsumerState<ImHereApp> {
     getIt<GeofenceDeliveryPipeline>().processPending().catchError(
       (e, st) => AppLogger.error('포그라운드 전환 시 전송 큐 처리 실패', e, st),
     );
+    if (!getIt.isRegistered<GeofenceRetryScheduler>()) return;
+    getIt<GeofenceRetryScheduler>().scheduleNextIfNeeded().catchError(
+      (e, st) => AppLogger.error('포그라운드 전환 시 재시도 스케줄 동기화 실패', e, st),
+    );
+  }
+
+  Future<void> _syncAuthSession() async {
+    if (!getIt.isRegistered<AuthSessionSyncService>()) return;
+    final changed = await getIt<AuthSessionSyncService>().syncIfSignedIn();
+    if (!mounted || !changed) return;
+    ref.invalidate(authStateProvider);
   }
 
   @override
@@ -209,6 +264,9 @@ Future<void> _syncNativeGeofencesOnStart() async {
     await registrar.syncAll(active);
     try {
       await getIt<GeofenceDeliveryPipeline>().processPending();
+      if (getIt.isRegistered<GeofenceRetryScheduler>()) {
+        await getIt<GeofenceRetryScheduler>().scheduleNextIfNeeded();
+      }
     } catch (e, st) {
       AppLogger.error('백그라운드 전송 큐 처리 실패', e, st);
     }
@@ -219,6 +277,14 @@ Future<void> _syncNativeGeofencesOnStart() async {
   } catch (e) {
     AppLogger.error('OS 지오펜스 초기 동기화 실패', e);
   }
+}
+
+Future<void> _initializeBackgroundWork() async {
+  if (!Platform.isAndroid) return;
+  await Workmanager().initialize(
+    geofenceRetryCallbackDispatcher,
+    isInDebugMode: false,
+  );
 }
 
 Future<void> _initializeBaseUrl() async {

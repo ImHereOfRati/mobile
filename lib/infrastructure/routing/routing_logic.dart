@@ -16,6 +16,7 @@ class RouterLogic {
     return _redirectPolicy.resolve(
       authState: authState.asData?.value,
       matchedLocation: state.matchedLocation,
+      requestedUri: state.uri,
     );
   }
 }

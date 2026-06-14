@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
 
 import '../common/enroll_section_label.dart';
 import 'enroll_message_hint_banner.dart';
@@ -9,7 +10,13 @@ const String _messageHint = '비워두면 기본 메시지를 자동으로 보�
 
 class EnrollMessageField extends StatelessWidget {
   final TextEditingController controller;
-  const EnrollMessageField({super.key, required this.controller});
+  final EventType eventType;
+
+  const EnrollMessageField({
+    super.key,
+    required this.controller,
+    required this.eventType,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +31,7 @@ class EnrollMessageField extends StatelessWidget {
           maxLines: 3,
         ),
         SizedBox(height: 6.h),
-        const EnrollMessageHintBanner(),
+        EnrollMessageHintBanner(eventType: eventType),
       ],
     );
   }

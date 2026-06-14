@@ -90,6 +90,77 @@ class TestDatabaseFactory {
     );
   }
 
+  /// v6 스키마(awaiting_departure / delivery_event_type 컬럼 없음)로 열어 시드한 뒤
+  /// 최신 버전으로 onUpgrade 를 거치게 한다.
+  static Future<TestDatabaseHandle> openMigratedFromV6({
+    Future<void> Function(Database v6Db)? seed,
+  }) async {
+    ensureInitialized();
+    final path = await _allocatePath();
+
+    final v6 = await databaseFactory.openDatabase(
+      path,
+      options: OpenDatabaseOptions(
+        version: 6,
+        onConfigure: LocalDatabaseSchema.onConfigure,
+        onCreate: _legacyV6OnCreate,
+      ),
+    );
+    if (seed != null) await seed(v6);
+    await v6.close();
+
+    final db = await databaseFactory.openDatabase(
+      path,
+      options: OpenDatabaseOptions(
+        version: LocalDatabaseSchema.version,
+        onConfigure: LocalDatabaseSchema.onConfigure,
+        onCreate: LocalDatabaseSchema.onCreate,
+        onUpgrade: LocalDatabaseSchema.onUpgrade,
+      ),
+    );
+    return TestDatabaseHandle._(db, path);
+  }
+
+  static Future<void> _legacyV6OnCreate(Database db, int version) async {
+    await db.execute(
+      'CREATE TABLE contacts(id INTEGER PRIMARY KEY AUTOINCREMENT, '
+      'name TEXT, number TEXT UNIQUE)',
+    );
+    await db.execute(
+      'CREATE TABLE geofence(id INTEGER PRIMARY KEY AUTOINCREMENT, '
+      'name TEXT, address TEXT DEFAULT "", lat REAL, lng REAL, radius REAL, '
+      'message TEXT, contact_ids TEXT, is_active INTEGER DEFAULT 0, '
+      'event_type TEXT DEFAULT "arrival", repeat_type TEXT DEFAULT "none", '
+      'custom_days_bitmask INTEGER)',
+    );
+    await db.execute(
+      'CREATE TABLE IF NOT EXISTS geofence_server_recipient'
+      '(id INTEGER PRIMARY KEY AUTOINCREMENT, geofence_id INTEGER NOT NULL, '
+      'friend_relationship_id TEXT NOT NULL, friend_email TEXT NOT NULL, '
+      'friend_alias TEXT NOT NULL DEFAULT "")',
+    );
+    await db.execute(
+      'CREATE TABLE records(id INTEGER PRIMARY KEY AUTOINCREMENT, '
+      'geofence_id INTEGER, geofence_name TEXT, message TEXT, '
+      'recipients TEXT, created_at TEXT, send_machine TEXT, '
+      'status TEXT DEFAULT "completed", delivery_key TEXT, '
+      'retry_count INTEGER DEFAULT 0, last_error TEXT DEFAULT "")',
+    );
+    await db.execute(
+      'CREATE TABLE notifications(id INTEGER PRIMARY KEY AUTOINCREMENT, '
+      'title TEXT, body TEXT, sender_nickname TEXT DEFAULT "", '
+      'sender_email TEXT DEFAULT "", created_at TEXT)',
+    );
+    await db.execute(
+      'CREATE TABLE IF NOT EXISTS geofence_delivery_queue'
+      '(id INTEGER PRIMARY KEY AUTOINCREMENT, dedupe_key TEXT NOT NULL UNIQUE, '
+      'snapshot_json TEXT NOT NULL, status TEXT NOT NULL DEFAULT "pending", '
+      'retry_count INTEGER NOT NULL DEFAULT 0, next_attempt_at TEXT NOT NULL, '
+      'last_error TEXT NOT NULL DEFAULT "", created_at TEXT NOT NULL, '
+      'updated_at TEXT NOT NULL)',
+    );
+  }
+
   static int _counter = 0;
   static Future<String> _allocatePath() async {
     final dir = await Directory.systemTemp.createTemp('imhere_db_test_');

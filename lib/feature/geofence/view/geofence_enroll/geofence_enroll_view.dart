@@ -109,8 +109,9 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   Future<void> _save() async {
     final formState = ref.read(geofenceEnrollViewModelProvider);
     if (formState.isActive) {
-      final gate =
-          LocationPermissionGate(ref.read(locationPermissionServiceProvider));
+      final gate = LocationPermissionGate(
+        ref.read(locationPermissionServiceProvider),
+      );
       if (!await gate.ensureAlways(context)) return;
     }
 
@@ -138,6 +139,8 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => EnrollCompleteSheet(
         locationName: formState.name,
         eventType: formState.eventType,

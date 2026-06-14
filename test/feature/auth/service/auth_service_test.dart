@@ -32,6 +32,9 @@ class _FakeDio extends Fake implements Dio {
 class _FakeTokenStorageService extends Fake implements TokenStorageService {
   String? accessToken;
   String? refreshToken;
+  bool pendingAuth = false;
+  String? userStatus;
+  bool? isActive;
 
   @override
   Future<void> saveAccessToken(String token) async {
@@ -41,6 +44,18 @@ class _FakeTokenStorageService extends Fake implements TokenStorageService {
   @override
   Future<void> saveRefreshToken(String token) async {
     refreshToken = token;
+  }
+
+  @override
+  Future<void> savePendingAuth(bool isPending) async {
+    pendingAuth = isPending;
+  }
+
+  @override
+  Future<void> saveAuthSnapshot({String? userStatus, bool? isActive}) async {
+    this.userStatus = userStatus;
+    this.isActive = isActive;
+    pendingAuth = userStatus == 'PENDING';
   }
 }
 
@@ -60,11 +75,13 @@ void main() {
 
       expect(
         () => authService.sendIdTokenToServer(''),
-        throwsA(isA<Exception>().having(
-          (e) => e.toString(),
-          'message',
-          contains('Invalid'),
-        )),
+        throwsA(
+          isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Invalid'),
+          ),
+        ),
       );
     });
 
@@ -134,10 +151,7 @@ void main() {
           data: {
             'imhereResponseCode': 'SUCCESS',
             'message': 'OK',
-            'data': {
-              'accessToken': '',
-              'refreshToken': 'refresh-token',
-            },
+            'data': {'accessToken': '', 'refreshToken': 'refresh-token'},
           },
         ),
       });
@@ -244,12 +258,10 @@ void main() {
       final result = await authService.sendIdTokenToServer(idToken);
 
       expect(result, MemberState.pending);
-      expect(
-        dio.requestedPaths,
-        ['/api/auth/login', '/api/auth/registration'],
-      );
+      expect(dio.requestedPaths, ['/api/auth/login', '/api/auth/registration']);
       expect(tokenStorage.accessToken, 'access-token');
       expect(tokenStorage.refreshToken, 'refresh-token');
+      expect(tokenStorage.pendingAuth, isTrue);
     });
 
     test('AUTH-300 이면 registration 으로 폴백해 신규 사용자로 처리한다', () async {
@@ -281,12 +293,10 @@ void main() {
       final result = await authService.sendIdTokenToServer(idToken);
 
       expect(result, MemberState.newUser);
-      expect(
-        dio.requestedPaths,
-        ['/api/auth/login', '/api/auth/registration'],
-      );
+      expect(dio.requestedPaths, ['/api/auth/login', '/api/auth/registration']);
       expect(tokenStorage.accessToken, 'access-token');
       expect(tokenStorage.refreshToken, 'refresh-token');
+      expect(tokenStorage.pendingAuth, isFalse);
     });
 
     test('기존 사용자는 login 응답만으로 처리한다', () async {
@@ -312,6 +322,7 @@ void main() {
       expect(dio.requestedPaths, ['/api/auth/login']);
       expect(tokenStorage.accessToken, 'access-token');
       expect(tokenStorage.refreshToken, 'refresh-token');
+      expect(tokenStorage.pendingAuth, isFalse);
     });
   });
 }

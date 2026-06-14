@@ -42,10 +42,7 @@ void main() {
     // 로그인 성공 시 context.go 로 이동하므로 GoRouter 가 필요하다.
     final router = GoRouter(
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (_, __) => AuthView(mockAuthViewModel),
-        ),
+        GoRoute(path: '/', builder: (_, __) => AuthView(mockAuthViewModel)),
         GoRoute(
           path: '/geofence',
           builder: (_, __) => const Scaffold(body: SizedBox()),
@@ -81,6 +78,60 @@ void main() {
       expect(find.byType(LoginButton), findsOneWidget); // 로그인 버튼 확인
     });
 
+    testWidgets('reason=inactive 쿼리 파라미터가 있으면 비활성화 안내 문구가 표시된다', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final router = GoRouter(
+        initialLocation: '/?reason=inactive',
+        routes: [
+          GoRoute(path: '/', builder: (_, __) => AuthView(mockAuthViewModel)),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: ScreenUtilInit(
+            designSize: const Size(402, 874),
+            builder: (context, child) {
+              return MaterialApp.router(routerConfig: router);
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          '현재 계정이 비활성 상태입니다. 운영자에게 문의하거나 다시 로그인해 주세요.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('reason 파라미터 없을 때 비활성화 안내 문구가 표시되지 않는다', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          '현재 계정이 비활성 상태입니다. 운영자에게 문의하거나 다시 로그인해 주세요.',
+        ),
+        findsNothing,
+      );
+    });
+
     testWidgets('로그인 버튼을 누르면 handleKakaoLogin이 호출되어야 한다', (
       WidgetTester tester,
     ) async {
@@ -105,6 +156,9 @@ void main() {
       when(
         mockTokenStorageService.getAccessToken(),
       ).thenAnswer((_) async => 'mock_access_token');
+      when(
+        mockTokenStorageService.getPendingAuth(),
+      ).thenAnswer((_) async => false);
 
       // when (화면 빌드 및 버튼 탭)
       await tester.pumpWidget(createWidgetUnderTest());

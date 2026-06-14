@@ -60,6 +60,7 @@ class _BatteryOptimizationGuideViewState
     setState(() => _currentStatus = status);
 
     if (status == PermissionState.grantedAlways && !_popped) {
+      ref.invalidate(batteryOptimizationStatusProvider);
       _popped = true;
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop(true);

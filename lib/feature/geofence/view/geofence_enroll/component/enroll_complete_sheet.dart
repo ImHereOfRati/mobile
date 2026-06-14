@@ -41,39 +41,41 @@ class EnrollCompleteSheet extends StatelessWidget {
         color: cs.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
-      padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 32.h),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontFamily: 'GmarketSans',
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
-              color: cs.onSurface,
-            ),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 32.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'GmarketSans',
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              EnrollCompleteSummaryCard(
+                locationName: locationName,
+                eventType: eventType,
+                recipients: recipients,
+              ),
+              SizedBox(height: 20.h),
+              EnrollCompleteStatusBanner(isAutoSendReady: isAutoSendReady),
+              SizedBox(height: 20.h),
+              EnrollCompleteActions(
+                isAutoSendReady: isAutoSendReady,
+                onEnableAutoSend: onEnableAutoSend,
+                onCreateAnother: onCreateAnother,
+                onBackToMain: onBackToMain,
+              ),
+            ],
           ),
-          SizedBox(height: 16.h),
-
-          EnrollCompleteSummaryCard(
-            locationName: locationName,
-            eventType: eventType,
-            recipients: recipients,
-          ),
-          SizedBox(height: 20.h),
-
-          EnrollCompleteStatusBanner(isAutoSendReady: isAutoSendReady),
-          SizedBox(height: 20.h),
-
-          EnrollCompleteActions(
-            isAutoSendReady: isAutoSendReady,
-            onEnableAutoSend: onEnableAutoSend,
-            onCreateAnother: onCreateAnother,
-            onBackToMain: onBackToMain,
-          ),
-        ],
+        ),
       ),
     );
   }

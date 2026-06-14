@@ -28,10 +28,15 @@ class RecordTimeFormatter {
 
   static String formatActivityLabel({
     required String locationName,
-    required String message,
+    required String deliveryEventType,
   }) {
-    if (message.contains('출발')) return '$locationName 출발 감지';
-    if (message.contains('도착')) return '$locationName 도착 감지';
-    return '$locationName 감지';
+    switch (deliveryEventType) {
+      case 'departure':
+        return '$locationName 출발 감지';
+      case 'arrival':
+        return '$locationName 도착 감지';
+      default:
+        return '$locationName 감지';
+    }
   }
 }

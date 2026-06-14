@@ -31,15 +31,16 @@ class EnrollEventSection extends StatelessWidget {
             SelectionChip(
               label: '도착했을 때',
               isSelected: selectedType == EventType.arrival,
-              onTap: onChanged != null ? () => onChanged!(EventType.arrival) : null,
+              onTap: onChanged != null
+                  ? () => onChanged!(EventType.arrival)
+                  : null,
             ),
-            const SelectionChip(
+            SelectionChip(
               label: '출발했을 때',
-              isEnabled: false,
-            ),
-            const SelectionChip(
-              label: '도착/출발 모두',
-              isEnabled: false,
+              isSelected: selectedType == EventType.departure,
+              onTap: onChanged != null
+                  ? () => onChanged!(EventType.departure)
+                  : null,
             ),
           ],
         ),
@@ -52,8 +53,11 @@ class EnrollEventSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: Text(
-            '이번 단계에서는 도착 알림을 먼저 지원해요. 출발 알림은 준비 중이에요.',
-            style: AppTextStyles.hannaAirRegular(12, cs.onSurface.withValues(alpha: 0.72)),
+            '도착 또는 출발을 선택할 수 있어요. 메시지를 비워두면 선택한 이벤트에 맞는 기본 문구를 자동으로 사용해요.',
+            style: AppTextStyles.hannaAirRegular(
+              12,
+              cs.onSurface.withValues(alpha: 0.72),
+            ),
           ),
         ),
       ],

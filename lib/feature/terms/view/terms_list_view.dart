@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/feature/terms/view_model/terms_agreement_notifier.dart';
@@ -45,6 +47,23 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
   ) {
     final consentState = ref.watch(termsConsentViewModelProvider);
 
+    ref.listen(termsConsentViewModelProvider, (_, next) {
+      if (next is AsyncData && next.value != null) {
+        ref.invalidate(authStateProvider);
+        final redirectPath = GoRouterState.of(context).uri.queryParameters['redirect'];
+        if (redirectPath != null && redirectPath.startsWith('/')) {
+          context.go(redirectPath);
+          return;
+        }
+        AppRoutes.goToGeofence(context);
+      }
+      if (next is AsyncError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('약관 동의에 실패했습니다. 다시 시도해 주세요.')),
+        );
+      }
+    });
+
     if (terms.isEmpty) {
       _scheduleAutoActivationIfNeeded();
       return _buildAutoActivationBody(context, ref, consentState);
@@ -61,17 +80,6 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
     final allRequiredAgreed = ref.watch(
       allRequiredTermsAgreedProvider(requiredIds),
     );
-
-    ref.listen(termsConsentViewModelProvider, (_, next) {
-      if (next is AsyncData && next.value != null) {
-        AppRoutes.goToGeofence(context);
-      }
-      if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('약관 동의에 실패했습니다. 다시 시도해 주세요.')),
-        );
-      }
-    });
 
     return Column(
       children: [
@@ -333,10 +341,7 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
                 '닫기',
-                style: TextStyle(
-                  fontFamily: 'BMHANNAAir',
-                  color: cs.primary,
-                ),
+                style: TextStyle(fontFamily: 'BMHANNAAir', color: cs.primary),
               ),
             ),
           ],

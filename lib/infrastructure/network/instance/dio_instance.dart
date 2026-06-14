@@ -23,7 +23,7 @@ abstract class DioInstance {
   Dio retryDio(@Named("baseUrl") String url) {
     final retryDio = Dio(_baseOptions(url));
     retryDio.interceptors.addAll([
-      RetryInterceptor(),
+      RetryInterceptor(retryDio),
       DioHeaderCleanupInterceptor(),
     ]);
     return retryDio;
