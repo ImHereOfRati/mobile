@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/terms/service/dto/terms_list_request_dto.dart';
@@ -28,11 +29,7 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: termsAsync.when(
-          loading: () => Center(
-            child: CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
+          loading: () => const Center(child: ImHereLoadingIndicator(height: 32)),
           error: (_, __) => _buildErrorState(context, ref),
           data: (terms) => _buildBody(context, ref, terms),
         ),
@@ -155,7 +152,7 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(color: cs.primary),
+          const ImHereLoadingIndicator(height: 32),
           SizedBox(height: 20.h),
           Text(
             '시작 준비 중입니다...',
@@ -414,14 +411,7 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
                 ),
               ),
               child: isLoading
-                  ? SizedBox(
-                      width: 24.r,
-                      height: 24.r,
-                      child: CircularProgressIndicator(
-                        color: cs.onPrimary,
-                        strokeWidth: 2.5,
-                      ),
-                    )
+                  ? const ImHereLoadingIndicator(height: 18)
                   : Text(
                       '동의하고 시작하기',
                       style: TextStyle(

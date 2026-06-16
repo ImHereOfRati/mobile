@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/setting/view_model/my_info_view_model.dart';
 import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
@@ -60,7 +61,7 @@ class MyInfoView extends ConsumerWidget {
           );
         },
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF0071E3)),
+          child: ImHereLoadingIndicator(height: 28),
         ),
         error: (_, __) => Center(
           child: Text(

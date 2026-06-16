@@ -9,6 +9,7 @@ import 'package:iamhere/feature/setting/view/setting_permission_section.dart';
 import 'package:iamhere/feature/setting/view/setting_readiness_section.dart';
 import 'package:iamhere/feature/setting/view/setting_theme_toggle_item.dart';
 import 'package:iamhere/feature/setting/view/setting_view_support.dart';
+import 'package:iamhere/feature/setting/view/terms_view.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model_state.dart';
 import 'package:iamhere/feature/user_permission/model/auto_send_readiness.dart';
 import 'package:iamhere/feature/user_permission/view/component/auto_send_readiness_card.dart';
@@ -66,11 +67,11 @@ class SettingSectionsView extends StatelessWidget {
             ),
           ),
           SettingItem(
-            title: '서비스 이용약관',
+            title: '약관 보기',
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const PrivacyView(title: '서비스 이용약관'),
+                builder: (_) => const TermsView(),
               ),
             ),
           ),
