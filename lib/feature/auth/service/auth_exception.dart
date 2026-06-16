@@ -13,6 +13,11 @@ class InvalidTokenException extends AuthException {
       : super('Invalid or empty idToken', stackTrace: stackTrace);
 }
 
+class InvalidNonceException extends AuthException {
+  InvalidNonceException({StackTrace? stackTrace})
+      : super('Invalid or empty nonce', stackTrace: stackTrace);
+}
+
 class TokenParseException extends AuthException {
   TokenParseException({StackTrace? stackTrace})
       : super('Failed to parse tokens from server response', stackTrace: stackTrace);

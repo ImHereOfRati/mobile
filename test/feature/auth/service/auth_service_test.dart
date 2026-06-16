@@ -2,11 +2,13 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
+import 'package:iamhere/feature/auth/service/oauth_provider.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 
 class _FakeDio extends Fake implements Dio {
   final Map<String, Response<dynamic>> responses;
   final List<String> requestedPaths = [];
+  final List<Object?> requestedBodies = [];
 
   _FakeDio(this.responses);
 
@@ -21,6 +23,7 @@ class _FakeDio extends Fake implements Dio {
     ProgressCallback? onReceiveProgress,
   }) async {
     requestedPaths.add(path);
+    requestedBodies.add(data);
     final response = responses[path];
     if (response == null) {
       throw StateError('No fake response configured for $path');
@@ -63,6 +66,7 @@ void main() {
   late _FakeTokenStorageService tokenStorage;
 
   const idToken = 'id-token';
+  const nonce = 'nonce-token';
 
   setUp(() {
     tokenStorage = _FakeTokenStorageService();
@@ -74,7 +78,7 @@ void main() {
       final authService = AuthService(dio, tokenStorage);
 
       expect(
-        () => authService.sendIdTokenToServer(''),
+        () => authService.sendIdTokenToServer('', nonce: nonce),
         throwsA(
           isA<Exception>().having(
             (e) => e.toString(),
@@ -90,7 +94,17 @@ void main() {
       final authService = AuthService(dio, tokenStorage);
 
       expect(
-        () => authService.sendIdTokenToServer('   '),
+        () => authService.sendIdTokenToServer('   ', nonce: nonce),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('empty nonce 를 거부한다', () async {
+      final dio = _FakeDio({});
+      final authService = AuthService(dio, tokenStorage);
+
+      expect(
+        () => authService.sendIdTokenToServer(idToken, nonce: ''),
         throwsA(isA<Exception>()),
       );
     });
@@ -115,7 +129,7 @@ void main() {
       final authService = AuthService(dio, tokenStorage);
 
       expect(
-        () => authService.sendIdTokenToServer(idToken),
+        () => authService.sendIdTokenToServer(idToken, nonce: nonce),
         throwsA(isA<Exception>()),
       );
     });
@@ -138,7 +152,7 @@ void main() {
       final authService = AuthService(dio, tokenStorage);
 
       expect(
-        () => authService.sendIdTokenToServer(idToken),
+        () => authService.sendIdTokenToServer(idToken, nonce: nonce),
         throwsA(isA<Exception>()),
       );
     });
@@ -158,7 +172,7 @@ void main() {
       final authService = AuthService(dio, tokenStorage);
 
       expect(
-        () => authService.sendIdTokenToServer(idToken),
+        () => authService.sendIdTokenToServer(idToken, nonce: nonce),
         throwsA(isA<Exception>()),
       );
     });
@@ -178,7 +192,7 @@ void main() {
       final authService = AuthService(dio, tokenStorage);
 
       expect(
-        () => authService.sendIdTokenToServer(idToken),
+        () => authService.sendIdTokenToServer(idToken, nonce: nonce),
         throwsA(isA<Exception>()),
       );
     });
@@ -201,7 +215,7 @@ void main() {
       final authService = AuthService(dio, tokenStorage);
 
       expect(
-        () => authService.sendIdTokenToServer(idToken),
+        () => authService.sendIdTokenToServer(idToken, nonce: nonce),
         throwsA(isA<Exception>()),
       );
     });
@@ -221,7 +235,7 @@ void main() {
       final authService = AuthService(dio, tokenStorage);
 
       expect(
-        () => authService.sendIdTokenToServer(idToken),
+        () => authService.sendIdTokenToServer(idToken, nonce: nonce),
         throwsA(isA<Exception>()),
       );
     });
@@ -255,7 +269,7 @@ void main() {
       });
       final authService = AuthService(dio, tokenStorage);
 
-      final result = await authService.sendIdTokenToServer(idToken);
+      final result = await authService.sendIdTokenToServer(idToken, nonce: nonce);
 
       expect(result, MemberState.pending);
       expect(dio.requestedPaths, ['/api/auth/login', '/api/auth/registration']);
@@ -290,7 +304,7 @@ void main() {
       });
       final authService = AuthService(dio, tokenStorage);
 
-      final result = await authService.sendIdTokenToServer(idToken);
+      final result = await authService.sendIdTokenToServer(idToken, nonce: nonce);
 
       expect(result, MemberState.newUser);
       expect(dio.requestedPaths, ['/api/auth/login', '/api/auth/registration']);
@@ -316,13 +330,44 @@ void main() {
       });
       final authService = AuthService(dio, tokenStorage);
 
-      final result = await authService.sendIdTokenToServer(idToken);
+      final result = await authService.sendIdTokenToServer(idToken, nonce: nonce);
 
       expect(result, MemberState.existingUser);
       expect(dio.requestedPaths, ['/api/auth/login']);
       expect(tokenStorage.accessToken, 'access-token');
       expect(tokenStorage.refreshToken, 'refresh-token');
       expect(tokenStorage.pendingAuth, isFalse);
+    });
+
+    test('Google provider 는 요청 body provider 를 GOOGLE 로 전송한다', () async {
+      final dio = _FakeDio({
+        '/api/auth/login': Response(
+          requestOptions: RequestOptions(path: '/api/auth/login'),
+          statusCode: 200,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'accessToken': 'access-token',
+              'refreshToken': 'refresh-token',
+            },
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      final result = await authService.sendIdTokenToServer(
+        idToken,
+        nonce: nonce,
+        provider: OauthProvider.google,
+      );
+
+      expect(result, MemberState.existingUser);
+      expect(dio.requestedBodies.first, {
+        'provider': 'GOOGLE',
+        'idToken': idToken,
+        'nonce': nonce,
+      });
     });
   });
 }

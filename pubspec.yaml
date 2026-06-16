@@ -16,6 +16,7 @@ dependencies:
 
   # 카카오 로그인 SDK
   kakao_flutter_sdk: ^1.10.0
+  google_sign_in: ^7.2.0
   dio: ^5.9.0 # http 통신
   json_annotation: ^4.9.0 # JSON 직렬화
 

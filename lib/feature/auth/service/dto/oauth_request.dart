@@ -6,8 +6,13 @@ part 'oauth_request.g.dart';
 class OAuthRequestDto {
   final String provider;
   final String idToken;
+  final String nonce;
 
-  OAuthRequestDto({required this.provider, required this.idToken});
+  OAuthRequestDto({
+    required this.provider,
+    required this.idToken,
+    required this.nonce,
+  });
 
   factory OAuthRequestDto.fromJson(Map<String, dynamic> json) =>
       _$OAuthRequestDtoFromJson(json);

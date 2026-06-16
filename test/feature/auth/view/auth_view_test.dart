@@ -9,7 +9,6 @@ import 'package:iamhere/common/base/result/result_message.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/feature/auth/view/auth_view.dart';
-import 'package:iamhere/feature/auth/view/component/login_button.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -65,7 +64,9 @@ void main() {
   }
 
   group('AuthView Widget Tests', () {
-    testWidgets('로그인 버튼이 정상적으로 렌더링 되어야 한다', (WidgetTester tester) async {
+    testWidgets('시작하기 버튼이 정상적으로 렌더링 되어야 한다', (
+      WidgetTester tester,
+    ) async {
       // given & when
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 3.0;
@@ -75,7 +76,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
 
       // then
-      expect(find.byType(LoginButton), findsOneWidget); // 로그인 버튼 확인
+      expect(find.text('시작하기'), findsOneWidget);
     });
 
     testWidgets('reason=inactive 쿼리 파라미터가 있으면 비활성화 안내 문구가 표시된다', (
@@ -132,7 +133,7 @@ void main() {
       );
     });
 
-    testWidgets('로그인 버튼을 누르면 handleKakaoLogin이 호출되어야 한다', (
+    testWidgets('시작하기 후 Kakao 선택 시 handleKakaoLogin이 호출되어야 한다', (
       WidgetTester tester,
     ) async {
       // given (시나리오 설정)
@@ -146,6 +147,10 @@ void main() {
       when(
         mockAuthViewModel.handleKakaoLogin(),
       ).thenAnswer((_) async => Success(MemberState.existingUser));
+
+      when(
+        mockAuthViewModel.requestFCMTokenAndSendToServer(),
+      ).thenAnswer((_) async => Success(ResultMessage.fcmTokenServerSuccess));
 
       // FCM 토큰 전송 (기존 사용자에게만)
       when(
@@ -163,8 +168,10 @@ void main() {
       // when (화면 빌드 및 버튼 탭)
       await tester.pumpWidget(createWidgetUnderTest());
 
-      final loginButton = find.byType(LoginButton);
-      await tester.tap(loginButton);
+      await tester.tap(find.text('시작하기'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Kakao로 계속하기'));
 
       // 비동기 로직들이 실행될 시간을 줌
       await tester.pumpAndSettle();
@@ -172,6 +179,32 @@ void main() {
       // then
       // handleKakaoLogin이 호출되었는지 확인
       verify(mockAuthViewModel.handleKakaoLogin()).called(1);
+    });
+
+    testWidgets('시작하기 후 Google 선택 시 handleGoogleLogin이 호출되어야 한다', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3.0;
+
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      when(
+        mockAuthViewModel.handleGoogleLogin(),
+      ).thenAnswer((_) async => Success(MemberState.existingUser));
+      when(
+        mockAuthViewModel.requestFCMTokenAndSendToServer(),
+      ).thenAnswer((_) async => Success(ResultMessage.fcmTokenServerSuccess));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.tap(find.text('시작하기'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Google로 계속하기'));
+      await tester.pumpAndSettle();
+
+      verify(mockAuthViewModel.handleGoogleLogin()).called(1);
     });
   });
 }

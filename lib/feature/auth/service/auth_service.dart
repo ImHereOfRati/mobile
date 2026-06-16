@@ -23,13 +23,20 @@ class AuthService {
 
   AuthService(this._dio, this._tokenStorage);
 
-  Future<MemberState> sendIdTokenToServer(String idToken) async {
+  Future<MemberState> sendIdTokenToServer(
+    String idToken, {
+    required String nonce,
+    OauthProvider provider = OauthProvider.kakao,
+  }) async {
     try {
       _validateIdToken(idToken);
+      _validateNonce(nonce);
 
       var response = await _requestAuthenticationToServer(
         path: _loginPath,
         idToken: idToken,
+        nonce: nonce,
+        provider: provider,
       );
       var apiResponse = _convertResponseToDartObject(response);
 
@@ -37,6 +44,8 @@ class AuthService {
         response = await _requestAuthenticationToServer(
           path: _registrationPath,
           idToken: idToken,
+          nonce: nonce,
+          provider: provider,
         );
         apiResponse = _convertResponseToDartObject(response);
       }
@@ -71,6 +80,12 @@ class AuthService {
     }
   }
 
+  void _validateNonce(String nonce) {
+    if (nonce.isEmpty || nonce.trim().isEmpty) {
+      throw InvalidNonceException();
+    }
+  }
+
   Future<void> _saveTokenToStorage(String access, String refresh) async {
     try {
       await _tokenStorage.saveAccessToken(access);
@@ -83,10 +98,13 @@ class AuthService {
   Future<Response<dynamic>> _requestAuthenticationToServer({
     required String path,
     required String idToken,
+    required String nonce,
+    required OauthProvider provider,
   }) async {
     final authRequestData = OAuthRequestDto(
-      provider: OauthProvider.kakao.name.toUpperCase(),
+      provider: provider.name.toUpperCase(),
       idToken: idToken,
+      nonce: nonce,
     );
 
     try {

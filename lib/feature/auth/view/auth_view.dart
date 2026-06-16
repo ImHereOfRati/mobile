@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
 import 'package:iamhere/feature/auth/view/component/auth_hero_section.dart';
 import 'package:iamhere/feature/auth/view/component/auth_info_components.dart';
 import 'package:iamhere/feature/auth/view/component/auth_note_components.dart';
-import 'package:iamhere/feature/auth/view/component/login_button.dart';
-import 'package:iamhere/feature/auth/view/component/login_button_info.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
 import 'package:iamhere/common/base/result/result_feedback_handler.dart';
 
@@ -35,8 +34,10 @@ class AuthView extends ConsumerStatefulWidget {
 }
 
 class _AuthViewState extends ConsumerState<AuthView> {
-  Future<void> _handleLogin() async {
-    final result = await widget._authViewModel.handleKakaoLogin();
+  Future<void> _handleProviderLogin(
+    Future<Result<MemberState>> Function() loginAction,
+  ) async {
+    final result = await loginAction();
     if (!mounted) return;
     result.handle(
       context: context,
@@ -121,9 +122,83 @@ class _AuthViewState extends ConsumerState<AuthView> {
   }
 
   Widget _buildLoginButton() {
-    return LoginButton(
-      buttonInfo: LoginInfoData.kakao,
-      onPressed: _handleLogin,
+    final cs = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 54.h,
+      child: ElevatedButton(
+        onPressed: _showProviderSheet,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: cs.primary,
+          foregroundColor: cs.onPrimary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          elevation: 0,
+        ),
+        child: Text(
+          '시작하기',
+          style: TextStyle(
+            fontFamily: 'GmarketSans',
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.3,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showProviderSheet() async {
+    final cs = Theme.of(context).colorScheme;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 20.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '로그인 방식을 선택하세요',
+                style: TextStyle(
+                  fontFamily: 'BMHANNAAir',
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16.h),
+              _ProviderOptionTile(
+                icon: Icons.g_mobiledata,
+                label: 'Google로 계속하기',
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await _handleProviderLogin(widget._authViewModel.handleGoogleLogin);
+                },
+              ),
+              SizedBox(height: 12.h),
+              _ProviderOptionTile(
+                icon: Icons.chat_bubble_outline,
+                label: 'Kakao로 계속하기',
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await _handleProviderLogin(widget._authViewModel.handleKakaoLogin);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -141,6 +216,54 @@ class _AuthViewState extends ConsumerState<AuthView> {
           fontFamily: 'BMHANNAAir',
           fontSize: 13.sp,
           color: cs.onErrorContainer,
+        ),
+      ),
+    );
+  }
+}
+
+class _ProviderOptionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ProviderOptionTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      height: 52.h,
+      child: Material(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(12.r),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12.r),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Row(
+              children: [
+                Icon(icon, color: cs.onSurface),
+                SizedBox(width: 12.w),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 15.sp,
+                    color: cs.onSurface,
+                  ),
+                ),
+                const Spacer(),
+                Icon(Icons.chevron_right, color: cs.onSurface.withValues(alpha: 0.5)),
+              ],
+            ),
+          ),
         ),
       ),
     );
