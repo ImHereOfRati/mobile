@@ -6,6 +6,10 @@ enum ResultMessage {
   kakaoAccountLoginFail('카카오 계정으로 로그인에 실패했습니다'),
   kakaoLoginCanceled('로그인이 취소되었습니다'),
   kakaoAuthFailNotGoodResult('토큰 정보를 가져오지 못했습니다'),
+  googleAuthSuccess('구글 로그인 성공'),
+  googleAuthFail('구글 로그인에 실패했습니다'),
+  googleLoginCanceled('로그인이 취소되었습니다'),
+  googleAuthFailNotGoodResult('토큰 정보를 가져오지 못했습니다'),
 
   // ── FCM 토큰 ───────────────────────────────────────────────────────
   fcmTokenGenerateSuccess('알림 설정이 완료되었습니다'),
