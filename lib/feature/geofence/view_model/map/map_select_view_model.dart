@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/model/location_search_result.dart';
 import 'package:iamhere/feature/geofence/service/geocoding_service_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,9 +29,7 @@ class MapSelectViewModel extends _$MapSelectViewModel {
       return;
     }
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-      state = state.copyWith(
-        search: state.search.copyWith(isSearching: true),
-      );
+      state = state.copyWith(search: state.search.copyWith(isSearching: true));
       try {
         final results = await ref.read(geocodingServiceProvider).search(query);
         state = state.copyWith(
@@ -49,9 +48,17 @@ class MapSelectViewModel extends _$MapSelectViewModel {
   }
 
   void selectResult(LocationSearchResult result) {
+    final location = NLatLng(result.latitude, result.longitude);
+    final name = composePlaceName(
+      title: result.title,
+      reverseGeocode: result.address,
+      latitude: result.latitude,
+      longitude: result.longitude,
+    );
     state = state.copyWith(
       selection: MapSelectionInfo(
-        location: NLatLng(result.latitude, result.longitude),
+        location: location,
+        name: name,
         address: result.address,
       ),
       search: state.search.copyWith(showResults: false),
@@ -66,12 +73,17 @@ class MapSelectViewModel extends _$MapSelectViewModel {
     final address = await ref
         .read(geocodingServiceProvider)
         .reverseGeocode(location.latitude, location.longitude);
+    final name = composePlaceName(
+      reverseGeocode: address,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    );
     state = state.copyWith(
-      selection: state.selection.copyWith(address: address),
+      selection: state.selection.copyWith(name: name, address: address),
     );
   }
 
   void clearSearch() => state = state.copyWith(
-        search: state.search.copyWith(results: [], showResults: false),
-      );
+    search: state.search.copyWith(results: [], showResults: false),
+  );
 }

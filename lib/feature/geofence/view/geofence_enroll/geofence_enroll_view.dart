@@ -11,6 +11,7 @@ import 'package:iamhere/feature/user_permission/service/permission_service_provi
 import 'package:iamhere/feature/user_permission/view_model/auto_send_readiness_provider.dart';
 import 'package:iamhere/feature/user_permission/view_model/location_permission_gate.dart';
 import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
+import 'package:iamhere/feature/setting/view_model/my_info_view_model.dart';
 
 import '../map_select/component.dart';
 import '../map_select/map_select_view.dart';
@@ -52,6 +53,11 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
   @override
   Widget build(BuildContext context) {
     final formState = ref.watch(geofenceEnrollViewModelProvider);
+    final myInfo = ref.watch(myInfoViewModelProvider);
+    final senderName = myInfo.maybeWhen(
+      data: (userInfo) => userInfo?.nickname ?? '사용자 닉네임',
+      orElse: () => '사용자 닉네임',
+    );
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -67,6 +73,7 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
           ),
           onOpenRecipientSelect: _openRecipientSelect,
           onSave: _save,
+          senderName: senderName,
         ),
       ),
     );
@@ -84,7 +91,11 @@ class _GeofenceEnrollViewState extends ConsumerState<GeofenceEnrollView> {
       _mapRef.currentState?.moveTo(result.location);
       ref
           .read(geofenceEnrollViewModelProvider.notifier)
-          .updateAddress(result.address);
+          .updateLocation(
+            result.location,
+            address: result.address,
+            suggestedName: result.name,
+          );
     }
   }
 

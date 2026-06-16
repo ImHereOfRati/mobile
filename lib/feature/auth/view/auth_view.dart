@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/common/base/result/result.dart';
-import 'package:iamhere/feature/auth/service/login_result.dart';
+import 'package:iamhere/common/base/result/result_feedback_handler.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
+import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/view/component/auth_hero_section.dart';
 import 'package:iamhere/feature/auth/view/component/auth_info_components.dart';
 import 'package:iamhere/feature/auth/view/component/auth_note_components.dart';
 import 'package:iamhere/feature/auth/view_model/auth_view_model.dart';
-import 'package:iamhere/common/base/result/result_feedback_handler.dart';
 
 class AuthView extends ConsumerStatefulWidget {
   final AuthViewModel _authViewModel;
@@ -37,26 +38,38 @@ class _AuthViewState extends ConsumerState<AuthView> {
   Future<void> _handleProviderLogin(
     Future<Result<MemberState>> Function() loginAction,
   ) async {
+    AppLogger.debug('AuthView: provider login started');
     final result = await loginAction();
     if (!mounted) return;
     result.handle(
       context: context,
       onSuccess: (loginResult) => _onLoginSuccess(loginResult),
+      onFailure: (message) {
+        AppLogger.warning('AuthView: provider login failed: $message');
+      },
       showSnackBar: false,
     );
   }
 
   Future<void> _onLoginSuccess(MemberState loginResult) async {
-    await widget._authViewModel.requestFCMTokenAndSendToServer();
-    if (!mounted) return;
-    ref.invalidate(authStateProvider);
-
     final redirectPath = GoRouterState.of(
       context,
     ).uri.queryParameters['redirect'];
+    AppLogger.debug(
+      'AuthView: login success state=$loginResult redirect=$redirectPath',
+    );
+
+    AppLogger.debug('AuthView: starting FCM sync after login');
+    await widget._authViewModel.requestFCMTokenAndSendToServer();
+    AppLogger.debug('AuthView: finished FCM sync after login');
+    if (!mounted) return;
+    ref.invalidate(authStateProvider);
+    AppLogger.debug('AuthView: authStateProvider invalidated');
+
     if (loginResult == MemberState.existingUser &&
         redirectPath != null &&
         redirectPath.startsWith('/')) {
+      AppLogger.debug('AuthView: navigating to redirect path=$redirectPath');
       context.go(redirectPath);
       return;
     }
@@ -65,6 +78,9 @@ class _AuthViewState extends ConsumerState<AuthView> {
             loginResult == MemberState.newUser) &&
         redirectPath != null &&
         redirectPath.startsWith('/')) {
+      AppLogger.debug(
+        'AuthView: navigating to terms-consent with redirect=$redirectPath',
+      );
       context.go(
         Uri(
           path: '/terms-consent',
@@ -74,6 +90,7 @@ class _AuthViewState extends ConsumerState<AuthView> {
       return;
     }
 
+    AppLogger.debug('AuthView: fallback navigate via MemberState.navigate');
     loginResult.navigate(context);
   }
 
@@ -155,47 +172,55 @@ class _AuthViewState extends ConsumerState<AuthView> {
 
     await showModalBottomSheet<void>(
       context: context,
-      useSafeArea: true,
       showDragHandle: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 20.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                '로그인 방식을 선택하세요',
-                style: TextStyle(
-                  fontFamily: 'BMHANNAAir',
-                  fontSize: 17.sp,
-                  fontWeight: FontWeight.w700,
-                  color: cs.onSurface,
+        final bottomInset = MediaQuery.of(sheetContext).viewPadding.bottom;
+
+        return SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, bottomInset),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  '로그인 방식을 선택하세요',
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16.h),
-              _ProviderOptionTile(
-                icon: Icons.g_mobiledata,
-                label: 'Google로 계속하기',
-                onTap: () async {
-                  Navigator.of(sheetContext).pop();
-                  await _handleProviderLogin(widget._authViewModel.handleGoogleLogin);
-                },
-              ),
-              SizedBox(height: 12.h),
-              _ProviderOptionTile(
-                icon: Icons.chat_bubble_outline,
-                label: 'Kakao로 계속하기',
-                onTap: () async {
-                  Navigator.of(sheetContext).pop();
-                  await _handleProviderLogin(widget._authViewModel.handleKakaoLogin);
-                },
-              ),
-            ],
+                SizedBox(height: 16.h),
+                _ProviderOptionTile(
+                  icon: Icons.g_mobiledata,
+                  label: 'Google로 계속하기',
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    await _handleProviderLogin(
+                      widget._authViewModel.handleGoogleLogin,
+                    );
+                  },
+                ),
+                SizedBox(height: 12.h),
+                _ProviderOptionTile(
+                  icon: Icons.chat_bubble_outline,
+                  label: 'Kakao로 계속하기',
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    await _handleProviderLogin(
+                      widget._authViewModel.handleKakaoLogin,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -260,7 +285,10 @@ class _ProviderOptionTile extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.chevron_right, color: cs.onSurface.withValues(alpha: 0.5)),
+                Icon(
+                  Icons.chevron_right,
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                ),
               ],
             ),
           ),

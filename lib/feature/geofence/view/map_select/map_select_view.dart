@@ -29,8 +29,12 @@ class _MapSelectViewState extends ConsumerState<MapSelectView> {
 
   Future<NaverMapViewOptions> _initOpts() async {
     final pos = await LocatePermissionService().getCurrentUserLocation();
-    final target = widget.initialLocation ?? NLatLng(pos.latitude, pos.longitude);
-    return NaverMapViewOptions(initialCameraPosition: NCameraPosition(target: target, zoom: 16), consumeSymbolTapEvents: false);
+    final target =
+        widget.initialLocation ?? NLatLng(pos.latitude, pos.longitude);
+    return NaverMapViewOptions(
+      initialCameraPosition: NCameraPosition(target: target, zoom: 16),
+      consumeSymbolTapEvents: false,
+    );
   }
 
   void _updateMarker(NLatLng latlng) {
@@ -44,10 +48,16 @@ class _MapSelectViewState extends ConsumerState<MapSelectView> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(mapSelectViewModelProvider(widget.initialLocation));
-    final notifier = ref.read(mapSelectViewModelProvider(widget.initialLocation).notifier);
+    final notifier = ref.read(
+      mapSelectViewModelProvider(widget.initialLocation).notifier,
+    );
 
-    ref.listen(mapSelectViewModelProvider(widget.initialLocation), (prev, next) {
-      if (next.selectedLocation != null && next.selectedLocation != prev?.selectedLocation) {
+    ref.listen(mapSelectViewModelProvider(widget.initialLocation), (
+      prev,
+      next,
+    ) {
+      if (next.selectedLocation != null &&
+          next.selectedLocation != prev?.selectedLocation) {
         _updateMarker(next.selectedLocation!);
       }
     });
@@ -57,41 +67,53 @@ class _MapSelectViewState extends ConsumerState<MapSelectView> {
       body: FutureBuilder<NaverMapViewOptions>(
         future: _opts,
         builder: (context, snap) {
-          if (!snap.hasData) return const Center(child: ImHereLoadingIndicator(height: 32));
-          return Stack(children: [
-            NaverMap(
-              options: snap.data!,
-              onMapReady: (c) {
-                _map = c;
-                if (state.selectedLocation != null) _updateMarker(state.selectedLocation!);
-              },
-              onMapTapped: (_, l) {
-                _focus.unfocus();
-                notifier.updateLocationByTapped(l);
-              },
-            ),
-            MapSelectOverlay(state: state, notifier: notifier, searchController: _search, focusNode: _focus),
-            Positioned(
-              bottom: 24,
-              left: 16,
-              right: 80,
-              child: MapConfirmButton(onTap: () {
-                if (state.selectedLocation != null) {
-                  Navigator.pop(
-                    context,
-                    MapSelectResult(
-                      location: state.selectedLocation!,
-                      address: state.selectedAddress,
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('장소를 선택해주세요')),
-                  );
-                }
-              }),
-            ),
-          ]);
+          if (!snap.hasData)
+            return const Center(child: ImHereLoadingIndicator(height: 32));
+          return Stack(
+            children: [
+              NaverMap(
+                options: snap.data!,
+                onMapReady: (c) {
+                  _map = c;
+                  if (state.selectedLocation != null)
+                    _updateMarker(state.selectedLocation!);
+                },
+                onMapTapped: (_, l) {
+                  _focus.unfocus();
+                  notifier.updateLocationByTapped(l);
+                },
+              ),
+              MapSelectOverlay(
+                state: state,
+                notifier: notifier,
+                searchController: _search,
+                focusNode: _focus,
+              ),
+              Positioned(
+                bottom: 24,
+                left: 16,
+                right: 80,
+                child: MapConfirmButton(
+                  onTap: () {
+                    if (state.selectedLocation != null) {
+                      Navigator.pop(
+                        context,
+                        MapSelectResult(
+                          location: state.selectedLocation!,
+                          name: state.selectedName,
+                          address: state.selectedAddress,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('장소를 선택해주세요')),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          );
         },
       ),
     );

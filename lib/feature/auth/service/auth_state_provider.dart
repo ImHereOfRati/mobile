@@ -1,4 +1,5 @@
 import 'package:iamhere/infrastructure/di/di_setup.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/auth/service/auth_state.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,15 +11,31 @@ Future<AuthState> authState(Ref ref) async {
   final tokenStorage = getIt<TokenStorageService>();
   final accessToken = await tokenStorage.getAccessToken();
   final hasToken = accessToken != null && accessToken.isNotEmpty;
-  if (!hasToken) return AuthState.unauthenticated;
+  if (!hasToken) {
+    AppLogger.debug('authStateProvider: no access token -> unauthenticated');
+    return AuthState.unauthenticated;
+  }
 
   final isPending = await tokenStorage.getPendingAuth();
-  if (isPending || await tokenStorage.getUserStatus() == 'PENDING') {
+  final userStatus = await tokenStorage.getUserStatus();
+  final isPendingState = isPending || userStatus == 'PENDING';
+  if (isPendingState) {
+    AppLogger.debug(
+      'authStateProvider: hasToken=$hasToken pending=$isPending userStatus=$userStatus -> pending',
+    );
     return AuthState.pending;
   }
 
   final isActive = await tokenStorage.getIsActive();
-  if (isActive == false) return AuthState.inactive;
+  if (isActive == false) {
+    AppLogger.debug(
+      'authStateProvider: hasToken=$hasToken pending=$isPending userStatus=$userStatus isActive=$isActive -> inactive',
+    );
+    return AuthState.inactive;
+  }
 
+  AppLogger.debug(
+    'authStateProvider: hasToken=$hasToken pending=$isPending userStatus=$userStatus isActive=$isActive -> authenticated',
+  );
   return AuthState.authenticated;
 }

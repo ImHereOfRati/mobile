@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:iamhere/feature/friend/repository/contact_local_repository_provider.dart';
 import 'package:iamhere/feature/friend/view_model/contact.dart';
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/repeat_schedule.dart';
 import 'package:iamhere/feature/geofence/service/geocoding_service_provider.dart';
 import 'package:iamhere/feature/geofence/view_model/dto/save_geofence_request.dart';
+import 'package:iamhere/feature/setting/view_model/my_info_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'geofence_enroll_form_state.dart';
 import 'geofence_form_validator.dart';
@@ -47,6 +49,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
         address: geofence.address,
         message: geofence.message,
         eventType: eventType,
+        nameEdited: true,
       ),
       area: state.area.copyWith(
         location: NLatLng(geofence.lat, geofence.lng),
@@ -77,17 +80,36 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
     );
   }
 
-  void updateName(String name) =>
-      state = state.copyWith(basic: state.basic.copyWith(name: name));
+  void updateName(String name) => state = state.copyWith(
+    basic: state.basic.copyWith(name: name, nameEdited: name.trim().isNotEmpty),
+  );
 
-  Future<void> updateLocation(NLatLng? location) async {
+  Future<void> updateLocation(
+    NLatLng? location, {
+    String? address,
+    String? suggestedName,
+  }) async {
     state = state.copyWith(area: state.area.copyWith(location: location));
-    if (location != null) {
-      final address = await ref
-          .read(geocodingServiceProvider)
-          .reverseGeocode(location.latitude, location.longitude);
-      state = state.copyWith(basic: state.basic.copyWith(address: address));
-    }
+    if (location == null) return;
+
+    final resolvedAddress = address?.trim().isNotEmpty == true
+        ? address!.trim()
+        : await ref
+              .read(geocodingServiceProvider)
+              .reverseGeocode(location.latitude, location.longitude);
+    final currentName = state.name.trim();
+    final resolvedName = state.nameEdited
+        ? currentName
+        : composePlaceName(
+            title: suggestedName,
+            reverseGeocode: resolvedAddress,
+            latitude: location.latitude,
+            longitude: location.longitude,
+          );
+
+    state = state.copyWith(
+      basic: state.basic.copyWith(name: resolvedName, address: resolvedAddress),
+    );
   }
 
   void updateAddress(String address) =>
@@ -108,7 +130,15 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
   void resetForm() => state = GeofenceEnrollFormState();
 
   Future<void> saveGeofence() async {
-    final res = GeofenceFormValidator.validate(state);
+    String senderName = '사용자 닉네임';
+    try {
+      final myInfo = await ref.read(myInfoViewModelProvider.future);
+      senderName = myInfo?.nickname ?? senderName;
+    } catch (_) {}
+    final res = GeofenceFormValidator.validate(
+      state,
+      senderName: senderName,
+    );
     if (!res.isValid) throw Exception(res.errorMessage ?? '입력값을 확인해주세요');
 
     final contactIds = state.selectedRecipients

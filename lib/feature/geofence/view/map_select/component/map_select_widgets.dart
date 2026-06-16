@@ -7,8 +7,13 @@ import 'package:iamhere/common/component/style/app_text_styles.dart';
 
 class MapSelectResult {
   final NLatLng location;
+  final String name;
   final String address;
-  MapSelectResult({required this.location, required this.address});
+  MapSelectResult({
+    required this.location,
+    required this.name,
+    required this.address,
+  });
 }
 
 class MapSearchBar extends StatelessWidget {
@@ -36,7 +41,13 @@ class MapSearchBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [BoxShadow(color: cs.shadow.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: cs.shadow.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: TextField(
         controller: controller,
@@ -46,18 +57,35 @@ class MapSearchBar extends StatelessWidget {
         style: AppTextStyles.hannaAirRegular(14, cs.onSurface),
         decoration: InputDecoration(
           hintText: '주소 또는 장소명을 검색하세요',
-          hintStyle: AppTextStyles.hannaAirRegular(14, cs.onSurface.withValues(alpha: 0.4)),
-          prefixIcon: Icon(Icons.search, size: 22.r, color: cs.onSurface.withValues(alpha: 0.5)),
+          hintStyle: AppTextStyles.hannaAirRegular(
+            14,
+            cs.onSurface.withValues(alpha: 0.4),
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            size: 22.r,
+            color: cs.onSurface.withValues(alpha: 0.5),
+          ),
           suffixIcon: isSearching
               ? Padding(
                   padding: EdgeInsets.all(12.r),
                   child: const ImHereLoadingIndicator(height: 14),
                 )
               : controller.text.isNotEmpty
-                  ? IconButton(icon: Icon(Icons.close, size: 20.r, color: cs.onSurface.withValues(alpha: 0.5)), onPressed: onClear)
-                  : null,
+              ? IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    size: 20.r,
+                    color: cs.onSurface.withValues(alpha: 0.5),
+                  ),
+                  onPressed: onClear,
+                )
+              : null,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 14.h,
+          ),
         ),
       ),
     );
@@ -68,7 +96,11 @@ class MapSearchResults extends StatelessWidget {
   final List<LocationSearchResult> results;
   final ValueChanged<LocationSearchResult> onTap;
 
-  const MapSearchResults({super.key, required this.results, required this.onTap});
+  const MapSearchResults({
+    super.key,
+    required this.results,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +110,13 @@ class MapSearchResults extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [BoxShadow(color: cs.shadow.withValues(alpha: 0.12), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: cs.shadow.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12.r),
@@ -86,9 +124,10 @@ class MapSearchResults extends StatelessWidget {
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           itemCount: results.length,
-          separatorBuilder:
-              (_, __) => Divider(height: 1, color: cs.onSurface.withValues(alpha: 0.08)),
-          itemBuilder: (context, i) => _buildResultItem(context, results[i], cs),
+          separatorBuilder: (_, __) =>
+              Divider(height: 1, color: cs.onSurface.withValues(alpha: 0.08)),
+          itemBuilder: (context, i) =>
+              _buildResultItem(context, results[i], cs),
         ),
       ),
     );
@@ -154,10 +193,15 @@ class MapConfirmButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: cs.primary,
         padding: EdgeInsets.symmetric(vertical: 16.h),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
         elevation: 4,
       ),
-      child: Text('이 장소로 선택', style: AppTextStyles.hannaAirBold(16, cs.onPrimary)),
+      child: Text(
+        '이 장소로 선택',
+        style: AppTextStyles.hannaAirBold(16, cs.onPrimary),
+      ),
     );
   }
 }

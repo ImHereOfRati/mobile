@@ -1,3 +1,5 @@
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
+
 class GeofenceEntity {
   final int? id;
   final String name;
@@ -34,7 +36,7 @@ class GeofenceEntity {
   });
 
   /// SMS 발송 시 사용할 location 문자열: "장소명 (주소)"
-  String get fullLocation => address.isNotEmpty ? '$name ($address)' : name;
+  String get fullLocation => composeFullLocation(name, address);
 
   // isActive를 변경한 새 인스턴스 생성
   GeofenceEntity copyWith({

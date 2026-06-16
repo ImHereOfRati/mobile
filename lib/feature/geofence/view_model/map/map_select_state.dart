@@ -29,5 +29,6 @@ class MapSelectState {
   bool get isSearching => search.isSearching;
   bool get showResults => search.showResults;
   NLatLng? get selectedLocation => selection.location;
+  String get selectedName => selection.name;
   String get selectedAddress => selection.address;
 }

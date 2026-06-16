@@ -12,12 +12,14 @@ class EnrollFormBody extends ConsumerStatefulWidget {
   final Widget mapSection;
   final VoidCallback onOpenRecipientSelect;
   final VoidCallback onSave;
+  final String senderName;
 
   const EnrollFormBody({
     super.key,
     required this.mapSection,
     required this.onOpenRecipientSelect,
     required this.onSave,
+    required this.senderName,
   });
 
   @override
@@ -27,6 +29,7 @@ class EnrollFormBody extends ConsumerStatefulWidget {
 class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
   final _nameController = TextEditingController();
   final _messageController = TextEditingController();
+  bool _syncingNameController = false;
 
   @override
   void initState() {
@@ -52,9 +55,12 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
     super.dispose();
   }
 
-  void _onName() => ref
-      .read(geofenceEnrollViewModelProvider.notifier)
-      .updateName(_nameController.text);
+  void _onName() {
+    if (_syncingNameController) return;
+    ref
+        .read(geofenceEnrollViewModelProvider.notifier)
+        .updateName(_nameController.text);
+  }
 
   void _onMessage() => ref
       .read(geofenceEnrollViewModelProvider.notifier)
@@ -64,6 +70,13 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
   Widget build(BuildContext context) {
     final state = ref.watch(geofenceEnrollViewModelProvider);
     final notifier = ref.read(geofenceEnrollViewModelProvider.notifier);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || state.nameEdited) return;
+      if (_nameController.text == state.name) return;
+      _syncingNameController = true;
+      _nameController.text = state.name;
+      _syncingNameController = false;
+    });
     final h20Box = SizedBox(height: 20.h);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
@@ -91,7 +104,9 @@ class _EnrollFormBodyState extends ConsumerState<EnrollFormBody> {
           EnrollDetailsSection(
             nameController: _nameController,
             messageController: _messageController,
-            eventType: state.eventType,
+            locationName: state.name,
+            locationAddress: state.address,
+            senderName: widget.senderName,
             isActive: state.isActive,
             onActiveChanged: notifier.updateIsActive,
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/model/repeat_schedule.dart';
 import 'package:iamhere/feature/geofence/utils/radius_helper.dart';
@@ -43,10 +44,12 @@ class GeofenceEnrollFormState {
   String get name => basic.name;
   String get address => basic.address;
   String get message => basic.message;
+  bool get nameEdited => basic.nameEdited;
   NLatLng? get selectedLocation => area.location;
   String get radius => area.radius;
   List<Recipient> get selectedRecipients => status.recipients;
   bool get isActive => status.isActive;
+  String get fullLocation => composeFullLocation(name, address);
 
   // New helpers
   EventType get eventType => basic.eventType;
