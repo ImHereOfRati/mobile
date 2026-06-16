@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -317,11 +318,7 @@ class _BatteryOptimizationGuideViewState
           ),
         ),
         child: _isProcessing
-            ? SizedBox(
-                width: 20.w,
-                height: 20.w,
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              )
+            ? const ImHereLoadingIndicator(height: 18)
             : Text(
                 label,
                 style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700),

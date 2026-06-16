@@ -32,26 +32,29 @@ class _ImHereLoadingIndicatorState extends State<ImHereLoadingIndicator>
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final textStyle = TextStyle(
+      fontFamily: 'GmarketSans',
+      fontSize: widget.height * 0.9,
+      fontWeight: FontWeight.w700,
+      color: cs.primary,
+      letterSpacing: -0.6,
+      height: 1.0,
+    );
+
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, __) {
-        final t = _ctrl.value;
-        final gradient = LinearGradient(
-          colors: [
-            cs.primary.withValues(alpha: 0.25),
-            cs.primary,
-            cs.primary.withValues(alpha: 0.25),
-          ],
-          stops: const [0.0, 0.5, 1.0],
-          begin: Alignment(-2.0 + t * 4, 0),
-          end: Alignment(-1.0 + t * 4, 0),
-        );
-        return ShaderMask(
-          shaderCallback: (r) => gradient.createShader(r),
-          blendMode: BlendMode.srcIn,
-          child: Image.asset(
-            'assets/images/imhere_wordmark.png',
-            height: widget.height,
+        final opacity = 0.45 + (_ctrl.value * 0.55);
+        return SizedBox(
+          height: widget.height,
+          child: Center(
+            child: Opacity(
+              opacity: opacity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('ImHere', style: textStyle),
+              ),
+            ),
           ),
         );
       },

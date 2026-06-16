@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model_provider.dart';
 import 'package:iamhere/feature/geofence/model/recipient.dart';
 import 'package:iamhere/feature/geofence/view_model/recipient/all_recipients_provider.dart';
@@ -31,7 +32,7 @@ class _RecipientSelectViewState extends ConsumerState<RecipientSelectView> {
     return allAsync.when(
       loading: () => Scaffold(
         appBar: AppBar(title: const Text('수신자 선택')),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(child: ImHereLoadingIndicator(height: 28)),
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: const Text('수신자 선택')),

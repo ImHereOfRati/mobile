@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/geofence/view_model/map/map_select_view_model.dart';
 import 'package:iamhere/feature/user_permission/service/concrete/locate_permission_service.dart';
 import 'component.dart';
@@ -56,7 +57,7 @@ class _MapSelectViewState extends ConsumerState<MapSelectView> {
       body: FutureBuilder<NaverMapViewOptions>(
         future: _opts,
         builder: (context, snap) {
-          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+          if (!snap.hasData) return const Center(child: ImHereLoadingIndicator(height: 32));
           return Stack(children: [
             NaverMap(
               options: snap.data!,

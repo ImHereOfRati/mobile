@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
@@ -337,11 +338,7 @@ class _LocationPermissionGuideViewState
           ),
         ),
         child: _isProcessing
-            ? SizedBox(
-                width: 20.w,
-                height: 20.w,
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              )
+            ? const ImHereLoadingIndicator(height: 18)
             : Text(
                 label,
                 style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700),

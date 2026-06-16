@@ -5,6 +5,6 @@
     </style>
 
     <style name="NormalTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">#0A84FF</item>
+        <item name="android:windowBackground">#FFFFFF</item>
     </style>
 </resources>

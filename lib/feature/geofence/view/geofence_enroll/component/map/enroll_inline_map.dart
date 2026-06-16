@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/user_permission/service/concrete/locate_permission_service.dart';
 
 import 'enroll_map_hint_overlay.dart';
@@ -74,7 +75,7 @@ class EnrollInlineMapState extends State<EnrollInlineMap> {
             return Container(
               color: cs.primaryContainer.withValues(alpha: 0.3),
               child: Center(
-                child: CircularProgressIndicator(color: cs.primary),
+                child: ImHereLoadingIndicator(height: 24),
               ),
             );
           }

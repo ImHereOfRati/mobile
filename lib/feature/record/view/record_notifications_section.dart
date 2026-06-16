@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 
 import 'component/notification_overview_item.dart';
@@ -29,7 +30,7 @@ class RecordNotificationsSection extends StatelessWidget {
         ),
         notificationsAsync.when(
           loading: () => const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: ImHereLoadingIndicator(height: 28)),
           ),
           error: (_, __) => const SliverToBoxAdapter(
             child: RecordEmptySection(message: '알림을 불러올 수 없습니다'),

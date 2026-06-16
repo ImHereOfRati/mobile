@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
 
 import 'component/friend_request_overview_item.dart';
@@ -28,9 +29,9 @@ class RecordFriendRequestsSection extends StatelessWidget {
           ),
         ),
         requestsAsync.when(
-          loading: () => const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator()),
-          ),
+        loading: () => const SliverToBoxAdapter(
+          child: Center(child: ImHereLoadingIndicator(height: 28)),
+        ),
           error: (_, __) => const SliverToBoxAdapter(
             child: RecordEmptySection(message: '친구 요청을 불러올 수 없습니다'),
           ),

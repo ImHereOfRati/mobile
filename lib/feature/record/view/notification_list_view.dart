@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/view_model/notification_view_model.dart';
 
@@ -44,7 +45,7 @@ class NotificationListView extends ConsumerWidget {
                     _buildNotificationItem(context, cs, tt, notifications[index]),
               ),
         loading: () => Center(
-          child: CircularProgressIndicator(color: cs.primary),
+          child: ImHereLoadingIndicator(height: 28),
         ),
         error: (_, __) => _buildErrorState(cs, ref),
       ),

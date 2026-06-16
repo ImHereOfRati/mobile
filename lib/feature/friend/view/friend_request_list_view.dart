@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/view_model/friend_list_view_model.dart';
 import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
@@ -56,7 +57,7 @@ class FriendRequestListView extends ConsumerWidget {
                     _buildRequestTile(context, ref, cs, requests[index]),
               ),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF0071E3)),
+          child: ImHereLoadingIndicator(height: 28),
         ),
         error: (_, __) =>
             const Center(child: Text('요청 목록을 불러오는 중 오류가 발생했습니다.')),

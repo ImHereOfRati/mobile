@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_restriction_response_dto.dart';
 import 'package:iamhere/feature/friend/view_model/friend_restriction_view_model.dart';
 
@@ -54,7 +55,7 @@ class FriendRestrictionListView extends ConsumerWidget {
                     context, ref, cs, restrictions[index]),
               ),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF0071E3)),
+          child: ImHereLoadingIndicator(height: 28),
         ),
         error: (_, __) =>
             const Center(child: Text('목록을 불러오는 중 오류가 발생했습니다.')),

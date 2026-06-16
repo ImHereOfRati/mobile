@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/dto/user_search_response_dto.dart';
@@ -358,14 +359,7 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
                   ),
                 ),
                 child: _isSearching
-                    ? SizedBox(
-                        width: 16.r,
-                        height: 16.r,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                    ? const ImHereLoadingIndicator(height: 16)
                     : Text(
                         '검색',
                         style: TextStyle(

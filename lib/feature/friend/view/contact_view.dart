@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/friend/service/dto/friend_relationship_response_dto.dart';
 import 'package:iamhere/feature/friend/view_model/contact.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model.dart';
@@ -37,7 +38,7 @@ class _ContactViewState extends ConsumerState<ContactView> {
     final hasError = contactsAsync.hasError && serverFriendsAsync.hasError;
 
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: ImHereLoadingIndicator(height: 32));
     }
     if (hasError) {
       return Center(

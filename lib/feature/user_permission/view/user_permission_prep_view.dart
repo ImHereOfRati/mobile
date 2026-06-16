@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/auto_send_readiness.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
@@ -19,7 +20,7 @@ class UserPermissionPrepView extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: locationAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(child: ImHereLoadingIndicator(height: 32)),
           error: (_, __) => _buildErrorState(context, cs),
           data: (locationStatus) {
             final batteryStatus = batteryAsync.maybeWhen(
