@@ -103,10 +103,6 @@ void main() {
         lastError: anyNamed('lastError'),
       ),
     ).thenAnswer((_) async {});
-    when(mockFcm.notifyDeliveryResultToMe(
-      location: anyNamed('location'),
-      type: anyNamed('type'),
-    )).thenAnswer((_) async {});
     when(mockScheduler.scheduleNextIfNeeded()).thenAnswer((_) async {});
 
     when(mockSms.sendSmsToRecipients(
@@ -229,24 +225,6 @@ void main() {
       verify(mockRegistrar.unregister(42)).called(1);
     });
 
-    test('SMS 성공 → notifyDeliveryResultToMe 호출', () async {
-      final item = _queueItem(smsPhoneNumbers: ['01012345678']);
-      _stubTakeDue([item]);
-      when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
-      when(mockSms.sendSmsToRecipients(
-        phoneNumbers: anyNamed('phoneNumbers'),
-        body: anyNamed('body'),
-        location: anyNamed('location'),
-        type: anyNamed('type'),
-      )).thenAnswer((_) async => Success<void>(null));
-
-      await pipeline.processPending();
-
-      verify(mockFcm.notifyDeliveryResultToMe(
-        location: anyNamed('location'),
-        type: anyNamed('type'),
-      )).called(1);
-    });
   });
 
   group('GeofenceDeliveryPipeline.processPending — FCM 성공', () {

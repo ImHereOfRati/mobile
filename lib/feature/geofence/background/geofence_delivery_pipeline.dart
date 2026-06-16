@@ -222,13 +222,6 @@ class GeofenceDeliveryPipeline {
       if (fcmResult is Success) anySuccess = true;
     }
 
-    if (anySuccess) {
-      await _fcmArrivalService.notifyDeliveryResultToMe(
-        location: snapshot.geofence.fullLocation,
-        type: event.notificationType,
-      );
-    }
-
     return anySuccess;
   }
 

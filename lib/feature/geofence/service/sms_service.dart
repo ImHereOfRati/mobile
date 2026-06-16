@@ -57,6 +57,10 @@ class SmsService {
     }
   }
 
+  bool _isSuccessfulStatusCode(int? statusCode) {
+    return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
+
   /// Extract and clean phone numbers (digits only)
   List<String> _extractOnlyNumberFromPhoneNumber(List<String> phoneNumbers) {
     return phoneNumbers
@@ -84,7 +88,7 @@ class SmsService {
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
-      final isSuccess = response.statusCode == 202;
+      final isSuccess = _isSuccessfulStatusCode(response.statusCode);
 
       if (!isSuccess) {
         return Failure('SMS send failed with status ${response.statusCode}');
@@ -118,7 +122,7 @@ class SmsService {
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
-      final isSuccess = response.statusCode == 202;
+      final isSuccess = _isSuccessfulStatusCode(response.statusCode);
 
       if (!isSuccess) {
         return Failure('SMS send failed with status ${response.statusCode}');

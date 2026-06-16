@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
-import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
@@ -16,12 +15,10 @@ class FcmArrivalService {
 
   final Dio _dio;
   final FcmNotificationService _fcmNotificationService;
-  final UserMeServiceInterface _userMeService;
 
   FcmArrivalService(
     this._dio,
     this._fcmNotificationService,
-    this._userMeService,
   );
 
   /// 여러 서버 친구에게 위치 이벤트 FCM 발송
@@ -92,44 +89,6 @@ class FcmArrivalService {
     } catch (e) {
       dev.log('FCM geofence notify error ($receiverEmail): $e');
       return Failure('FCM geofence notify error: $e');
-    }
-  }
-
-  /// FCM 발송 성공 후 본인에게 FCM으로 발송 결과 통보
-  Future<void> notifyDeliveryResultToMe({
-    required String location,
-    required String type,
-  }) async {
-    try {
-      dev.log('!!!! BG_SELF_NOTIFY: Method Start');
-
-      final myInfo = await _userMeService.fetchMyInfo().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw 'fetchMyInfo Timeout',
-      );
-
-      if (myInfo != null) {
-        dev.log('!!!! BG_SELF_NOTIFY: Email found ${myInfo.email}');
-        final actionLabel = type == 'DEPARTURE' ? '출발' : '도착';
-        final result = await _fcmNotificationService.notifyDeliveryResult(
-          receiverEmail: myInfo.email,
-          type: type,
-          body: '$location $actionLabel 알림이 성공적으로 전송되었습니다.',
-          path: AppRoutes.recordSendHistory,
-        );
-
-        if (result is Success) {
-          dev.log('!!!! BG_SELF_NOTIFY: POST Success');
-        } else {
-          dev.log(
-            '!!!! BG_SELF_NOTIFY: POST Failed: ${(result as Failure).message}',
-          );
-        }
-      } else {
-        dev.log('!!!! BG_SELF_NOTIFY: myInfo is NULL');
-      }
-    } catch (e) {
-      dev.log('!!!! BG_SELF_NOTIFY: Critical Error: $e');
     }
   }
 }
