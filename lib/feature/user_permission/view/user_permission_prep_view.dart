@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/auto_send_readiness.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:go_router/go_router.dart';
 
 import 'component/user_permission_prep_components.dart';
 
@@ -16,8 +18,16 @@ class UserPermissionPrepView extends ConsumerWidget {
     final locationAsync = ref.watch(geofenceViewModelProviderForPrep);
     final batteryAsync = ref.watch(batteryOptimizationStatusProvider);
     final cs = Theme.of(context).colorScheme;
+    final redirectPath = GoRouterState.of(context).uri.queryParameters['redirect'];
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('자동 발송 준비'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => SystemNavigator.pop(),
+        ),
+      ),
       body: SafeArea(
         child: locationAsync.when(
           loading: () => const Center(child: ImHereLoadingIndicator(height: 32)),
@@ -31,7 +41,10 @@ class UserPermissionPrepView extends ConsumerWidget {
               locationPermission: locationStatus,
               batteryOptimizationPermission: batteryStatus,
             );
-            return UserPermissionPrepBody(readiness: readiness);
+            return UserPermissionPrepBody(
+              readiness: readiness,
+              onContinue: () => _goNext(context, redirectPath),
+            );
           },
         ),
       ),
@@ -47,6 +60,15 @@ class UserPermissionPrepView extends ConsumerWidget {
         ).textTheme.bodyLarge?.copyWith(color: cs.onSurface),
       ),
     );
+  }
+
+  void _goNext(BuildContext context, String? redirectPath) {
+    if (redirectPath != null && redirectPath.startsWith('/')) {
+      context.go(redirectPath);
+      return;
+    }
+
+    context.pop(true);
   }
 }
 

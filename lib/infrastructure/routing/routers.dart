@@ -53,6 +53,14 @@ final List<RouteBase> appRoutes = [
       child: const BatteryOptimizationGuideView(),
     ),
   ),
+  GoRoute(
+    path: AppRoutes.userPermission,
+    pageBuilder: (context, state) => buildPageWithSimpleTransition(
+      context: context,
+      state: state,
+      child: const UserPermissionPrepView(),
+    ),
+  ),
   ShellRoute(
     builder: (context, state, child) => DefaultView(
       tabIndexResolver: const NavigationTabIndexResolver(AppRoutes.mainTabs),
@@ -154,14 +162,6 @@ final List<RouteBase> appRoutes = [
           context: context,
           state: state,
           child: const SettingView(),
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.userPermission,
-        pageBuilder: (context, state) => buildPageWithSimpleTransition(
-          context: context,
-          state: state,
-          child: const UserPermissionPrepView(),
         ),
       ),
     ],

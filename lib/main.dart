@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/common/component/feedback/bootstrap_splash_view.dart';
+import 'package:iamhere/common/component/theme/theme_mode_storage.dart';
 import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/service/auth_session_sync_service.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
@@ -23,16 +24,17 @@ import 'package:iamhere/feature/geofence/service/missing_background_location_exc
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
 import 'package:iamhere/integration/firebase/firebase_service.dart';
+import 'package:iamhere/common/component/feedback/initialization_error_app.dart';
 import 'package:iamhere/common/component/theme/im_here_theme_data_dark.dart';
 import 'package:iamhere/common/component/theme/im_here_theme_data_light.dart';
 import 'package:iamhere/common/component/theme/theme_mode_provider.dart';
-import 'package:iamhere/common/component/feedback/initialization_error_app.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:workmanager/workmanager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  setInitialThemeMode(await ThemeModeStorage.load());
   await _initializeBackgroundWork();
   _configureSystemChrome();
 
@@ -56,10 +58,25 @@ void main() async {
 
 Future<bool> _hasNetworkConnection() async {
   try {
-    final result = await InternetAddress.lookup(
-      'fortuneki.site',
-    ).timeout(const Duration(seconds: 5));
-    return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
+    if (await _canConnectToInternetHost('1.1.1.1')) return true;
+    if (await _canConnectToInternetHost('8.8.8.8')) return true;
+    return false;
+  } on TimeoutException {
+    return false;
+  } on SocketException {
+    return false;
+  }
+}
+
+Future<bool> _canConnectToInternetHost(String host) async {
+  try {
+    final socket = await Socket.connect(
+      host,
+      53,
+      timeout: const Duration(seconds: 3),
+    );
+    socket.destroy();
+    return true;
   } on TimeoutException {
     return false;
   } on SocketException {
