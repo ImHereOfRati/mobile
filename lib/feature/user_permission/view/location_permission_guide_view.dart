@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/geofence/view_model/main/geofence_view_model.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:iamhere/feature/user_permission/view/component/permission_guide_components.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /// 위치 권한 '항상 허용' 설정을 사용자에게 단계별로 안내하는 화면.
@@ -23,6 +24,15 @@ class LocationPermissionGuideView extends ConsumerStatefulWidget {
 class _LocationPermissionGuideViewState
     extends ConsumerState<LocationPermissionGuideView>
     with WidgetsBindingObserver {
+  static const String _locationStepOneImage =
+      'assets/images/location/location_setting_step_one.png';
+  static const String _locationStepTwoImage =
+      'assets/images/location/location_setting_step_two.png';
+  static const String _locationStepThreeImage =
+      'assets/images/location/location_setting_step_three.png';
+  static const String _locationStepFourImage =
+      'assets/images/location/location_setting_step_four.png';
+
   PermissionState? _currentStatus;
   bool _isProcessing = false;
 
@@ -109,7 +119,11 @@ class _LocationPermissionGuideViewState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildHeader(colorScheme),
+                      PermissionGuideHeader(
+                        icon: Icons.my_location,
+                        title: '위치 권한이 필요해요',
+                        description: '앱이 닫혀 있어도 알림을 받으려면\n"항상 허용" 이 필요합니다.',
+                      ),
                       SizedBox(height: 20.h),
                       _buildCurrentStatusCard(status, colorScheme),
                       SizedBox(height: 24.h),
@@ -133,86 +147,12 @@ class _LocationPermissionGuideViewState
     );
   }
 
-  Widget _buildHeader(ColorScheme colorScheme) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.my_location,
-            color: colorScheme.onPrimaryContainer,
-            size: 36.sp,
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '위치 권한이 필요해요',
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  '앱이 닫혀 있어도 알림을 받으려면\n"항상 허용" 이 필요합니다.',
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: colorScheme.onPrimaryContainer.withValues(
-                      alpha: 0.8,
-                    ),
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCurrentStatusCard(
     PermissionState? status,
     ColorScheme colorScheme,
   ) {
     final (label, color, icon) = _statusPresentation(status, colorScheme);
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20.sp),
-          SizedBox(width: 8.w),
-          Text(
-            '현재 상태: ',
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
+    return PermissionStatusBadge(label: label, color: color, icon: icon);
   }
 
   (String, Color, IconData) _statusPresentation(
@@ -258,62 +198,88 @@ class _LocationPermissionGuideViewState
   }
 
   Widget _buildReasonText(ColorScheme colorScheme) {
-    return Text(
-      '등록한 장소에 도착했을 때 친구에게 자동으로 메시지를 보내려면\n'
-      '기기의 GPS(위치 서비스)가 켜져 있어야 하며,\n'
-      '앱이 백그라운드나 종료 상태에서도 위치를 확인할 수 있어야 합니다.\n\n'
-      '"앱 사용 중에만 허용" 상태에서는 앱을 종료하면 알림이 동작하지 않아요.',
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '도착 메시지가 누락 없이 안전하게 전송되도록 위치 설정이 필요해요.\n\n',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const TextSpan(
+            text: '등록한 장소에 정확하게 반응하려면 스마트폰의 위치 서비스(GPS)가 항상 켜져 있어야 합니다.\n\n',
+          ),
+          TextSpan(
+            text: '"앱 사용 중에만 허용" 상태인 경우, ',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.error,
+            ),
+          ),
+          const TextSpan(
+            text: '앱을 완전히 종료했을 때 알림 메시지가 친구에게 전송되지 않을 수 있어요. 아래 가이드를 참고하여 ',
+          ),
+          TextSpan(
+            text: '"항상 허용"으로 변경',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
+          ),
+          const TextSpan(text: '해 주세요!'),
+        ],
+      ),
       style: TextStyle(
         fontSize: 14.sp,
-        height: 1.5,
+        height: 1.6,
         color: colorScheme.onSurface.withValues(alpha: 0.75),
       ),
     );
   }
 
   List<Widget> _buildSteps(PermissionState? status, ColorScheme colorScheme) {
-    if (status == PermissionState.serviceDisabled) {
-      return [
-        _StepTile(
-          number: 1,
-          title: '기기 위치 서비스(GPS) 켜기',
-          description: '아래 버튼을 눌러 시스템 설정에서 위치 서비스를 활성화해주세요.',
-        ),
-        SizedBox(height: 10.h),
-        _StepTile(
-          number: 2,
-          title: '앱으로 돌아오기',
-          description: 'GPS를 켠 후 앱으로 돌아오면 다음 단계를 안내해 드립니다.',
-        ),
-      ];
-    }
-
     final needsInitialRequest =
         status == PermissionState.denied || status == null;
 
     return [
-      _StepTile(
+      PermissionStepTile(
         number: 1,
-        title: needsInitialRequest
-            ? '아래 버튼을 눌러 권한 요청을 시작해주세요'
+        title: status == PermissionState.serviceDisabled
+            ? '위치 설정 화면을 열어주세요'
+            : needsInitialRequest
+            ? '권한 요청을 시작해주세요'
             : '시스템 설정 화면으로 이동합니다',
         description: needsInitialRequest
-            ? '시스템 팝업이 나타나면 먼저 "앱 사용 중에만 허용" 을 선택해주세요.'
-            : '앱 정보 > 권한 > 위치 메뉴로 이동합니다.',
+            ? '시스템 팝업이 나타나면 먼저 "앱 사용 중에만 허용" 을 선택해주세요. 선택 후 하단의 "설정 앱에서 변경하기" 버튼을 눌러주시면 됩니다.'
+            : status == PermissionState.serviceDisabled
+            ? '위치 서비스가 꺼져 있으면 먼저 기기 설정에서 위치를 켜 주세요.'
+            : '2단계를 설정을 위해 아래의 \n"설정 앱에서 변경하기" 버튼을 클릭하세요',
+        imagePath: _locationStepOneImage,
       ),
       SizedBox(height: 10.h),
-      _StepTile(
+      PermissionStepTile(
         number: 2,
-        title: '"항상 허용" 으로 변경',
-        description:
-            '위치 권한 화면에서 "항상 허용" 을 선택해주세요.\n'
-            '(Android 11+ 또는 iOS 에서는 별도 화면에서 선택해야 할 수 있어요.)',
+        title: '설정 화면에서 "권한" 선택',
+        description: '이동한 기기 설정 화면에서 "권한" 메뉴를 탭해 주세요.',
+        imagePath: _locationStepTwoImage,
       ),
       SizedBox(height: 10.h),
-      _StepTile(
+      PermissionStepTile(
         number: 3,
-        title: '앱으로 돌아오기',
-        description: '설정을 마치면 앱으로 돌아와 주세요. 자동으로 권한 상태를 확인합니다.',
+        title: '앱 권한 목록에서 "위치" 선택',
+        description: '권한 목록 화면에서 "위치" 설정 메뉴를 탭해 주세요.',
+        imagePath: _locationStepThreeImage,
+      ),
+      SizedBox(height: 10.h),
+      PermissionStepTile(
+        number: 4,
+        title: '"항상 허용" 및 정확한 위치 활성화',
+        description:
+            '위치 권한 화면에서 "항상 허용"을 선택해 주세요.\n'
+            '아래의 "정확한 위치 사용" 토글도 켜 주시면 도착 감지가 훨씬 안정적이에요.',
+        imagePath: _locationStepFourImage,
       ),
     ];
   }
@@ -343,77 +309,6 @@ class _LocationPermissionGuideViewState
                 label,
                 style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700),
               ),
-      ),
-    );
-  }
-}
-
-class _StepTile extends StatelessWidget {
-  final int number;
-  final String title;
-  final String description;
-
-  const _StepTile({
-    required this.number,
-    required this.title,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 28.w,
-            height: 28.w,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              '$number',
-              style: TextStyle(
-                color: colorScheme.onPrimary,
-                fontWeight: FontWeight.w800,
-                fontSize: 13.sp,
-              ),
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    height: 1.45,
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:iamhere/feature/user_permission/view/component/permission_guide_components.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /// 배터리 최적화 제외 설정을 사용자에게 안내하는 화면 (Android 전용).
@@ -28,6 +29,7 @@ class _BatteryOptimizationGuideViewState
     with WidgetsBindingObserver {
   PermissionState? _currentStatus;
   bool _isProcessing = false;
+  bool _shouldCloseOnGranted = false;
   // 배터리 최적화 시스템 다이얼로그는 인앱 오버레이라 `resumed` 와 `_handleAction.finally`
   // 가 거의 동시에 _refreshStatus 를 호출한다. 두 경로가 모두 status=grantedAlways 를
   // 보고 pop 하면 두 번째 pop 에서 go_router 의 currentConfiguration.isNotEmpty
@@ -60,7 +62,7 @@ class _BatteryOptimizationGuideViewState
     if (!mounted) return;
     setState(() => _currentStatus = status);
 
-    if (status == PermissionState.grantedAlways && !_popped) {
+    if (status == PermissionState.grantedAlways && _shouldCloseOnGranted && !_popped) {
       ref.invalidate(batteryOptimizationStatusProvider);
       _popped = true;
       if (Navigator.of(context).canPop()) {
@@ -72,6 +74,7 @@ class _BatteryOptimizationGuideViewState
   Future<void> _handleAction() async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
+    _shouldCloseOnGranted = true;
 
     final service = ref.read(batteryOptimizationPermissionServiceProvider);
     final status = _currentStatus ?? await service.checkPermissionStatus();
@@ -115,17 +118,19 @@ class _BatteryOptimizationGuideViewState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildHeader(colorScheme),
+                      PermissionGuideHeader(
+                        icon: Icons.battery_saver,
+                        title: '배터리 최적화 제외가 필요해요',
+                        description: Platform.isAndroid
+                            ? '스마트폰 화면이 꺼져 있어도 도착 알림이\n누락 없이 안전하게 전송되도록 설정합니다.'
+                            : 'iOS 는 별도 설정이 필요하지 않습니다.',
+                      ),
                       SizedBox(height: 20.h),
                       _buildCurrentStatusCard(status, colorScheme),
                       SizedBox(height: 24.h),
-                      _buildSectionTitle('왜 필요한가요?'),
-                      SizedBox(height: 8.h),
-                      _buildReasonText(colorScheme),
+                      _buildWhySection(colorScheme),
                       SizedBox(height: 24.h),
-                      _buildSectionTitle('설정 방법'),
-                      SizedBox(height: 12.h),
-                      ..._buildSteps(status),
+                      _buildStepsSection(status),
                     ],
                   ),
                 ),
@@ -139,148 +144,95 @@ class _BatteryOptimizationGuideViewState
     );
   }
 
-  Widget _buildHeader(ColorScheme colorScheme) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.battery_saver,
-            color: colorScheme.onPrimaryContainer,
-            size: 36.sp,
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '배터리 최적화 제외가 필요해요',
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  Platform.isAndroid
-                      ? '앱이 꺼져 있을 때 도착 알림이\n놓쳐지지 않도록 설정이 필요합니다.'
-                      : 'iOS 는 별도 설정이 필요하지 않습니다.',
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: colorScheme.onPrimaryContainer.withValues(
-                      alpha: 0.8,
-                    ),
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCurrentStatusCard(
     PermissionState? status,
     ColorScheme colorScheme,
   ) {
-    final (label, color, icon) = _statusPresentation(status, colorScheme);
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+    final (label, color, icon) = switch (status) {
+      PermissionState.grantedAlways => (
+        '제외 완료',
+        colorScheme.primary,
+        Icons.check_circle,
       ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20.sp),
-          SizedBox(width: 8.w),
-          Text(
-            '현재 상태: ',
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
+      PermissionState.denied => ('미적용', colorScheme.error, Icons.cancel),
+      PermissionState.permanentlyDenied => (
+        '시스템에서 거부됨',
+        colorScheme.error,
+        Icons.block,
+      ),
+      PermissionState.restricted => ('제한됨', colorScheme.error, Icons.lock),
+      PermissionState.grantedWhenInUse ||
+      PermissionState.serviceDisabled ||
+      null => ('확인 중...', colorScheme.onSurface, Icons.hourglass_empty),
+    };
+    return PermissionStatusBadge(label: label, color: color, icon: icon);
+  }
+
+  Widget _buildWhySection(ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '왜 필요한가요?',
+          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w700),
+        ),
+        SizedBox(height: 8.h),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: '도착/출발 메시지가 늦게 전송되거나 누락되는 것을 방지하기 위해 설정이 필요해요.\n\n',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const TextSpan(
+                text: '스마트폰은 배터리를 아끼기 위해 사용하지 않는 앱을 잠시 멈추는 기능을 가지고 있어요.\n\n',
+              ),
+              const TextSpan(
+                text: '지정한 장소에 도착했을 때 친구에게 메시지가 누락 없이 바로 전송될 수 있도록, 아래 버튼을 눌러 ',
+              ),
+              TextSpan(
+                text: '"배터리 최적화 대상에서 제외"',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const TextSpan(text: '해 주세요!'),
+            ],
           ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+          style: TextStyle(
+            fontSize: 14.sp,
+            height: 1.6,
+            color: colorScheme.onSurface.withValues(alpha: 0.75),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  (String, Color, IconData) _statusPresentation(
-    PermissionState? status,
-    ColorScheme colorScheme,
-  ) {
-    switch (status) {
-      case PermissionState.grantedAlways:
-        return ('제외 완료', colorScheme.primary, Icons.check_circle);
-      case PermissionState.denied:
-        return ('미적용', colorScheme.error, Icons.cancel);
-      case PermissionState.permanentlyDenied:
-        return ('시스템에서 거부됨', colorScheme.error, Icons.block);
-      case PermissionState.restricted:
-        return ('제한됨', colorScheme.error, Icons.lock);
-      case PermissionState.grantedWhenInUse:
-      case null:
-        return ('확인 중...', colorScheme.onSurface, Icons.hourglass_empty);
-      case PermissionState.serviceDisabled:
-        throw UnimplementedError();
-    }
-  }
-
-  Widget _buildSectionTitle(String text) {
-    return Text(
-      text,
-      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w700),
-    );
-  }
-
-  Widget _buildReasonText(ColorScheme colorScheme) {
-    return Text(
-      'Android 는 배터리 절약을 위해 일정 시간이 지난 앱의 백그라운드 실행을 제한합니다(Doze / App Standby).\n\n'
-      '이 제한이 적용되면 도착 시 친구에게 메시지를 보내는 기능이 일부 환경에서 동작하지 않을 수 있어요.\n\n'
-      '아래 버튼을 눌러 "배터리 최적화 제외" 목록에 이 앱을 추가해 주세요.',
-      style: TextStyle(
-        fontSize: 14.sp,
-        height: 1.5,
-        color: colorScheme.onSurface.withValues(alpha: 0.75),
-      ),
-    );
-  }
-
-  List<Widget> _buildSteps(PermissionState? status) {
+  Widget _buildStepsSection(PermissionState? status) {
     final isPermanentlyDenied = status == PermissionState.permanentlyDenied;
-    return [
-      _StepTile(
-        number: 1,
-        title: isPermanentlyDenied ? '설정 앱으로 이동합니다' : '"허용" 을 선택해주세요',
-        description: isPermanentlyDenied
-            ? '앱 정보 > 배터리 메뉴에서 "제한 없음" 또는 "최적화 안 함" 을 선택해 주세요.'
-            : '시스템 팝업이 나타나면 "허용" 을 선택해 주세요.',
-      ),
-      SizedBox(height: 10.h),
-      _StepTile(
-        number: 2,
-        title: '앱으로 돌아오기',
-        description: '설정을 마치면 앱으로 돌아와 주세요. 자동으로 상태를 확인합니다.',
-      ),
-    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '설정 방법',
+          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w700),
+        ),
+        SizedBox(height: 12.h),
+        PermissionStepTile(
+          number: 1,
+          title: isPermanentlyDenied ? '설정 앱으로 이동합니다' : '"허용" 을 선택해주세요',
+          description: isPermanentlyDenied
+              ? '앱 정보 > 배터리 메뉴에서 "제한 없음" 또는 "최적화 안 함" 을 선택해 주세요.'
+              : '아래와 같은 시스템 팝업이 나타나면 "허용" 을 선택해 주세요.',
+          imagePath: 'assets/images/battery_step.png',
+        ),
+      ],
+    );
   }
 
   Widget _buildActionButton(PermissionState? status) {
@@ -323,77 +275,6 @@ class _BatteryOptimizationGuideViewState
                 label,
                 style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700),
               ),
-      ),
-    );
-  }
-}
-
-class _StepTile extends StatelessWidget {
-  final int number;
-  final String title;
-  final String description;
-
-  const _StepTile({
-    required this.number,
-    required this.title,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 28.w,
-            height: 28.w,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              '$number',
-              style: TextStyle(
-                color: colorScheme.onPrimary,
-                fontWeight: FontWeight.w800,
-                fontSize: 13.sp,
-              ),
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    height: 1.45,
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
