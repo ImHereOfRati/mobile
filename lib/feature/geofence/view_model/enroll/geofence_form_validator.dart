@@ -6,9 +6,8 @@ export '../dto/geofence_form_validation_result.dart';
 
 class GeofenceFormValidator {
   static GeofenceFormValidationResult validate(
-    GeofenceEnrollFormState state, {
-    required String senderName,
-  }) {
+    GeofenceEnrollFormState state,
+  ) {
     if (state.name.trim().isEmpty) {
       return GeofenceFormValidationResult(
         isValid: false,
@@ -40,8 +39,9 @@ class GeofenceFormValidator {
     );
     if (hasSmsRecipients) {
       final smsBody = composeSmsBody(
+        eventType: state.eventType,
+        message: state.message,
         location: state.fullLocation,
-        senderName: senderName,
       );
       if (smsBody.length > smsBodyMaxLength) {
         return GeofenceFormValidationResult(

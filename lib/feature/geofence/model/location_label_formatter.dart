@@ -1,3 +1,5 @@
+import 'event_type.dart';
+
 const int smsBodyMaxLength = 45;
 
 String fallbackCoordinates(double latitude, double longitude) =>
@@ -29,16 +31,29 @@ String composeFullLocation(String name, String address) {
 }
 
 String composeSmsBody({
+  required EventType eventType,
+  required String message,
   required String location,
-  required String senderName,
 }) {
-  final sender = senderName.trim().isEmpty ? '사용자 닉네임' : senderName.trim();
-  return '[ImHere]\n$location 도착\n발신자: $sender';
+  final cleanLocation = location.trim();
+  final cleanMessage = message.trim();
+  final defaultMessage =
+      '${cleanLocation.isEmpty ? '장소' : cleanLocation} ${eventType == EventType.departure ? '출발' : '도착'}';
+  final bodyMessage = cleanMessage.isEmpty
+      ? defaultMessage
+      : cleanMessage.replaceAll('{location}', cleanLocation);
+
+  return '[ImHere]\n$bodyMessage';
 }
 
 String composeSmsPreview({
+  required EventType eventType,
+  required String message,
   required String location,
-  required String senderName,
 }) {
-  return composeSmsBody(location: location, senderName: senderName);
+  return '[WEB 발신]\n${composeSmsBody(
+    eventType: eventType,
+    message: message,
+    location: location,
+  )}';
 }

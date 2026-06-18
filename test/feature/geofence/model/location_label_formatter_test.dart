@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 
 void main() {
@@ -42,23 +43,25 @@ void main() {
     expect(composeFullLocation('서울 강남구', '서울 강남구'), '서울 강남구');
   });
 
-  test('composeSmsBody inserts location into the template', () {
+  test('composeSmsBody matches the server SMS format', () {
     expect(
-        composeSmsBody(
-          location: '우리집 (서울 강남구)',
-          senderName: '홍길동',
-        ),
-      '[ImHere]\n우리집 (서울 강남구) 도착\n발신자: 홍길동',
+      composeSmsBody(
+        eventType: EventType.arrival,
+        message: '',
+        location: '우리집 (서울 강남구)',
+      ),
+      '[ImHere]\n우리집 (서울 강남구) 도착',
     );
   });
 
-  test('composeSmsPreview includes sender line', () {
+  test('composeSmsPreview supports WEB sender preview', () {
     expect(
       composeSmsPreview(
+        eventType: EventType.departure,
+        message: '',
         location: '우리집 (서울 강남구)',
-        senderName: '홍길동',
       ),
-      '[ImHere]\n우리집 (서울 강남구) 도착\n발신자: 홍길동',
+      '[WEB 발신]\n[ImHere]\n우리집 (서울 강남구) 출발',
     );
   });
 }

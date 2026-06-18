@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/infrastructure/routing/app_routes.dart';
+import 'package:iamhere/common/component/style/app_text_styles.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
 import 'package:iamhere/feature/user_permission/view_model/location_permission_gate.dart';
-import 'package:iamhere/common/component/style/app_text_styles.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 
-const String _emptyTitle = '아직 만든 도착 알림이 없어요';
-const String _emptyDescription = '도착하면 소중한 사람에게 자동으로 연락해드려요.\n30초면 첫 알림을 만들 수 있어요.';
+const String _emptyTitle = '깔끔';
+const String _emptyDescription =
+    '도착/출발할 때 소중한 사람에게 자동으로 연락해드려요.\n30초면 첫 알림을 만들 수 있어요.';
 const String _createFirstAlert = '첫 알림 만들기';
 
 /// 알림이 없을 때 첫 알림 생성을 유도하는 empty state.
@@ -34,13 +35,13 @@ class GeofenceEmptyState extends ConsumerWidget {
             SizedBox(height: 16.h),
             Text(
               _emptyTitle,
-              style: AppTextStyles.gSansBold(17, cs.onSurface),
+              style: AppTextStyles.gSansBold(50.sp, cs.onSurface),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 8.h),
             Text(
               _emptyDescription,
-              style: AppTextStyles.hannaAirRegular(13, cs.onSurfaceVariant),
+              style: AppTextStyles.hannaAirRegular(16.sp, cs.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 24.h),
@@ -59,8 +60,9 @@ class GeofenceEmptyState extends ConsumerWidget {
   }
 
   Future<void> _handleCreateTap(BuildContext context, WidgetRef ref) async {
-    final gate =
-        LocationPermissionGate(ref.read(locationPermissionServiceProvider));
+    final gate = LocationPermissionGate(
+      ref.read(locationPermissionServiceProvider),
+    );
     final canEnroll = await gate.resolveForCreate();
     if (!context.mounted) return;
 

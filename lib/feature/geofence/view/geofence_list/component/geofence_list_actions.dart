@@ -13,7 +13,7 @@ import 'package:iamhere/feature/user_permission/view_model/location_permission_g
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
 
 const String enrollFailurePrefix = '등록 실패: ';
-const String deleteDialogTitle = '도착 알림 삭제';
+const String deleteDialogTitle = '알림 삭제';
 const String deleteDialogSuffix = ' 알림을 삭제하시겠습니까?';
 
 LocationPermissionGate _permissionGate(WidgetRef ref) {
@@ -30,7 +30,11 @@ Future<void> handleCreateNew(BuildContext context, WidgetRef ref) async {
   }
 }
 
-Future<void> handleEdit(BuildContext context, WidgetRef ref, GeofenceEntity geofence) async {
+Future<void> handleEdit(
+  BuildContext context,
+  WidgetRef ref,
+  GeofenceEntity geofence,
+) async {
   final srvRepo = ref.read(geofenceServerRecipientLocalRepositoryProvider);
   final srvRecipients = await srvRepo.findByGeofenceId(geofence.id!);
   if (!context.mounted) return;
@@ -57,18 +61,31 @@ Future<void> handleEdit(BuildContext context, WidgetRef ref, GeofenceEntity geof
   ref.read(geofenceListViewModelProvider.notifier).refresh();
 }
 
-Future<void> handleToggle(BuildContext context, WidgetRef ref, GeofenceEntity geofence, bool newValue) async {
+Future<void> handleToggle(
+  BuildContext context,
+  WidgetRef ref,
+  GeofenceEntity geofence,
+  bool newValue,
+) async {
   if (geofence.id == null) return;
   if (newValue && !(await _permissionGate(ref).ensureAlways(context))) return;
 
   try {
-    await ref.read(geofenceListViewModelProvider.notifier).toggleActive(geofence.id!, newValue);
+    await ref
+        .read(geofenceListViewModelProvider.notifier)
+        .toggleActive(geofence.id!, newValue);
   } catch (e) {
-    if (context.mounted) AppSnackBar.showError(context, '$enrollFailurePrefix$e');
+    if (context.mounted) {
+      AppSnackBar.showError(context, '$enrollFailurePrefix$e');
+    }
   }
 }
 
-Future<void> handleDelete(BuildContext context, WidgetRef ref, GeofenceEntity geofence) async {
+Future<void> handleDelete(
+  BuildContext context,
+  WidgetRef ref,
+  GeofenceEntity geofence,
+) async {
   final cs = Theme.of(context).colorScheme;
   final confirmed = await showDialog<bool>(
     context: context,

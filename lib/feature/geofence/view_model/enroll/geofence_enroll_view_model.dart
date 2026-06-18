@@ -9,7 +9,6 @@ import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/repeat_schedule.dart';
 import 'package:iamhere/feature/geofence/service/geocoding_service_provider.dart';
 import 'package:iamhere/feature/geofence/view_model/dto/save_geofence_request.dart';
-import 'package:iamhere/feature/setting/view_model/my_info_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'geofence_enroll_form_state.dart';
 import 'geofence_form_validator.dart';
@@ -130,15 +129,7 @@ class GeofenceEnrollViewModel extends _$GeofenceEnrollViewModel {
   void resetForm() => state = GeofenceEnrollFormState();
 
   Future<void> saveGeofence() async {
-    String senderName = '사용자 닉네임';
-    try {
-      final myInfo = await ref.read(myInfoViewModelProvider.future);
-      senderName = myInfo?.nickname ?? senderName;
-    } catch (_) {}
-    final res = GeofenceFormValidator.validate(
-      state,
-      senderName: senderName,
-    );
+    final res = GeofenceFormValidator.validate(state);
     if (!res.isValid) throw Exception(res.errorMessage ?? '입력값을 확인해주세요');
 
     final contactIds = state.selectedRecipients

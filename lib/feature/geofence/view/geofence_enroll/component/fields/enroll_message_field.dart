@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iamhere/feature/geofence/model/event_type.dart';
+import 'package:iamhere/feature/geofence/model/recipient.dart';
 
 import '../common/enroll_section_label.dart';
 import 'enroll_message_hint_banner.dart';
@@ -12,6 +14,8 @@ class EnrollMessageField extends StatelessWidget {
   final String locationName;
   final String locationAddress;
   final String senderName;
+  final EventType eventType;
+  final List<Recipient> recipients;
 
   const EnrollMessageField({
     super.key,
@@ -19,6 +23,8 @@ class EnrollMessageField extends StatelessWidget {
     required this.locationName,
     required this.locationAddress,
     required this.senderName,
+    required this.eventType,
+    required this.recipients,
   });
 
   @override
@@ -38,6 +44,9 @@ class EnrollMessageField extends StatelessWidget {
           locationName: locationName,
           locationAddress: locationAddress,
           senderName: senderName,
+          eventType: eventType,
+          message: controller.text,
+          recipients: recipients,
         ),
       ],
     );

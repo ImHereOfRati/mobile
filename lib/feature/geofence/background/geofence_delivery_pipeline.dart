@@ -7,6 +7,7 @@ import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.d
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
@@ -226,11 +227,11 @@ class GeofenceDeliveryPipeline {
   }
 
   String _buildMessageBody(GeofenceDeliverySnapshot snapshot) {
-    final event = DeliveryEvent.fromStoredName(snapshot.deliveryEventType);
-    final template = snapshot.geofence.message.trim().isEmpty
-        ? event.defaultMessageTemplate
-        : snapshot.geofence.message.trim();
-    return template.replaceAll('{location}', snapshot.geofence.fullLocation);
+    return composeSmsBody(
+      eventType: EventType.fromName(snapshot.deliveryEventType),
+      message: snapshot.geofence.message,
+      location: snapshot.geofence.fullLocation,
+    );
   }
 
   bool _hasNoRecipients(GeofenceDeliverySnapshot snapshot) =>
