@@ -4,12 +4,10 @@ import 'package:iamhere/feature/user_permission/model/auto_send_readiness.dart';
 
 class AutoSendReadinessCard extends StatelessWidget {
   final AutoSendReadiness readiness;
-  final VoidCallback onTap;
 
   const AutoSendReadinessCard({
     super.key,
     required this.readiness,
-    required this.onTap,
   });
 
   @override
@@ -17,35 +15,26 @@ class AutoSendReadinessCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isReady = readiness.isReady;
 
-    return Material(
-      color: cs.surface,
-      borderRadius: BorderRadius.circular(16.r),
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      decoration: BoxDecoration(
+        color: cs.surface,
+        border: Border.all(color: cs.outlineVariant),
         borderRadius: BorderRadius.circular(16.r),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: cs.outlineVariant),
-            borderRadius: BorderRadius.circular(16.r),
+      ),
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTopRow(cs, isReady),
+          SizedBox(height: 8.h),
+          Text(
+            readiness.summaryDescription,
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.76),
+              fontSize: 14.sp,
+            ),
           ),
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTopRow(cs, isReady),
-              SizedBox(height: 8.h),
-              Text(
-                readiness.summaryDescription,
-                style: TextStyle(
-                  color: cs.onSurface.withValues(alpha: 0.76),
-                  fontSize: 14.sp,
-                ),
-              ),
-              Divider(height: 24.h, color: cs.outlineVariant),
-              _buildActionRow(cs),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -112,23 +101,6 @@ class AutoSendReadinessCard extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
-    );
-  }
-
-  Widget _buildActionRow(ColorScheme cs) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          readiness.primaryActionLabel,
-          style: TextStyle(
-            color: cs.primary,
-            fontWeight: FontWeight.w700,
-            fontSize: 14.sp,
-          ),
-        ),
-        Icon(Icons.chevron_right, color: cs.primary),
-      ],
     );
   }
 }

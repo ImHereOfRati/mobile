@@ -8,8 +8,43 @@ import 'package:iamhere/infrastructure/routing/app_routes.dart';
 
 class UserPermissionPrepBody extends StatelessWidget {
   final AutoSendReadiness readiness;
+  final VoidCallback onContinue;
 
-  const UserPermissionPrepBody({super.key, required this.readiness});
+  const UserPermissionPrepBody({
+    super.key,
+    required this.readiness,
+    required this.onContinue,
+  });
+
+  Widget _buildTopBanner(ColorScheme cs) {
+    if (readiness.isReady) return const SizedBox.shrink();
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: cs.secondaryContainer.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: cs.secondary.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: cs.onSecondaryContainer, size: 20.sp),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Text(
+              '지금 설정해야 자동 전송을 쓸 수 있어요',
+              style: TextStyle(
+                color: cs.onSecondaryContainer,
+                fontWeight: FontWeight.w700,
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +53,10 @@ class UserPermissionPrepBody extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 24.h),
       children: [
-        AutoSendReadinessCard(readiness: readiness, onTap: () {}),
+        _buildTopBanner(cs),
+        AutoSendReadinessCard(readiness: readiness),
         SizedBox(height: 20.h),
-        Text('자동 전송이란?', style: Theme.of(context).textTheme.headlineSmall),
+        Text('자동 알림이란?', style: Theme.of(context).textTheme.headlineSmall),
         SizedBox(height: 8.h),
         Text(
           '앱이 닫혀 있거나 화면이 꺼져 있어도 도착한 순간을 감지해 자동으로 알려주는 기능이에요.',
@@ -31,20 +67,31 @@ class UserPermissionPrepBody extends StatelessWidget {
         SizedBox(height: 20.h),
         PrepStatusTile(
           title: '위치 항상 허용',
-          description: '자동 전송을 사용하려면 도착 알림이 앱 밖에서도 위치를 확인할 수 있어야 해요.',
+          description: '자동 알림을 사용하려면 도착 알림이 앱 밖에서도 위치를 확인할 수 있어야 해요.',
           statusLabel: readiness.locationStatusLabel,
-          actionLabel: readiness.isLocationServiceDisabled ? '위치 서비스 켜기' : '위치 설정 열기',
+          actionLabel: readiness.isLocationServiceDisabled
+              ? '위치 서비스 켜기'
+              : '위치 설정 열기',
           onTap: () => AppRoutes.pushLocationPermissionGuide(context),
         ),
         SizedBox(height: 12.h),
         PrepStatusTile(
           title: '배터리 최적화 제외',
-          description: '앱이 꺼져 있어도 자동 전송이 중간에 끊기지 않게 준비해요.',
-          statusLabel: Platform.isAndroid ? readiness.batteryStatusLabel : '해당 없음',
+          description: '앱이 꺼져 있어도 자동 알림이 중간에 끊기지 않게 준비해요.',
+          statusLabel: Platform.isAndroid
+              ? readiness.batteryStatusLabel
+              : '해당 없음',
           actionLabel: Platform.isAndroid ? '배터리 설정 열기' : '확인',
           onTap: Platform.isAndroid
               ? () => AppRoutes.pushBatteryOptimizationGuide(context)
               : () => Navigator.of(context).maybePop(),
+        ),
+        SizedBox(height: 20.h),
+        FilledButton(
+          onPressed: readiness.isReady ? onContinue : null,
+          child: Text(
+            readiness.isReady ? '준비 완료 후 계속하기' : '자동 전송 준비를 먼저 완료해 주세요',
+          ),
         ),
       ],
     );
@@ -83,7 +130,12 @@ class PrepStatusTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(title, style: Theme.of(context).textTheme.headlineSmall)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              ),
               Text(
                 statusLabel,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -103,7 +155,10 @@ class PrepStatusTile extends StatelessWidget {
           SizedBox(height: 12.h),
           Align(
             alignment: Alignment.centerLeft,
-            child: FilledButton.tonal(onPressed: onTap, child: Text(actionLabel)),
+            child: FilledButton.tonal(
+              onPressed: onTap,
+              child: Text(actionLabel),
+            ),
           ),
         ],
       ),
