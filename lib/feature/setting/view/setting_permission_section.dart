@@ -22,7 +22,7 @@ class SettingPermissionSection extends ConsumerWidget {
         _item(
           context,
           ref,
-          title: '앱 알림',
+          title: '앱 알림 권한',
           status: state.pushPermission,
           isToggleLabel: true,
           request: () => ref
@@ -32,7 +32,7 @@ class SettingPermissionSection extends ConsumerWidget {
         _item(
           context,
           ref,
-          title: '도착 알림 위치 설정',
+          title: '위치 사용 권한',
           status: state.locationPermission,
           request: () => ref
               .read(settingViewModelProvider.notifier)
@@ -41,7 +41,7 @@ class SettingPermissionSection extends ConsumerWidget {
         _item(
           context,
           ref,
-          title: '연락처 사용',
+          title: '연락처 접근 권한',
           status: state.contactPermission,
           isToggleLabel: true,
           request: () => ref
@@ -62,8 +62,10 @@ class SettingPermissionSection extends ConsumerWidget {
   }) {
     return SettingItem(
       title: title,
-      trailingText:
-          SettingLabelFormatter.permission(status, toggle: isToggleLabel),
+      trailingText: SettingLabelFormatter.permission(
+        status,
+        toggle: isToggleLabel,
+      ),
       onTap: () => SettingActionHandler.handlePermissionTap(
         context,
         ref,

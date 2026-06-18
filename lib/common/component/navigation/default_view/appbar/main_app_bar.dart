@@ -32,7 +32,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
         'ImHere',
         style: TextStyle(
           fontFamily: 'GmarketSans',
-          fontSize: 22.sp,
+          fontSize: 24.sp,
           fontWeight: FontWeight.w700,
           color: colorScheme.primary,
           letterSpacing: -0.3,

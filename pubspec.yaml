@@ -87,6 +87,7 @@ flutter:
   assets:
     - assets/fonts/
     - assets/images/
+    - assets/images/location/
     - iam_here_flutter_secret.env
 
   # 배달의 민족에서 제공하는 폰트를 기본 폰트로 추가

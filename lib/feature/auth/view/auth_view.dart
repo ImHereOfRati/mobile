@@ -17,7 +17,8 @@ class AuthView extends ConsumerStatefulWidget {
   const AuthView(this._authViewModel, {super.key});
 
   static const _appTitle = 'ImHere';
-  static const _heroSubtitle = '매번 연락하지 않아도 괜찮아요.\n도착하면 원하는 사람에게 자동으로 알려드릴게요.';
+  static const _heroSubtitle =
+      '매번 연락하지 않아도 괜찮아요.\n처음 로그인 후 자동 전송 준비를 마치지 않으면 사용할 수 없어요.';
 
   static const _permissionSectionTitle = '이렇게 시작해요';
   static const _privacyNoteText = '내 위치는 기기 안에서만 처리돼요.\n외부 서버로는 전송되지 않아요.';
@@ -25,8 +26,12 @@ class AuthView extends ConsumerStatefulWidget {
   static const _inactiveNotice = '현재 계정이 비활성 상태입니다. 운영자에게 문의하거나 다시 로그인해 주세요.';
 
   static const _permissionItems = [
-    (Icons.edit_location_alt_outlined, '알림 만들기', '도착 알림을 먼저 저장해요'),
-    (Icons.notifications_active_outlined, '자동 전송', '필요할 때만 준비를 마치면 돼요'),
+    (Icons.edit_location_alt_outlined, '알림 만들기', '알림을 먼저 저장해요'),
+    (
+      Icons.notifications_active_outlined,
+      '자동 전송',
+      '처음 로그인 후 자동 전송 준비를 마치지 않으면 사용할 수 없어요',
+    ),
     (Icons.dashboard_customize_outlined, '알림 관리', '메인에서 준비 상태를 바로 확인해요'),
   ];
 
@@ -46,6 +51,11 @@ class _AuthViewState extends ConsumerState<AuthView> {
       onSuccess: (loginResult) => _onLoginSuccess(loginResult),
       onFailure: (message) {
         AppLogger.warning('AuthView: provider login failed: $message');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('로그인에 실패했어요. 잠시 후 다시 시도해 주세요.'),
+          ),
+        );
       },
       showSnackBar: false,
     );

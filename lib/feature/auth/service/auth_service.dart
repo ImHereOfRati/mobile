@@ -17,6 +17,7 @@ class AuthService {
   static const String _loginPath = '/api/auth/login';
   static const String _registrationPath = '/api/auth/registration';
   static const String _userNotFoundResponseCode = 'AUTH-300';
+  static const Duration _authReceiveTimeout = Duration(seconds: 20);
 
   final Dio _dio;
   final TokenStorageService _tokenStorage;
@@ -112,6 +113,7 @@ class AuthService {
         path,
         data: authRequestData.toJson(),
         options: Options(
+          receiveTimeout: _authReceiveTimeout,
           extra: const {'requiresAuthentication': false},
           validateStatus: (status) => status != null && status < 500,
         ),
