@@ -12,9 +12,9 @@
 
 ## 0. 프로젝트 개요
 
-프로젝트 협업 규칙은 [`docs/project-rules.md`](./docs/project-rules.md) 의 `OMO(Oh My OpenAgent)` 기준으로 정리되어 있습니다.
+프로젝트 협업 규칙은 [ImHere Mobile 협업 규칙 (OMO)](https://app.notion.com/p/3882776ec18981e58481f925ed05732b) Notion 문서의 `OMO(Oh My OpenAgent)` 기준으로 정리되어 있습니다.
 
-에이전트 하네스는 [`.omo/rules/imhere-mobile-harness.md`](./.omo/rules/imhere-mobile-harness.md) 에 있습니다.
+에이전트 하네스는 [모바일 에이전트 하네스](https://app.notion.com/p/3882776ec189816daec8c4dfea5f2718) Notion 문서에 있습니다.
 
 ### Motivation
 **"버스 도착하기 30분 전에는 꼭 연락하거라."**
@@ -510,6 +510,15 @@ chmod +x scripts/obvious_test.sh
 
 ## 10. 관련 문서
 
+상세 설계/운영 문서는 모두 Notion `📝 ImHere 문서` 데이터베이스(태그: 모바일)로 이전되었습니다.
+
+- [📋 ADR (모바일)](https://app.notion.com/p/3882776ec189818bac2def0a56fda971) — 주요 기술·설계 결정 기록
+- [모바일 도메인 모델](https://app.notion.com/p/3882776ec1898168aa4dd349e3f5bc4c)
+- [모바일 도메인 용어집](https://app.notion.com/p/3882776ec1898102b82ffc1100e3105b)
+- [FCM 라우팅 가이드](https://app.notion.com/p/3882776ec1898159b107cdec81a25d01)
+- [API 연동 트러블슈팅: Swagger 계약 정렬](https://app.notion.com/p/3882776ec18981cabcdcfd5943bc988c)
+- [ImHere Mobile 협업 규칙 (OMO)](https://app.notion.com/p/3882776ec18981e58481f925ed05732b)
+- [모바일 에이전트 하네스](https://app.notion.com/p/3882776ec189816daec8c4dfea5f2718)
+- [Notion AI 작업기록 규칙](https://app.notion.com/p/3882776ec189814d9b35de0d1b28281f)
 - 백엔드 API Swagger: <https://fortuneki.site/swagger-ui/index.html>
-- 최근 아키텍처 전환 보고서: [`result.md`](./result.md) — Dart 연속 스트림 → OS 네이티브 Geofence 이관
 - 플레이스토어: <https://play.google.com/store/apps/details?id=com.kdongsu5509.iamhere>
