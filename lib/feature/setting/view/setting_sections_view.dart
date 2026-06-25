@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/setting/view/my_info_view.dart';
 import 'package:iamhere/feature/setting/view/setting_components.dart';
@@ -10,14 +11,15 @@ import 'package:iamhere/feature/setting/view/setting_view_support.dart';
 import 'package:iamhere/feature/setting/view/terms_view.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model_state.dart';
 
-class SettingSectionsView extends StatelessWidget {
+class SettingSectionsView extends ConsumerWidget {
   final SettingViewModelState state;
 
   const SettingSectionsView({super.key, required this.state});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final h20Box = SizedBox(height: 20.h);
+    final cs = Theme.of(context).colorScheme;
 
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -77,7 +79,30 @@ class SettingSectionsView extends StatelessWidget {
         ),
         SizedBox(height: 32.h),
         const SettingFooter(),
-        h20Box,
+        SizedBox(height: 16.h),
+        Center(
+          child: TextButton(
+            onPressed: () =>
+                SettingActionHandler.handleWithdrawAccountTap(context, ref),
+            style: TextButton.styleFrom(
+              foregroundColor: cs.error,
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              '회원 탈퇴',
+              style: TextStyle(
+                fontFamily: 'BMHANNAAir',
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: cs.error,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 20.h),
       ],
     );
   }
