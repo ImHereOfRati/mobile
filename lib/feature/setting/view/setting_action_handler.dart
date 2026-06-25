@@ -1,8 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:iamhere/common/component/dialog/app_confirm_dialog.dart';
+import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
+import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
+import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/feature/setting/view_model/setting_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_provider.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:url_launcher/url_launcher.dart';
@@ -58,5 +66,62 @@ class SettingActionHandler {
         ).showSnackBar(const SnackBar(content: Text('문의하기 페이지를 열 수 없습니다.')));
       }
     }
+  }
+
+  static Future<void> handleWithdrawAccountTap(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final cs = Theme.of(context).colorScheme;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AppConfirmDialog(
+        title: '회원 탈퇴',
+        content: '탈퇴하면 계정과 연결된 정보가 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.',
+        confirmText: '탈퇴',
+        confirmTextColor: cs.error,
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await _withdrawAccount();
+    if (!context.mounted) return;
+
+    if (!success) {
+      AppSnackBar.showError(context, '회원 탈퇴에 실패했습니다. 다시 시도해주세요.');
+      return;
+    }
+
+    await _clearLocalAuthState();
+    if (!context.mounted) return;
+
+    ref.invalidate(authStateProvider);
+    context.go(AppRoutes.auth);
+
+    if (!context.mounted) return;
+    AppSnackBar.showSuccess(context, '회원 탈퇴가 완료되었습니다.');
+  }
+
+  static Future<bool> _withdrawAccount() async {
+    try {
+      final dio = getIt<Dio>();
+      final response = await dio.delete(
+        '/api/users/my/withdrawal',
+        options: Options(extra: const {'requiresAuthentication': true}),
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } on DioException catch (e, st) {
+      AppLogger.error('회원 탈퇴 API 호출 실패', e, st);
+      return false;
+    } catch (e, st) {
+      AppLogger.error('회원 탈퇴 처리 중 알 수 없는 오류', e, st);
+      return false;
+    }
+  }
+
+  static Future<void> _clearLocalAuthState() async {
+    final tokenStorage = getIt<TokenStorageService>();
+    await tokenStorage.deleteAllTokens();
   }
 }
