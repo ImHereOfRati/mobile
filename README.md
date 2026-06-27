@@ -12,10 +12,6 @@
 
 ## 0. 프로젝트 개요
 
-프로젝트 협업 규칙은 [ImHere Mobile 협업 규칙 (OMO)](https://app.notion.com/p/3882776ec18981e58481f925ed05732b) Notion 문서의 `OMO(Oh My OpenAgent)` 기준으로 정리되어 있습니다.
-
-에이전트 하네스는 [모바일 에이전트 하네스](https://app.notion.com/p/3882776ec189816daec8c4dfea5f2718) Notion 문서에 있습니다.
-
 ### Motivation
 **"버스 도착하기 30분 전에는 꼭 연락하거라."**
 
@@ -510,21 +506,18 @@ chmod +x scripts/obvious_test.sh
 
 ## 10. 관련 문서
 
-상세 설계/운영 문서는 모두 Notion `📝 ImHere 문서` 데이터베이스(태그: 모바일)로 이전되었습니다.
+- [docs/feature-flows.md](./docs/feature-flows.md) — 코드 파일 기준 기능별 흐름(Auth→Permission→Geofence→FCM→Friend→Record)
 
-- [📋 ADR (모바일)](https://app.notion.com/p/3882776ec189818bac2def0a56fda971) — 주요 기술·설계 결정 기록
-- [모바일 네트워크 계층 (Dio)](https://app.notion.com/p/3882776ec18981f7a3b0d9b4d1063b7c)
-- [GetIt + Riverpod 의존성 경계](https://app.notion.com/p/3882776ec18981a089bee6f8bfc79379)
-- [Riverpod 상태관리 컨벤션](https://app.notion.com/p/3882776ec18981989035fd8696190133)
-- [로컬 DB 스키마 (sqflite)](https://app.notion.com/p/3882776ec1898137bb22feac39677949)
-- [go_router 라우팅 구조](https://app.notion.com/p/3882776ec1898182969be05607b31121)
-- [Firebase / FCM 사용 현황](https://app.notion.com/p/3882776ec18981e3bc75d80ae0ae44e8)
-- [모바일 도메인 모델](https://app.notion.com/p/3882776ec1898168aa4dd349e3f5bc4c)
-- [모바일 도메인 용어집](https://app.notion.com/p/3882776ec1898102b82ffc1100e3105b)
-- [FCM 라우팅 가이드](https://app.notion.com/p/3882776ec1898159b107cdec81a25d01)
-- [API 연동 트러블슈팅: Swagger 계약 정렬](https://app.notion.com/p/3882776ec18981cabcdcfd5943bc988c)
-- [ImHere Mobile 협업 규칙 (OMO)](https://app.notion.com/p/3882776ec18981e58481f925ed05732b)
-- [모바일 에이전트 하네스](https://app.notion.com/p/3882776ec189816daec8c4dfea5f2718)
-- [Notion AI 작업기록 규칙](https://app.notion.com/p/3882776ec189814d9b35de0d1b28281f)
+### 배포 현황
+
+`.github/workflows/`에는 `labels.yml`(GitHub 라벨 동기화) 하나만 있다. Flutter 빌드/테스트/릴리즈를 자동화하는 CI/CD 파이프라인과 Fastlane 설정은 아직 없다 — 빌드/서명/배포는 수동 절차로 진행된다. 백엔드는 GitHub Actions로 완전 자동화된 CI/CD가 있다(`imhere_server` 저장소의 `docs/deployment.md` 참고).
+
+### 외부 링크
 - 백엔드 API Swagger: <https://fortuneki.site/swagger-ui/index.html>
 - 플레이스토어: <https://play.google.com/store/apps/details?id=com.kdongsu5509.iamhere>
+- 백엔드 저장소: <https://github.com/kdongsu5509/imhere_server>
+
+### 외부 링크
+- 백엔드 API Swagger: <https://fortuneki.site/swagger-ui/index.html>
+- 플레이스토어: <https://play.google.com/store/apps/details?id=com.kdongsu5509.iamhere>
+- 백엔드 저장소: <https://github.com/kdongsu5509/imhere_server>
