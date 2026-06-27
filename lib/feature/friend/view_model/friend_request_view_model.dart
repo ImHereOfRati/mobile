@@ -1,9 +1,8 @@
-import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/dto/create_friend_request_dto.dart';
 import 'package:iamhere/feature/friend/service/dto/received_friend_request_response_dto.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/friend/service/friend_request_service_interface.dart';
-import 'package:iamhere/infrastructure/routing/app_routes.dart';
+import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'friend_request_view_model.g.dart';
@@ -39,12 +38,6 @@ class FriendRequestViewModel extends _$FriendRequestViewModel {
     );
     if (result == null) return false;
 
-    await _fcmService.sendFcmNotification(
-      receiverEmail: receiverEmail,
-      type: 'FRIEND_REQUEST_RECEIVED',
-      body: '친구 요청이 왔습니다.',
-      path: AppRoutes.friendRequests,
-    );
     return true;
   }
 
