@@ -10,8 +10,6 @@ import 'package:iamhere/feature/friend/view_model/contact_view_model.dart';
 import 'package:iamhere/feature/friend/view_model/contact_view_model_provider.dart';
 import 'package:iamhere/feature/friend/view_model/friend_request_view_model.dart';
 
-const List<String> _quickSearchSuggestions = ['엄마', '아빠', '회사', '학교'];
-
 class AddFriendView extends ConsumerStatefulWidget {
   const AddFriendView({super.key});
 
@@ -21,20 +19,31 @@ class AddFriendView extends ConsumerStatefulWidget {
 
 class _AddFriendViewState extends ConsumerState<AddFriendView> {
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   bool _isSearching = false;
   List<UserSearchResponseDto>? _searchResults;
   String? _errorMessage;
+  final Set<String> _sentUserIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final contactsAsync = ref.watch(contactViewModelProvider);
+    ref.watch(contactViewModelProvider);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -46,20 +55,13 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
             SizedBox(height: 16.h),
             _buildPageHeader(context, cs),
             SizedBox(height: 24.h),
-            _buildImportFromContactsButton(context),
-            SizedBox(height: 12.h),
-            _buildQuickSearchChips(
-              context,
-              cs,
-              contactsAsync.asData?.value.take(4).map((c) => c.name).toList() ?? const [],
-            ),
-            SizedBox(height: 20.h),
-            _buildOrDivider(context, cs),
-            SizedBox(height: 20.h),
             _buildSearchSection(context, cs),
             SizedBox(height: 16.h),
-            if (_searchResults != null) _buildSearchResults(context, cs),
-            if (_searchResults == null) _buildTipCard(context, cs),
+            if (_searchResults != null) ...[
+              _buildSearchResults(context, cs),
+              SizedBox(height: 24.h),
+            ],
+            _buildContactImportSection(context, cs),
             SizedBox(height: 32.h),
           ],
         ),
@@ -104,273 +106,135 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
     );
   }
 
-  // ── 연락처에서 가져오기 ──────────────────────────────────────────────
-  Widget _buildImportFromContactsButton(BuildContext context) {
-    final vmInterface = ref.read(contactViewModelInterfaceProvider);
-    return SizedBox(
-      width: double.infinity,
-      height: 52.h,
-      child: ElevatedButton.icon(
-        onPressed: () async {
-          try {
-            final result = await vmInterface.selectContact();
-            if (!context.mounted) return;
-            if (result != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${result.name}님이 친구로 추가되었습니다!'),
-                  behavior: SnackBarBehavior.floating,
-                  margin: EdgeInsets.all(16.w),
-                ),
-              );
-              context.pop();
-            } else {
-              final contactVm = ref.read(contactViewModelProvider.notifier);
-              final errorMessage = contactVm.lastError ?? '연락처 선택에 실패했습니다';
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(errorMessage),
-                  behavior: SnackBarBehavior.floating,
-                  margin: EdgeInsets.all(16.w),
-                ),
-              );
-            }
-          } catch (e) {
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('오류: $e'),
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.all(16.w),
-              ),
-            );
-          }
-        },
-        icon: Icon(Icons.contacts_outlined, size: 20.r),
-        label: Text(
-          '연락처에서 가져오기',
-          style: TextStyle(
-            fontFamily: 'BMHANNAAir',
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.2,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickSearchChips(
-    BuildContext context,
-    ColorScheme cs,
-    List<String> contactNames,
-  ) {
-    final labels = <String>{
-      ...contactNames,
-      ..._quickSearchSuggestions,
-    }.toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '빠른 검색',
-          style: TextStyle(
-            fontFamily: 'GmarketSans',
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w700,
-            color: cs.onSurface,
-            letterSpacing: -0.2,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          children: [
-            for (final label in labels)
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _searchController.text = label;
-                    _searchResults = null;
-                    _errorMessage = null;
-                  });
-                  _onSearch();
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                  decoration: BoxDecoration(
-                    color: cs.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(999.r),
-                    border: Border.all(color: cs.primary.withValues(alpha: 0.16)),
-                  ),
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontFamily: 'BMHANNAAir',
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: cs.primary,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // ── 또는 구분선 ──────────────────────────────────────────────────────
-  Widget _buildOrDivider(BuildContext context, ColorScheme cs) {
-    return Row(
-      children: [
-        Expanded(
-          child: Divider(
-            color: cs.onSurface.withValues(alpha: 0.15),
-            thickness: 0.8,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12.w),
-          child: Text(
-            '또는',
-            style: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 13.sp,
-              color: cs.onSurface.withValues(alpha: 0.45),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Divider(
-            color: cs.onSurface.withValues(alpha: 0.15),
-            thickness: 0.8,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ── 친구 검색 섹션 ───────────────────────────────────────────────────
+  // ── 검색 섹션 (프리미엄 세련된 Search Bar) ─────────────────────────────
   Widget _buildSearchSection(BuildContext context, ColorScheme cs) {
+    final hasFocus = _searchFocusNode.hasFocus;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '친구 검색',
-          style: TextStyle(
-            fontFamily: 'GmarketSans',
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w700,
-            color: cs.onSurface,
-            letterSpacing: -0.3,
-          ),
-        ),
-        SizedBox(height: 4.h),
-        Text(
-          '닉네임으로 검색하세요',
-          style: TextStyle(
-            fontFamily: 'BMHANNAAir',
-            fontSize: 13.sp,
-            color: cs.onSurface.withValues(alpha: 0.55),
-          ),
-        ),
-        SizedBox(height: 12.h),
         Row(
           children: [
-            Expanded(
-              child: Container(
-                height: 48.h,
-                decoration: BoxDecoration(
-                  color: cs.onSurface.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(width: 12.w),
-                    Icon(
-                      Icons.search,
-                      size: 20.r,
-                      color: cs.onSurface.withValues(alpha: 0.4),
-                    ),
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        style: TextStyle(
-                          fontFamily: 'BMHANNAAir',
-                          fontSize: 18.sp,
-                          color: cs.onSurface,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: '닉네임 입력',
-                          hintStyle: TextStyle(
-                            fontFamily: 'BMHANNAAir',
-                            fontSize: 20.sp,
-                            color: cs.onSurface.withValues(alpha: 0.35),
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        onSubmitted: (_) => _onSearch(),
-                      ),
-                    ),
-                    if (_searchController.text.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          _searchController.clear();
-                          setState(() {
-                            _searchResults = null;
-                            _errorMessage = null;
-                          });
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.only(right: 12.w),
-                          child: Icon(
-                            Icons.close,
-                            size: 18.r,
-                            color: cs.onSurface.withValues(alpha: 0.4),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+            Container(
+              width: 4.w,
+              height: 16.h,
+              decoration: BoxDecoration(
+                color: cs.primary,
+                borderRadius: BorderRadius.circular(2.r),
               ),
             ),
             SizedBox(width: 8.w),
-            SizedBox(
-              height: 48.h,
-              child: ElevatedButton(
-                onPressed: _isSearching ? null : _onSearch,
-                style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: _isSearching
-                    ? const ImHereLoadingIndicator(height: 16)
-                    : Text(
-                        '검색',
-                        style: TextStyle(
-                          fontFamily: 'BMHANNAAir',
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+            Text(
+              'ImHere 사용자 검색',
+              style: TextStyle(
+                fontFamily: 'GmarketSans',
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
+                letterSpacing: -0.3,
               ),
             ),
           ],
+        ),
+        SizedBox(height: 12.h),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 52.h,
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: hasFocus ? cs.primary : cs.onSurface.withValues(alpha: 0.1),
+              width: hasFocus ? 1.8 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: hasFocus
+                    ? cs.primary.withValues(alpha: 0.12)
+                    : Colors.black.withValues(alpha: 0.03),
+                blurRadius: hasFocus ? 12 : 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              SizedBox(width: 10.w),
+              Container(
+                width: 34.r,
+                height: 34.r,
+                decoration: BoxDecoration(
+                  color: hasFocus
+                      ? cs.primary.withValues(alpha: 0.12)
+                      : cs.onSurface.withValues(alpha: 0.05),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.search_rounded,
+                  size: 20.r,
+                  color: hasFocus ? cs.primary : cs.onSurface.withValues(alpha: 0.45),
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  textInputAction: TextInputAction.search,
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 16.sp,
+                    color: cs.onSurface,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: '닉네임 또는 이메일 검색',
+                    hintStyle: TextStyle(
+                      fontFamily: 'BMHANNAAir',
+                      fontSize: 15.sp,
+                      color: cs.onSurface.withValues(alpha: 0.35),
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  onChanged: (val) {
+                    setState(() {
+                      if (val.isEmpty) {
+                        _searchResults = null;
+                        _errorMessage = null;
+                      }
+                    });
+                  },
+                  onSubmitted: (_) => _onSearch(),
+                ),
+              ),
+              if (_isSearching)
+                Padding(
+                  padding: EdgeInsets.only(right: 14.w),
+                  child: const ImHereLoadingIndicator(height: 16),
+                )
+              else if (_searchController.text.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchResults = null;
+                      _errorMessage = null;
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 14.w),
+                    child: Icon(
+                      Icons.cancel,
+                      size: 20.r,
+                      color: cs.onSurface.withValues(alpha: 0.35),
+                    ),
+                  ),
+                )
+              else
+                SizedBox(width: 14.w),
+            ],
+          ),
         ),
       ],
     );
@@ -449,6 +313,8 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
     ColorScheme cs,
     UserSearchResponseDto user,
   ) {
+    final isSent = _sentUserIds.contains(user.userId);
+
     return Container(
       margin: EdgeInsets.only(bottom: 8.h),
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
@@ -507,52 +373,163 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
           // 친구 추가 버튼
           SizedBox(
             height: 36.h,
-            child: ElevatedButton(
-              onPressed: () => _onAddFriend(context, user),
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                padding: EdgeInsets.symmetric(horizontal: 14.w),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-              ),
-              child: Text(
-                '추가',
-                style: TextStyle(
-                  fontFamily: 'BMHANNAAir',
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+            child: isSent
+                ? OutlinedButton.icon(
+                    onPressed: null,
+                    icon: Icon(Icons.check, size: 14.r, color: cs.primary),
+                    label: Text(
+                      '요청됨',
+                      style: TextStyle(
+                        fontFamily: 'BMHANNAAir',
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                        color: cs.primary,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w),
+                      side: BorderSide(color: cs.primary.withValues(alpha: 0.4)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                  )
+                : ElevatedButton(
+                    onPressed: () => _onAddFriend(context, user),
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(horizontal: 14.w),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    child: Text(
+                      '추가',
+                      style: TextStyle(
+                        fontFamily: 'BMHANNAAir',
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
           ),
         ],
       ),
     );
   }
 
-  // ── 팁 카드 ─────────────────────────────────────────────────────────
-  Widget _buildTipCard(BuildContext context, ColorScheme cs) {
+  // ── 연락처 추가하기 섹션 카드 ───────────────────────────────────────────────
+  Widget _buildContactImportSection(BuildContext context, ColorScheme cs) {
+    final vmInterface = ref.read(contactViewModelInterfaceProvider);
+
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: cs.onSurface.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12.r),
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: cs.onSurface.withValues(alpha: 0.08),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('💡', style: TextStyle(fontSize: 14.sp)),
-          SizedBox(width: 8.w),
+          Container(
+            padding: EdgeInsets.all(12.r),
+            decoration: BoxDecoration(
+              color: cs.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.contacts_rounded,
+              size: 24.r,
+              color: cs.primary,
+            ),
+          ),
+          SizedBox(width: 14.w),
           Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '연락처 추가하기',
+                  style: TextStyle(
+                    fontFamily: 'GmarketSans',
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                  ),
+                ),
+                SizedBox(height: 3.h),
+                Text(
+                  '전화번호만으로도 친구에게 연락을 보낼 수 있어요',
+                  style: TextStyle(
+                    fontFamily: 'BMHANNAAir',
+                    fontSize: 12.sp,
+                    color: cs.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 8.w),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                final result = await vmInterface.selectContact();
+                if (!context.mounted) return;
+                if (result != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${result.name}님이 친구로 추가되었습니다!'),
+                      behavior: SnackBarBehavior.floating,
+                      margin: EdgeInsets.all(16.w),
+                    ),
+                  );
+                  context.pop();
+                } else {
+                  final contactVm = ref.read(contactViewModelProvider.notifier);
+                  final errorMessage = contactVm.lastError ?? '연락처 선택에 실패했습니다';
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(errorMessage),
+                      behavior: SnackBarBehavior.floating,
+                      margin: EdgeInsets.all(16.w),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('오류: $e'),
+                    behavior: SnackBarBehavior.floating,
+                    margin: EdgeInsets.all(16.w),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              elevation: 0,
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
             child: Text(
-              'Tip: 연락처에서 가져오면 전화번호로 친구를 빠르게 추가할 수 있어요!',
+              '가져오기',
               style: TextStyle(
                 fontFamily: 'BMHANNAAir',
                 fontSize: 13.sp,
-                color: cs.onSurface.withValues(alpha: 0.65),
-                height: 1.4,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -598,57 +575,143 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          '${user.userNickname}님에게 친구 요청',
-          style: TextStyle(fontFamily: 'GmarketSans', fontSize: 17.sp),
-        ),
-        content: TextField(
-          controller: messageController,
-          maxLength: 255,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: '메시지를 입력하세요 (10자 이상)',
-            hintStyle: TextStyle(
-              fontFamily: 'BMHANNAAir',
-              fontSize: 14.sp,
-              color: cs.onSurface.withValues(alpha: 0.4),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-          ),
-          style: TextStyle(fontFamily: 'BMHANNAAir', fontSize: 14.sp),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final message = messageController.text.trim();
-              if (message.length < 10) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('메시지는 10자 이상 입력해주세요'),
-                    behavior: SnackBarBehavior.floating,
-                    margin: EdgeInsets.all(16.w),
+      builder: (dialogContext) {
+        bool isSending = false;
+        int currentLength = 0;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isValid = currentLength >= 10;
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              title: Text(
+                '${user.userNickname}님에게 친구 요청',
+                style: TextStyle(
+                  fontFamily: 'GmarketSans',
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: messageController,
+                    enabled: !isSending,
+                    maxLength: 255,
+                    maxLines: 3,
+                    onChanged: (text) {
+                      setDialogState(() {
+                        currentLength = text.trim().length;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: '메시지를 입력하세요 (최소 10자 이상)',
+                      hintStyle: TextStyle(
+                        fontFamily: 'BMHANNAAir',
+                        fontSize: 13.sp,
+                        color: cs.onSurface.withValues(alpha: 0.4),
+                      ),
+                      counterText: '',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      contentPadding: EdgeInsets.all(12.w),
+                    ),
+                    style: TextStyle(fontFamily: 'BMHANNAAir', fontSize: 14.sp),
                   ),
-                );
-                return;
-              }
-              Navigator.pop(dialogContext);
-              await _sendFriendRequest(context, user, message);
-            },
-            child: const Text('보내기'),
-          ),
-        ],
-      ),
-    );
+                  SizedBox(height: 8.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isValid ? '✓ 전송 가능한 상태입니다' : '최소 10자 이상 작성해주세요',
+                        style: TextStyle(
+                          fontFamily: 'BMHANNAAir',
+                          fontSize: 12.sp,
+                          color: isValid
+                              ? Colors.green
+                              : (currentLength > 0
+                                  ? cs.error
+                                  : cs.onSurface.withValues(alpha: 0.5)),
+                        ),
+                      ),
+                      Text(
+                        '$currentLength / 255자',
+                        style: TextStyle(
+                          fontFamily: 'BMHANNAAir',
+                          fontSize: 12.sp,
+                          color: cs.onSurface.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSending ? null : () => Navigator.pop(dialogContext),
+                  child: Text(
+                    '취소',
+                    style: TextStyle(
+                      fontFamily: 'BMHANNAAir',
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (!isValid || isSending)
+                      ? null
+                      : () async {
+                          final message = messageController.text.trim();
+                          setDialogState(() {
+                            isSending = true;
+                          });
+                          final success = await _sendFriendRequest(
+                            context,
+                            user,
+                            message,
+                          );
+                          if (!dialogContext.mounted) return;
+                          Navigator.pop(dialogContext);
+                          if (success) {
+                            setState(() {
+                              _sentUserIds.add(user.userId);
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                  child: isSending
+                      ? const ImHereLoadingIndicator(height: 14)
+                      : Text(
+                          '보내기',
+                          style: TextStyle(
+                            fontFamily: 'BMHANNAAir',
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).then((_) {
+      messageController.dispose();
+    });
   }
 
-  Future<void> _sendFriendRequest(
+  Future<bool> _sendFriendRequest(
     BuildContext context,
     UserSearchResponseDto user,
     String message,
@@ -659,7 +722,7 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
       receiverEmail: user.userEmail,
       message: message,
     );
-    if (!context.mounted) return;
+    if (!context.mounted) return success;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -671,5 +734,6 @@ class _AddFriendViewState extends ConsumerState<AddFriendView> {
         margin: EdgeInsets.all(16.w),
       ),
     );
+    return success;
   }
 }
