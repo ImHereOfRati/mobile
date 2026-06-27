@@ -2,6 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
 
 void main() {
+  group('composeForegroundNotificationMessage', () {
+    test('body가 있으면 title과 body를 함께 보여준다', () {
+      expect(
+        composeForegroundNotificationMessage('새로운 친구 요청', '홍길동님이 친구 요청을 보냈습니다.'),
+        '새로운 친구 요청\n홍길동님이 친구 요청을 보냈습니다.',
+      );
+    });
+
+    test('body가 없으면 title만 반환한다', () {
+      expect(composeForegroundNotificationMessage('ImHere 알림', ''), 'ImHere 알림');
+    });
+  });
+
   group('extractNotificationPath', () {
     test('top-level path 를 우선 반환한다', () {
       final path = extractNotificationPath({
