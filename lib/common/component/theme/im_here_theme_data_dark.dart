@@ -81,6 +81,11 @@ final ThemeData darkTheme = ThemeData(
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
       foregroundColor: _appleBlue,
+      textStyle: const TextStyle(
+        fontFamily: 'BMHANNAAir',
+        fontSize: 14,
+        letterSpacing: -0.2,
+      ),
     ),
   ),
 

@@ -73,6 +73,7 @@ class UserPermissionPrepBody extends StatelessWidget {
               ? '위치 서비스 켜기'
               : '위치 설정 열기',
           onTap: () => AppRoutes.pushLocationPermissionGuide(context),
+          isReady: !readiness.needsAlwaysLocation && !readiness.isLocationServiceDisabled,
         ),
         SizedBox(height: 12.h),
         PrepStatusTile(
@@ -85,6 +86,7 @@ class UserPermissionPrepBody extends StatelessWidget {
           onTap: Platform.isAndroid
               ? () => AppRoutes.pushBatteryOptimizationGuide(context)
               : () => Navigator.of(context).maybePop(),
+          isReady: !readiness.needsBatteryOptimization || !Platform.isAndroid,
         ),
         SizedBox(height: 20.h),
         FilledButton(
@@ -104,6 +106,7 @@ class PrepStatusTile extends StatelessWidget {
   final String statusLabel;
   final String actionLabel;
   final VoidCallback onTap;
+  final bool isReady;
 
   const PrepStatusTile({
     super.key,
@@ -112,6 +115,7 @@ class PrepStatusTile extends StatelessWidget {
     required this.statusLabel,
     required this.actionLabel,
     required this.onTap,
+    this.isReady = false,
   });
 
   @override
@@ -139,7 +143,7 @@ class PrepStatusTile extends StatelessWidget {
               Text(
                 statusLabel,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: cs.primary,
+                  color: isReady ? cs.primary : cs.error,
                   fontWeight: FontWeight.w700,
                 ),
               ),
