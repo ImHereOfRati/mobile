@@ -26,7 +26,8 @@ class LocalDatabaseSchema {
   /// v6: records.retry_count, records.last_error
   /// v7: geofence.awaiting_departure
   /// v8: records.delivery_event_type
-  static const int version = 8;
+  /// v9: notifications.path
+  static const int version = 9;
 
   static Future<void> onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
@@ -66,6 +67,9 @@ class LocalDatabaseSchema {
     }
     if (oldVersion < 8) {
       await _migrateToV8(db);
+    }
+    if (oldVersion < 9) {
+      await _migrateToV9(db);
     }
   }
 
@@ -154,6 +158,14 @@ class LocalDatabaseSchema {
     );
   }
 
+  static Future<void> _migrateToV9(Database db) async {
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.notificationTableName} '
+      'ADD COLUMN path TEXT DEFAULT ""',
+    );
+  }
+
   /// onUpgrade 가 부분 실행된 적이 있는 기기 등에서 같은 마이그레이션을
   /// 다시 시도해도 앱을 죽이지 않도록 한다.
   static Future<void> _safeExec(Database db, String sql) async {
@@ -219,11 +231,12 @@ class LocalDatabaseSchema {
   static const String _createNotificationsTable =
       'CREATE TABLE ${LocalDatabaseProperties.notificationTableName}'
       '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
-      'title TEXT, '
-      'body TEXT, '
-      'sender_nickname TEXT DEFAULT "", '
-      'sender_email TEXT DEFAULT "", '
-      'created_at TEXT)';
+       'title TEXT, '
+       'body TEXT, '
+       'sender_nickname TEXT DEFAULT "", '
+       'sender_email TEXT DEFAULT "", '
+       'path TEXT DEFAULT "", '
+       'created_at TEXT)';
 
   static const String _createGeofenceDeliveryQueueTable =
       'CREATE TABLE IF NOT EXISTS '

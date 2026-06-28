@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
-import 'package:iamhere/feature/record/repository/notification_entity.dart';
+import 'package:iamhere/feature/record/view/component/notification_overview_item.dart';
 import 'package:iamhere/feature/record/view_model/notification_view_model.dart';
 
 class NotificationListView extends ConsumerWidget {
@@ -41,8 +41,9 @@ class NotificationListView extends ConsumerWidget {
                   vertical: 12.h,
                 ),
                 itemCount: notifications.length,
-                itemBuilder: (context, index) =>
-                    _buildNotificationItem(context, cs, tt, notifications[index]),
+                itemBuilder: (context, index) => NotificationOverviewItem(
+                  notification: notifications[index],
+                ),
               ),
         loading: () => Center(
           child: ImHereLoadingIndicator(height: 28),
@@ -103,87 +104,6 @@ class NotificationListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildNotificationItem(
-    BuildContext context,
-    ColorScheme cs,
-    TextTheme tt,
-    NotificationEntity notification,
-  ) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
-      child: Container(
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: cs.onSurface.withValues(alpha: 0.06),
-              offset: const Offset(0, 2),
-              blurRadius: 12,
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(14.r),
-          child: Row(
-            children: [
-              Container(
-                width: 40.r,
-                height: 40.r,
-                decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(
-                  Icons.notifications_rounded,
-                  color: cs.primary,
-                  size: 20.r,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      notification.title,
-                      style: tt.headlineSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      notification.body,
-                      style: tt.bodyMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (notification.senderNickname.isNotEmpty) ...[
-                      SizedBox(height: 2.h),
-                      Text(
-                        notification.senderNickname,
-                        style: tt.bodySmall?.copyWith(
-                          color: cs.onSurface.withValues(alpha: 0.5),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                _formatRelativeTime(notification.createdAt),
-                style: tt.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _confirmDeleteAll(BuildContext context, WidgetRef ref) {
     final tt = Theme.of(context).textTheme;
     final errorColor = Theme.of(context).colorScheme.error;
@@ -213,17 +133,5 @@ class NotificationListView extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  String _formatRelativeTime(DateTime dt) {
-    final now = DateTime.now();
-    final diff = now.difference(dt);
-
-    if (diff.inMinutes < 1) return '방금 전';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
-    if (diff.inHours < 24) return '${diff.inHours}시간 전';
-    if (diff.inDays < 7) return '${diff.inDays}일 전';
-
-    return '${dt.month}월 ${dt.day}일';
   }
 }
