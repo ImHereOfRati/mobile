@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iamhere/feature/record/repository/notification_entity.dart';
 
 /// 앱의 모든 경로를 한 곳에서 관리합니다.
 ///
@@ -24,9 +25,11 @@ class AppRoutes {
   static const String friendRestrictions = '/friend/restrictions';
   static const String record = '/record';
   static const String recordNotifications = '/record/notifications';
+  static const String recordNotificationDetail = '/record/notifications/detail';
   static const String recordFriendRequests = '/record/friend-requests';
   static const String recordSendHistory = '/record/send-history';
   static const String setting = '/setting';
+  static const String termsDetail = '/terms-detail/:termId';
 
   /// BottomNavigationBar 탭 순서와 일치해야 합니다.
   static const List<String> mainTabs = [geofence, contact, record, setting];
@@ -54,9 +57,16 @@ class AppRoutes {
       context.push(friendRestrictions);
   static void goToRecordNotifications(BuildContext context) =>
       context.push(recordNotifications);
+  static void goToNotificationDetail(
+    BuildContext context,
+    NotificationEntity notification,
+  ) =>
+      context.push(recordNotificationDetail, extra: notification);
   static void goToRecordFriendRequests(BuildContext context) =>
       context.push(recordFriendRequests);
   static void goToRecordSendHistory(BuildContext context) =>
       context.push(recordSendHistory);
   static void goToGeofence(BuildContext context) => context.go(geofence);
+  static void goToTermsDetail(BuildContext context, int termId) =>
+      context.push('/terms-detail/$termId');
 }

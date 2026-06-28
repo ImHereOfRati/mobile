@@ -23,7 +23,7 @@ class FcmArrivalService {
 
   /// 여러 서버 친구에게 위치 이벤트 FCM 발송
   /// [body]는 이미 {location} 등 치환이 완료된 최종 본문이어야 한다.
-  /// [location]은 본인 알림용으로 사용된다.
+  /// [location]은 서버가 도착/출발 본문을 만들 때 필요한 placeName 으로도 사용된다.
   Future<Result<void>> sendGeofenceNotifications({
     required List<String> receiverEmails,
     required String body,
@@ -39,6 +39,7 @@ class FcmArrivalService {
       final result = await _sendOne(
         receiverEmail: email,
         body: body,
+        location: location,
         type: type,
       );
       if (result is Success) {
@@ -58,6 +59,7 @@ class FcmArrivalService {
   Future<Result<void>> _sendOne({
     required String receiverEmail,
     required String body,
+    required String location,
     required String type,
   }) async {
     try {
@@ -65,7 +67,11 @@ class FcmArrivalService {
         notificationMethod: 'FCM',
         targetId: receiverEmail,
         type: type,
-        extraData: {'body': body, 'path': AppRoutes.recordNotifications},
+        extraData: {
+          'body': body,
+          'path': AppRoutes.recordNotifications,
+          'placeName': location,
+        },
       );
       final response = await _dio.post(
         _fcmArrivalPath,

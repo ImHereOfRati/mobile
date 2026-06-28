@@ -22,6 +22,7 @@ void main() {
     String body = '메시지',
     String nickname = '엄마',
     String email = 'a@example.com',
+    String path = '/record/notifications',
     DateTime? createdAt,
   }) =>
       NotificationEntity(
@@ -29,6 +30,7 @@ void main() {
         body: body,
         senderNickname: nickname,
         senderEmail: email,
+        path: path,
         createdAt: createdAt ?? DateTime(2026, 4, 29, 10),
       );
 
@@ -38,6 +40,7 @@ void main() {
     final all = await sut.findAll();
     expect(all.single.senderNickname, '엄마');
     expect(all.single.senderEmail, 'mom@example.com');
+    expect(all.single.path, '/record/notifications');
   });
 
   test('findAll 은 created_at 내림차순(최신부터) 으로 반환한다', () async {

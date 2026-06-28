@@ -68,7 +68,7 @@ Future<void> setupForegroundMessageListener() async {
         message.notification?.body ?? message.data['body'] ?? '';
     final String? path = extractNotificationPath(message.data);
 
-    await _saveNotificationToLocal(message, title, body);
+    await _saveNotificationToLocal(message, title, body, path);
     await _showForegroundBanner(title: title, body: body, path: path);
   });
 }
@@ -77,6 +77,7 @@ Future<void> _saveNotificationToLocal(
   RemoteMessage message,
   String title,
   String body,
+  String? path,
 ) async {
   try {
     final repository = getIt<NotificationLocalRepository>();
@@ -85,6 +86,7 @@ Future<void> _saveNotificationToLocal(
       body: body,
       senderNickname: message.data['senderNickname'] ?? '',
       senderEmail: message.data['senderEmail'] ?? '',
+      path: path ?? '',
       createdAt: DateTime.now(),
     );
     await repository.save(entity);
