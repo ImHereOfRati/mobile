@@ -9,12 +9,15 @@ import 'package:iamhere/feature/friend/view/friend_request_list_view.dart';
 import 'package:iamhere/feature/friend/view/friend_restriction_list_view.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/geofence_enroll_view.dart';
 import 'package:iamhere/feature/geofence/view/geofence_list/geofence_list_view.dart';
+import 'package:iamhere/feature/record/repository/notification_entity.dart';
+import 'package:iamhere/feature/record/view/notification_detail_view.dart';
 import 'package:iamhere/feature/record/view/notification_list_view.dart';
 import 'package:iamhere/feature/record/view/record_friend_request_list_view.dart';
 import 'package:iamhere/feature/record/view/record_view.dart';
 import 'package:iamhere/feature/record/view/send_history_list_view.dart';
 import 'package:iamhere/feature/setting/view/setting_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
+import 'package:iamhere/feature/terms/view/term_detail_view.dart';
 import 'package:iamhere/feature/user_permission/view/battery_optimization_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/location_permission_guide_view.dart';
 import 'package:iamhere/feature/user_permission/view/user_permission_prep_view.dart';
@@ -35,6 +38,16 @@ final List<RouteBase> appRoutes = [
       context: context,
       state: state,
       child: const TermsListView(),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.termsDetail,
+    pageBuilder: (context, state) => buildPageWithSimpleTransition(
+      context: context,
+      state: state,
+      child: TermDetailView(
+        termId: int.tryParse(state.pathParameters['termId'] ?? '') ?? -1,
+      ),
     ),
   ),
   GoRoute(
@@ -97,6 +110,16 @@ final List<RouteBase> appRoutes = [
         ),
         routes: [
           GoRoute(
+            path: 'detail',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: NotificationDetailView(
+                notification: state.extra as NotificationEntity?,
+              ),
+            ),
+          ),
+          GoRoute(
             path: 'add',
             pageBuilder: (context, state) => buildPageWithSimpleTransition(
               context: context,
@@ -136,6 +159,16 @@ final List<RouteBase> appRoutes = [
               context: context,
               state: state,
               child: const NotificationListView(),
+            ),
+          ),
+          GoRoute(
+            path: 'notifications/detail',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: NotificationDetailView(
+                notification: state.extra as NotificationEntity?,
+              ),
             ),
           ),
           GoRoute(

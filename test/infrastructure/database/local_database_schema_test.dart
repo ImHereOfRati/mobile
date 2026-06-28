@@ -44,12 +44,12 @@ void main() {
       expect(cols, contains('address'));
     });
 
-    test('notifications 테이블에 sender_nickname / sender_email 컬럼이 존재한다', () async {
+    test('notifications 테이블에 sender_nickname / sender_email / path 컬럼이 존재한다', () async {
       final cols = await _columnNames(
         db,
         LocalDatabaseProperties.notificationTableName,
       );
-      expect(cols, containsAll(['sender_nickname', 'sender_email']));
+      expect(cols, containsAll(['sender_nickname', 'sender_email', 'path']));
     });
 
     test('현재 스키마 버전이 LocalDatabaseSchema.version 과 일치해야 한다', () async {
@@ -97,7 +97,7 @@ void main() {
       expect(cols, contains('address'));
     });
 
-    test('v1 에 없던 notifications sender_* 컬럼이 마이그레이션 후 추가된다', () async {
+    test('v1 에 없던 notifications sender_* / path 컬럼이 마이그레이션 후 추가된다', () async {
       final handle = await TestDatabaseFactory.openMigratedFromV1();
       addTearDown(handle.dispose);
 
@@ -105,7 +105,7 @@ void main() {
         handle.database,
         LocalDatabaseProperties.notificationTableName,
       );
-      expect(cols, containsAll(['sender_nickname', 'sender_email']));
+      expect(cols, containsAll(['sender_nickname', 'sender_email', 'path']));
     });
 
     test('v1 에 없던 geofence_delivery_queue 테이블이 마이그레이션 후 추가된다', () async {
@@ -246,6 +246,19 @@ void main() {
       );
       expect(rows, hasLength(1));
       expect(rows.first['delivery_event_type'], 'arrival');
+    });
+  });
+
+  group('LocalDatabaseSchema (notifications.path migration)', () {
+    test('옛 스키마에서 최신으로 마이그레이션하면 notifications.path 컬럼이 추가된다', () async {
+      final handle = await TestDatabaseFactory.openMigratedFromV1();
+      addTearDown(handle.dispose);
+
+      final cols = await _columnNames(
+        handle.database,
+        LocalDatabaseProperties.notificationTableName,
+      );
+      expect(cols, contains('path'));
     });
   });
 }

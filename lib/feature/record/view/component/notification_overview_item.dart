@@ -17,7 +17,7 @@ class NotificationOverviewItem extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
 
     return GestureDetector(
-      onTap: () => AppRoutes.goToRecordNotifications(context),
+      onTap: () => AppRoutes.goToNotificationDetail(context, notification),
       child: RecordOverviewItemBase(
         leading: Container(
           width: 40.r,

@@ -4,6 +4,7 @@ class NotificationEntity {
   final String body;
   final String senderNickname;
   final String senderEmail;
+  final String path;
   final DateTime createdAt;
 
   NotificationEntity({
@@ -12,6 +13,7 @@ class NotificationEntity {
     required this.body,
     required this.senderNickname,
     required this.senderEmail,
+    this.path = '',
     required this.createdAt,
   });
 
@@ -21,6 +23,7 @@ class NotificationEntity {
     String? body,
     String? senderNickname,
     String? senderEmail,
+    String? path,
     DateTime? createdAt,
   }) {
     return NotificationEntity(
@@ -29,6 +32,7 @@ class NotificationEntity {
       body: body ?? this.body,
       senderNickname: senderNickname ?? this.senderNickname,
       senderEmail: senderEmail ?? this.senderEmail,
+      path: path ?? this.path,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -40,6 +44,7 @@ class NotificationEntity {
       'body': body,
       'sender_nickname': senderNickname,
       'sender_email': senderEmail,
+      'path': path,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -51,6 +56,7 @@ class NotificationEntity {
       body: map['body'] as String,
       senderNickname: map['sender_nickname'] as String,
       senderEmail: map['sender_email'] as String,
+      path: map['path'] as String? ?? '',
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
