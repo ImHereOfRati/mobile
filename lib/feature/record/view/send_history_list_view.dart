@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
-import 'package:iamhere/feature/record/view/component/record_tile.dart';
-import 'package:iamhere/feature/record/view/component/record_time_formatter.dart';
+import 'package:iamhere/feature/record/view/component/send_record_overview_item.dart';
 import 'package:iamhere/feature/record/view_model/geofence_record_view_model.dart';
 
 class SendHistoryListView extends ConsumerStatefulWidget {
@@ -113,18 +112,8 @@ class _SendHistoryListViewState extends ConsumerState<SendHistoryListView> {
   }
 
   Widget _buildRecordTile(GeofenceRecordEntity record) {
-    return RecordTile(
-      locationName: record.geofenceName,
-      recordTime: record.createdAt,
-      message: RecordTimeFormatter.formatActivityLabel(
-        locationName: record.geofenceName,
-        deliveryEventType: record.deliveryEventType,
-      ),
-      targetName: RecordTimeFormatter.formatRecipients(record.recipients),
-      sendMachine: record.sendMachine,
-      status: record.status,
-      retryCount: record.retryCount,
-      lastError: record.lastError,
+    return SendRecordOverviewItem(
+      record: record,
     );
   }
 

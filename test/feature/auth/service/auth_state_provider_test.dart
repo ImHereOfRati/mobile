@@ -61,6 +61,10 @@ void main() {
       when(
         mockTokenStorageService.getPendingAuth(),
       ).thenAnswer((_) async => true);
+      when(
+        mockTokenStorageService.getUserStatus(),
+      ).thenAnswer((_) async => 'PENDING');
+      when(mockTokenStorageService.getIsActive()).thenAnswer((_) async => false);
 
       final result = await container.read(authStateProvider.future);
 

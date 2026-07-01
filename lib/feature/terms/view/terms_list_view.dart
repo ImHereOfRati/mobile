@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/common/component/feedback/imhere_loading_indicator.dart';
 import 'package:iamhere/feature/auth/service/auth_state_provider.dart';
+import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/infrastructure/routing/app_routes.dart';
 import 'package:iamhere/feature/terms/service/dto/terms_list_request_dto.dart';
 import 'package:iamhere/feature/terms/view_model/terms_agreement_notifier.dart';
@@ -62,7 +64,7 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
     });
 
     if (terms.isEmpty) {
-      _scheduleAutoActivationIfNeeded();
+      _scheduleAutoActivationIfNeeded(context, ref);
       return _buildAutoActivationBody(context, ref, consentState);
     }
 
@@ -98,14 +100,31 @@ class _TermsListViewState extends ConsumerState<TermsListView> {
     );
   }
 
-  void _scheduleAutoActivationIfNeeded() {
+  void _scheduleAutoActivationIfNeeded(BuildContext context, WidgetRef ref) {
     if (_hasTriggeredAutoActivation) return;
     _hasTriggeredAutoActivation = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref
-          .read(termsConsentViewModelProvider.notifier)
-          .submitConsents(const [], const {});
+      if (!mounted || !context.mounted) return;
+
+      () async {
+        final tokenStorage = GetIt.instance<TokenStorageService>();
+        await tokenStorage.saveAuthSnapshot(
+          userStatus: 'ACTIVE',
+          isActive: true,
+        );
+
+        if (!mounted || !context.mounted) return;
+
+        ref.invalidate(authStateProvider);
+        final redirectPath = GoRouterState.of(
+          context,
+        ).uri.queryParameters['redirect'];
+        if (redirectPath != null && redirectPath.startsWith('/')) {
+          context.go(redirectPath);
+          return;
+        }
+        AppRoutes.goToGeofence(context);
+      }();
     });
   }
 

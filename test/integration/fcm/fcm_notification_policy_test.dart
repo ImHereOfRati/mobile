@@ -9,9 +9,9 @@ void main() {
       expect(resolveFcmChannelId('DEPARTURE'), criticalChannelId);
     });
 
-    test('친구 요청/위치 공유는 high 채널을 사용한다', () {
+    test('친구 요청/위치 대상은 high 채널을 사용한다', () {
       expect(resolveFcmChannelId('FRIEND_REQUEST_RECEIVED'), highChannelId);
-      expect(resolveFcmChannelId('LOCATION_SHARE_RECEIVED'), highChannelId);
+      expect(resolveFcmChannelId('LOCATION_TARGET'), highChannelId);
     });
 
     test('친구 수락/발송 실패는 normal 채널을 사용한다', () {

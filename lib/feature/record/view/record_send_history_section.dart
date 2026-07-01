@@ -44,12 +44,13 @@ class RecordSendHistorySection extends StatelessWidget {
                 child: RecordEmptySection(message: '전송된 기록이 없습니다'),
               );
             }
+            final preview = records.take(3).toList();
             return SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) => SendRecordOverviewItem(
-                  record: records[index],
+                  record: preview[index],
                 ),
-                childCount: records.length,
+                childCount: preview.length,
               ),
             );
           },

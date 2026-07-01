@@ -21,7 +21,7 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
     Map<int, bool> agreementsMap,
   ) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       final consents = terms
           .map(
             (term) => TermsConsentItemDto(
@@ -35,6 +35,8 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
       final response = await responseService
           .requestToAllAgreeAboutRequiredTerms(consents);
 
+      if (!ref.mounted) return;
+
       final dto = response.data;
       if (dto == null) {
         throw StateError('terms consent response data is null');
@@ -47,7 +49,11 @@ class TermsConsentViewModel extends _$TermsConsentViewModel {
         isActive: dto.isActive ?? true,
       );
 
-      return dto;
-    });
+      if (!ref.mounted) return;
+      state = AsyncValue.data(dto);
+    } catch (error, stackTrace) {
+      if (!ref.mounted) return;
+      state = AsyncValue.error(error, stackTrace);
+    }
   }
 }

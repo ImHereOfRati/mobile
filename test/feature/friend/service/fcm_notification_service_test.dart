@@ -49,4 +49,41 @@ void main() {
 
     expect(result, isA<Success<void>>());
   });
+
+  test('위치 대상자 알림은 placeName 을 payload 에 포함해야 함', () async {
+    when(
+      mockDio.post(
+        '/api/notifications',
+        data: {
+          'notificationMethod': 'FCM',
+          'targetId': 'target@example.com',
+          'type': 'LOCATION_TARGET',
+          'extraData': {
+            'body': '위치 알림 대상자로 등록되었습니다.',
+            'placeName': '우리집 (서울 강남구)',
+          },
+        },
+        options: anyNamed('options'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        data: {
+          'imhereResponseCode': 'SUCCESS',
+          'message': '알림이 발송 큐에 등록되었습니다.',
+          'data': null,
+        },
+        statusCode: 202,
+        requestOptions: RequestOptions(path: '/api/notifications'),
+      ),
+    );
+
+    final result = await service.notifyLocationTarget(
+      receiverEmail: 'target@example.com',
+      type: 'LOCATION_TARGET',
+      body: '위치 알림 대상자로 등록되었습니다.',
+      location: '우리집 (서울 강남구)',
+    );
+
+    expect(result, isA<Success<void>>());
+  });
 }

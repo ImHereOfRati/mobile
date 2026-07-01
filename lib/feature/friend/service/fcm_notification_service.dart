@@ -55,6 +55,7 @@ class FcmNotificationService {
     required String receiverEmail,
     required String type,
     required String body,
+    required String location,
     String? path,
   }) {
     return _send(
@@ -62,6 +63,7 @@ class FcmNotificationService {
       receiverEmail: receiverEmail,
       type: type,
       body: body,
+      location: location,
       routePath: path,
       label: 'location target notification',
     );
@@ -72,6 +74,7 @@ class FcmNotificationService {
     required String receiverEmail,
     required String type,
     required String body,
+    String? location,
     String? routePath,
     required String label,
   }) async {
@@ -82,6 +85,7 @@ class FcmNotificationService {
         type: type,
         extraData: {
           'body': body,
+          if (location != null) 'placeName': location,
           if (routePath != null) 'path': routePath,
         },
       );
