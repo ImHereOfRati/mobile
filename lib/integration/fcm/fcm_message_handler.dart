@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:ui' as ui;
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/feature/geofence/background/geofence_background_runtime.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
@@ -23,7 +23,7 @@ final List<_PendingForegroundBanner> _pendingForegroundBanners = [];
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ui.DartPluginRegistrant.ensureInitialized();
-  await Firebase.initializeApp();
+  await bootstrapBackgroundRuntime();
 
   AppLogger.debug('Background FCM message received: ${message.messageId}');
 
@@ -32,6 +32,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final String body = message.notification?.body ?? message.data['body'] ?? '';
   final String? path = extractNotificationPath(message.data);
   final String channelId = resolveFcmChannelId(message.data['type'] as String?);
+
+  await _saveNotificationToLocal(message, title, body, path);
 
   if (body.isNotEmpty) {
     await _showNotification(title: title, body: body, payload: path, channelId: channelId);

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/view_model/dto/save_geofence_request.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
@@ -84,6 +85,7 @@ class GeofenceViewModel extends _$GeofenceViewModel
           receiverEmail: r.friendEmail,
           type: 'LOCATION_TARGET',
           body: '위치 알림 대상자로 등록되었습니다.',
+          location: composeFullLocation(request.name, request.address),
           path: AppRoutes.recordNotifications,
         );
       }

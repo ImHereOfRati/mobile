@@ -1,0 +1,246 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1782912570572,
+  "projectRoot": "C:\\Project\\ImHere\\ImHereMobile",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "assets",
+      "docs",
+      "lib",
+      "scripts",
+      "test"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "android": {
+      "path": "android",
+      "purpose": null,
+      "fileCount": 10,
+      "lastAccessed": 1782912570541,
+      "keyFiles": [
+        "build.gradle.kts",
+        "cert.der",
+        "gradle.properties",
+        "gradlew",
+        "gradlew.bat"
+      ]
+    },
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 0,
+      "lastAccessed": 1782912570541,
+      "keyFiles": []
+    },
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 2,
+      "lastAccessed": 1782912570542,
+      "keyFiles": [
+        "9f6fe9248f319fd34a3038b465e5a0f9.cache.dill.track.dill",
+        "last_build_run.json"
+      ]
+    },
+    "coverage": {
+      "path": "coverage",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1782912570543,
+      "keyFiles": [
+        "lcov.info"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 0,
+      "lastAccessed": 1782912570543,
+      "keyFiles": []
+    },
+    "ios": {
+      "path": "ios",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1782912570544,
+      "keyFiles": [
+        "Podfile",
+        "Podfile.lock"
+      ]
+    },
+    "lib": {
+      "path": "lib",
+      "purpose": "Library code",
+      "fileCount": 2,
+      "lastAccessed": 1782912570544,
+      "keyFiles": [
+        "firebase_options.dart",
+        "main.dart"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 3,
+      "lastAccessed": 1782912570545,
+      "keyFiles": [
+        "obvious_test.ps1",
+        "obvious_test.sh",
+        "push_to_notion.ps1"
+      ]
+    },
+    "test": {
+      "path": "test",
+      "purpose": "Test files",
+      "fileCount": 1,
+      "lastAccessed": 1782912570546,
+      "keyFiles": [
+        "widget_test.dart"
+      ]
+    },
+    "android\\app": {
+      "path": "android\\app",
+      "purpose": "Application code",
+      "fileCount": 2,
+      "lastAccessed": 1782912570547,
+      "keyFiles": [
+        "build.gradle.kts",
+        "google-services.json"
+      ]
+    },
+    "build\\app": {
+      "path": "build\\app",
+      "purpose": "Application code",
+      "fileCount": 1,
+      "lastAccessed": 1782912570548,
+      "keyFiles": [
+        "deeplink.json"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "lib\\integration\\fcm\\fcm_message_handler.dart",
+      "accessCount": 4,
+      "lastAccessed": 1782913595836,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\record\\view_model\\notification_view_model.dart",
+      "accessCount": 2,
+      "lastAccessed": 1782913000994,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\record\\view\\record_view.dart",
+      "accessCount": 2,
+      "lastAccessed": 1782913006255,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\record\\view\\record_send_history_section.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782912872171,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\record\\view\\send_history_list_view.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782912873197,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\record\\view_model\\geofence_record_view_model.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782912879691,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\record\\repository\\notification_local_repository.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913515030,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\record\\repository\\notification_local_repository_provider.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913517745,
+      "type": "file"
+    },
+    {
+      "path": "lib\\infrastructure\\database\\service\\record_database_service.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913517801,
+      "type": "file"
+    },
+    {
+      "path": "lib\\infrastructure\\database\\service\\notification_database_service.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913523317,
+      "type": "file"
+    },
+    {
+      "path": "lib\\infrastructure\\database\\service\\abstract_local_database_engine.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913524236,
+      "type": "file"
+    },
+    {
+      "path": "lib\\infrastructure\\di\\di_setup.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913524746,
+      "type": "file"
+    },
+    {
+      "path": "lib\\infrastructure\\database\\local_database_properties.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913525019,
+      "type": "file"
+    },
+    {
+      "path": "lib\\infrastructure\\di\\local_database_module.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913541778,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\geofence\\background\\geofence_background_runtime.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913542312,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\geofence\\background\\geofence_background_callback.dart",
+      "accessCount": 1,
+      "lastAccessed": 1782913542888,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

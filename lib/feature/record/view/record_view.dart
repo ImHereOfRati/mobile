@@ -35,6 +35,7 @@ class _RecordViewState extends ConsumerState<RecordView> {
   void _refreshRecords() {
     if (!mounted) return;
     ref.invalidate(geofenceRecordViewModelProvider);
+    ref.invalidate(notificationViewModelProvider);
   }
 
   @override

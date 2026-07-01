@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iamhere/feature/record/repository/notification_entity.dart';
+import 'package:iamhere/feature/record/model/activity_record_status.dart';
+import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
+import 'package:iamhere/feature/record/view/component/record_time_formatter.dart';
 
-class NotificationDetailView extends StatelessWidget {
-  final NotificationEntity? notification;
+class SendHistoryDetailView extends StatelessWidget {
+  final GeofenceRecordEntity? record;
 
-  const NotificationDetailView({super.key, required this.notification});
+  const SendHistoryDetailView({super.key, required this.record});
 
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
 
-    if (notification == null) {
+    if (record == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('알림 상세')),
+        appBar: AppBar(title: const Text('활동 기록 상세')),
         body: Center(
-          child: Text('알림 정보를 찾을 수 없습니다', style: tt.bodyMedium),
+          child: Text('기록 정보를 찾을 수 없습니다', style: tt.bodyMedium),
         ),
       );
     }
+
+    final isArrival = record!.deliveryEventType == 'arrival';
+    final eventColor = isArrival ? cs.primary : cs.secondary;
+    final statusColor = _statusColor(cs, record!.status);
 
     return Scaffold(
       backgroundColor: cs.surfaceContainerLowest,
@@ -31,7 +37,7 @@ class NotificationDetailView extends StatelessWidget {
           onPressed: () => Navigator.maybePop(context),
         ),
         title: Text(
-          '알림 상세',
+          '활동 기록 상세',
           style: TextStyle(
             fontFamily: 'BMHANNAAir',
             fontSize: 18.sp,
@@ -53,14 +59,14 @@ class NotificationDetailView extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    cs.primary.withValues(alpha: 0.08),
-                    cs.primary.withValues(alpha: 0.02),
+                    eventColor.withValues(alpha: 0.08),
+                    eventColor.withValues(alpha: 0.02),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20.r),
-                border: Border.all(color: cs.primary.withValues(alpha: 0.15)),
+                border: Border.all(color: eventColor.withValues(alpha: 0.15)),
                 boxShadow: [
                   BoxShadow(
                     color: cs.onSurface.withValues(alpha: 0.03),
@@ -73,17 +79,32 @@ class NotificationDetailView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                         decoration: BoxDecoration(
-                          color: cs.primary.withValues(alpha: 0.15),
+                          color: eventColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6.r),
                         ),
                         child: Text(
-                          '알림 수신',
+                          isArrival ? '진입' : '이탈',
                           style: tt.bodySmall?.copyWith(
-                            color: cs.primary,
+                            color: eventColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Text(
+                          record!.status.label,
+                          style: tt.bodySmall?.copyWith(
+                            color: statusColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -92,44 +113,54 @@ class NotificationDetailView extends StatelessWidget {
                   ),
                   SizedBox(height: 16.h),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        Icons.notifications_active_rounded,
-                        color: cs.primary,
+                        Icons.location_on_rounded,
+                        color: eventColor,
                         size: 24.r,
                       ),
                       SizedBox(width: 8.w),
                       Expanded(
                         child: Text(
-                          notification!.title,
+                          record!.geofenceName,
                           style: tt.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            fontSize: 20.sp,
-                            height: 1.3,
+                            fontSize: 22.sp,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    RecordTimeFormatter.formatActivityLabel(
+                      locationName: record!.geofenceName,
+                      deliveryEventType: record!.deliveryEventType,
+                    ),
+                    style: tt.bodyMedium?.copyWith(
+                      color: cs.onSurface.withValues(alpha: 0.7),
+                    ),
                   ),
                 ],
               ),
             ),
             SizedBox(height: 16.h),
 
-            // ─── 2. 알림 내용 카드 (Body Card) ───
+            // ─── 2. 발송 메시지 카드 (Message Card) ───
             _PremiumCard(
-              title: '알림 내용',
-              icon: Icons.notes_rounded,
-              indicatorColor: cs.primary,
+              title: '발송 메시지',
+              icon: Icons.chat_bubble_outline_rounded,
+              indicatorColor: eventColor,
               child: Text(
-                notification!.body,
+                record!.message,
                 style: tt.bodyLarge?.copyWith(height: 1.5),
               ),
             ),
             SizedBox(height: 16.h),
 
-            // ─── 3. 메타 정보 카드 (Metadata Summary Card) ───
+            // ─── 3. 수신 대상 및 전송 메타 정보 그리드 ───
             Container(
               padding: EdgeInsets.all(16.r),
               decoration: BoxDecoration(
@@ -140,29 +171,109 @@ class NotificationDetailView extends StatelessWidget {
               child: Column(
                 children: [
                   _GridRow(
-                    icon: Icons.person_outline_rounded,
-                    title: '보낸 사람',
-                    value: notification!.senderNickname.isNotEmpty
-                        ? '${notification!.senderNickname} (${notification!.senderEmail})'
-                        : notification!.senderEmail,
+                    icon: Icons.people_alt_outlined,
+                    title: '수신인',
+                    value: RecordTimeFormatter.formatRecipients(record!.recipients),
+                    cs: cs,
+                    tt: tt,
+                  ),
+                  Divider(height: 24.h, thickness: 0.5, color: cs.outlineVariant.withValues(alpha: 0.4)),
+                  _GridRow(
+                    icon: Icons.devices_rounded,
+                    title: '발송 기기',
+                    value: record!.sendMachine.description,
                     cs: cs,
                     tt: tt,
                   ),
                   Divider(height: 24.h, thickness: 0.5, color: cs.outlineVariant.withValues(alpha: 0.4)),
                   _GridRow(
                     icon: Icons.access_time_rounded,
-                    title: '받은 시각',
-                    value: _formatDateTime(notification!.createdAt),
+                    title: '발생 시각',
+                    value: _formatDateTime(record!.createdAt),
                     cs: cs,
                     tt: tt,
                   ),
                 ],
               ),
             ),
+            SizedBox(height: 16.h),
+
+            // ─── 4. 진단 및 오류 로그 (에러 발생 시 노출) ───
+            if (record!.retryCount > 0 || record!.lastError.trim().isNotEmpty) ...[
+              Container(
+                padding: EdgeInsets.all(16.r),
+                decoration: BoxDecoration(
+                  color: record!.status == ActivityRecordStatus.failed
+                      ? cs.errorContainer.withValues(alpha: 0.6)
+                      : cs.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(16.r),
+                  border: Border.all(
+                    color: record!.status == ActivityRecordStatus.failed
+                        ? cs.error.withValues(alpha: 0.25)
+                        : cs.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          record!.status == ActivityRecordStatus.failed
+                              ? Icons.error_outline_rounded
+                              : Icons.info_outline_rounded,
+                          color: record!.status == ActivityRecordStatus.failed ? cs.error : cs.onSurfaceVariant,
+                          size: 20.r,
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          '시스템 오류 진단',
+                          style: tt.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: record!.status == ActivityRecordStatus.failed ? cs.error : cs.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (record!.retryCount > 0) ...[
+                      SizedBox(height: 12.h),
+                      Text(
+                        '• 재시도 횟수: ${record!.retryCount}회',
+                        style: tt.bodyMedium?.copyWith(
+                          color: record!.status == ActivityRecordStatus.failed ? cs.onErrorContainer : cs.onSurface,
+                        ),
+                      ),
+                    ],
+                    if (record!.lastError.trim().isNotEmpty) ...[
+                      SizedBox(height: 8.h),
+                      Text(
+                        '• 마지막 에러: ${record!.lastError.trim()}',
+                        style: tt.bodyMedium?.copyWith(
+                          fontFamily: 'Courier', // 에러 로그용 고정폭 글꼴
+                          color: record!.status == ActivityRecordStatus.failed ? cs.error : cs.onSurfaceVariant,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  Color _statusColor(ColorScheme cs, ActivityRecordStatus status) {
+    switch (status) {
+      case ActivityRecordStatus.completed:
+        return cs.primary;
+      case ActivityRecordStatus.failed:
+        return cs.error;
+      case ActivityRecordStatus.pending:
+        return cs.tertiary;
+    }
   }
 
   String _formatDateTime(DateTime dt) {

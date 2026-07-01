@@ -10,7 +10,7 @@ String resolveFcmChannelId(String? type) {
     case 'DEPARTURE':
       return criticalChannelId;
     case 'FRIEND_REQUEST_RECEIVED':
-    case 'LOCATION_SHARE_RECEIVED':
+    case 'LOCATION_TARGET':
       return highChannelId;
     case 'FRIEND_REQUEST_ACCEPTED':
     case 'DELIVERY_FAILED_NOTICE':

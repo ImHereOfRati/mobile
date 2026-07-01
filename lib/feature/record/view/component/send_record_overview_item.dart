@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iamhere/feature/record/model/activity_record_status.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
+import 'package:iamhere/infrastructure/routing/app_routes.dart';
 
 import 'record_overview_item_base.dart';
 import 'record_time_formatter.dart';
@@ -20,32 +21,35 @@ class SendRecordOverviewItem extends StatelessWidget {
     final retryText = _retryText(record);
     final errorText = _errorText(record);
 
-    return RecordOverviewItemBase(
-      leading: Container(
-        width: 40.r,
-        height: 40.r,
-        decoration: BoxDecoration(
-          color: cs.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10.r),
+    return GestureDetector(
+      onTap: () => AppRoutes.goToSendHistoryDetail(context, record),
+      child: RecordOverviewItemBase(
+        leading: Container(
+          width: 40.r,
+          height: 40.r,
+          decoration: BoxDecoration(
+            color: cs.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(Icons.location_on_rounded, color: cs.primary, size: 20.r),
         ),
-        child: Icon(Icons.location_on_rounded, color: cs.primary, size: 20.r),
+        title: record.geofenceName,
+        subtitle: '$recipient에게 $statusText',
+        titleStyle: tt.headlineSmall,
+        subtitleStyle: tt.bodyMedium,
+        footer: (retryText == null && errorText == null)
+            ? null
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (retryText != null)
+                    Text(retryText, style: tt.bodySmall?.copyWith(color: cs.onSurface.withValues(alpha: 0.6))),
+                  if (errorText != null)
+                    Text(errorText, style: tt.bodySmall?.copyWith(color: cs.error), maxLines: 2, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+        trailing: Text(RecordTimeFormatter.formatRelativeTime(record.createdAt), style: tt.bodySmall),
       ),
-      title: record.geofenceName,
-      subtitle: '$recipient에게 $statusText',
-      titleStyle: tt.headlineSmall,
-      subtitleStyle: tt.bodyMedium,
-      footer: (retryText == null && errorText == null)
-          ? null
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (retryText != null)
-                  Text(retryText, style: tt.bodySmall?.copyWith(color: cs.onSurface.withValues(alpha: 0.6))),
-                if (errorText != null)
-                  Text(errorText, style: tt.bodySmall?.copyWith(color: cs.error), maxLines: 2, overflow: TextOverflow.ellipsis),
-              ],
-            ),
-      trailing: Text(RecordTimeFormatter.formatRelativeTime(record.createdAt), style: tt.bodySmall),
     );
   }
 

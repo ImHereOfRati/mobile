@@ -10,11 +10,13 @@ import 'package:iamhere/feature/friend/view/friend_restriction_list_view.dart';
 import 'package:iamhere/feature/geofence/view/geofence_enroll/geofence_enroll_view.dart';
 import 'package:iamhere/feature/geofence/view/geofence_list/geofence_list_view.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
+import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 import 'package:iamhere/feature/record/view/notification_detail_view.dart';
 import 'package:iamhere/feature/record/view/notification_list_view.dart';
 import 'package:iamhere/feature/record/view/record_friend_request_list_view.dart';
 import 'package:iamhere/feature/record/view/record_view.dart';
 import 'package:iamhere/feature/record/view/send_history_list_view.dart';
+import 'package:iamhere/feature/record/view/send_history_detail_view.dart';
 import 'package:iamhere/feature/setting/view/setting_view.dart';
 import 'package:iamhere/feature/terms/view/terms_list_view.dart';
 import 'package:iamhere/feature/terms/view/term_detail_view.dart';
@@ -185,6 +187,16 @@ final List<RouteBase> appRoutes = [
               context: context,
               state: state,
               child: const SendHistoryListView(),
+            ),
+          ),
+          GoRoute(
+            path: 'send-history/detail',
+            pageBuilder: (context, state) => buildPageWithSimpleTransition(
+              context: context,
+              state: state,
+              child: SendHistoryDetailView(
+                record: state.extra as GeofenceRecordEntity?,
+              ),
             ),
           ),
         ],

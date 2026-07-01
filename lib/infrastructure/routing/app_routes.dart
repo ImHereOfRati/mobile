@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
+import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
 
 /// 앱의 모든 경로를 한 곳에서 관리합니다.
 ///
@@ -28,6 +29,7 @@ class AppRoutes {
   static const String recordNotificationDetail = '/record/notifications/detail';
   static const String recordFriendRequests = '/record/friend-requests';
   static const String recordSendHistory = '/record/send-history';
+  static const String recordSendHistoryDetail = '/record/send-history/detail';
   static const String setting = '/setting';
   static const String termsDetail = '/terms-detail/:termId';
 
@@ -66,6 +68,11 @@ class AppRoutes {
       context.push(recordFriendRequests);
   static void goToRecordSendHistory(BuildContext context) =>
       context.push(recordSendHistory);
+  static void goToSendHistoryDetail(
+    BuildContext context,
+    GeofenceRecordEntity record,
+  ) =>
+      context.push(recordSendHistoryDetail, extra: record);
   static void goToGeofence(BuildContext context) => context.go(geofence);
   static void goToTermsDetail(BuildContext context, int termId) =>
       context.push('/terms-detail/$termId');

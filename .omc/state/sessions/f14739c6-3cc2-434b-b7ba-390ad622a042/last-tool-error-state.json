@@ -1,0 +1,7 @@
+{
+  "tool_name": "PowerShell",
+  "tool_input_preview": "{\"command\":\"flutter analyze lib/integration/fcm/fcm_message_handler.dart\",\"timeout\":120000,\"description\":\"Analyze background FCM handler\"}",
+  "error": "Exit code 1\nResolving dependencies...\nDownloading packages...\n  _fe_analyzer_shared 85.0.0 (104.0.0 available)\n  _flutterfire_internals 1.3.65 (1.3.73 available)\n  analyzer 7.6.0 (14.0.0 available)\n  analyzer_buffer 0.1.10 (0.3.3 available)\n  analyzer_plugin 0.13.4 (0.14.13 available)\n  async 2.13.0 (2.13.1 available)\n  build 3.1.0 (4.0.6 available)\n  build_config 1.2.0 (1.3.0 available)\n  build_resolvers 3.0.3 (3.0.4 available)\n  build_runner 2.7.1 (2.15.0 available)\n  build_runner_core 9.3.1 (...",
+  "timestamp": "2026-07-01T13:46:27.020Z",
+  "retry_count": 1
+}
