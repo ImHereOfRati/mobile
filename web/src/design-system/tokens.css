@@ -65,6 +65,21 @@
   --color-primary-soft: rgb(0 113 227 / 10%);
   --color-error-soft: rgb(255 59 48 / 12%);
   --color-success-soft: rgb(52 199 89 / 12%);
+  --color-landing-sky: #e8f4ff;
+  --color-landing-map: #e7ecf2;
+  --color-landing-road: #ffffff;
+  --color-landing-building: #c7d2df;
+  --color-landing-building-accent: #9fb4ca;
+  --color-landing-park: #bfe7cc;
+  --color-landing-route: #0071e3;
+  --color-landing-person: #ff8a65;
+  --color-landing-grid: #c9d2dc;
+  --color-landing-water: #a9d5eb;
+  --color-landing-hill: #76aa78;
+  --color-landing-avatar: #6759bd;
+  --color-landing-amber: #f3a722;
+  --color-landing-rubber: #202832;
+  --color-landing-glow: rgb(0 113 227 / 22%);
   --shadow-card: 0 0.75rem 2.5rem rgb(29 29 31 / 8%);
   --shadow-sheet: 0 -1rem 3rem rgb(29 29 31 / 16%);
 }
@@ -88,6 +103,21 @@
   --color-primary-soft: rgb(10 132 255 / 16%);
   --color-error-soft: rgb(255 69 58 / 16%);
   --color-success-soft: rgb(48 209 88 / 16%);
+  --color-landing-sky: #101820;
+  --color-landing-map: #1c2833;
+  --color-landing-road: #3a4652;
+  --color-landing-building: #455565;
+  --color-landing-building-accent: #637a91;
+  --color-landing-park: #24543a;
+  --color-landing-route: #0a84ff;
+  --color-landing-person: #ff9f7e;
+  --color-landing-grid: #354453;
+  --color-landing-water: #285e78;
+  --color-landing-hill: #315f3d;
+  --color-landing-avatar: #8f83e6;
+  --color-landing-amber: #ffc04d;
+  --color-landing-rubber: #0d1117;
+  --color-landing-glow: rgb(10 132 255 / 28%);
   --shadow-card: 0 0.75rem 2.5rem rgb(0 0 0 / 36%);
   --shadow-sheet: 0 -1rem 3rem rgb(0 0 0 / 48%);
 }
