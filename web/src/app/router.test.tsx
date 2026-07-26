@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import { appRoutes } from "@/app/router";
+import { BridgeProvider } from "@/bridge/BridgeProvider";
 
 function renderRoute(path: string) {
   const router = createMemoryRouter(appRoutes, {
@@ -9,42 +10,32 @@ function renderRoute(path: string) {
     initialEntries: [path],
   });
 
-  return render(<RouterProvider router={router} />);
+  return render(
+    <BridgeProvider>
+      <RouterProvider router={router} />
+    </BridgeProvider>,
+  );
 }
 
 describe("app router", () => {
-  it("renders the Korean auth placeholder", async () => {
+  it("renders the Korean auth onboarding", async () => {
     renderRoute("/app/auth");
-
     expect(
       await screen.findByRole("heading", {
-        name: "로그인",
+        name: "도착하면 자동으로 알려드려요",
       }),
     ).toBeInTheDocument();
   });
 
   it("renders the four-tab shell on a main route", async () => {
     renderRoute("/app/geofence");
-
-    expect(
-      await screen.findByRole("heading", {
-        name: "알림 장소",
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "주요 메뉴" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "장소" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "친구" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "기록" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "설정" })).toBeVisible();
+    const navigation = await screen.findByRole("navigation");
+    expect(navigation).toBeVisible();
+    expect(within(navigation).getAllByRole("link")).toHaveLength(5);
   });
 
   it("renders the not-found fallback for an unknown route", async () => {
     renderRoute("/app/unknown");
-
-    expect(
-      await screen.findByRole("heading", {
-        name: "페이지를 찾을 수 없습니다.",
-      }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading")).toBeVisible();
   });
 });

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@imhere/bridge-contract':
+        specifier: workspace:*
+        version: link:packages/bridge-contract
       '@tanstack/react-query':
         specifier: 5.101.4
         version: 5.101.4(react@19.2.8)
