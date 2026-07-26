@@ -5,6 +5,7 @@ import 'package:iamhere/common/util/app_logger.dart';
 
 class FirebaseRemoteService {
   static final String baseUrl = 'base_url';
+  static const String webAppUrl = 'web_app_url';
 
   final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
 
@@ -37,5 +38,10 @@ class FirebaseRemoteService {
       return null;
     }
     return value;
+  }
+
+  String? get webAppUrlOrNull {
+    final value = _remoteConfig.getString(webAppUrl).trim();
+    return value.isEmpty ? null : value;
   }
 }
