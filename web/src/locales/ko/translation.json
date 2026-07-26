@@ -1,6 +1,15 @@
 {
   "common": {
     "loading": "화면을 불러오는 중입니다.",
+    "loadingShort": "확인 중",
+    "enabled": "켜짐",
+    "disabled": "꺼짐",
+    "retry": "다시 시도",
+    "edit": "수정",
+    "delete": "삭제",
+    "cancel": "취소",
+    "confirm": "확인",
+    "backToList": "목록으로",
     "placeholder": {
       "eyebrow": "React 전환 준비",
       "description": "이 경로의 실제 화면은 후속 Feature에서 구현합니다."
@@ -22,6 +31,75 @@
     "add": "알림 장소 추가",
     "record": "기록",
     "setting": "설정"
+  },
+  "geofence": {
+    "event": {
+      "arrival": "도착",
+      "departure": "출발",
+      "both": "도착·출발 모두"
+    },
+    "repeat": {
+      "none": "반복 안 함",
+      "daily": "매일",
+      "weekday": "평일",
+      "weekend": "주말",
+      "custom": "직접 설정"
+    },
+    "weekday": {
+      "0": "일",
+      "1": "월",
+      "2": "화",
+      "3": "수",
+      "4": "목",
+      "5": "금",
+      "6": "토"
+    },
+    "recipient": {
+      "device": "기기 연락처",
+      "server": "ImHere 친구"
+    },
+    "list": {
+      "eyebrow": "자동 위치 알림",
+      "title": "알림 장소",
+      "description": "장소에 도착하거나 출발할 때 선택한 사람에게 알려요.",
+      "add": "장소 추가",
+      "locationService": "GPS 상태",
+      "autoSend": "자동 전송 준비",
+      "ready": "준비 완료",
+      "needsSetup": "{{count}}개 설정 필요",
+      "permissionWarning": "백그라운드 자동 전송을 위해 권한 설정이 필요합니다.",
+      "openPermission": "설정 확인",
+      "loadError": "알림 장소를 불러오지 못했습니다.",
+      "loading": "알림 장소를 불러오는 중",
+      "emptyTitle": "등록한 알림 장소가 없어요",
+      "emptyDescription": "첫 장소를 등록하면 앱이 꺼져 있어도 출입을 감지할 수 있어요.",
+      "awaitingDeparture": "도착 알림을 보냈어요. 다음 출발을 기다리는 중입니다.",
+      "deleteTitle": "알림 장소를 삭제할까요?",
+      "deleteDescription": "‘{{name}}’의 네이티브 지오펜스도 함께 해제됩니다."
+    },
+    "form": {
+      "eyebrow": "알림 장소 설정",
+      "createTitle": "새 알림 장소",
+      "editTitle": "알림 장소 수정",
+      "loading": "알림 장소 폼을 준비하는 중",
+      "notFound": "수정할 알림 장소를 찾지 못했습니다.",
+      "loadError": "알림 장소 정보를 준비하지 못했습니다.",
+      "location": "장소와 반경",
+      "details": "이름과 메시지",
+      "name": "장소 이름",
+      "address": "주소",
+      "message": "알림 메시지",
+      "event": "언제 알릴까요?",
+      "repeat": "반복 설정",
+      "recipients": "받는 사람",
+      "recipientDescription": "ImHere 친구와 기기 연락처를 함께 선택할 수 있어요.",
+      "activateImmediately": "저장 후 바로 활성화",
+      "create": "알림 장소 만들기",
+      "save": "변경사항 저장",
+      "saveError": "알림 장소를 저장하지 못했습니다.",
+      "completeTitle": "알림 장소를 저장했어요",
+      "completeDescription": "‘{{name}}’ 출입을 네이티브에서 감지합니다."
+    }
   },
   "screens": {
     "onboarding": {

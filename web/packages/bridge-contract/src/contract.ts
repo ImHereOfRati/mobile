@@ -36,6 +36,14 @@ export const PermissionStatus = s.enum("PermissionStatus", [
 export const GeofenceEventType = s.enum("GeofenceEventType", [
   "arrival",
   "departure",
+  "both",
+] as const);
+export const RepeatType = s.enum("RepeatType", [
+  "none",
+  "daily",
+  "weekday",
+  "weekend",
+  "custom",
 ] as const);
 export const ConnectivityType = s.enum("ConnectivityType", [
   "wifi",
@@ -105,29 +113,43 @@ export const AutoSendReadiness = s.object("AutoSendReadiness", {
   missing: s.array(PermissionType),
 });
 
+export const ServerRecipient = s.object("ServerRecipient", {
+  friendRelationshipId: s.string,
+  friendEmail: s.string,
+  friendAlias: s.string,
+});
+
 export const GeofenceInput = s.object("GeofenceInput", {
   id: s.optional(s.integer),
   name: s.string,
+  address: s.string,
   latitude: s.number,
   longitude: s.number,
   radiusMeters: s.integer,
   eventType: GeofenceEventType,
+  repeatType: RepeatType,
+  customDaysBitmask: s.optional(s.integer),
   message: s.string,
   active: s.boolean,
-  recipientIds: s.array(s.integer),
+  deviceContactIds: s.array(s.string),
+  serverRecipients: s.array(ServerRecipient),
 });
 
 export const Geofence = s.object("Geofence", {
   id: s.integer,
   name: s.string,
+  address: s.string,
   latitude: s.number,
   longitude: s.number,
   radiusMeters: s.integer,
   eventType: GeofenceEventType,
+  repeatType: RepeatType,
+  customDaysBitmask: s.optional(s.integer),
   message: s.string,
   active: s.boolean,
   awaitingDeparture: s.boolean,
-  recipientIds: s.array(s.integer),
+  deviceContactIds: s.array(s.string),
+  serverRecipients: s.array(ServerRecipient),
   createdAt: s.string,
   updatedAt: s.string,
 });
