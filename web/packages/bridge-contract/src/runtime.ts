@@ -176,13 +176,14 @@ export class BridgeRpcRuntime {
     eventName: Name,
     listener: (payload: BridgeEventPayload<Name>) => void,
   ) {
+    const untypedListener = listener as unknown as (payload: unknown) => void;
     const listeners =
       this.listeners.get(eventName) ?? new Set<(payload: unknown) => void>();
-    listeners.add(listener as (payload: unknown) => void);
+    listeners.add(untypedListener);
     this.listeners.set(eventName, listeners);
 
     return () => {
-      listeners.delete(listener as (payload: unknown) => void);
+      listeners.delete(untypedListener);
       if (listeners.size === 0) this.listeners.delete(eventName);
     };
   }
@@ -232,13 +233,13 @@ export class BridgeRpcRuntime {
 
 export function createNativeBridge(runtime: BridgeRpcRuntime): NativeBridge {
   const methods = new Set(Object.keys(bridgeContract.methods));
-  const target = {
+  const target: Record<PropertyKey, unknown> = {
     events: {
       subscribe: runtime.subscribe.bind(runtime),
     },
   };
 
-  return new Proxy(target as NativeBridge, {
+  return new Proxy(target, {
     get(currentTarget, property, receiver) {
       if (property === "events") {
         return Reflect.get(currentTarget, property, receiver);
@@ -251,7 +252,7 @@ export function createNativeBridge(runtime: BridgeRpcRuntime): NativeBridge {
 
       return Reflect.get(currentTarget, property, receiver);
     },
-  });
+  }) as unknown as NativeBridge;
 }
 
 declare global {
