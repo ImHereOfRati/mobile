@@ -1,0 +1,62 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lib/**"
+      - "test/**"
+      - "android/**"
+      - "ios/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "analysis_options.yaml"
+      - "web/packages/bridge-contract/**"
+      - ".github/workflows/flutter-ci.yml"
+  pull_request:
+    paths:
+      - "lib/**"
+      - "test/**"
+      - "android/**"
+      - "ios/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "analysis_options.yaml"
+      - "web/packages/bridge-contract/**"
+      - ".github/workflows/flutter-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.6
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Prepare CI configuration
+        run: |
+          cp tool/ci/firebase_options.dart lib/firebase_options.dart
+          cp tool/ci/iam_here_flutter_secret.env.example iam_here_flutter_secret.env
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Test
+        run: flutter test
