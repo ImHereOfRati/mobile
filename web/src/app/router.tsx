@@ -11,6 +11,9 @@ import { NotFoundPage } from "@/app/NotFoundPage";
 import { RouteErrorFallback } from "@/app/RouteErrorFallback";
 
 const OnboardingPage = lazy(() => import("@/pages/onboarding/OnboardingPage"));
+const ComponentCatalogPage = lazy(
+  () => import("@/pages/catalog/ComponentCatalogPage"),
+);
 const GeofencePage = lazy(() => import("@/pages/geofence/GeofencePage"));
 const FriendPage = lazy(() => import("@/pages/friend/FriendPage"));
 const RecordPage = lazy(() => import("@/pages/record/RecordPage"));
@@ -48,6 +51,10 @@ export const appRoutes: RouteObject[] = [
       {
         path: "battery-optimization-guide",
         element: <OnboardingPage screen="batteryOptimizationGuide" />,
+      },
+      {
+        path: "catalog",
+        element: <ComponentCatalogPage />,
       },
       {
         element: <AppShell />,
