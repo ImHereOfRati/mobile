@@ -68,6 +68,10 @@ export const appRoutes: RouteObject[] = [
             element: <GeofencePage screen="message" />,
           },
           {
+            path: "geofence/:geofenceId/edit",
+            element: <GeofencePage screen="edit" />,
+          },
+          {
             path: "friend",
             element: <FriendPage screen="list" />,
           },

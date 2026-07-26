@@ -270,36 +270,48 @@ class GeofenceInput {
   const GeofenceInput({
     this.id,
     required this.name,
+    required this.address,
     required this.latitude,
     required this.longitude,
     required this.radiusMeters,
     required this.eventType,
+    required this.repeatType,
+    this.customDaysBitmask,
     required this.message,
     required this.active,
-    required this.recipientIds,
+    required this.deviceContactIds,
+    required this.serverRecipients,
   });
 
   final int? id;
   final String name;
+  final String address;
   final double latitude;
   final double longitude;
   final int radiusMeters;
   final GeofenceEventType eventType;
+  final RepeatType repeatType;
+  final int? customDaysBitmask;
   final String message;
   final bool active;
-  final List<int> recipientIds;
+  final List<String> deviceContactIds;
+  final List<ServerRecipient> serverRecipients;
 
   factory GeofenceInput.fromJson(Map<String, Object?> json) {
     return GeofenceInput(
       id: json['id'] == null ? null : (json['id'] as num).toInt(),
       name: json['name'] as String,
+      address: json['address'] as String,
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       radiusMeters: (json['radiusMeters'] as num).toInt(),
       eventType: GeofenceEventType.values.byName(json['eventType'] as String),
+      repeatType: RepeatType.values.byName(json['repeatType'] as String),
+      customDaysBitmask: json['customDaysBitmask'] == null ? null : (json['customDaysBitmask'] as num).toInt(),
       message: json['message'] as String,
       active: json['active'] as bool,
-      recipientIds: (json['recipientIds'] as List<Object?>).map((item) => (item as num).toInt()).toList(),
+      deviceContactIds: (json['deviceContactIds'] as List<Object?>).map((item) => item as String).toList(),
+      serverRecipients: (json['serverRecipients'] as List<Object?>).map((item) => ServerRecipient.fromJson(item as Map<String, Object?>)).toList(),
     );
   }
 
@@ -307,13 +319,17 @@ class GeofenceInput {
     return <String, Object?>{
       if (id != null) 'id': id!,
       'name': name,
+      'address': address,
       'latitude': latitude,
       'longitude': longitude,
       'radiusMeters': radiusMeters,
       'eventType': eventType.name,
+      'repeatType': repeatType.name,
+      if (customDaysBitmask != null) 'customDaysBitmask': customDaysBitmask!,
       'message': message,
       'active': active,
-      'recipientIds': recipientIds.map((item) => item).toList(),
+      'deviceContactIds': deviceContactIds.map((item) => item).toList(),
+      'serverRecipients': serverRecipients.map((item) => item.toJson()).toList(),
     };
   }
 }
@@ -321,34 +337,79 @@ class GeofenceInput {
 enum GeofenceEventType {
   arrival,
   departure,
+  both,
+}
+
+enum RepeatType {
+  none,
+  daily,
+  weekday,
+  weekend,
+  custom,
+}
+
+class ServerRecipient {
+  const ServerRecipient({
+    required this.friendRelationshipId,
+    required this.friendEmail,
+    required this.friendAlias,
+  });
+
+  final String friendRelationshipId;
+  final String friendEmail;
+  final String friendAlias;
+
+  factory ServerRecipient.fromJson(Map<String, Object?> json) {
+    return ServerRecipient(
+      friendRelationshipId: json['friendRelationshipId'] as String,
+      friendEmail: json['friendEmail'] as String,
+      friendAlias: json['friendAlias'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'friendRelationshipId': friendRelationshipId,
+      'friendEmail': friendEmail,
+      'friendAlias': friendAlias,
+    };
+  }
 }
 
 class Geofence {
   const Geofence({
     required this.id,
     required this.name,
+    required this.address,
     required this.latitude,
     required this.longitude,
     required this.radiusMeters,
     required this.eventType,
+    required this.repeatType,
+    this.customDaysBitmask,
     required this.message,
     required this.active,
     required this.awaitingDeparture,
-    required this.recipientIds,
+    required this.deviceContactIds,
+    required this.serverRecipients,
     required this.createdAt,
     required this.updatedAt,
   });
 
   final int id;
   final String name;
+  final String address;
   final double latitude;
   final double longitude;
   final int radiusMeters;
   final GeofenceEventType eventType;
+  final RepeatType repeatType;
+  final int? customDaysBitmask;
   final String message;
   final bool active;
   final bool awaitingDeparture;
-  final List<int> recipientIds;
+  final List<String> deviceContactIds;
+  final List<ServerRecipient> serverRecipients;
   final String createdAt;
   final String updatedAt;
 
@@ -356,14 +417,18 @@ class Geofence {
     return Geofence(
       id: (json['id'] as num).toInt(),
       name: json['name'] as String,
+      address: json['address'] as String,
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       radiusMeters: (json['radiusMeters'] as num).toInt(),
       eventType: GeofenceEventType.values.byName(json['eventType'] as String),
+      repeatType: RepeatType.values.byName(json['repeatType'] as String),
+      customDaysBitmask: json['customDaysBitmask'] == null ? null : (json['customDaysBitmask'] as num).toInt(),
       message: json['message'] as String,
       active: json['active'] as bool,
       awaitingDeparture: json['awaitingDeparture'] as bool,
-      recipientIds: (json['recipientIds'] as List<Object?>).map((item) => (item as num).toInt()).toList(),
+      deviceContactIds: (json['deviceContactIds'] as List<Object?>).map((item) => item as String).toList(),
+      serverRecipients: (json['serverRecipients'] as List<Object?>).map((item) => ServerRecipient.fromJson(item as Map<String, Object?>)).toList(),
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
     );
@@ -373,14 +438,18 @@ class Geofence {
     return <String, Object?>{
       'id': id,
       'name': name,
+      'address': address,
       'latitude': latitude,
       'longitude': longitude,
       'radiusMeters': radiusMeters,
       'eventType': eventType.name,
+      'repeatType': repeatType.name,
+      if (customDaysBitmask != null) 'customDaysBitmask': customDaysBitmask!,
       'message': message,
       'active': active,
       'awaitingDeparture': awaitingDeparture,
-      'recipientIds': recipientIds.map((item) => item).toList(),
+      'deviceContactIds': deviceContactIds.map((item) => item).toList(),
+      'serverRecipients': serverRecipients.map((item) => item.toJson()).toList(),
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };

@@ -49,6 +49,14 @@ describe("bridge contract", () => {
         | "locationWhenInUse"
         | "notification";
     }>();
+    expectTypeOf<
+      Parameters<BridgeApi["registerGeofence"]>[0]
+    >().toMatchObjectType<{
+      address: string;
+      eventType: "arrival" | "both" | "departure";
+      repeatType: "custom" | "daily" | "none" | "weekday" | "weekend";
+      deviceContactIds: string[];
+    }>();
   });
 });
 
