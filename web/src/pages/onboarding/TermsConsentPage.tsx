@@ -52,11 +52,7 @@ export default function TermsConsentPage() {
     if (terms === null || !requiredAgreed) return;
     setSubmitting(true);
     try {
-      await activateWithTerms(
-        api,
-        terms,
-        agreed,
-      );
+      await activateWithTerms(api, terms, agreed);
       navigate("/user-permission", { replace: true });
     } catch {
       setError("동의 내용을 저장하지 못했습니다.");
