@@ -212,7 +212,7 @@ describe("browser bridge mock", () => {
       platform: "browser",
     });
 
-    const emitTheme = controller.emit as (
+    const emitTheme = controller.emit as unknown as (
       eventName: "onThemeChanged",
       payload: { theme: "dark" | "light" | "system" },
     ) => void;
