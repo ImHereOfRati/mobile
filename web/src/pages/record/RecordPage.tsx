@@ -1,4 +1,10 @@
-import { PlaceholderScreen } from "@/components/PlaceholderScreen";
+import "@/pages/feature-page.css";
+
+import { NotificationListScreen } from "./NotificationListScreen";
+import { RecordDetailScreen } from "./RecordDetailScreen";
+import { RecordFriendRequestScreen } from "./RecordFriendRequestScreen";
+import { RecordOverviewScreen } from "./RecordOverviewScreen";
+import { SendHistoryScreen } from "./SendHistoryScreen";
 
 type RecordScreen =
   | "overview"
@@ -13,5 +19,14 @@ interface RecordPageProps {
 }
 
 export default function RecordPage({ screen }: RecordPageProps) {
-  return <PlaceholderScreen titleKey={`screens.record.${screen}`} />;
+  if (screen === "notifications") return <NotificationListScreen />;
+  if (screen === "notificationDetail") {
+    return <RecordDetailScreen kind="notification" />;
+  }
+  if (screen === "friendRequests") return <RecordFriendRequestScreen />;
+  if (screen === "sendHistory") return <SendHistoryScreen />;
+  if (screen === "sendHistoryDetail") {
+    return <RecordDetailScreen kind="record" />;
+  }
+  return <RecordOverviewScreen />;
 }
