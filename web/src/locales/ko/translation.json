@@ -69,6 +69,8 @@
       "needsSetup": "{{count}}개 설정 필요",
       "permissionWarning": "백그라운드 자동 전송을 위해 권한 설정이 필요합니다.",
       "openPermission": "설정 확인",
+      "iosLimit": "iPhone은 활성 지오펜스를 최대 20개까지 등록합니다. 현재 {{count}}개가 활성화되어 있어요.",
+      "oneShotHint": "‘반복 안 함’ 장소는 첫 알림 후 자동으로 비활성화되고 OS 감지 목록에서도 해제됩니다.",
       "loadError": "알림 장소를 불러오지 못했습니다.",
       "loading": "알림 장소를 불러오는 중",
       "emptyTitle": "등록한 알림 장소가 없어요",

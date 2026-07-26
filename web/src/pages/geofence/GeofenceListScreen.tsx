@@ -17,14 +17,17 @@ export function GeofenceListScreen() {
   const [readiness, setReadiness] =
     useState<BridgeMethodResult<"getAutoSendReadiness"> | null>(null);
   const [locationEnabled, setLocationEnabled] = useState<boolean | null>(null);
+  const [platform, setPlatform] =
+    useState<BridgeMethodResult<"getAppInfo">["platform"]>("browser");
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Geofence | null>(null);
 
   const load = useCallback(async () => {
-    const [geofences, autoSend, location] = await Promise.allSettled([
+    const [geofences, autoSend, location, appInfo] = await Promise.allSettled([
       loadGeofences(bridge),
       bridge.getAutoSendReadiness(),
       bridge.getLocationServiceStatus(),
+      bridge.getAppInfo(),
     ]);
     if (geofences.status === "fulfilled") {
       setItems(geofences.value);
@@ -37,6 +40,7 @@ export function GeofenceListScreen() {
     if (location.status === "fulfilled") {
       setLocationEnabled(location.value.status === "enabled");
     }
+    if (appInfo.status === "fulfilled") setPlatform(appInfo.value.platform);
   }, [bridge, t]);
 
   useEffect(() => {
@@ -115,6 +119,16 @@ export function GeofenceListScreen() {
           <Link to="/user-permission">{t("geofence.list.openPermission")}</Link>
         </div>
       ) : null}
+      {platform === "ios" && items !== null ? (
+        <div className="feature-page__banner" role="status">
+          {t("geofence.list.iosLimit", {
+            count: items.filter((item) => item.active).length,
+          })}
+        </div>
+      ) : null}
+      <div className="feature-page__banner" role="note">
+        {t("geofence.list.oneShotHint")}
+      </div>
       {error === null ? null : (
         <p className="feature-page__error" role="alert">
           {error}{" "}
