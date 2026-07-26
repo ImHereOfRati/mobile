@@ -96,7 +96,7 @@ export const appRoutes: RouteObject[] = [
             element: <RecordPage screen="notifications" />,
           },
           {
-            path: "record/notifications/detail",
+            path: "record/notifications/:recordId",
             element: <RecordPage screen="notificationDetail" />,
           },
           {
@@ -108,7 +108,7 @@ export const appRoutes: RouteObject[] = [
             element: <RecordPage screen="sendHistory" />,
           },
           {
-            path: "record/send-history/detail",
+            path: "record/send-history/:recordId",
             element: <RecordPage screen="sendHistoryDetail" />,
           },
           {

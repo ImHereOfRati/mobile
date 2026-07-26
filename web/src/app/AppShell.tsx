@@ -1,5 +1,9 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+
+import { useBridge } from "@/bridge/bridge-context";
+import { normalizePushPath } from "@/pages/record/record-model";
 
 const tabs = [
   {
@@ -22,6 +26,16 @@ const tabs = [
 
 export function AppShell() {
   const { t } = useTranslation();
+  const bridge = useBridge();
+  const navigate = useNavigate();
+
+  useEffect(
+    () =>
+      bridge.events.subscribe("onPushOpened", ({ path }) => {
+        navigate(normalizePushPath(path));
+      }),
+    [bridge, navigate],
+  );
 
   return (
     <div className="app-shell">
