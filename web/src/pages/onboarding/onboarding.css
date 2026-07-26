@@ -1,0 +1,85 @@
+.onboarding {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: var(--space-6);
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+.onboarding__panel {
+  display: grid;
+  width: min(100%, 34rem);
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-xl);
+}
+
+.onboarding__header,
+.onboarding__actions,
+.onboarding__list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.onboarding__eyebrow,
+.onboarding__description,
+.onboarding__meta {
+  color: var(--color-text-secondary);
+}
+
+.onboarding__steps,
+.onboarding__permission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.onboarding__step {
+  width: 0.6rem;
+  height: 0.6rem;
+  padding: 0;
+  background: var(--color-divider);
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.onboarding__step[aria-current="step"] {
+  width: 1.5rem;
+  background: var(--color-primary);
+}
+
+.onboarding__notice,
+.onboarding__error {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.onboarding__notice {
+  background: var(--color-primary-soft);
+}
+
+.onboarding__error {
+  color: var(--color-error);
+  background: var(--color-error-soft);
+}
+
+.onboarding__term,
+.onboarding__permission {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 52px;
+}
+
+.onboarding__term a {
+  color: var(--color-primary);
+}
+
+.onboarding__content {
+  line-height: 1.7;
+  white-space: pre-wrap;
+}

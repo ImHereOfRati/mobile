@@ -1,4 +1,10 @@
-import { PlaceholderScreen } from "@/components/PlaceholderScreen";
+import "./onboarding.css";
+
+import AuthPage from "./AuthPage";
+import PermissionGuidePage from "./PermissionGuidePage";
+import PermissionPage from "./PermissionPage";
+import TermDetailPage from "./TermDetailPage";
+import TermsConsentPage from "./TermsConsentPage";
 
 type OnboardingScreen =
   | "auth"
@@ -13,5 +19,18 @@ interface OnboardingPageProps {
 }
 
 export default function OnboardingPage({ screen }: OnboardingPageProps) {
-  return <PlaceholderScreen titleKey={`screens.onboarding.${screen}`} />;
+  switch (screen) {
+    case "auth":
+      return <AuthPage />;
+    case "termsConsent":
+      return <TermsConsentPage />;
+    case "termsDetail":
+      return <TermDetailPage />;
+    case "userPermission":
+      return <PermissionPage />;
+    case "locationPermissionGuide":
+      return <PermissionGuidePage kind="location" />;
+    case "batteryOptimizationGuide":
+      return <PermissionGuidePage kind="battery" />;
+  }
 }
