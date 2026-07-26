@@ -7,6 +7,9 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "generate:dart": "tsx scripts/generate-dart.ts",
+    "check:dart": "tsx scripts/generate-dart.ts --check",
+    "test": "vitest run src",
     "typecheck": "tsc -p tsconfig.json --pretty false"
   },
   "devDependencies": {

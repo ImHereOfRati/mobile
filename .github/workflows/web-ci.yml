@@ -47,6 +47,9 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      - name: Check generated bridge contract
+        run: pnpm bridge:check
+
       - name: Type-check
         run: pnpm typecheck
 
