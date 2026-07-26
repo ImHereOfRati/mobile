@@ -54,7 +54,8 @@ export default function TermsConsentPage() {
     try {
       await activateWithTerms(
         api,
-        terms.filter((term) => agreed.has(term.id)),
+        terms,
+        agreed,
       );
       navigate("/user-permission", { replace: true });
     } catch {
