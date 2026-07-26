@@ -1,0 +1,96 @@
+@font-face {
+  font-family: "Gmarket Sans";
+  src: url("../assets/fonts/gmarket-sans-medium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  size-adjust: 100%;
+}
+
+@font-face {
+  font-family: "Gmarket Sans";
+  src: url("../assets/fonts/gmarket-sans-bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  size-adjust: 100%;
+}
+
+.type-display-large,
+.type-display-medium,
+.type-display-small,
+.type-headline-large,
+.type-headline-medium {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-title);
+  text-wrap: balance;
+}
+
+.type-display-large {
+  font-size: var(--text-display-large);
+  font-weight: 700;
+  letter-spacing: -0.03125rem;
+  line-height: var(--line-display-large);
+}
+
+.type-display-medium {
+  font-size: var(--text-display-medium);
+  font-weight: 700;
+  letter-spacing: -0.01875rem;
+  line-height: var(--line-display-medium);
+}
+
+.type-display-small {
+  font-size: var(--text-display-small);
+  font-weight: 500;
+  letter-spacing: -0.0125rem;
+  line-height: var(--line-display-small);
+}
+
+.type-headline-large {
+  font-size: var(--text-headline-large);
+  font-weight: 700;
+  letter-spacing: -0.025rem;
+  line-height: 1.1;
+}
+
+.type-headline-medium {
+  font-size: var(--text-headline-medium);
+  font-weight: 700;
+  letter-spacing: -0.01875rem;
+  line-height: var(--line-display-medium);
+}
+
+.type-headline-small,
+.type-body-large,
+.type-body-medium,
+.type-body-small {
+  margin: 0;
+  font-family: var(--font-body);
+}
+
+.type-headline-small {
+  color: var(--color-text);
+  font-size: var(--text-headline-small);
+  font-weight: 700;
+  line-height: 1.24;
+}
+
+.type-body-large {
+  color: var(--color-text);
+  font-size: var(--text-body-large);
+  line-height: var(--line-body-large);
+}
+
+.type-body-medium {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-medium);
+  line-height: var(--line-body-medium);
+}
+
+.type-body-small {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-small);
+  line-height: var(--line-body-small);
+}
