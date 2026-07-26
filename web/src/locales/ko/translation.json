@@ -1,0 +1,57 @@
+{
+  "common": {
+    "loading": "화면을 불러오는 중입니다.",
+    "placeholder": {
+      "eyebrow": "React 전환 준비",
+      "description": "이 경로의 실제 화면은 후속 Feature에서 구현합니다."
+    },
+    "errors": {
+      "unexpectedTitle": "화면을 표시할 수 없습니다.",
+      "unexpectedDescription": "잠시 후 다시 시도해 주세요."
+    },
+    "notFound": {
+      "title": "페이지를 찾을 수 없습니다.",
+      "description": "요청한 주소가 올바른지 확인해 주세요.",
+      "action": "로그인 화면으로 이동"
+    }
+  },
+  "navigation": {
+    "label": "주요 메뉴",
+    "geofence": "장소",
+    "friend": "친구",
+    "add": "알림 장소 추가",
+    "record": "기록",
+    "setting": "설정"
+  },
+  "screens": {
+    "onboarding": {
+      "auth": "로그인",
+      "termsConsent": "약관 동의",
+      "termsDetail": "약관 상세",
+      "userPermission": "권한 준비",
+      "locationPermissionGuide": "위치 권한 안내",
+      "batteryOptimizationGuide": "배터리 최적화 안내"
+    },
+    "geofence": {
+      "list": "알림 장소",
+      "message": "알림 장소 등록"
+    },
+    "friend": {
+      "list": "친구",
+      "add": "친구 추가",
+      "requests": "친구 요청",
+      "restrictions": "친구 제한"
+    },
+    "record": {
+      "overview": "기록",
+      "notifications": "알림 목록",
+      "notificationDetail": "알림 상세",
+      "friendRequests": "친구 요청 기록",
+      "sendHistory": "전송 기록",
+      "sendHistoryDetail": "전송 기록 상세"
+    },
+    "setting": {
+      "main": "설정"
+    }
+  }
+}

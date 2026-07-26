@@ -77,3 +77,10 @@ build_error.log
 /.claude/
 
 firebase.json
+
+# React web workspace
+/web/node_modules/
+/web/**/node_modules/
+/web/dist/
+/web/coverage/
+/web/**/*.tsbuildinfo
