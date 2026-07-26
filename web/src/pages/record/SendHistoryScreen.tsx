@@ -37,6 +37,17 @@ export function SendHistoryScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bridge]);
 
+  const remove = async (item: DeliveryRecord) => {
+    if (!window.confirm(`${item.geofenceName} 전송 기록을 삭제할까요?`)) return;
+    try {
+      await bridge.deleteRecord({ id: item.id });
+      setItems((current) => current.filter((value) => value.id !== item.id));
+      setStatus("전송 기록을 삭제했습니다.");
+    } catch {
+      setStatus("전송 기록을 삭제하지 못했습니다.");
+    }
+  };
+
   return (
     <RecordListLayout
       back="/record"
@@ -56,6 +67,13 @@ export function SendHistoryScreen() {
               <span className="feature-page__chip">{item.status}</span>
               <span>{formatActivityTime(item.occurredAt)}</span>
             </div>
+            <button
+              className="ds-button ds-button--danger"
+              onClick={() => void remove(item)}
+              type="button"
+            >
+              기록 삭제
+            </button>
           </li>
         ))}
       </ul>
