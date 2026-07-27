@@ -44,7 +44,8 @@ export function resolveAuthRedirect({
   }
 
   if (auth.userStatus === "pending") {
-    return matchedLocation === routes.termsConsent
+    return matchedLocation === routes.termsConsent ||
+      matchedLocation.startsWith("/terms-detail/")
       ? null
       : withQuery(routes.termsConsent, "redirect", redirect);
   }

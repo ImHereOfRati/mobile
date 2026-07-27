@@ -14,6 +14,15 @@ export function formatActivityTime(value: string) {
   }).format(date);
 }
 
+export function formatDeliveryStatus(status: string) {
+  const labels: Record<string, string> = {
+    completed: "완료",
+    failed: "실패",
+    pending: "대기 중",
+  };
+  return labels[status] ?? status;
+}
+
 export function normalizePushPath(path: string) {
   const trimmed = path.trim();
   const normalized = trimmed.startsWith("/app/")

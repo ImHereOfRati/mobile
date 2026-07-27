@@ -8,6 +8,7 @@ import { friendService } from "@/pages/friend/friend-service";
 
 import {
   formatActivityTime,
+  formatDeliveryStatus,
   type DeliveryRecord,
   type NativeNotification,
 } from "./record-model";
@@ -113,7 +114,9 @@ export function RecordOverviewScreen() {
             <h3>{item.geofenceName}</h3>
             <p>{item.message}</p>
             <div className="feature-page__meta">
-              <span className="feature-page__chip">{item.status}</span>
+              <span className="feature-page__chip">
+                {formatDeliveryStatus(item.status)}
+              </span>
               <small>{formatActivityTime(item.occurredAt)}</small>
             </div>
           </li>

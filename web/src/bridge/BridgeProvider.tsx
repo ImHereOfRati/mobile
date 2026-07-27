@@ -1,5 +1,4 @@
 import {
-  createMockBridge,
   createWindowBridge,
   type NativeBridge,
 } from "@imhere/bridge-contract";
@@ -7,6 +6,7 @@ import { type PropsWithChildren, useEffect, useState } from "react";
 
 import { AnalyticsProvider } from "@/analytics/AnalyticsProvider";
 
+import { createBrowserPreviewBridge } from "./browser-preview-bridge";
 import { BridgeContext } from "./bridge-context";
 
 export function BridgeProvider({
@@ -18,7 +18,7 @@ export function BridgeProvider({
       return { bridge: providedBridge, destroy: () => {} };
     }
     return window.ImHereBridge === undefined
-      ? { bridge: createMockBridge().bridge, destroy: () => {} }
+      ? { bridge: createBrowserPreviewBridge().bridge, destroy: () => {} }
       : createWindowBridge();
   });
 

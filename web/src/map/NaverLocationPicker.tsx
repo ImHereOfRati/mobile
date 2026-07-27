@@ -37,6 +37,7 @@ export function NaverLocationPicker({
   const markerRef = useRef<NaverMarker | undefined>(undefined);
   const circleRef = useRef<NaverCircle | undefined>(undefined);
   const valueRef = useRef(value);
+  const browserPreview = clientId === "browser";
   const [mapFailed, setMapFailed] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PlaceSearchResult[]>([]);
@@ -51,11 +52,21 @@ export function NaverLocationPicker({
     let mapClickListener: object | undefined;
     let dragListener: object | undefined;
 
+    if (browserPreview) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
     void loadSdk(clientId)
       .then(() => {
         const maps = window.naver?.maps;
         const element = elementRef.current;
-        if (cancelled || maps === undefined || element === null) return;
+        if (cancelled || element === null) return;
+        if (maps == null) {
+          setMapFailed(true);
+          return;
+        }
         const currentValue = valueRef.current;
         const center = new maps.LatLng(
           currentValue.latitude,
@@ -101,18 +112,18 @@ export function NaverLocationPicker({
     return () => {
       cancelled = true;
       const maps = window.naver?.maps;
-      if (maps !== undefined && mapClickListener !== undefined) {
+      if (maps != null && mapClickListener !== undefined) {
         maps.Event.removeListener(mapClickListener);
       }
-      if (maps !== undefined && dragListener !== undefined) {
+      if (maps != null && dragListener !== undefined) {
         maps.Event.removeListener(dragListener);
       }
     };
-  }, [clientId, loadSdk, onChange]);
+  }, [browserPreview, clientId, loadSdk, onChange]);
 
   useEffect(() => {
     const maps = window.naver?.maps;
-    if (maps === undefined) return;
+    if (maps == null) return;
     const center = new maps.LatLng(value.latitude, value.longitude);
     markerRef.current?.setPosition(center);
     circleRef.current?.setCenter(center);
@@ -141,25 +152,26 @@ export function NaverLocationPicker({
 
   return (
     <section className="location-picker" aria-label="장소와 반경 선택">
-      <form
+      <div
         className="location-picker__search"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void submitSearch();
-        }}
       >
         <TextField
           label="장소 검색"
           placeholder="주소 또는 장소명을 입력하세요"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            void submitSearch();
+          }}
         />
-        <Button loading={searching} type="submit">
+        <Button loading={searching} onClick={() => void submitSearch()}>
           검색
         </Button>
-      </form>
+      </div>
 
-      {mapFailed ? (
+      {browserPreview || mapFailed ? (
         <EmptyState
           title="지도를 불러오지 못했어요"
           description="주소 검색으로 장소를 선택할 수 있어요."

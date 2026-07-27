@@ -13,7 +13,7 @@
   margin: 0 auto;
   padding: calc(var(--space-8) + env(safe-area-inset-top)) var(--space-5)
     calc(var(--space-8) + env(safe-area-inset-bottom));
-  background: transparent;
+  background: var(--color-surface);
 }
 
 .onboarding__header,

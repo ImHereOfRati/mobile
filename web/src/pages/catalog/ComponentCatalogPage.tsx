@@ -78,7 +78,7 @@ export default function ComponentCatalogPage() {
 
       <CatalogSection
         title="타이포그래피"
-        description="Flutter TextTheme과 대응하는 제목·본문 스케일입니다."
+        description="Web 화면 전반에 사용하는 제목·본문 스케일입니다."
       >
         <div className="catalog-type-ramp">
           <p className="type-display-medium">도착을 알려드릴게요</p>

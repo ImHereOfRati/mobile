@@ -10,6 +10,24 @@ const value = {
 };
 
 describe("NaverLocationPicker", () => {
+  it("shows the intentional browser preview fallback without loading the SDK", async () => {
+    const loadSdk = vi.fn(async () => undefined);
+    render(
+      <NaverLocationPicker
+        clientId="browser"
+        value={value}
+        onChange={vi.fn()}
+        searchPlaces={async () => []}
+        loadSdk={loadSdk}
+      />,
+    );
+
+    expect(
+      await screen.findByText("지도를 불러오지 못했어요"),
+    ).toBeInTheDocument();
+    expect(loadSdk).not.toHaveBeenCalled();
+  });
+
   it("changes between the three supported radii", () => {
     const onChange = vi.fn();
     render(

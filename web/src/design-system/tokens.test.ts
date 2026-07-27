@@ -36,7 +36,7 @@ const light = readTheme(
 const dark = readTheme(/:root\[data-theme="dark"\]\s*\{([\s\S]*?)\}/);
 
 describe("design tokens", () => {
-  it("keeps the adopted Flutter brand colors in the light theme", () => {
+  it("keeps the adopted ImHere brand colors in the light theme", () => {
     expect(light.get("--color-primary")).toBe("#0071e3");
     expect(light.get("--color-text")).toBe("#1d1d1f");
     expect(light.get("--color-text-secondary")).toBe("#6e6e73");

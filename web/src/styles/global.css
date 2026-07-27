@@ -46,7 +46,7 @@ input {
 
 .app-shell {
   min-height: 100vh;
-  background: var(--color-surface);
+  background: var(--color-background);
 }
 
 .app-shell__content {

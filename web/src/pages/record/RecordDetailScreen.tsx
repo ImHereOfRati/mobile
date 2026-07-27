@@ -5,6 +5,7 @@ import { useBridge } from "@/bridge/bridge-context";
 
 import {
   formatActivityTime,
+  formatDeliveryStatus,
   type DeliveryRecord,
   type NativeNotification,
 } from "./record-model";
@@ -69,7 +70,7 @@ export function RecordDetailScreen({
             {"status" in item && (
               <>
                 <dt>상태</dt>
-                <dd>{item.status}</dd>
+                <dd>{formatDeliveryStatus(item.status)}</dd>
               </>
             )}
           </dl>

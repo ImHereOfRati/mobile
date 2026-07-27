@@ -5,7 +5,11 @@ import { useBridge } from "@/bridge/bridge-context";
 import { InfiniteLoadButton } from "@/pages/friend/InfiniteLoadButton";
 
 import { RecordListLayout } from "./NotificationListScreen";
-import { formatActivityTime, type DeliveryRecord } from "./record-model";
+import {
+  formatActivityTime,
+  formatDeliveryStatus,
+  type DeliveryRecord,
+} from "./record-model";
 
 export function SendHistoryScreen() {
   const bridge = useBridge();
@@ -85,7 +89,9 @@ export function SendHistoryScreen() {
             </Link>
             <p>{item.message}</p>
             <div className="feature-page__meta">
-              <span className="feature-page__chip">{item.status}</span>
+              <span className="feature-page__chip">
+                {formatDeliveryStatus(item.status)}
+              </span>
               <span>{formatActivityTime(item.occurredAt)}</span>
             </div>
             <button
