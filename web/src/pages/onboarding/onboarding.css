@@ -1,20 +1,19 @@
 .onboarding {
-  display: grid;
   min-height: 100dvh;
-  place-items: center;
-  padding: var(--space-6);
   color: var(--color-text);
   background: var(--color-background);
 }
 
 .onboarding__panel {
   display: grid;
-  width: min(100%, 34rem);
-  gap: var(--space-5);
-  padding: var(--space-6);
+  width: min(100%, 31rem);
+  min-height: 100dvh;
+  gap: var(--space-6);
+  align-content: center;
+  margin: 0 auto;
+  padding: calc(var(--space-8) + env(safe-area-inset-top)) var(--space-5)
+    calc(var(--space-8) + env(safe-area-inset-bottom));
   background: var(--color-surface);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-xl);
 }
 
 .onboarding__header,
@@ -24,10 +23,38 @@
   gap: var(--space-3);
 }
 
+.onboarding__header {
+  margin-top: 0;
+}
+
+.onboarding__header h1 {
+  max-width: 25rem;
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: clamp(1.9rem, 8vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 1.1;
+  white-space: pre-line;
+}
+
 .onboarding__eyebrow,
 .onboarding__description,
 .onboarding__meta {
+  margin: 0;
   color: var(--color-text-secondary);
+}
+
+.onboarding__eyebrow {
+  color: var(--color-primary);
+  font-size: var(--text-body-medium);
+  font-weight: 750;
+}
+
+.onboarding__description {
+  max-width: 25rem;
+  font-size: var(--text-body-large);
+  line-height: 1.65;
 }
 
 .onboarding__steps,
@@ -37,28 +64,55 @@
   gap: var(--space-2);
 }
 
-.onboarding__step {
-  width: 0.6rem;
-  height: 0.6rem;
-  padding: 0;
-  background: var(--color-divider);
-  border: 0;
-  border-radius: var(--radius-pill);
+.onboarding__steps {
+  gap: 0;
+  margin: calc(var(--space-2) * -1) 0;
 }
 
-.onboarding__step[aria-current="step"] {
-  width: 1.5rem;
+.onboarding__step {
+  position: relative;
+  display: grid;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.onboarding__step::after {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-divider);
+  content: "";
+  transition:
+    width var(--motion-normal) ease,
+    background-color var(--motion-normal) ease;
+}
+
+.onboarding__step[aria-current="step"]::after {
+  width: 1.75rem;
   background: var(--color-primary);
 }
 
-.onboarding__notice,
-.onboarding__error {
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
+.onboarding__step:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -0.25rem;
 }
 
-.onboarding__notice {
-  background: var(--color-primary-soft);
+.onboarding__panel > .ds-button,
+.onboarding__actions .ds-button {
+  width: 100%;
+}
+
+.onboarding__error {
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body-medium);
+  line-height: 1.5;
 }
 
 .onboarding__error {
@@ -72,14 +126,70 @@
   grid-template-columns: auto 1fr auto;
   gap: var(--space-3);
   align-items: center;
-  min-height: 52px;
+  min-height: 4rem;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
 }
 
-.onboarding__term a {
+.onboarding__term input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--color-primary);
+}
+
+.onboarding__term a,
+.onboarding__permission-actions a {
+  min-height: var(--touch-target-min);
   color: var(--color-primary);
+  font-size: var(--text-body-medium);
+  font-weight: 700;
+}
+
+.onboarding__permission > span {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  font-weight: 800;
 }
 
 .onboarding__content {
-  line-height: 1.7;
+  max-height: 25rem;
+  overflow: auto;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
   white-space: pre-wrap;
+}
+
+@media (min-width: 48rem) {
+  .onboarding {
+    padding: var(--space-8);
+  }
+
+  .onboarding__panel {
+    min-height: calc(100dvh - 4rem);
+    padding-inline: var(--space-8);
+  }
+}
+
+@media (max-width: 21rem) {
+  .onboarding__panel {
+    gap: var(--space-5);
+    padding-inline: var(--space-4);
+  }
+
+  .onboarding__header {
+    margin-top: 0;
+  }
+
+  .onboarding__header h1 {
+    font-size: 2rem;
+  }
+
+  .onboarding__description {
+    font-size: 1rem;
+  }
 }

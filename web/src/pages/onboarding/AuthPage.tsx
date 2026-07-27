@@ -1,33 +1,31 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useBridge } from "@/bridge/bridge-context";
 import { Button } from "@/design-system";
 
-const slides = [
-  [
-    "도착하면 자동으로 알려드려요",
-    "장소와 사람을 정하면 ImHere가 자동 전송을 준비해요.",
-  ],
-  [
-    "앱이 꺼져도 놓치지 않아요",
-    "네이티브 지오펜스가 백그라운드에서 계속 동작해요.",
-  ],
-  [
-    "내 정보는 기기에 안전하게",
-    "로그인과 권한은 앱에서 처리하고 웹에는 필요한 정보만 전달해요.",
-  ],
-] as const;
-
 export default function AuthPage() {
   const bridge = useBridge();
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { t } = useTranslation();
+  const slides = [
+    [t("onboarding.auth.slides.location.title"), null],
+    [
+      t("onboarding.auth.slides.background.title"),
+      t("onboarding.auth.slides.background.description"),
+    ],
+    [
+      t("onboarding.auth.slides.privacy.title"),
+      t("onboarding.auth.slides.privacy.description"),
+    ],
+  ] as const;
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
   const [error, setError] = useState<string | null>(
     params.get("reason") === "inactive"
-      ? "비활성화된 계정입니다. 도움이 필요하면 고객센터에 문의해 주세요."
+      ? t("onboarding.auth.inactiveWithSupport")
       : null,
   );
   const [title, description] = slides[step];
@@ -41,7 +39,7 @@ export default function AuthPage() {
           ? await bridge.signInWithKakao()
           : await bridge.signInWithGoogle();
       if (session.authState.userStatus === "inactive") {
-        setError("비활성화된 계정입니다.");
+        setError(t("onboarding.auth.inactive"));
         return;
       }
       navigate(
@@ -51,7 +49,7 @@ export default function AuthPage() {
         { replace: true },
       );
     } catch {
-      setError("로그인하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setError(t("onboarding.auth.signInFailed"));
     } finally {
       setLoading(null);
     }
@@ -61,16 +59,21 @@ export default function AuthPage() {
     <main className="onboarding">
       <section className="onboarding__panel" aria-labelledby="auth-title">
         <header className="onboarding__header">
-          <p className="onboarding__eyebrow">ImHere 시작하기</p>
+          <p className="onboarding__eyebrow">{t("onboarding.auth.eyebrow")}</p>
           <h1 id="auth-title">{title}</h1>
-          <p className="onboarding__description">{description}</p>
+          {description === null ? null : (
+            <p className="onboarding__description">{description}</p>
+          )}
         </header>
-        <div className="onboarding__steps" aria-label="소개 단계">
+        <div
+          className="onboarding__steps"
+          aria-label={t("onboarding.auth.stepsLabel")}
+        >
           {slides.map((slide, index) => (
             <button
               key={slide[0]}
               className="onboarding__step"
-              aria-label={`${index + 1}단계`}
+              aria-label={t("onboarding.auth.stepLabel", { step: index + 1 })}
               aria-current={index === step ? "step" : undefined}
               onClick={() => setStep(index)}
             />
@@ -78,7 +81,7 @@ export default function AuthPage() {
         </div>
         {step < slides.length - 1 ? (
           <Button onClick={() => setStep((current) => current + 1)}>
-            다음
+            {t("onboarding.auth.next")}
           </Button>
         ) : (
           <div className="onboarding__actions">
@@ -86,21 +89,17 @@ export default function AuthPage() {
               loading={loading === "kakao"}
               onClick={() => void signIn("kakao")}
             >
-              카카오로 계속하기
+              {t("onboarding.auth.kakao")}
             </Button>
             <Button
               variant="secondary"
               loading={loading === "google"}
               onClick={() => void signIn("google")}
             >
-              Google로 계속하기
+              {t("onboarding.auth.google")}
             </Button>
           </div>
         )}
-        <p className="onboarding__notice">
-          계속하면 서비스 이용약관과 개인정보 처리방침을 확인하고 동의하는
-          단계로 이동합니다.
-        </p>
         {error === null ? null : (
           <p className="onboarding__error" role="alert">
             {error}
