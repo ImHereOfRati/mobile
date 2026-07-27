@@ -1,0 +1,95 @@
+name: Roll back web app
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Previously verified 40-character commit SHA
+        required: true
+        type: string
+
+concurrency:
+  group: production-web-deploy
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Validate release SHA
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: |
+          if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::release_sha must be a lowercase 40-character commit SHA"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.18.0
+
+      - name: Configure short-lived AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: imhere-rollback-${{ github.run_id }}
+
+      - name: Verify release still exists
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          WEB_APP_BUCKET: ${{ vars.WEB_APP_BUCKET }}
+        run: |
+          aws s3api head-object \
+            --bucket "$WEB_APP_BUCKET" \
+            --key "app/releases/${RELEASE_SHA}/index.html"
+
+      - id: release
+        name: Resolve rollback URL
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          WEB_PUBLIC_ORIGIN: ${{ vars.WEB_PUBLIC_ORIGIN }}
+        run: |
+          release_url="${WEB_PUBLIC_ORIGIN%/}/app/releases/${RELEASE_SHA}/"
+          echo "url=$release_url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke previous release
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+        run: node web/scripts/smoke-release.mjs
+
+      - id: google-auth
+        name: Configure short-lived Google credentials
+        uses: google-github-actions/auth@v3
+        with:
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
+      - name: Point Firebase Remote Config to previous release
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          GOOGLE_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+        run: node web/scripts/update-remote-config.mjs
+
+      - name: Record rollback
+        env:
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+        run: |
+          {
+            echo "## Web rollback"
+            echo "- Release: ${RELEASE_URL}"
+            echo "- Firebase parameter: \`web_app_url\`"
+          } >> "$GITHUB_STEP_SUMMARY"

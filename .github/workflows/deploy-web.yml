@@ -1,0 +1,173 @@
+name: Deploy immutable web app
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "web/**"
+      - "infra/aws/**"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: production-web-deploy
+  cancel-in-progress: false
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - id: check
+        name: Check deployment configuration
+        env:
+          API_CACHE_POLICY_ID: ${{ vars.API_CACHE_POLICY_ID }}
+          API_ORIGIN_REQUEST_POLICY_ID: ${{ vars.API_ORIGIN_REQUEST_POLICY_ID }}
+          AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          RELEASE_CACHE_POLICY_ID: ${{ vars.RELEASE_CACHE_POLICY_ID }}
+          WEB_APP_BUCKET: ${{ vars.WEB_APP_BUCKET }}
+          WEB_CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.WEB_CLOUDFRONT_DISTRIBUTION_ID }}
+          WEB_PUBLIC_ORIGIN: ${{ vars.WEB_PUBLIC_ORIGIN }}
+        run: |
+          missing=()
+          for name in \
+            API_CACHE_POLICY_ID \
+            API_ORIGIN_REQUEST_POLICY_ID \
+            AWS_DEPLOY_ROLE_ARN \
+            AWS_REGION \
+            FIREBASE_PROJECT_ID \
+            GCP_SERVICE_ACCOUNT \
+            GCP_WORKLOAD_IDENTITY_PROVIDER \
+            RELEASE_CACHE_POLICY_ID \
+            WEB_APP_BUCKET \
+            WEB_CLOUDFRONT_DISTRIBUTION_ID \
+            WEB_PUBLIC_ORIGIN
+          do
+            if [[ -z "${!name}" ]]; then missing+=("$name"); fi
+          done
+
+          if (( ${#missing[@]} > 0 )); then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Web deployment skipped; configure repository variables: ${missing[*]}"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: configuration
+    if: needs.configuration.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.18.0
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Build commit-addressed app
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_APP_BASE_PATH: /app/releases/${{ github.sha }}/
+          VITE_CLARITY_PROJECT_ID: ${{ vars.VITE_CLARITY_PROJECT_ID }}
+          VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
+          VITE_NAVER_MAP_CLIENT_ID: ${{ vars.VITE_NAVER_MAP_CLIENT_ID }}
+        run: pnpm typecheck && pnpm build:app
+
+      - name: Configure short-lived AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: imhere-web-${{ github.run_id }}
+
+      - name: Upload immutable release
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          WEB_APP_BUCKET: ${{ vars.WEB_APP_BUCKET }}
+        run: |
+          aws s3 sync web/dist/app \
+            "s3://${WEB_APP_BUCKET}/app/releases/${RELEASE_SHA}/" \
+            --cache-control "public,max-age=31536000,immutable" \
+            --delete \
+            --only-show-errors
+
+      - name: Validate CloudFront behavior policies
+        env:
+          API_CACHE_POLICY_ID: ${{ vars.API_CACHE_POLICY_ID }}
+          API_ORIGIN_REQUEST_POLICY_ID: ${{ vars.API_ORIGIN_REQUEST_POLICY_ID }}
+          CLOUDFRONT_CONFIG_PATH: ${{ runner.temp }}/cloudfront.json
+          RELEASE_CACHE_POLICY_ID: ${{ vars.RELEASE_CACHE_POLICY_ID }}
+          WEB_CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.WEB_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          aws cloudfront get-distribution-config \
+            --id "$WEB_CLOUDFRONT_DISTRIBUTION_ID" \
+            --query DistributionConfig \
+            > "$CLOUDFRONT_CONFIG_PATH"
+          node web/scripts/validate-cloudfront-config.mjs
+
+      - id: release
+        name: Resolve release URL
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          WEB_PUBLIC_ORIGIN: ${{ vars.WEB_PUBLIC_ORIGIN }}
+        run: |
+          release_url="${WEB_PUBLIC_ORIGIN%/}/app/releases/${RELEASE_SHA}/"
+          echo "url=$release_url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke immutable release
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+        run: node web/scripts/smoke-release.mjs
+
+      - id: google-auth
+        name: Configure short-lived Google credentials
+        uses: google-github-actions/auth@v3
+        with:
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
+      - name: Activate release in Firebase Remote Config
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          GOOGLE_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+        run: node web/scripts/update-remote-config.mjs
+
+      - name: Record deployment
+        env:
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+        run: |
+          {
+            echo "## Immutable web deployment"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Release: ${RELEASE_URL}"
+            echo "- Firebase parameter: \`web_app_url\`"
+          } >> "$GITHUB_STEP_SUMMARY"
