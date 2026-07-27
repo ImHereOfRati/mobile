@@ -6,8 +6,8 @@ import {
   type Schema,
 } from "./schema";
 
-export const BRIDGE_VERSION = "1.0.0";
-export const MINIMUM_BRIDGE_VERSION = "1.0.0";
+export const BRIDGE_VERSION = "1.2.0";
+export const MINIMUM_BRIDGE_VERSION = "1.2.0";
 
 export const Platform = s.enum("BridgePlatform", [
   "android",
@@ -95,6 +95,15 @@ export const AuthSession = s.object("AuthSession", {
   token: AccessToken,
 });
 
+export const TermConsent = s.object("TermConsent", {
+  id: s.integer,
+  agreed: s.boolean,
+});
+
+export const TermsActivationRequest = s.object("TermsActivationRequest", {
+  consents: s.array(TermConsent),
+});
+
 export const PermissionRequest = s.object("PermissionRequest", {
   permission: PermissionType,
 });
@@ -161,6 +170,11 @@ export const GeofenceId = s.object("GeofenceId", {
 export const SetGeofenceActive = s.object("SetGeofenceActive", {
   id: s.integer,
   active: s.boolean,
+});
+
+export const UpdateGeofenceAddress = s.object("UpdateGeofenceAddress", {
+  id: s.integer,
+  address: s.string,
 });
 
 export const GeofenceSyncResult = s.object("GeofenceSyncResult", {
@@ -302,6 +316,7 @@ export const bridgeContract = {
     refreshAccessToken: method(null, AccessToken),
     signInWithKakao: method(null, AuthSession),
     signInWithGoogle: method(null, AuthSession),
+    activateWithTerms: method(TermsActivationRequest, AuthSession),
     signOut: method(null, null),
     withdraw: method(null, null),
     getPermissionStatus: method(PermissionRequest, PermissionResult),
@@ -311,12 +326,15 @@ export const bridgeContract = {
     registerGeofence: method(GeofenceInput, Geofence),
     unregisterGeofence: method(GeofenceId, null),
     setGeofenceActive: method(SetGeofenceActive, Geofence),
+    updateGeofenceAddress: method(UpdateGeofenceAddress, Geofence),
     syncGeofences: method(null, GeofenceSyncResult),
     getNativeGeofenceState: method(GeofenceId, NativeGeofenceState),
     queryGeofences: method(PageRequest, GeofencePage),
     queryRecords: method(PageRequest, DeliveryRecordPage),
     queryNotifications: method(PageRequest, NotificationPage),
     deleteRecord: method(RecordId, null),
+    deleteAllRecords: method(null, null),
+    deleteAllNotifications: method(null, null),
     getDeviceContacts: method(null, s.array(DeviceContact)),
     getCurrentPosition: method(null, Position),
     getLocationServiceStatus: method(null, LocationServiceStatus),

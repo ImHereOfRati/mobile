@@ -27,7 +27,8 @@ class LocalDatabaseSchema {
   /// v7: geofence.awaiting_departure
   /// v8: records.delivery_event_type
   /// v9: notifications.path
-  static const int version = 9;
+  /// v10: geofence.created_at, geofence.updated_at
+  static const int version = 10;
 
   static Future<void> onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
@@ -70,6 +71,9 @@ class LocalDatabaseSchema {
     }
     if (oldVersion < 9) {
       await _migrateToV9(db);
+    }
+    if (oldVersion < 10) {
+      await _migrateToV10(db);
     }
   }
 
@@ -166,6 +170,20 @@ class LocalDatabaseSchema {
     );
   }
 
+  static Future<void> _migrateToV10(Database db) async {
+    const epoch = '1970-01-01T00:00:00.000Z';
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.geofenceTableName} '
+      'ADD COLUMN created_at TEXT NOT NULL DEFAULT "$epoch"',
+    );
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.geofenceTableName} '
+      'ADD COLUMN updated_at TEXT NOT NULL DEFAULT "$epoch"',
+    );
+  }
+
   /// onUpgrade 가 부분 실행된 적이 있는 기기 등에서 같은 마이그레이션을
   /// 다시 시도해도 앱을 죽이지 않도록 한다.
   static Future<void> _safeExec(Database db, String sql) async {
@@ -200,7 +218,9 @@ class LocalDatabaseSchema {
       'awaiting_departure INTEGER DEFAULT 0, '
       'event_type TEXT DEFAULT "arrival", '
       'repeat_type TEXT DEFAULT "none", '
-      'custom_days_bitmask INTEGER)';
+      'custom_days_bitmask INTEGER, '
+      'created_at TEXT NOT NULL DEFAULT "1970-01-01T00:00:00.000Z", '
+      'updated_at TEXT NOT NULL DEFAULT "1970-01-01T00:00:00.000Z")';
 
   static const String _createGeofenceServerRecipientTable =
       'CREATE TABLE IF NOT EXISTS '
@@ -231,12 +251,12 @@ class LocalDatabaseSchema {
   static const String _createNotificationsTable =
       'CREATE TABLE ${LocalDatabaseProperties.notificationTableName}'
       '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
-       'title TEXT, '
-       'body TEXT, '
-       'sender_nickname TEXT DEFAULT "", '
-       'sender_email TEXT DEFAULT "", '
-       'path TEXT DEFAULT "", '
-       'created_at TEXT)';
+      'title TEXT, '
+      'body TEXT, '
+      'sender_nickname TEXT DEFAULT "", '
+      'sender_email TEXT DEFAULT "", '
+      'path TEXT DEFAULT "", '
+      'created_at TEXT)';
 
   static const String _createGeofenceDeliveryQueueTable =
       'CREATE TABLE IF NOT EXISTS '

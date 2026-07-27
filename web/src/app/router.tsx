@@ -9,6 +9,7 @@ import { AppRoot } from "@/app/AppRoot";
 import { AppShell } from "@/app/AppShell";
 import { NotFoundPage } from "@/app/NotFoundPage";
 import { RouteErrorFallback } from "@/app/RouteErrorFallback";
+import { NativeAuthRouteGuard } from "@/auth/AuthRouteGuard";
 
 const OnboardingPage = lazy(() => import("@/pages/onboarding/OnboardingPage"));
 const ComponentCatalogPage = lazy(
@@ -25,101 +26,106 @@ export const appRoutes: RouteObject[] = [
     errorElement: <RouteErrorFallback />,
     children: [
       {
-        index: true,
-        element: <Navigate replace to="/auth" />,
-      },
-      {
-        path: "auth",
-        element: <OnboardingPage screen="auth" />,
-      },
-      {
-        path: "terms-consent",
-        element: <OnboardingPage screen="termsConsent" />,
-      },
-      {
-        path: "terms-detail/:termId",
-        element: <OnboardingPage screen="termsDetail" />,
-      },
-      {
-        path: "user-permission",
-        element: <OnboardingPage screen="userPermission" />,
-      },
-      {
-        path: "location-permission-guide",
-        element: <OnboardingPage screen="locationPermissionGuide" />,
-      },
-      {
-        path: "battery-optimization-guide",
-        element: <OnboardingPage screen="batteryOptimizationGuide" />,
-      },
-      {
-        path: "catalog",
-        element: <ComponentCatalogPage />,
-      },
-      {
-        element: <AppShell />,
+        element: <NativeAuthRouteGuard />,
         children: [
           {
-            path: "geofence",
-            element: <GeofencePage screen="list" />,
+            index: true,
+            element: <Navigate replace to="/auth" />,
           },
           {
-            path: "geofence/message",
-            element: <GeofencePage screen="message" />,
+            path: "auth",
+            element: <OnboardingPage screen="auth" />,
           },
           {
-            path: "geofence/:geofenceId/edit",
-            element: <GeofencePage screen="edit" />,
+            path: "terms-consent",
+            element: <OnboardingPage screen="termsConsent" />,
           },
           {
-            path: "friend",
-            element: <FriendPage screen="list" />,
+            path: "terms-detail/:termId",
+            element: <OnboardingPage screen="termsDetail" />,
           },
           {
-            path: "friend/add",
-            element: <FriendPage screen="add" />,
+            path: "user-permission",
+            element: <OnboardingPage screen="userPermission" />,
           },
           {
-            path: "friend/requests",
-            element: <FriendPage screen="requests" />,
+            path: "location-permission-guide",
+            element: <OnboardingPage screen="locationPermissionGuide" />,
           },
           {
-            path: "friend/restrictions",
-            element: <FriendPage screen="restrictions" />,
+            path: "battery-optimization-guide",
+            element: <OnboardingPage screen="batteryOptimizationGuide" />,
           },
           {
-            path: "record",
-            element: <RecordPage screen="overview" />,
+            path: "catalog",
+            element: <ComponentCatalogPage />,
           },
           {
-            path: "record/notifications",
-            element: <RecordPage screen="notifications" />,
+            element: <AppShell />,
+            children: [
+              {
+                path: "geofence",
+                element: <GeofencePage screen="list" />,
+              },
+              {
+                path: "geofence/message",
+                element: <GeofencePage screen="message" />,
+              },
+              {
+                path: "geofence/:geofenceId/edit",
+                element: <GeofencePage screen="edit" />,
+              },
+              {
+                path: "friend",
+                element: <FriendPage screen="list" />,
+              },
+              {
+                path: "friend/add",
+                element: <FriendPage screen="add" />,
+              },
+              {
+                path: "friend/requests",
+                element: <FriendPage screen="requests" />,
+              },
+              {
+                path: "friend/restrictions",
+                element: <FriendPage screen="restrictions" />,
+              },
+              {
+                path: "record",
+                element: <RecordPage screen="overview" />,
+              },
+              {
+                path: "record/notifications",
+                element: <RecordPage screen="notifications" />,
+              },
+              {
+                path: "record/notifications/:recordId",
+                element: <RecordPage screen="notificationDetail" />,
+              },
+              {
+                path: "record/friend-requests",
+                element: <RecordPage screen="friendRequests" />,
+              },
+              {
+                path: "record/send-history",
+                element: <RecordPage screen="sendHistory" />,
+              },
+              {
+                path: "record/send-history/:recordId",
+                element: <RecordPage screen="sendHistoryDetail" />,
+              },
+              {
+                path: "setting",
+                element: <SettingPage />,
+              },
+            ],
           },
           {
-            path: "record/notifications/:recordId",
-            element: <RecordPage screen="notificationDetail" />,
-          },
-          {
-            path: "record/friend-requests",
-            element: <RecordPage screen="friendRequests" />,
-          },
-          {
-            path: "record/send-history",
-            element: <RecordPage screen="sendHistory" />,
-          },
-          {
-            path: "record/send-history/:recordId",
-            element: <RecordPage screen="sendHistoryDetail" />,
-          },
-          {
-            path: "setting",
-            element: <SettingPage />,
+            path: "*",
+            element: <NotFoundPage />,
           },
         ],
-      },
-      {
-        path: "*",
-        element: <NotFoundPage />,
       },
     ],
   },

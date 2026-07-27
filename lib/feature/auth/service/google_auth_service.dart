@@ -22,11 +22,7 @@ class GoogleAuthService {
       );
 
       final account = await googleSignIn.authenticate();
-      if (account == null) {
-        return Failure(ResultMessage.googleLoginCanceled.toString());
-      }
-
-      final auth = await account.authentication;
+      final auth = account.authentication;
       final idToken = auth.idToken;
       if (idToken == null || idToken.isEmpty) {
         return Failure(ResultMessage.googleAuthFailNotGoodResult.toString());

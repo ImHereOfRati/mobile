@@ -1,6 +1,7 @@
 import type { BridgeMethodResult, NativeBridge } from "@imhere/bridge-contract";
 
 import type { ApiClient, SliceResponse } from "@/api/api-client";
+import { MapProxyService, reverseGeocodeLabel } from "@/map/map-proxy-service";
 
 import type { Geofence, RecipientOption } from "./geofence-model";
 
@@ -20,6 +21,33 @@ interface Friendship {
 export async function loadGeofences(bridge: NativeBridge) {
   const result = await bridge.queryGeofences({ limit: 100 });
   return result.items;
+}
+
+export async function fillMissingGeofenceAddresses(
+  bridge: NativeBridge,
+  mapService: MapProxyService,
+  geofences: Geofence[],
+) {
+  return Promise.all(
+    geofences.map(async (geofence) => {
+      if (geofence.address.trim() !== "") return geofence;
+      let address = `${geofence.latitude.toFixed(4)}, ${geofence.longitude.toFixed(4)}`;
+      try {
+        const result = await mapService.reverseGeocode(
+          geofence.latitude,
+          geofence.longitude,
+        );
+        address = reverseGeocodeLabel(
+          result,
+          geofence.latitude,
+          geofence.longitude,
+        );
+      } catch {
+        // Coordinate fallback keeps migrated records usable while offline.
+      }
+      return bridge.updateGeofenceAddress({ id: geofence.id, address });
+    }),
+  );
 }
 
 export async function findGeofence(

@@ -59,8 +59,14 @@ android {
 
         // kakao key
         val localProperties = Properties()
-        localProperties.load(project.rootProject.file("local.properties").inputStream())
-        val kakaoKey = localProperties.getProperty("kakao.native.app.key")
+        val localPropertiesFile = project.rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+        val kakaoKey =
+            localProperties.getProperty("kakao.native.app.key")
+                ?: System.getenv("KAKAO_NATIVE_APP_KEY")
+                ?: ""
 
         buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoKey\"")
         manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoKey

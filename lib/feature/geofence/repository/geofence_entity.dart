@@ -17,6 +17,8 @@ class GeofenceEntity {
   repeatType; // RepeatType enum name (none/daily/weekday/weekend/custom)
   final int?
   customDaysBitmask; // Bitmask for custom days (only if repeatType == custom)
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   GeofenceEntity({
     this.id,
@@ -33,7 +35,10 @@ class GeofenceEntity {
     this.eventType = 'arrival',
     this.repeatType = 'none',
     this.customDaysBitmask,
-  });
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : createdAt = createdAt ?? DateTime.now().toUtc(),
+       updatedAt = updatedAt ?? createdAt ?? DateTime.now().toUtc();
 
   /// SMS 발송 시 사용할 location 문자열: "장소명 (주소)"
   String get fullLocation => composeFullLocation(name, address);
@@ -54,6 +59,8 @@ class GeofenceEntity {
     String? eventType,
     String? repeatType,
     int? customDaysBitmask,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return GeofenceEntity(
       id: id ?? this.id,
@@ -70,6 +77,8 @@ class GeofenceEntity {
       eventType: eventType ?? this.eventType,
       repeatType: repeatType ?? this.repeatType,
       customDaysBitmask: customDaysBitmask ?? this.customDaysBitmask,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -88,6 +97,8 @@ class GeofenceEntity {
       'event_type': eventType,
       'repeat_type': repeatType,
       'custom_days_bitmask': customDaysBitmask,
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
 
@@ -107,6 +118,8 @@ class GeofenceEntity {
       eventType: map['event_type'] as String? ?? 'arrival',
       repeatType: map['repeat_type'] as String? ?? 'none',
       customDaysBitmask: map['custom_days_bitmask'] as int?,
+      createdAt: DateTime.tryParse(map['created_at'] as String? ?? ''),
+      updatedAt: DateTime.tryParse(map['updated_at'] as String? ?? ''),
     );
   }
 }

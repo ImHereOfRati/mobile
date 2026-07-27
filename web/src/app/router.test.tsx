@@ -1,3 +1,4 @@
+import { createMockBridge } from "@imhere/bridge-contract";
 import { render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
@@ -10,8 +11,19 @@ function renderRoute(path: string) {
     initialEntries: [path],
   });
 
+  const bridge = createMockBridge(
+    path === "/app/auth"
+      ? {
+          getAuthState: async () => ({
+            authenticated: false,
+            userStatus: null,
+          }),
+        }
+      : {},
+  ).bridge;
+
   return render(
-    <BridgeProvider>
+    <BridgeProvider bridge={bridge}>
       <RouterProvider router={router} />
     </BridgeProvider>,
   );

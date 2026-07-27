@@ -20,6 +20,15 @@ interface GeocodeAddress {
   y: string;
 }
 
+interface ReverseGeocodeResponse {
+  results?: {
+    region?: {
+      area1?: { name?: string };
+      area2?: { name?: string };
+    };
+  }[];
+}
+
 export class MapProxyService {
   constructor(private readonly api: ApiClient) {}
 
@@ -56,11 +65,23 @@ export class MapProxyService {
     longitude: number,
     signal?: AbortSignal,
   ) {
-    return this.api.request<{ results: unknown[] }>(
+    return this.api.request<ReverseGeocodeResponse>(
       `/api/maps/reverse-geocode?latitude=${latitude}&longitude=${longitude}`,
       { signal },
     );
   }
+}
+
+export function reverseGeocodeLabel(
+  response: ReverseGeocodeResponse,
+  latitude: number,
+  longitude: number,
+) {
+  const region = response.results?.[0]?.region;
+  const label = [region?.area1?.name, region?.area2?.name]
+    .filter((part): part is string => part !== undefined && part.trim() !== "")
+    .join(" ");
+  return label || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
 }
 
 function stripHtml(value: string) {

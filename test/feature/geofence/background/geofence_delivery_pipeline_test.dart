@@ -400,3 +400,4 @@ final class _FakeAnalyticsReporter implements AnalyticsReporter {
   @override
   Future<void> setConsent(bool granted) async {}
 }
+// ignore_for_file: no_leading_underscores_for_local_identifiers

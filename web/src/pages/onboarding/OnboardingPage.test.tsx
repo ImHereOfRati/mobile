@@ -177,11 +177,24 @@ describe("onboarding screens", () => {
     const user = userEvent.setup();
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(envelopeResponse([activeTerm, optionalTerm]))
-      .mockResolvedValueOnce(envelopeResponse({}));
+      .mockResolvedValueOnce(envelopeResponse([activeTerm, optionalTerm]));
+    const activateWithTerms = vi.fn().mockResolvedValue({
+      authState: { authenticated: true, userStatus: "active" },
+      token: { accessToken: "active-access", expiresAt: null },
+    });
     vi.stubGlobal("fetch", fetchMock);
     render(
-      <BridgeProvider bridge={bridgeWithAccessToken()}>
+      <BridgeProvider
+        bridge={
+          createMockBridge({
+            getAccessToken: async () => ({
+              accessToken: "access",
+              expiresAt: null,
+            }),
+            activateWithTerms,
+          }).bridge
+        }
+      >
         <MemoryRouter initialEntries={["/terms-consent"]}>
           <Routes>
             <Route path="/terms-consent" element={<TermsConsentPage />} />
@@ -218,7 +231,7 @@ describe("onboarding screens", () => {
     await user.click(submit);
 
     expect(await screen.findByText("권한 화면")).toBeVisible();
-    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
+    expect(activateWithTerms).toHaveBeenCalledWith({
       consents: [
         { id: 1, agreed: true },
         { id: 2, agreed: false },
@@ -391,32 +404,26 @@ describe("onboarding screens", () => {
   });
 
   it("automatically activates when there are no active terms", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            imhereResponseCode: "SUCCESS",
-            message: "ok",
-            data: [],
-          }),
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            imhereResponseCode: "SUCCESS",
-            message: "ok",
-            data: {},
-          }),
-        ),
-      );
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          imhereResponseCode: "SUCCESS",
+          message: "ok",
+          data: [],
+        }),
+      ),
+    );
+    const activateWithTerms = vi.fn().mockResolvedValue({
+      authState: { authenticated: true, userStatus: "active" },
+      token: { accessToken: "active-access", expiresAt: null },
+    });
     vi.stubGlobal("fetch", fetchMock);
     const bridge = createMockBridge({
       getAccessToken: async () => ({
         accessToken: "access",
         expiresAt: null,
       }),
+      activateWithTerms,
     }).bridge;
 
     render(
@@ -430,9 +437,9 @@ describe("onboarding screens", () => {
       </BridgeProvider>,
     );
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(activateWithTerms).toHaveBeenCalledTimes(1));
     expect(await screen.findByText("권한 화면")).toBeVisible();
-    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
+    expect(activateWithTerms).toHaveBeenCalledWith({
       consents: [],
     });
   });

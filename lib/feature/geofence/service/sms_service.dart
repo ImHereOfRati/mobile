@@ -2,8 +2,6 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response_parser.dart';
-import 'package:iamhere/feature/friend/service/dto/batch_notification_request_dto.dart';
-import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
@@ -79,12 +77,12 @@ class SmsService {
     try {
       final response = await _dio.post(
         _smsNotificationPath,
-        data: FcmNotificationRequestDto(
-          notificationMethod: 'SMS',
-          targetId: phoneNumber,
-          type: type,
-          extraData: {'body': body, 'location': location},
-        ).toJson(),
+        data: {
+          'notificationMethod': 'SMS',
+          'targetId': phoneNumber,
+          'type': type,
+          'extraData': {'body': body, 'location': location},
+        },
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 
@@ -113,12 +111,12 @@ class SmsService {
     try {
       final response = await _dio.post(
         _smsBatchNotificationPath,
-        data: BatchNotificationRequestDto(
-          notificationMethod: 'SMS',
-          targetIds: phoneNumbers,
-          type: type,
-          extraData: {'body': body, 'location': location},
-        ).toJson(),
+        data: {
+          'notificationMethod': 'SMS',
+          'targetIds': phoneNumbers,
+          'type': type,
+          'extraData': {'body': body, 'location': location},
+        },
         options: Options(extra: const {'requiresAuthentication': true}),
       );
 

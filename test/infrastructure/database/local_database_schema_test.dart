@@ -44,13 +44,16 @@ void main() {
       expect(cols, contains('address'));
     });
 
-    test('notifications 테이블에 sender_nickname / sender_email / path 컬럼이 존재한다', () async {
-      final cols = await _columnNames(
-        db,
-        LocalDatabaseProperties.notificationTableName,
-      );
-      expect(cols, containsAll(['sender_nickname', 'sender_email', 'path']));
-    });
+    test(
+      'notifications 테이블에 sender_nickname / sender_email / path 컬럼이 존재한다',
+      () async {
+        final cols = await _columnNames(
+          db,
+          LocalDatabaseProperties.notificationTableName,
+        );
+        expect(cols, containsAll(['sender_nickname', 'sender_email', 'path']));
+      },
+    );
 
     test('현재 스키마 버전이 LocalDatabaseSchema.version 과 일치해야 한다', () async {
       final result = await db.rawQuery('PRAGMA user_version');
@@ -113,7 +116,10 @@ void main() {
       addTearDown(handle.dispose);
 
       final names = await _tableNames(handle.database);
-      expect(names, contains(LocalDatabaseProperties.geofenceDeliveryQueueTableName));
+      expect(
+        names,
+        contains(LocalDatabaseProperties.geofenceDeliveryQueueTableName),
+      );
     });
 
     test('마이그레이션 시 v1 에서 적재된 행은 그대로 보존된다', () async {
@@ -260,6 +266,22 @@ void main() {
       );
       expect(cols, contains('path'));
     });
+  });
+
+  group('LocalDatabaseSchema (geofence timestamps migration)', () {
+    test(
+      'latest schema stores stable geofence creation and update timestamps',
+      () async {
+        final handle = await TestDatabaseFactory.openMigratedFromV1();
+        addTearDown(handle.dispose);
+
+        final cols = await _columnNames(
+          handle.database,
+          LocalDatabaseProperties.geofenceTableName,
+        );
+        expect(cols, containsAll(<String>['created_at', 'updated_at']));
+      },
+    );
   });
 }
 

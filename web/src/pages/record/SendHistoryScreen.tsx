@@ -48,6 +48,18 @@ export function SendHistoryScreen() {
     }
   };
 
+  const removeAll = async () => {
+    if (!window.confirm("모든 전송 기록을 삭제할까요?")) return;
+    try {
+      await bridge.deleteAllRecords();
+      setItems([]);
+      setCursor(undefined);
+      setStatus("모든 전송 기록을 삭제했습니다.");
+    } catch {
+      setStatus("전송 기록을 삭제하지 못했습니다.");
+    }
+  };
+
   return (
     <RecordListLayout
       back="/record"
@@ -55,6 +67,15 @@ export function SendHistoryScreen() {
       eyebrow="자동 알림"
       title="전송 기록"
     >
+      {items.length > 0 && (
+        <button
+          className="ds-button ds-button--danger"
+          onClick={() => void removeAll()}
+          type="button"
+        >
+          전체 삭제
+        </button>
+      )}
       {status && <p aria-live="polite">{status}</p>}
       <ul className="feature-page__list">
         {items.map((item) => (

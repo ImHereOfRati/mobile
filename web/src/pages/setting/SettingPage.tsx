@@ -117,7 +117,6 @@ export default function SettingPage() {
       return;
     }
     try {
-      await settingService.withdraw(api);
       await bridge.withdraw();
       await analytics.setConsent(false);
       navigate("/auth", { replace: true });

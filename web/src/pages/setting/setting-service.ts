@@ -19,11 +19,6 @@ export const settingService = {
       body: JSON.stringify({ nickname }),
     });
   },
-  withdraw(api: ApiClient) {
-    return api.request<void>("/api/users/my/withdrawal", {
-      method: "DELETE",
-    });
-  },
 };
 
 export const SUPPORT_URL =

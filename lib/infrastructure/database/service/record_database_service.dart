@@ -8,14 +8,13 @@ import 'abstract_local_database_engine.dart';
 class RecordDatabaseService extends AbstractLocalDatabaseService {
   RecordDatabaseService(super.database);
 
-  Future<GeofenceRecordEntity> save(GeofenceRecordEntity entity) =>
-      saveEntity(
-        entityName: 'geofence record',
-        table: LocalDatabaseProperties.recordTableName,
-        values: entity.toMap(),
-        createEntity: (id) => entity.copyWith(id: id),
-        entityDetails: 'Geofence: ${entity.geofenceName}',
-      );
+  Future<GeofenceRecordEntity> save(GeofenceRecordEntity entity) => saveEntity(
+    entityName: 'geofence record',
+    table: LocalDatabaseProperties.recordTableName,
+    values: entity.toMap(),
+    createEntity: (id) => entity.copyWith(id: id),
+    entityDetails: 'Geofence: ${entity.geofenceName}',
+  );
 
   Future<void> update(GeofenceRecordEntity entity) async {
     await executeUpdate(
@@ -45,6 +44,12 @@ class RecordDatabaseService extends AbstractLocalDatabaseService {
     if (rows.isEmpty) return null;
     return GeofenceRecordEntity.fromMap(rows.first);
   }
+
+  Future<void> delete(int id) => deleteEntityById(
+    entityName: 'geofence record',
+    table: LocalDatabaseProperties.recordTableName,
+    id: id,
+  );
 
   Future<void> deleteAll() => deleteAllEntities(
     entityName: 'all geofence records',

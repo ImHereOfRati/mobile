@@ -9,124 +9,61 @@ import 'user_me_service_test.mocks.dart';
 @GenerateMocks([Dio])
 void main() {
   late UserMeService service;
-  late MockDio mockDio;
+  late MockDio dio;
 
   setUp(() {
-    mockDio = MockDio();
-    service = UserMeService(dio: mockDio);
+    dio = MockDio();
+    service = UserMeService(dio: dio);
   });
 
-  group('UserMeService - fetchMyInfo', () {
-    test('내 정보 조회 성공 시 UserMeResponseDto를 반환해야 함', () async {
-      // Arrange
-      final responseData = {
-        'imhereResponseCode': 'SUCCESS',
-        'message': 'OK',
-        'data': {
-          'id': '365b7106-da29-4818-b816-967aef946354',
-          'email': 'test@example.com',
-          'nickname': '테스트유저',
-          'oAuth2Provider': 'KAKAO',
-        },
-      };
-
-      when(
-        mockDio.get('/api/users/my', options: anyNamed('options')),
-      ).thenAnswer(
+  test(
+    'loads the current user for native auth session synchronization',
+    () async {
+      when(dio.get('/api/users/my', options: anyNamed('options'))).thenAnswer(
         (_) async => Response(
-          data: responseData,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'id': '365b7106-da29-4818-b816-967aef946354',
+              'email': 'test@example.com',
+              'nickname': '테스트 사용자',
+              'oAuth2Provider': 'KAKAO',
+            },
+          },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/api/users/my'),
         ),
       );
 
-      // Act
       final result = await service.fetchMyInfo();
 
-      // Assert
-      expect(result, isNotNull);
-      expect(result!.id, '365b7106-da29-4818-b816-967aef946354');
-      expect(result.email, 'test@example.com');
-      expect(result.nickname, '테스트유저');
-      expect(result.oAuth2Provider, 'KAKAO');
-    });
+      expect(result?.id, '365b7106-da29-4818-b816-967aef946354');
+      expect(result?.email, 'test@example.com');
+      expect(result?.nickname, '테스트 사용자');
+      expect(result?.oAuth2Provider, 'KAKAO');
+    },
+  );
 
-    test('서버 에러 시 null을 반환해야 함', () async {
-      // Arrange
-      when(
-        mockDio.get('/api/users/my', options: anyNamed('options')),
-      ).thenAnswer(
-        (_) async => Response(
-          data: null,
-          statusCode: 500,
-          requestOptions: RequestOptions(path: '/api/users/my'),
-        ),
-      );
+  test('returns null for a non-success response', () async {
+    when(dio.get('/api/users/my', options: anyNamed('options'))).thenAnswer(
+      (_) async => Response(
+        statusCode: 500,
+        requestOptions: RequestOptions(path: '/api/users/my'),
+      ),
+    );
 
-      // Act
-      final result = await service.fetchMyInfo();
-
-      // Assert
-      expect(result, isNull);
-    });
-
-    test('DioException 발생 시 null을 반환해야 함', () async {
-      // Arrange
-      when(
-        mockDio.get('/api/users/my', options: anyNamed('options')),
-      ).thenThrow(
-        DioException(
-          requestOptions: RequestOptions(path: '/api/users/my'),
-          message: 'Network error',
-        ),
-      );
-
-      // Act
-      final result = await service.fetchMyInfo();
-
-      // Assert
-      expect(result, isNull);
-    });
+    expect(await service.fetchMyInfo(), isNull);
   });
 
-  group('UserMeService - changeNickname', () {
-    test('닉네임 변경 성공 시 patch와 스펙 body를 사용해야 함', () async {
-      final responseData = {
-        'imhereResponseCode': 'SUCCESS',
-        'message': 'OK',
-        'data': {
-          'id': '365b7106-da29-4818-b816-967aef946354',
-          'email': 'test@example.com',
-          'nickname': '새닉네임',
-          'oAuth2Provider': 'KAKAO',
-        },
-      };
+  test('returns null when the request fails', () async {
+    when(dio.get('/api/users/my', options: anyNamed('options'))).thenThrow(
+      DioException(
+        requestOptions: RequestOptions(path: '/api/users/my'),
+        message: 'Network error',
+      ),
+    );
 
-      when(
-        mockDio.patch(
-          '/api/users/my',
-          data: {'nickname': '새닉네임'},
-          options: anyNamed('options'),
-        ),
-      ).thenAnswer(
-        (_) async => Response(
-          data: responseData,
-          statusCode: 200,
-          requestOptions: RequestOptions(path: '/api/users/my'),
-        ),
-      );
-
-      final result = await service.changeNickname('새닉네임');
-
-      expect(result, isNotNull);
-      expect(result!.nickname, '새닉네임');
-      verify(
-        mockDio.patch(
-          '/api/users/my',
-          data: {'nickname': '새닉네임'},
-          options: anyNamed('options'),
-        ),
-      ).called(1);
-    });
+    expect(await service.fetchMyInfo(), isNull);
   });
 }

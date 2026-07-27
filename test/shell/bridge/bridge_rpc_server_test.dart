@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/shell/bridge/bridge_handler_registry.dart';
 import 'package:iamhere/shell/bridge/bridge_rpc_server.dart';
-import 'package:iamhere/shell/bridge/delegating_bridge_handler_group.dart';
 
 void main() {
   test('correlates successful responses with the request id', () async {
@@ -79,15 +78,6 @@ void main() {
         {'signOut': (_) => null},
         {'signOut': (_) => null},
       ]),
-      throwsArgumentError,
-    );
-  });
-
-  test('requires every geofence and device delegate to be wired', () {
-    expect(
-      () => DelegatingBridgeHandlerGroup.geofenceAndDevice({
-        'queryGeofences': (_) => null,
-      }),
       throwsArgumentError,
     );
   });

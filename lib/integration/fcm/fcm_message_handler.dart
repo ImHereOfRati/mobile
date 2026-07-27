@@ -1,11 +1,9 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:go_router/go_router.dart';
-import 'package:iamhere/common/component/feedback/app_snack_bar.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/background/geofence_background_runtime.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
@@ -16,9 +14,8 @@ import 'package:iamhere/integration/fcm/fcm_notification_policy.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-GoRouter? _messageTapRouter;
+FutureOr<void> Function(String path)? _shellPathHandler;
 String? _pendingNotificationPath;
-final List<_PendingForegroundBanner> _pendingForegroundBanners = [];
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -36,7 +33,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await _saveNotificationToLocal(message, title, body, path);
 
   if (body.isNotEmpty) {
-    await _showNotification(title: title, body: body, payload: path, channelId: channelId);
+    await _showNotification(
+      title: title,
+      body: body,
+      payload: path,
+      channelId: channelId,
+    );
   }
 }
 
@@ -71,7 +73,14 @@ Future<void> setupForegroundMessageListener() async {
     final String? path = extractNotificationPath(message.data);
 
     await _saveNotificationToLocal(message, title, body, path);
-    await _showForegroundBanner(title: title, body: body, path: path);
+    if (body.isNotEmpty) {
+      await _showNotification(
+        title: title,
+        body: body,
+        payload: path,
+        channelId: resolveFcmChannelId(message.data['type'] as String?),
+      );
+    }
   });
 }
 
@@ -125,33 +134,6 @@ Future<void> _showNotification({
     notificationDetails,
     payload: payload,
   );
-}
-
-Future<void> _showForegroundBanner({
-  required String title,
-  required String body,
-  String? path,
-}) async {
-  final context = _messageTapRouter?.routerDelegate.navigatorKey.currentContext;
-  if (context == null) {
-    _pendingForegroundBanners.add(_PendingForegroundBanner(title: title, body: body, path: path));
-    return;
-  }
-
-  _showBanner(context, title: title, body: body, path: path);
-}
-
-void _showBanner(
-  BuildContext context, {
-  required String title,
-  required String body,
-  String? path,
-}) {
-  AppSnackBar.showNotificationBanner(context, title: title, message: body);
-
-  if (path != null) {
-    AppLogger.debug('Foreground FCM banner queued with path: $path');
-  }
 }
 
 String _channelName(String channelId) {
@@ -214,7 +196,9 @@ Priority _channelPriority(String channelId) {
 
 Future<void> _ensureAndroidNotificationChannels() async {
   final androidPlugin = flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
 
   if (androidPlugin == null) return;
 
@@ -250,36 +234,26 @@ Future<void> _ensureAndroidNotificationChannels() async {
   }
 }
 
-void setupMessageTapHandler(GoRouter router) {
-  _messageTapRouter = router;
+void setupShellMessageTapHandler(FutureOr<void> Function(String path) onPath) {
+  _shellPathHandler = onPath;
   _drainPendingNotificationPath();
 
   initializeLocalNotifications().then((_) {
     flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails().then((
       details,
     ) {
-      final payload = details?.notificationResponse?.payload;
-      _handlePayloadNavigation(payload);
+      _handlePayloadNavigation(details?.notificationResponse?.payload);
     });
   });
 
-  FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+  FirebaseMessaging.instance.getInitialMessage().then((message) {
     if (message != null) {
-      AppLogger.debug('Initial FCM tap received: ${message.messageId}');
-      _handleNavigation(router, message);
+      _dispatchPath(extractNotificationPath(message.data));
     }
   });
-
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    AppLogger.debug('Background tap received: ${message.messageId}');
-    _handleNavigation(router, message);
+  FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    _dispatchPath(extractNotificationPath(message.data));
   });
-
-  _drainPendingForegroundBanners();
-}
-
-void _handleNavigation(GoRouter router, RemoteMessage message) {
-  _navigateToPath(router, extractNotificationPath(message.data));
 }
 
 String? extractNotificationPath(Map<String, dynamic> data) {
@@ -325,43 +299,39 @@ void _handlePayloadNavigation(String? raw) {
   final path = _normalizePath(raw);
   if (path == null) return;
 
-  final router = _messageTapRouter;
-  if (router == null) {
-    _pendingNotificationPath = path;
+  if (_shellPathHandler != null) {
+    _dispatchPath(path);
     return;
   }
-
-  _navigateToPath(router, path);
+  _pendingNotificationPath = path;
 }
 
 void _drainPendingNotificationPath() {
-  final router = _messageTapRouter;
   final pendingPath = _pendingNotificationPath;
-  if (router == null || pendingPath == null) return;
+  if (pendingPath == null) return;
 
-  _pendingNotificationPath = null;
-  _navigateToPath(router, pendingPath);
-}
-
-void _drainPendingForegroundBanners() {
-  final context = _messageTapRouter?.routerDelegate.navigatorKey.currentContext;
-  if (context == null || _pendingForegroundBanners.isEmpty) return;
-
-  for (final banner in List<_PendingForegroundBanner>.from(_pendingForegroundBanners)) {
-    _showBanner(context, title: banner.title, body: banner.body, path: banner.path);
+  if (_shellPathHandler != null) {
+    _pendingNotificationPath = null;
+    _dispatchPath(pendingPath);
+    return;
   }
-  _pendingForegroundBanners.clear();
 }
 
-void _navigateToPath(GoRouter router, String? raw) {
+void _dispatchPath(String? raw) {
   final path = _normalizePath(raw);
   if (path == null) return;
-
-  try {
-    router.push(path);
-  } catch (e) {
-    AppLogger.error('Notification navigation failed (path=$path): $e');
+  final handler = _shellPathHandler;
+  if (handler == null) {
+    _pendingNotificationPath = path;
+    return;
   }
+  Future<void>.sync(() => handler(path)).catchError(
+    (error, stack) => AppLogger.error(
+      'Notification shell navigation failed (path=$path)',
+      error,
+      stack,
+    ),
+  );
 }
 
 String? _normalizePath(String? raw) {
@@ -379,12 +349,4 @@ String? _normalizePath(String? raw) {
 String composeForegroundNotificationMessage(String title, String body) {
   if (body.trim().isEmpty) return title;
   return '$title\n$body';
-}
-
-class _PendingForegroundBanner {
-  final String title;
-  final String body;
-  final String? path;
-
-  _PendingForegroundBanner({required this.title, required this.body, required this.path});
 }

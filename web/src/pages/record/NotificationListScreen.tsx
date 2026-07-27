@@ -36,6 +36,18 @@ export function NotificationListScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bridge]);
 
+  const removeAll = async () => {
+    if (!window.confirm("모든 알림을 삭제할까요?")) return;
+    try {
+      await bridge.deleteAllNotifications();
+      setItems([]);
+      setCursor(undefined);
+      setStatus("모든 알림을 삭제했습니다.");
+    } catch {
+      setStatus("알림을 삭제하지 못했습니다.");
+    }
+  };
+
   return (
     <RecordListLayout
       back="/record"
@@ -43,6 +55,15 @@ export function NotificationListScreen() {
       eyebrow="수신함"
       title="받은 알림"
     >
+      {items.length > 0 && (
+        <button
+          className="ds-button ds-button--danger"
+          onClick={() => void removeAll()}
+          type="button"
+        >
+          전체 삭제
+        </button>
+      )}
       {status && <p aria-live="polite">{status}</p>}
       <ul className="feature-page__list">
         {items.map((item) => (
