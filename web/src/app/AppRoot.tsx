@@ -1,11 +1,20 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
+import { useAnalytics } from "@/analytics/analytics-context";
 import { AppErrorBoundary } from "@/app/AppErrorBoundary";
 
 export function AppRoot() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const { ready, track } = useAnalytics();
+
+  useEffect(() => {
+    if (ready) {
+      void track("screen_view", { screen: location.pathname });
+    }
+  }, [location.pathname, ready, track]);
 
   return (
     <AppErrorBoundary>

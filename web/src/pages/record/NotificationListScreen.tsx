@@ -78,7 +78,7 @@ export function RecordListLayout({
   title: string;
 }) {
   return (
-    <main className="feature-page">
+    <main className="feature-page" data-clarity-mask="true">
       <Link className="feature-page__back" to={back}>
         ← 기록
       </Link>

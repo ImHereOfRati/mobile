@@ -41,7 +41,7 @@ export function RecordDetailScreen({
   const back =
     kind === "notification" ? "/record/notifications" : "/record/send-history";
   return (
-    <main className="feature-page">
+    <main className="feature-page" data-clarity-mask="true">
       <Link className="feature-page__back" to={back}>
         ← 목록으로
       </Link>

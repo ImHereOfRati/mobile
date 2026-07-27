@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
 import { Button } from "@/design-system";
 
 export default function AuthPage() {
   const bridge = useBridge();
+  const analytics = useAnalytics();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { t } = useTranslation();
@@ -33,6 +35,7 @@ export default function AuthPage() {
   async function signIn(provider: "kakao" | "google") {
     setLoading(provider);
     setError(null);
+    await analytics.track("login_started", { provider });
     try {
       const session =
         provider === "kakao"
@@ -42,6 +45,10 @@ export default function AuthPage() {
         setError(t("onboarding.auth.inactive"));
         return;
       }
+      if (session.authState.userStatus === "active") {
+        await analytics.setConsent(true);
+      }
+      await analytics.track("login_completed", { provider });
       navigate(
         session.authState.userStatus === "pending"
           ? "/terms-consent"
@@ -49,6 +56,7 @@ export default function AuthPage() {
         { replace: true },
       );
     } catch {
+      await analytics.track("login_failed", { provider });
       setError(t("onboarding.auth.signInFailed"));
     } finally {
       setLoading(null);

@@ -5,6 +5,8 @@ import {
 } from "@imhere/bridge-contract";
 import { type PropsWithChildren, useEffect, useState } from "react";
 
+import { AnalyticsProvider } from "@/analytics/AnalyticsProvider";
+
 import { BridgeContext } from "./bridge-context";
 
 export function BridgeProvider({
@@ -23,7 +25,7 @@ export function BridgeProvider({
   useEffect(() => () => connection.destroy(), [connection]);
   return (
     <BridgeContext.Provider value={connection.bridge}>
-      {children}
+      <AnalyticsProvider>{children}</AnalyticsProvider>
     </BridgeContext.Provider>
   );
 }

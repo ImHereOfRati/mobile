@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
+import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
 
 import type { UserSearchResult } from "./friend-model";
@@ -10,6 +11,7 @@ import { friendService } from "./friend-service";
 export function FriendAddScreen() {
   const api = useApiClient();
   const bridge = useBridge();
+  const analytics = useAnalytics();
   const [keyword, setKeyword] = useState("");
   const [message, setMessage] = useState("ImHere에서 친구가 되어 주세요.");
   const [results, setResults] = useState<UserSearchResult[]>([]);
@@ -46,6 +48,7 @@ export function FriendAddScreen() {
     setStatus("");
     try {
       await friendService.sendRequest(api, user.id, message.trim());
+      await analytics.track("friend_request_sent", { source: "search" });
       setStatus(`${user.nickname}님에게 친구 요청을 보냈습니다.`);
       setResults((current) => current.filter((item) => item.id !== user.id));
     } catch {
@@ -54,7 +57,7 @@ export function FriendAddScreen() {
   };
 
   return (
-    <main className="feature-page">
+    <main className="feature-page" data-clarity-mask="true">
       <Link className="feature-page__back" to="/friend">
         ← 친구 목록
       </Link>

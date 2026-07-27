@@ -21,7 +21,7 @@ class FakeTransport implements BridgeTransport {
 
 describe("bridge contract", () => {
   it("exposes the complete method and event surface", () => {
-    expect(Object.keys(bridgeContract.methods)).toHaveLength(31);
+    expect(Object.keys(bridgeContract.methods)).toHaveLength(32);
     expect(Object.keys(bridgeContract.events)).toEqual([
       "onAppResumed",
       "onPermissionChanged",

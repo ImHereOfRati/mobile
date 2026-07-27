@@ -90,7 +90,7 @@ export function FriendListScreen() {
   };
 
   return (
-    <main className="feature-page">
+    <main className="feature-page" data-clarity-mask="true">
       <header className="feature-page__header">
         <div>
           <span className="feature-page__eyebrow">연락처</span>

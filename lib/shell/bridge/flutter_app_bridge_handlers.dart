@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:iamhere/shell/bridge/bridge_handler_registry.dart';
 import 'package:iamhere/shell/bridge/generated/bridge_contract.generated.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -11,8 +11,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 class FlutterAppBridgeHandlers {
   final Future<void> Function()? onExit;
+  final AnalyticsReporter _analytics;
 
-  const FlutterAppBridgeHandlers({this.onExit});
+  FlutterAppBridgeHandlers({this.onExit, AnalyticsReporter? analytics})
+    : _analytics = analytics ?? FirebaseAnalyticsReporter();
 
   Map<String, BridgeMethodHandler> build() {
     return <String, BridgeMethodHandler>{
@@ -23,6 +25,7 @@ class FlutterAppBridgeHandlers {
       'haptic': _haptic,
       'setStatusBarStyle': _setStatusBarStyle,
       'exitApp': (_) => onExit?.call() ?? SystemNavigator.pop(),
+      'setAnalyticsConsent': _setAnalyticsConsent,
       'logEvent': _logEvent,
     };
   }
@@ -94,8 +97,8 @@ class FlutterAppBridgeHandlers {
   Future<void> _logEvent(Object? params) async {
     final map = _requiredMap(params);
     final rawParameters = map['parameters'];
-    await FirebaseAnalytics.instance.logEvent(
-      name: _requiredString(map, 'name'),
+    await _analytics.logEvent(
+      _requiredString(map, 'name'),
       parameters: rawParameters is Map
           ? rawParameters.map(
               (key, value) => MapEntry(key.toString(), value as Object),
@@ -103,6 +106,9 @@ class FlutterAppBridgeHandlers {
           : null,
     );
   }
+
+  Future<void> _setAnalyticsConsent(Object? params) =>
+      _analytics.setConsent(_requiredBool(params, 'granted'));
 
   static Map<String, Object?> _requiredMap(Object? params) {
     if (params is! Map) throw const FormatException('Expected object params.');
@@ -113,6 +119,14 @@ class FlutterAppBridgeHandlers {
     final value = _requiredMap(params)[key];
     if (value is! String || value.trim().isEmpty) {
       throw FormatException('Expected non-empty string "$key".');
+    }
+    return value;
+  }
+
+  static bool _requiredBool(Object? params, String key) {
+    final value = _requiredMap(params)[key];
+    if (value is! bool) {
+      throw FormatException('Expected boolean "$key".');
     }
     return value;
   }

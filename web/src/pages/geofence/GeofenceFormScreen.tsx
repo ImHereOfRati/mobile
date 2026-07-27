@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
+import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
 import { BottomSheet, Button, LoadingState, TextField } from "@/design-system";
 import { MapProxyService } from "@/map/map-proxy-service";
@@ -36,6 +37,7 @@ const weekDays = [0, 1, 2, 3, 4, 5, 6];
 export function GeofenceFormScreen({ id }: { id?: number }) {
   const { t } = useTranslation();
   const bridge = useBridge();
+  const analytics = useAnalytics();
   const api = useApiClient();
   const navigate = useNavigate();
   const mapService = useMemo(() => new MapProxyService(api), [api]);
@@ -134,6 +136,11 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
     setSaving(true);
     try {
       await bridge.registerGeofence(toBridgeInput(draft, recipients));
+      await analytics.track("geofence_saved", {
+        event_type: draft.eventType,
+        mode: id === undefined ? "create" : "edit",
+        repeat_type: draft.repeatType,
+      });
       setSaved(true);
     } catch {
       setErrors({ submit: t("geofence.form.saveError") });
@@ -189,6 +196,7 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
 
       <form
         className="feature-form"
+        data-clarity-mask="true"
         onSubmit={(event) => {
           event.preventDefault();
           void submit();

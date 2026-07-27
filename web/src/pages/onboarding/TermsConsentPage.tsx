@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
+import { useAnalytics } from "@/analytics/analytics-context";
 import { Button, LoadingState } from "@/design-system";
 
 import { activateWithTerms, loadTerms, type Term } from "./terms-service";
 
 export default function TermsConsentPage() {
   const api = useApiClient();
+  const { setConsent, track } = useAnalytics();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [terms, setTerms] = useState<Term[] | null>(null);
@@ -30,6 +32,11 @@ export default function TermsConsentPage() {
         setTerms(loaded);
         if (loaded.length === 0) {
           await activateWithTerms(api, []);
+          await setConsent(true);
+          await track("terms_accepted", {
+            optional_count: 0,
+            required_count: 0,
+          });
           navigate("/user-permission", { replace: true });
         }
       })
@@ -39,7 +46,7 @@ export default function TermsConsentPage() {
         }
       });
     return () => controller.abort();
-  }, [api, navigate, t]);
+  }, [api, navigate, setConsent, t, track]);
 
   function toggle(id: number) {
     setAgreed((current) => {
@@ -55,6 +62,13 @@ export default function TermsConsentPage() {
     setSubmitting(true);
     try {
       await activateWithTerms(api, terms, agreed);
+      await setConsent(true);
+      await track("terms_accepted", {
+        optional_count: terms.filter(
+          (term) => !term.isRequired && agreed.has(term.id),
+        ).length,
+        required_count: requiredIds.length,
+      });
       navigate("/user-permission", { replace: true });
     } catch {
       setError(t("onboarding.termsConsent.saveFailed"));

@@ -10,6 +10,7 @@ import 'package:iamhere/feature/geofence/service/native_geofence_registrar_inter
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/record_service.dart';
+import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 
 import 'di_setup.config.dart';
 
@@ -48,6 +49,7 @@ Future<void> enrollBaseUrlGlobally({required String baseUrl}) async {
         getIt<FcmArrivalService>(),
         getIt<RecordService>(),
         getIt<GeofenceRetryScheduler>(),
+        FirebaseAnalyticsReporter(),
       ),
     );
   }
