@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iamhere/shell/bridge/bridge_event_emitter.dart';
 import 'package:iamhere/shell/bridge/bridge_rpc_server.dart';
 import 'package:iamhere/shell/shell_event_coordinator.dart';
+import 'package:iamhere/shell/view/native_app_shell.dart';
 import 'package:iamhere/shell/view/shell_status_view.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -43,11 +45,13 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
   WebViewHostState _state = WebViewHostState.loading;
   StreamSubscription<String>? _pushSubscription;
   final List<String> _pendingPushPaths = [];
+  late NativeShellPage _page;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _page = NativeShellPage.fromLocation(widget.initialUrl.toString());
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.transparent)
@@ -57,9 +61,17 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
           unawaited(_handleBridgeMessage(message.message));
         },
       )
+      ..addJavaScriptChannel(
+        'ImHereShell',
+        onMessageReceived: _handleShellMessage,
+      )
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (_) => _pageReady(),
+          onUrlChange: (change) {
+            final url = change.url;
+            if (url != null) _updatePage(url);
+          },
           onWebResourceError: (error) {
             if (error.isForMainFrame == false) return;
             unawaited(_handleLoadFailure());
@@ -139,6 +151,44 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
     await _emitter.sendMessage(response);
   }
 
+  void _handleShellMessage(JavaScriptMessage message) {
+    try {
+      final decoded = jsonDecode(message.message);
+      if (decoded is! Map<String, dynamic>) return;
+      final path = decoded['path'];
+      final title = decoded['title'];
+      if (path is! String || title is! String) return;
+      _updatePage(path, title: title);
+    } on FormatException {
+      return;
+    }
+  }
+
+  void _updatePage(String location, {String? title}) {
+    if (!mounted) return;
+    final next = NativeShellPage.fromLocation(location, title: title);
+    if (next.path == _page.path && next.title == _page.title) return;
+    setState(() => _page = next);
+  }
+
+  Future<void> _navigate(String path) async {
+    _updatePage(path);
+    final fallbackUrl = widget.initialUrl.resolve(
+      path.startsWith('/') ? path.substring(1) : path,
+    );
+    final script =
+        '''
+      (() => {
+        if (typeof window.__imhereNavigate === 'function') {
+          window.__imhereNavigate(${jsonEncode(path)});
+          return;
+        }
+        window.location.assign(${jsonEncode(fallbackUrl.toString())});
+      })();
+    ''';
+    await _controller.runJavaScript(script);
+  }
+
   Future<void> _handleBack() async {
     if (await _controller.canGoBack()) {
       await _controller.goBack();
@@ -161,7 +211,10 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
       },
       child: switch (_state) {
         WebViewHostState.loading => const ShellStatusView.splash(),
-        WebViewHostState.ready => SafeArea(
+        WebViewHostState.ready => NativeAppShell(
+          page: _page,
+          onNavigate: (path) => unawaited(_navigate(path)),
+          onBack: () => unawaited(_handleBack()),
           child: WebViewWidget(controller: _controller),
         ),
         WebViewHostState.offline => ShellStatusView.offline(onRetry: _load),

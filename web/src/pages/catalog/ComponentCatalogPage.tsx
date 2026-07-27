@@ -82,7 +82,7 @@ export default function ComponentCatalogPage() {
       >
         <div className="catalog-type-ramp">
           <p className="type-display-medium">도착을 알려드릴게요</p>
-          <p className="type-headline-medium">안심 장소를 등록하세요</p>
+          <p className="type-headline-medium">장소를 등록하세요</p>
           <p className="type-headline-small">가족에게 자동으로 알려요</p>
           <p className="type-body-large">
             장소에 도착하거나 떠날 때 선택한 사람에게 알림을 보냅니다.
@@ -171,7 +171,7 @@ export default function ComponentCatalogPage() {
           <Card>
             <EmptyState
               title="등록된 장소가 없어요"
-              description="첫 안심 장소를 등록하고 자동 알림을 시작해 보세요."
+              description="첫 장소를 등록하고 자동 알림을 시작해 보세요."
               actionLabel="장소 등록하기"
             />
           </Card>

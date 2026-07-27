@@ -14,8 +14,10 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-wrap: break-word;
   color: var(--color-text);
   background: var(--color-background);
+  word-break: keep-all;
   transition:
     color var(--motion-normal) ease,
     background-color var(--motion-normal) ease;
@@ -44,7 +46,7 @@ input {
 
 .app-shell {
   min-height: 100vh;
-  padding-bottom: 72px;
+  background: var(--color-surface);
 }
 
 .app-shell__content {
@@ -52,48 +54,11 @@ input {
   margin: 0 auto;
 }
 
-.app-shell__navigation {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  align-items: center;
-  min-height: 64px;
-  border-top: 1px solid var(--color-divider);
-  background: var(--color-surface);
-}
-
-.app-shell__navigation a {
-  min-height: var(--touch-target-min);
-  padding: 20px 8px;
-  color: var(--color-text-secondary);
-  text-align: center;
-  text-decoration: none;
-}
-
-.app-shell__navigation a.active {
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
-.app-shell__navigation .app-shell__add {
-  width: 48px;
-  height: 48px;
-  margin: -24px auto 0;
-  padding: 10px;
-  border-radius: 999px;
-  color: var(--color-on-primary);
-  background: var(--color-primary);
-  font-size: 24px;
-}
-
 .placeholder-page,
 .fallback-page {
   display: grid;
   align-content: center;
-  min-height: calc(100vh - 72px);
+  min-height: 100vh;
   padding: 32px;
   text-align: center;
 }
@@ -118,4 +83,19 @@ input {
 .fallback-page a {
   margin-top: 20px;
   color: var(--color-primary);
+}
+
+html[data-native-shell="true"] .app-shell,
+html[data-native-shell="true"] .app-shell__content {
+  min-height: 100%;
+}
+
+html[data-native-shell="true"] .feature-page__back,
+html[data-native-shell="true"] .feature-page__header h1,
+html[data-native-shell="true"] .feature-page__header .feature-page__eyebrow,
+html[data-native-shell="true"] #auth-title,
+html[data-native-shell="true"] #terms-title,
+html[data-native-shell="true"] #permission-title,
+html[data-native-shell="true"] #guide-title {
+  display: none;
 }

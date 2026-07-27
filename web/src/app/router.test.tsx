@@ -1,5 +1,5 @@
 import { createMockBridge } from "@imhere/bridge-contract";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import { appRoutes } from "@/app/router";
@@ -39,11 +39,12 @@ describe("app router", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the four-tab shell on a main route", async () => {
+  it("renders content without duplicating native navigation", async () => {
     renderRoute("/app/geofence");
-    const navigation = await screen.findByRole("navigation");
-    expect(navigation).toBeVisible();
-    expect(within(navigation).getAllByRole("link")).toHaveLength(5);
+    expect(await screen.findByRole("heading")).toBeVisible();
+    expect(
+      screen.queryByRole("navigation", { name: "주요 메뉴" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the not-found fallback for an unknown route", async () => {

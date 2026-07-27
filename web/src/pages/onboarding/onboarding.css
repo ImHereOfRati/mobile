@@ -13,7 +13,7 @@
   margin: 0 auto;
   padding: calc(var(--space-8) + env(safe-area-inset-top)) var(--space-5)
     calc(var(--space-8) + env(safe-area-inset-bottom));
-  background: var(--color-surface);
+  background: transparent;
 }
 
 .onboarding__header,
@@ -192,4 +192,15 @@
   .onboarding__description {
     font-size: 1rem;
   }
+}
+
+html[data-native-shell="true"] .onboarding,
+html[data-native-shell="true"] .onboarding__panel {
+  min-height: 100%;
+}
+
+html[data-native-shell="true"] .onboarding__panel {
+  align-content: start;
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-8);
 }

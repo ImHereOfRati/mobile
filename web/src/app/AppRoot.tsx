@@ -1,14 +1,36 @@
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useAnalytics } from "@/analytics/analytics-context";
 import { AppErrorBoundary } from "@/app/AppErrorBoundary";
+import { notifyNativeShell } from "@/app/native-shell";
 
 export function AppRoot() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const { ready, track } = useAnalytics();
+  const embeddedInNativeShell = window.ImHereShell !== undefined;
+
+  useLayoutEffect(() => {
+    if (!embeddedInNativeShell) return;
+    document.documentElement.dataset.nativeShell = "true";
+    return () => {
+      delete document.documentElement.dataset.nativeShell;
+    };
+  }, [embeddedInNativeShell]);
+
+  useEffect(() => {
+    window.__imhereNavigate = (path) => navigate(path);
+    return () => {
+      delete window.__imhereNavigate;
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    notifyNativeShell(location.pathname);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (ready) {

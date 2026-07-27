@@ -13,7 +13,7 @@
     "dev": "vite --config vite.app.config.ts",
     "dev:app": "vite --config vite.app.config.ts",
     "dev:landing": "vite --config vite.landing.config.ts",
-    "build": "pnpm typecheck && pnpm build:app && pnpm build:landing && pnpm check:build-isolation",
+    "build": "corepack pnpm typecheck && corepack pnpm build:app && corepack pnpm build:landing && corepack pnpm check:build-isolation",
     "build:app": "vite build --config vite.app.config.ts",
     "build:landing": "vite build --config vite.landing.config.ts",
     "check:build-isolation": "node scripts/check-build-isolation.mjs",

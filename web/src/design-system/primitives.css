@@ -48,8 +48,9 @@
 }
 
 .ds-button--danger {
-  color: var(--color-on-error);
-  background: var(--color-error);
+  border-color: var(--color-divider);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
 }
 
 .ds-button[aria-busy="true"] {
@@ -118,10 +119,10 @@
 .ds-card {
   padding: var(--space-5);
   border: 1px solid var(--color-divider);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   color: var(--color-text);
   background: var(--color-surface);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
 }
 
 .ds-card__header {
@@ -186,25 +187,26 @@
   align-items: center;
   justify-content: space-between;
   min-height: var(--touch-target-min);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-md);
+  padding: var(--space-3) 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-divider);
+  border-radius: 0;
   color: var(--color-text);
-  background: var(--color-surface-raised);
-  box-shadow: var(--shadow-card);
+  background: transparent;
+  box-shadow: none;
   font: 500 var(--text-body-medium) / var(--line-body-medium) var(--font-body);
 }
 
 .ds-toast--info {
-  border-inline-start: var(--space-1) solid var(--color-primary);
+  color: var(--color-text);
 }
 
 .ds-toast--success {
-  border-inline-start: var(--space-1) solid var(--color-success);
+  color: var(--color-text);
 }
 
 .ds-toast--error {
-  border-inline-start: var(--space-1) solid var(--color-error);
+  color: var(--color-text);
 }
 
 .ds-toast button {
@@ -286,6 +288,7 @@
 }
 
 .ds-empty-state .type-body-medium {
+  width: 100%;
   max-width: 24rem;
   margin: var(--space-2) 0 var(--space-5);
 }
