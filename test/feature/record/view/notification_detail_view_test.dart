@@ -53,8 +53,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('알림 상세'), findsOneWidget);
-    expect(find.text('이동 경로'), findsOneWidget);
-    expect(find.text('/record/notifications'), findsOneWidget);
+    expect(find.text(notification.body), findsOneWidget);
+    expect(
+      find.text('${notification.senderNickname} (${notification.senderEmail})'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('상세 페이지는 알림 정보를 렌더링한다', (tester) async {
@@ -72,6 +75,6 @@ void main() {
 
     expect(find.text('도착 알림'), findsOneWidget);
     expect(find.text('홍길동 (hong@example.com)'), findsOneWidget);
-    expect(find.text('/record/notifications'), findsOneWidget);
+    expect(find.text(notification.body), findsOneWidget);
   });
 }
