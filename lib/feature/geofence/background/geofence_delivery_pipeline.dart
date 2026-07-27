@@ -15,6 +15,7 @@ import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/geofence/service/record_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
+import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 
 class GeofenceDeliveryPipeline {
   final GeofenceDeliveryQueueDatabaseService _queue;
@@ -25,6 +26,7 @@ class GeofenceDeliveryPipeline {
   final FcmArrivalService _fcmArrivalService;
   final RecordService _recordService;
   final GeofenceRetryScheduler _retryScheduler;
+  final AnalyticsReporter _analytics;
   Future<void>? _drainInFlight;
 
   GeofenceDeliveryPipeline(
@@ -36,6 +38,7 @@ class GeofenceDeliveryPipeline {
     this._fcmArrivalService,
     this._recordService,
     this._retryScheduler,
+    this._analytics,
   );
 
   Future<void> enqueueTriggeredGeofence({
@@ -89,6 +92,7 @@ class GeofenceDeliveryPipeline {
       message: body,
       deliveryEventType: event.name,
     );
+    await _logAnalytics('geofence_triggered', {'event_type': event.name});
     await processPending();
     await _retryScheduler.scheduleNextIfNeeded();
   }
@@ -130,6 +134,10 @@ class GeofenceDeliveryPipeline {
         );
         await _queue.complete(item.id!);
         await _completeLifecycleAfterSuccess(snapshot);
+        await _logAnalytics('delivery_succeeded', {
+          'event_type': snapshot.deliveryEventType,
+          'retry_count': item.retryCount,
+        });
         AppLogger.debug('BG_QUEUE: completed geofence delivery ${item.id}');
       } else {
         await _handleRetryFailure(
@@ -170,6 +178,10 @@ class GeofenceDeliveryPipeline {
       );
       await _queue.complete(item.id!);
       await _rollbackLifecycleAfterTerminalFailure(snapshot);
+      await _logAnalytics('delivery_failed', {
+        'event_type': snapshot.deliveryEventType,
+        'retry_count': nextRetryCount,
+      });
       AppLogger.error(
         'BG_QUEUE: permanently failed geofence delivery ${item.id} ($lastError)',
       );
@@ -299,6 +311,17 @@ class GeofenceDeliveryPipeline {
   String _buildDedupeKey(int geofenceId, DeliveryEvent event) {
     final bucket = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 5000;
     return '$geofenceId:${event.name}:$bucket';
+  }
+
+  Future<void> _logAnalytics(
+    String name,
+    Map<String, Object> parameters,
+  ) async {
+    try {
+      await _analytics.logEvent(name, parameters: parameters);
+    } catch (error) {
+      AppLogger.warning('Analytics event failed: $name ($error)');
+    }
   }
 
   // ignore: unused_element

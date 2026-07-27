@@ -58,7 +58,7 @@ export function RecordOverviewScreen() {
   }, [api, bridge]);
 
   return (
-    <main className="feature-page">
+    <main className="feature-page" data-clarity-mask="true">
       <header className="feature-page__header">
         <div>
           <span className="feature-page__eyebrow">최근 활동</span>

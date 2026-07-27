@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
+import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
 import { BottomSheet, Button, EmptyState, LoadingState } from "@/design-system";
 
@@ -12,6 +13,7 @@ import { loadGeofences } from "./geofence-service";
 export function GeofenceListScreen() {
   const { t } = useTranslation();
   const bridge = useBridge();
+  const analytics = useAnalytics();
   const navigate = useNavigate();
   const [items, setItems] = useState<Geofence[] | null>(null);
   const [readiness, setReadiness] =
@@ -57,6 +59,7 @@ export function GeofenceListScreen() {
 
   async function toggleActive(item: Geofence, active: boolean) {
     const updated = await bridge.setGeofenceActive({ id: item.id, active });
+    await analytics.track("geofence_toggled", { active });
     setItems(
       (current) =>
         current?.map((value) => (value.id === updated.id ? updated : value)) ??
@@ -67,6 +70,9 @@ export function GeofenceListScreen() {
   async function remove() {
     if (deleteTarget === null) return;
     await bridge.unregisterGeofence({ id: deleteTarget.id });
+    await analytics.track("geofence_deleted", {
+      event_type: deleteTarget.eventType,
+    });
     setItems(
       (current) => current?.filter((item) => item.id !== deleteTarget.id) ?? [],
     );
@@ -147,7 +153,7 @@ export function GeofenceListScreen() {
           onAction={() => navigate("/geofence/message")}
         />
       ) : (
-        <ul className="feature-page__list">
+        <ul className="feature-page__list" data-clarity-mask="true">
           {items.map((item) => (
             <li className="feature-page__list-card" key={item.id}>
               <div className="feature-page__row">

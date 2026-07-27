@@ -2,6 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+    <false/>
+    <key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_ANALYTICS_STORAGE</key>
+    <false/>
+    <key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE</key>
+    <false/>
+    <key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA</key>
+    <false/>
+    <key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS</key>
+    <false/>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>현재 위치를 지도에 표시하고 지오펜스 영역을 설정하기 위해 위치 정보가 필요합니다.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

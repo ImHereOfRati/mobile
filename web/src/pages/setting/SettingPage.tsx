@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
+import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
 import { useTheme } from "@/design-system";
 import { loadTerms, type Term } from "@/pages/onboarding/terms-service";
@@ -20,6 +21,7 @@ type Record = BridgeMethodResult<"queryRecords">["items"][number];
 export default function SettingPage() {
   const api = useApiClient();
   const bridge = useBridge();
+  const analytics = useAnalytics();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [me, setMe] = useState<UserMe>();
@@ -102,6 +104,7 @@ export default function SettingPage() {
   const signOut = async () => {
     if (!window.confirm("로그아웃할까요?")) return;
     await bridge.signOut();
+    await analytics.setConsent(false);
     navigate("/auth", { replace: true });
   };
 
@@ -116,6 +119,7 @@ export default function SettingPage() {
     try {
       await settingService.withdraw(api);
       await bridge.withdraw();
+      await analytics.setConsent(false);
       navigate("/auth", { replace: true });
     } catch {
       setStatus("회원 탈퇴에 실패했습니다.");
@@ -123,7 +127,7 @@ export default function SettingPage() {
   };
 
   return (
-    <main className="feature-page">
+    <main className="feature-page" data-clarity-mask="true">
       <header className="feature-page__header">
         <div>
           <span className="feature-page__eyebrow">내 앱 관리</span>

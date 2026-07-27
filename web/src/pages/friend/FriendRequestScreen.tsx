@@ -52,7 +52,7 @@ export function FriendRequestScreen() {
   };
 
   return (
-    <main className="feature-page">
+    <main className="feature-page" data-clarity-mask="true">
       <Link className="feature-page__back" to="/friend">
         ← 친구 목록
       </Link>

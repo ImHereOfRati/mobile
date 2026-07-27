@@ -37,6 +37,7 @@ const bridgeMethodNames = <String>[
   'haptic',
   'setStatusBarStyle',
   'exitApp',
+  'setAnalyticsConsent',
   'logEvent',
 ];
 
@@ -974,6 +975,26 @@ class StatusBarRequest {
 enum StatusBarStyle {
   light,
   dark,
+}
+
+class AnalyticsConsent {
+  const AnalyticsConsent({
+    required this.granted,
+  });
+
+  final bool granted;
+
+  factory AnalyticsConsent.fromJson(Map<String, Object?> json) {
+    return AnalyticsConsent(
+      granted: json['granted'] as bool,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'granted': granted,
+    };
+  }
 }
 
 class AnalyticsEvent {

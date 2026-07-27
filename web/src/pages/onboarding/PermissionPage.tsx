@@ -1,8 +1,9 @@
 import type { NativeBridge } from "@imhere/bridge-contract";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
+import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
 import { Button, LoadingState } from "@/design-system";
 
@@ -10,6 +11,7 @@ type Readiness = Awaited<ReturnType<NativeBridge["getAutoSendReadiness"]>>;
 
 export default function PermissionPage() {
   const bridge = useBridge();
+  const { track } = useAnalytics();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const permissionCopy = {
@@ -31,17 +33,26 @@ export default function PermissionPage() {
     keyof typeof permissionCopy | null
   >(null);
   const [error, setError] = useState<string | null>(null);
+  const readyTracked = useRef(false);
 
   const refresh = useCallback(async () => {
     try {
       const value = await bridge.getAutoSendReadiness();
       setReadiness(value);
       setError(null);
-      if (value.ready) navigate("/geofence", { replace: true });
+      if (value.ready) {
+        if (!readyTracked.current) {
+          readyTracked.current = true;
+          await track("onboarding_ready", {
+            missing_count: value.missing.length,
+          });
+        }
+        navigate("/geofence", { replace: true });
+      }
     } catch {
       setError(t("onboarding.permission.checkFailed"));
     }
-  }, [bridge, navigate, t]);
+  }, [bridge, navigate, t, track]);
 
   useEffect(() => {
     const initialRefresh = setTimeout(() => void refresh(), 0);

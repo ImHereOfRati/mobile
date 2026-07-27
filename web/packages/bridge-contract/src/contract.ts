@@ -264,6 +264,10 @@ export const AnalyticsEvent = s.object("AnalyticsEvent", {
   parameters: s.optional(s.json),
 });
 
+export const AnalyticsConsent = s.object("AnalyticsConsent", {
+  granted: s.boolean,
+});
+
 export const PermissionChangedEvent = s.object("PermissionChangedEvent", {
   permission: PermissionType,
   status: PermissionStatus,
@@ -322,6 +326,7 @@ export const bridgeContract = {
     haptic: method(HapticRequest, null),
     setStatusBarStyle: method(StatusBarRequest, null),
     exitApp: method(null, null),
+    setAnalyticsConsent: method(AnalyticsConsent, null),
     logEvent: method(AnalyticsEvent, null),
   },
   events: {

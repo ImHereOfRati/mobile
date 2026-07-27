@@ -109,6 +109,7 @@ const permissionAndAppBridgeMethodNames = <String>{
   'haptic',
   'setStatusBarStyle',
   'exitApp',
+  'setAnalyticsConsent',
   'logEvent',
 };
 
