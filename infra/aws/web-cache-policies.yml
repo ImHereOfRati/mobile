@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ImHere immutable React release and uncached API CloudFront policies.
+
+Resources:
+  ImmutableReleaseCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: Cache commit-addressed React releases for one year.
+        DefaultTTL: 31536000
+        MaxTTL: 31536000
+        MinTTL: 31536000
+        Name: imhere-release-immutable-v1
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  ApiNoCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: Never cache authenticated API responses.
+        DefaultTTL: 0
+        MaxTTL: 0
+        MinTTL: 0
+        Name: imhere-api-no-cache-v1
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  ApiOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Comment: Forward viewer authorization, cookies, and query strings to API.
+        CookiesConfig:
+          CookieBehavior: all
+        HeadersConfig:
+          HeaderBehavior: allExcept
+          Headers:
+            - Host
+        Name: imhere-api-auth-query-v1
+        QueryStringsConfig:
+          QueryStringBehavior: all
+
+Outputs:
+  ApiCachePolicyId:
+    Description: Set GitHub variable API_CACHE_POLICY_ID to this value.
+    Value: !Ref ApiNoCachePolicy
+  ApiOriginRequestPolicyId:
+    Description: Set GitHub variable API_ORIGIN_REQUEST_POLICY_ID to this value.
+    Value: !Ref ApiOriginRequestPolicy
+  ReleaseCachePolicyId:
+    Description: Set GitHub variable RELEASE_CACHE_POLICY_ID to this value.
+    Value: !Ref ImmutableReleaseCachePolicy

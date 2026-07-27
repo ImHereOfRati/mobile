@@ -6,10 +6,16 @@ on:
       - main
     paths:
       - "web/**"
+      - "infra/aws/**"
+      - ".github/workflows/deploy-web.yml"
+      - ".github/workflows/rollback-web.yml"
       - ".github/workflows/web-ci.yml"
   pull_request:
     paths:
       - "web/**"
+      - "infra/aws/**"
+      - ".github/workflows/deploy-web.yml"
+      - ".github/workflows/rollback-web.yml"
       - ".github/workflows/web-ci.yml"
   workflow_dispatch:
 
@@ -55,6 +61,12 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Build immutable release candidate
+        env:
+          RELEASE_SHA: "0000000000000000000000000000000000000000"
+          VITE_APP_BASE_PATH: /app/releases/0000000000000000000000000000000000000000/
+        run: pnpm build:app && node scripts/check-release-build.mjs
 
       - name: Build
         run: pnpm build

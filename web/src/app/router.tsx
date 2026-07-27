@@ -127,6 +127,6 @@ export const appRoutes: RouteObject[] = [
 
 export function createAppRouter() {
   return createBrowserRouter(appRoutes, {
-    basename: "/app",
+    basename: import.meta.env.BASE_URL.replace(/\/$/, ""),
   });
 }
