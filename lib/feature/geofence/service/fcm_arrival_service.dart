@@ -2,9 +2,7 @@ import 'dart:developer' as dev;
 
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response_parser.dart';
-import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
-import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
-import 'package:iamhere/infrastructure/routing/app_routes.dart';
+import 'package:iamhere/shell/app_paths.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
@@ -14,12 +12,8 @@ class FcmArrivalService {
   static const String _fcmArrivalPath = '/api/notifications';
 
   final Dio _dio;
-  final FcmNotificationService _fcmNotificationService;
 
-  FcmArrivalService(
-    this._dio,
-    this._fcmNotificationService,
-  );
+  FcmArrivalService(this._dio);
 
   /// 여러 서버 친구에게 위치 이벤트 FCM 발송
   /// [body]는 이미 {location} 등 치환이 완료된 최종 본문이어야 한다.
@@ -63,19 +57,19 @@ class FcmArrivalService {
     required String type,
   }) async {
     try {
-      final dto = FcmNotificationRequestDto(
-        notificationMethod: 'FCM',
-        targetId: receiverEmail,
-        type: type,
-        extraData: {
+      final request = {
+        'notificationMethod': 'FCM',
+        'targetId': receiverEmail,
+        'type': type,
+        'extraData': {
           'body': body,
-          'path': AppRoutes.recordNotifications,
+          'path': AppPaths.recordNotifications,
           'placeName': location,
         },
-      );
+      };
       final response = await _dio.post(
         _fcmArrivalPath,
-        data: dto.toJson(),
+        data: request,
         options: Options(extra: const {'requiresAuthentication': true})
             .copyWith(
               sendTimeout: const Duration(seconds: 10),

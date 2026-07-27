@@ -32,6 +32,10 @@ class ShellEventCoordinator {
     return true;
   }
 
+  Future<void> pushPathOpened(String path) {
+    return emitter.emit('onPushOpened', <String, Object?>{'path': path});
+  }
+
   Future<void> themeChanged(String theme) {
     return emitter.emit('onThemeChanged', <String, Object?>{'theme': theme});
   }

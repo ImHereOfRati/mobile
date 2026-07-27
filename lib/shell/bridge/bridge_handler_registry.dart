@@ -19,6 +19,7 @@ class BridgeHandlerRegistry {
     'refreshAccessToken',
     'signInWithKakao',
     'signInWithGoogle',
+    'activateWithTerms',
   };
 
   final Map<String, BridgeMethodHandler> _handlers;
@@ -94,6 +95,7 @@ const authBridgeMethodNames = <String>{
   'refreshAccessToken',
   'signInWithKakao',
   'signInWithGoogle',
+  'activateWithTerms',
   'signOut',
   'withdraw',
 };
@@ -117,12 +119,15 @@ const geofenceAndDeviceBridgeMethodNames = <String>{
   'registerGeofence',
   'unregisterGeofence',
   'setGeofenceActive',
+  'updateGeofenceAddress',
   'syncGeofences',
   'getNativeGeofenceState',
   'queryGeofences',
   'queryRecords',
   'queryNotifications',
   'deleteRecord',
+  'deleteAllRecords',
+  'deleteAllNotifications',
   'getDeviceContacts',
   'getCurrentPosition',
   'getLocationServiceStatus',

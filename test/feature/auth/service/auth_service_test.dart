@@ -269,7 +269,10 @@ void main() {
       });
       final authService = AuthService(dio, tokenStorage);
 
-      final result = await authService.sendIdTokenToServer(idToken, nonce: nonce);
+      final result = await authService.sendIdTokenToServer(
+        idToken,
+        nonce: nonce,
+      );
 
       expect(result, MemberState.pending);
       expect(dio.requestedPaths, ['/api/auth/login', '/api/auth/registration']);
@@ -304,7 +307,10 @@ void main() {
       });
       final authService = AuthService(dio, tokenStorage);
 
-      final result = await authService.sendIdTokenToServer(idToken, nonce: nonce);
+      final result = await authService.sendIdTokenToServer(
+        idToken,
+        nonce: nonce,
+      );
 
       expect(result, MemberState.newUser);
       expect(dio.requestedPaths, ['/api/auth/login', '/api/auth/registration']);
@@ -330,7 +336,10 @@ void main() {
       });
       final authService = AuthService(dio, tokenStorage);
 
-      final result = await authService.sendIdTokenToServer(idToken, nonce: nonce);
+      final result = await authService.sendIdTokenToServer(
+        idToken,
+        nonce: nonce,
+      );
 
       expect(result, MemberState.existingUser);
       expect(dio.requestedPaths, ['/api/auth/login']);
@@ -370,4 +379,44 @@ void main() {
       });
     });
   });
+
+  test(
+    'activation saves refreshed tokens without exposing them to React',
+    () async {
+      final dio = _FakeDio({
+        '/api/auth/activation': Response(
+          requestOptions: RequestOptions(path: '/api/auth/activation'),
+          statusCode: 200,
+          data: {
+            'imhereResponseCode': 'SUCCESS',
+            'message': 'OK',
+            'data': {
+              'accessToken': 'active-access',
+              'refreshToken': 'active-refresh',
+              'userStatus': 'ACTIVE',
+              'isActive': true,
+            },
+          },
+        ),
+      });
+      final authService = AuthService(dio, tokenStorage);
+
+      await authService.activateWithTerms([
+        {'id': 1, 'agreed': true},
+        {'id': 2, 'agreed': false},
+      ]);
+
+      expect(dio.requestedPaths, ['/api/auth/activation']);
+      expect(dio.requestedBodies.single, {
+        'consents': [
+          {'id': 1, 'agreed': true},
+          {'id': 2, 'agreed': false},
+        ],
+      });
+      expect(tokenStorage.accessToken, 'active-access');
+      expect(tokenStorage.refreshToken, 'active-refresh');
+      expect(tokenStorage.userStatus, 'ACTIVE');
+      expect(tokenStorage.isActive, isTrue);
+    },
+  );
 }

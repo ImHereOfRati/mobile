@@ -1,3 +1,5 @@
+import type { NativeBridge } from "@imhere/bridge-contract";
+
 import type { ApiClient } from "@/api/api-client";
 
 export interface Term {
@@ -15,17 +17,14 @@ export function loadTerms(api: ApiClient, signal?: AbortSignal) {
 }
 
 export function activateWithTerms(
-  api: ApiClient,
+  bridge: Pick<NativeBridge, "activateWithTerms">,
   terms: Term[],
   agreedIds?: ReadonlySet<number>,
 ) {
-  return api.request("/api/auth/activation", {
-    method: "POST",
-    body: JSON.stringify({
-      consents: terms.map((term) => ({
-        id: term.id,
-        agreed: agreedIds?.has(term.id) ?? true,
-      })),
-    }),
+  return bridge.activateWithTerms({
+    consents: terms.map((term) => ({
+      id: term.id,
+      agreed: agreedIds?.has(term.id) ?? true,
+    })),
   });
 }

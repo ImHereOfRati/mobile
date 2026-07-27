@@ -4,12 +4,14 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
 import { useAnalytics } from "@/analytics/analytics-context";
+import { useBridge } from "@/bridge/bridge-context";
 import { Button, LoadingState } from "@/design-system";
 
 import { activateWithTerms, loadTerms, type Term } from "./terms-service";
 
 export default function TermsConsentPage() {
   const api = useApiClient();
+  const bridge = useBridge();
   const { setConsent, track } = useAnalytics();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -31,7 +33,7 @@ export default function TermsConsentPage() {
       .then(async (loaded) => {
         setTerms(loaded);
         if (loaded.length === 0) {
-          await activateWithTerms(api, []);
+          await activateWithTerms(bridge, []);
           await setConsent(true);
           await track("terms_accepted", {
             optional_count: 0,
@@ -46,7 +48,7 @@ export default function TermsConsentPage() {
         }
       });
     return () => controller.abort();
-  }, [api, navigate, setConsent, t, track]);
+  }, [api, bridge, navigate, setConsent, t, track]);
 
   function toggle(id: number) {
     setAgreed((current) => {
@@ -61,7 +63,7 @@ export default function TermsConsentPage() {
     if (terms === null || !requiredAgreed) return;
     setSubmitting(true);
     try {
-      await activateWithTerms(api, terms, agreed);
+      await activateWithTerms(bridge, terms, agreed);
       await setConsent(true);
       await track("terms_accepted", {
         optional_count: terms.filter(

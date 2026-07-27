@@ -9,5 +9,7 @@ abstract class GeofenceRecordRepository {
 
   Future<GeofenceRecordEntity?> findByDeliveryKey(String deliveryKey);
 
+  Future<void> delete(int id);
+
   Future<void> deleteAll();
 }

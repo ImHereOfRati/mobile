@@ -5,10 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:iamhere/shell/bridge/bridge_event_emitter.dart';
 import 'package:iamhere/shell/bridge/bridge_rpc_server.dart';
 import 'package:iamhere/shell/shell_event_coordinator.dart';
-import 'package:iamhere/shell/view/fatal_error_view.dart';
-import 'package:iamhere/shell/view/force_update_view.dart';
-import 'package:iamhere/shell/view/offline_view.dart';
-import 'package:iamhere/shell/view/splash_view.dart';
+import 'package:iamhere/shell/view/shell_status_view.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 typedef ConnectivityProbe = Future<bool> Function();
@@ -20,6 +17,7 @@ class WebViewHost extends StatefulWidget {
   final BridgeRpcServer rpcServer;
   final ConnectivityProbe isOnline;
   final bool forceUpdate;
+  final Stream<String>? pushPaths;
   final VoidCallback? onUpdate;
   final VoidCallback? onExit;
 
@@ -29,6 +27,7 @@ class WebViewHost extends StatefulWidget {
     required this.rpcServer,
     required this.isOnline,
     this.forceUpdate = false,
+    this.pushPaths,
     this.onUpdate,
     this.onExit,
   });
@@ -42,6 +41,8 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
   late final BridgeEventEmitter _emitter;
   late final ShellEventCoordinator _events;
   WebViewHostState _state = WebViewHostState.loading;
+  StreamSubscription<String>? _pushSubscription;
+  final List<String> _pendingPushPaths = [];
 
   @override
   void initState() {
@@ -67,6 +68,13 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
       );
     _emitter = BridgeEventEmitter(_controller.runJavaScript);
     _events = ShellEventCoordinator(_emitter);
+    _pushSubscription = widget.pushPaths?.listen((path) {
+      if (_state == WebViewHostState.ready) {
+        unawaited(_events.pushPathOpened(path));
+      } else {
+        _pendingPushPaths.add(path);
+      }
+    });
 
     if (widget.forceUpdate) {
       _state = WebViewHostState.forceUpdate;
@@ -78,6 +86,7 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    unawaited(_pushSubscription?.cancel());
     super.dispose();
   }
 
@@ -109,6 +118,10 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
     unawaited(
       _events.themeChanged(brightness == Brightness.dark ? 'dark' : 'light'),
     );
+    for (final path in List<String>.from(_pendingPushPaths)) {
+      unawaited(_events.pushPathOpened(path));
+    }
+    _pendingPushPaths.clear();
   }
 
   Future<void> _handleLoadFailure() async {
@@ -147,15 +160,17 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
         if (!didPop) unawaited(_handleBack());
       },
       child: switch (_state) {
-        WebViewHostState.loading => const ShellSplashView(),
+        WebViewHostState.loading => const ShellStatusView.splash(),
         WebViewHostState.ready => SafeArea(
           child: WebViewWidget(controller: _controller),
         ),
-        WebViewHostState.offline => ShellOfflineView(onRetry: _load),
-        WebViewHostState.forceUpdate => ShellForceUpdateView(
+        WebViewHostState.offline => ShellStatusView.offline(onRetry: _load),
+        WebViewHostState.forceUpdate => ShellStatusView.forceUpdate(
           onUpdate: widget.onUpdate ?? () {},
         ),
-        WebViewHostState.fatalError => ShellFatalErrorView(onRetry: _load),
+        WebViewHostState.fatalError => ShellStatusView.fatalError(
+          onRetry: _load,
+        ),
       },
     );
   }

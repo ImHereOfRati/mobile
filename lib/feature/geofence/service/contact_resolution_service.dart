@@ -25,7 +25,8 @@ class ContactResolutionService {
     try {
       final List<dynamic> contactIdsJson = jsonDecode(geofence.contactIds);
       final List<int> contactIds = contactIdsJson
-          .map((id) => id as int)
+          .map((id) => id is int ? id : int.tryParse(id.toString()))
+          .whereType<int>()
           .toList();
 
       if (contactIds.isEmpty) {

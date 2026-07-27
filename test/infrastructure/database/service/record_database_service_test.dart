@@ -22,19 +22,18 @@ void main() {
     String name = '집',
     DateTime? createdAt,
     SendMachine machine = SendMachine.mobile,
-  }) =>
-      GeofenceRecordEntity(
-        geofenceId: 1,
-        geofenceName: name,
-        message: '도착',
-        recipients: '["a@example.com"]',
-        createdAt: createdAt ?? DateTime(2026, 4, 29, 10),
-        sendMachine: machine,
-        status: ActivityRecordStatus.pending,
-        deliveryKey: 'key-$name',
-        retryCount: 2,
-        lastError: 'temporary network error',
-      );
+  }) => GeofenceRecordEntity(
+    geofenceId: 1,
+    geofenceName: name,
+    message: '도착',
+    recipients: '["a@example.com"]',
+    createdAt: createdAt ?? DateTime(2026, 4, 29, 10),
+    sendMachine: machine,
+    status: ActivityRecordStatus.pending,
+    deliveryKey: 'key-$name',
+    retryCount: 2,
+    lastError: 'temporary network error',
+  );
 
   test('save → findAll round-trip 시 enum/datetime 이 정확히 복원된다', () async {
     await sut.save(makeRecord(machine: SendMachine.server));
@@ -88,5 +87,14 @@ void main() {
     await sut.deleteAll();
 
     expect(await sut.findAll(), isEmpty);
+  });
+
+  test('delete 는 요청한 기록만 제거한다', () async {
+    final first = await sut.save(makeRecord(name: '첫 기록'));
+    await sut.save(makeRecord(name: '남길 기록'));
+
+    await sut.delete(first.id!);
+
+    expect((await sut.findAll()).map((item) => item.geofenceName), ['남길 기록']);
   });
 }

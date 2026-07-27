@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/common/base/result/result.dart';
-import 'package:iamhere/feature/friend/service/fcm_notification_service.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 
 class RecordingDio extends Fake implements Dio {
@@ -32,17 +31,13 @@ class RecordingDio extends Fake implements Dio {
   }
 }
 
-class FakeFcmNotificationService extends Fake implements FcmNotificationService {}
-
 void main() {
   late RecordingDio mockDio;
-  late FakeFcmNotificationService mockFcmNotificationService;
   late FcmArrivalService sut;
 
   setUp(() {
     mockDio = RecordingDio();
-    mockFcmNotificationService = FakeFcmNotificationService();
-    sut = FcmArrivalService(mockDio, mockFcmNotificationService);
+    sut = FcmArrivalService(mockDio);
   });
 
   test('도착 FCM payload 에 placeName 이 포함된다', () async {

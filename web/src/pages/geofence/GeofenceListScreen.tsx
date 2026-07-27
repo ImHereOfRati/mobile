@@ -1,18 +1,25 @@
 import type { BridgeMethodResult } from "@imhere/bridge-contract";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAnalytics } from "@/analytics/analytics-context";
+import { useApiClient } from "@/api/use-api-client";
 import { useBridge } from "@/bridge/bridge-context";
 import { BottomSheet, Button, EmptyState, LoadingState } from "@/design-system";
+import { MapProxyService } from "@/map/map-proxy-service";
 
 import type { Geofence } from "./geofence-model";
-import { loadGeofences } from "./geofence-service";
+import {
+  fillMissingGeofenceAddresses,
+  loadGeofences,
+} from "./geofence-service";
 
 export function GeofenceListScreen() {
   const { t } = useTranslation();
   const bridge = useBridge();
+  const api = useApiClient();
+  const mapService = useMemo(() => new MapProxyService(api), [api]);
   const analytics = useAnalytics();
   const navigate = useNavigate();
   const [items, setItems] = useState<Geofence[] | null>(null);
@@ -32,7 +39,12 @@ export function GeofenceListScreen() {
       bridge.getAppInfo(),
     ]);
     if (geofences.status === "fulfilled") {
-      setItems(geofences.value);
+      const hydrated = await fillMissingGeofenceAddresses(
+        bridge,
+        mapService,
+        geofences.value,
+      );
+      setItems(hydrated);
       setError(null);
     } else {
       setItems([]);
@@ -43,7 +55,7 @@ export function GeofenceListScreen() {
       setLocationEnabled(location.value.status === "enabled");
     }
     if (appInfo.status === "fulfilled") setPlatform(appInfo.value.platform);
-  }, [bridge, t]);
+  }, [bridge, mapService, t]);
 
   useEffect(() => {
     const initialLoad = globalThis.setTimeout(() => void load(), 0);
@@ -56,6 +68,14 @@ export function GeofenceListScreen() {
       unsubscribe();
     };
   }, [bridge, load]);
+
+  useEffect(() => {
+    if (items?.some((item) => item.active) !== true) return;
+    const interval = globalThis.setInterval(() => {
+      void loadGeofences(bridge).then(setItems);
+    }, 5_000);
+    return () => globalThis.clearInterval(interval);
+  }, [bridge, items]);
 
   async function toggleActive(item: Geofence, active: boolean) {
     const updated = await bridge.setGeofenceActive({ id: item.id, active });

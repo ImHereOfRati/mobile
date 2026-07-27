@@ -30,6 +30,9 @@ class GeofenceRecordLocalRepository implements GeofenceRecordRepository {
   }
 
   @override
+  Future<void> delete(int id) => _recordDatabase.delete(id);
+
+  @override
   Future<void> deleteAll() async {
     await _recordDatabase.deleteAll();
   }

@@ -3,8 +3,8 @@
 // Run: pnpm bridge:generate
 // ignore_for_file: prefer_if_null_operators, prefer_null_aware_operators
 
-const bridgeContractVersion = '1.0.0';
-const minimumBridgeContractVersion = '1.0.0';
+const bridgeContractVersion = '1.2.0';
+const minimumBridgeContractVersion = '1.2.0';
 
 const bridgeMethodNames = <String>[
   'getCapabilities',
@@ -13,6 +13,7 @@ const bridgeMethodNames = <String>[
   'refreshAccessToken',
   'signInWithKakao',
   'signInWithGoogle',
+  'activateWithTerms',
   'signOut',
   'withdraw',
   'getPermissionStatus',
@@ -22,12 +23,15 @@ const bridgeMethodNames = <String>[
   'registerGeofence',
   'unregisterGeofence',
   'setGeofenceActive',
+  'updateGeofenceAddress',
   'syncGeofences',
   'getNativeGeofenceState',
   'queryGeofences',
   'queryRecords',
   'queryNotifications',
   'deleteRecord',
+  'deleteAllRecords',
+  'deleteAllNotifications',
   'getDeviceContacts',
   'getCurrentPosition',
   'getLocationServiceStatus',
@@ -163,6 +167,50 @@ class AuthSession {
     return <String, Object?>{
       'authState': authState.toJson(),
       'token': token.toJson(),
+    };
+  }
+}
+
+class TermsActivationRequest {
+  const TermsActivationRequest({
+    required this.consents,
+  });
+
+  final List<TermConsent> consents;
+
+  factory TermsActivationRequest.fromJson(Map<String, Object?> json) {
+    return TermsActivationRequest(
+      consents: (json['consents'] as List<Object?>).map((item) => TermConsent.fromJson(item as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'consents': consents.map((item) => item.toJson()).toList(),
+    };
+  }
+}
+
+class TermConsent {
+  const TermConsent({
+    required this.id,
+    required this.agreed,
+  });
+
+  final int id;
+  final bool agreed;
+
+  factory TermConsent.fromJson(Map<String, Object?> json) {
+    return TermConsent(
+      id: (json['id'] as num).toInt(),
+      agreed: json['agreed'] as bool,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'id': id,
+      'agreed': agreed,
     };
   }
 }
@@ -497,6 +545,30 @@ class SetGeofenceActive {
     return <String, Object?>{
       'id': id,
       'active': active,
+    };
+  }
+}
+
+class UpdateGeofenceAddress {
+  const UpdateGeofenceAddress({
+    required this.id,
+    required this.address,
+  });
+
+  final int id;
+  final String address;
+
+  factory UpdateGeofenceAddress.fromJson(Map<String, Object?> json) {
+    return UpdateGeofenceAddress(
+      id: (json['id'] as num).toInt(),
+      address: json['address'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'id': id,
+      'address': address,
     };
   }
 }

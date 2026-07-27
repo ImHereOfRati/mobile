@@ -25,6 +25,11 @@ class FirebaseService {
 
     await crashlyticsService.initialize();
     await fcmService.initialize();
-    await remoteConfig.initialize();
+    try {
+      await remoteConfig.initialize();
+    } catch (_) {
+      // Remote Config is an optional rollout source. Callers use build-time
+      // fallbacks when the latest values cannot be fetched.
+    }
   }
 }

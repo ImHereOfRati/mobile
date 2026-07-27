@@ -20,7 +20,7 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
     entityName: 'Geofence',
     entityId: entity.id,
     table: LocalDatabaseProperties.geofenceTableName,
-    values: entity.toMap(),
+    values: entity.copyWith(updatedAt: DateTime.now().toUtc()).toMap(),
     entityDetails: 'Geofence: ${entity.name}',
   );
 
@@ -53,7 +53,11 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
       executePartialUpdate(
         entityName: 'geofence active status',
         table: LocalDatabaseProperties.geofenceTableName,
-        values: {'is_active': isActive ? 1 : 0, 'awaiting_departure': 0},
+        values: {
+          'is_active': isActive ? 1 : 0,
+          'awaiting_departure': 0,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        },
         id: id,
         entityDetails: 'ID: $id, isActive: $isActive',
       );
@@ -62,7 +66,10 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
       executePartialUpdate(
         entityName: 'geofence departure wait state',
         table: LocalDatabaseProperties.geofenceTableName,
-        values: {'awaiting_departure': awaitingDeparture ? 1 : 0},
+        values: {
+          'awaiting_departure': awaitingDeparture ? 1 : 0,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        },
         id: id,
         entityDetails: 'ID: $id, awaitingDeparture: $awaitingDeparture',
       );
@@ -70,7 +77,10 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
   Future<void> updateAddress(int id, String address) => executePartialUpdate(
     entityName: 'geofence address',
     table: LocalDatabaseProperties.geofenceTableName,
-    values: {'address': address},
+    values: {
+      'address': address,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    },
     id: id,
     entityDetails: 'ID: $id, address: $address',
   );
