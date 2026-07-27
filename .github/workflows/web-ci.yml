@@ -64,7 +64,7 @@ jobs:
 
       - name: Build immutable release candidate
         env:
-          RELEASE_SHA: 0000000000000000000000000000000000000000
+          RELEASE_SHA: "0000000000000000000000000000000000000000"
           VITE_APP_BASE_PATH: /app/releases/0000000000000000000000000000000000000000/
         run: pnpm build:app && node scripts/check-release-build.mjs
 
