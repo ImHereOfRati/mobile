@@ -103,6 +103,96 @@
       "completeDescription": "‘{{name}}’ 출입을 네이티브에서 감지합니다."
     }
   },
+  "onboarding": {
+    "auth": {
+      "eyebrow": "위치 기반 서비스 ImHere",
+      "stepsLabel": "소개 단계",
+      "stepLabel": "{{step}}단계",
+      "next": "다음",
+      "kakao": "카카오로 계속하기",
+      "google": "Google로 계속하기",
+      "inactiveWithSupport": "비활성화된 계정입니다. 도움이 필요하면 고객센터에 문의해 주세요.",
+      "inactive": "비활성화된 계정입니다.",
+      "signInFailed": "로그인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      "slides": {
+        "location": {
+          "title": "위치를 기반으로\n대신\n연락을 보낼게요."
+        },
+        "background": {
+          "title": "앱이 꺼져도 놓치지 않아요",
+          "description": "심지어 화면이 꺼져 있어도 괜찮아요."
+        },
+        "privacy": {
+          "title": "내 정보는 기기에 안전하게",
+          "description": "로그인과 권한은 앱에서 처리하고 웹에는 필요한 정보만 전달해요."
+        }
+      }
+    },
+    "termsConsent": {
+      "eyebrow": "약관 동의",
+      "title": "ImHere 이용을 위해 확인해 주세요",
+      "description": "선택 항목은 동의하지 않아도 서비스를 이용할 수 있어요.",
+      "loading": "약관을 불러오는 중",
+      "all": "전체 동의",
+      "required": "필수",
+      "optional": "선택",
+      "view": "보기",
+      "submit": "동의하고 계속하기",
+      "loadFailed": "약관을 불러오지 못했습니다.",
+      "saveFailed": "동의 내용을 저장하지 못했습니다."
+    },
+    "termDetail": {
+      "loading": "약관을 불러오는 중",
+      "notFound": "약관을 찾을 수 없습니다.",
+      "effectiveDate": "시행일 {{date}}",
+      "back": "돌아가기"
+    },
+    "permissionGuide": {
+      "eyebrow": "설정 안내",
+      "location": {
+        "title": "위치를 항상 허용해 주세요",
+        "description": "위치 권한을 ‘항상 허용’으로 선택하면 앱이 닫혀 있어도 도착을 감지할 수 있어요.",
+        "step": "위치 권한에서 ‘항상 허용’을 선택해 주세요."
+      },
+      "battery": {
+        "title": "배터리 제한을 해제해 주세요",
+        "description": "배터리 최적화 예외를 허용하면 백그라운드 자동 전송이 안정적으로 동작해요.",
+        "step": "ImHere의 배터리 사용 제한을 해제해 주세요."
+      },
+      "openStep": "아래 버튼을 눌러 시스템 설정을 열어 주세요.",
+      "returnStep": "앱으로 돌아오면 상태를 자동으로 다시 확인해요.",
+      "openSettings": "설정 열기",
+      "openFailed": "시스템 설정을 열지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      "back": "돌아가기"
+    },
+    "permission": {
+      "eyebrow": "자동 전송 준비",
+      "title": "필요한 권한을 확인해 주세요",
+      "description": "권한 요청은 앱에서만 처리되며 언제든 설정에서 바꿀 수 있어요.",
+      "loading": "권한 상태를 확인하는 중",
+      "complete": "완료",
+      "settings": "설정",
+      "locationGuide": "위치 권한 안내",
+      "batteryGuide": "배터리 설정 안내",
+      "refresh": "상태 다시 확인",
+      "checkFailed": "권한 상태를 확인하지 못했습니다.",
+      "requestFailed": "권한을 요청하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      "items": {
+        "location": {
+          "title": "항상 위치 허용",
+          "description": "앱이 닫혀 있어도 장소 도착을 감지해요."
+        },
+        "notification": {
+          "title": "알림 허용",
+          "description": "전송 결과와 도착 알림을 알려드려요."
+        },
+        "battery": {
+          "title": "배터리 최적화 예외",
+          "description": "Android에서 자동 전송이 중단되지 않게 해요."
+        }
+      }
+    }
+  },
   "screens": {
     "onboarding": {
       "auth": "로그인",

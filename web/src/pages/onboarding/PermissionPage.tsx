@@ -1,5 +1,6 @@
 import type { NativeBridge } from "@imhere/bridge-contract";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useBridge } from "@/bridge/bridge-context";
@@ -7,30 +8,40 @@ import { Button, LoadingState } from "@/design-system";
 
 type Readiness = Awaited<ReturnType<NativeBridge["getAutoSendReadiness"]>>;
 
-const permissionCopy = {
-  locationAlways: ["항상 위치 허용", "앱이 닫혀 있어도 장소 도착을 감지해요."],
-  notification: ["알림 허용", "전송 결과와 도착 알림을 알려드려요."],
-  batteryOptimization: [
-    "배터리 최적화 예외",
-    "Android에서 자동 전송이 중단되지 않게 해요.",
-  ],
-} as const;
-
 export default function PermissionPage() {
   const bridge = useBridge();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const permissionCopy = {
+    locationAlways: [
+      t("onboarding.permission.items.location.title"),
+      t("onboarding.permission.items.location.description"),
+    ],
+    notification: [
+      t("onboarding.permission.items.notification.title"),
+      t("onboarding.permission.items.notification.description"),
+    ],
+    batteryOptimization: [
+      t("onboarding.permission.items.battery.title"),
+      t("onboarding.permission.items.battery.description"),
+    ],
+  } as const;
   const [readiness, setReadiness] = useState<Readiness | null>(null);
+  const [requesting, setRequesting] = useState<
+    keyof typeof permissionCopy | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       const value = await bridge.getAutoSendReadiness();
       setReadiness(value);
+      setError(null);
       if (value.ready) navigate("/geofence", { replace: true });
     } catch {
-      setError("권한 상태를 확인하지 못했습니다.");
+      setError(t("onboarding.permission.checkFailed"));
     }
-  }, [bridge, navigate]);
+  }, [bridge, navigate, t]);
 
   useEffect(() => {
     const initialRefresh = setTimeout(() => void refresh(), 0);
@@ -49,22 +60,32 @@ export default function PermissionPage() {
   }, [bridge, refresh]);
 
   async function request(permission: keyof typeof permissionCopy) {
-    await bridge.requestPermission({ permission });
-    await refresh();
+    setRequesting(permission);
+    setError(null);
+    try {
+      await bridge.requestPermission({ permission });
+      await refresh();
+    } catch {
+      setError(t("onboarding.permission.requestFailed"));
+    } finally {
+      setRequesting(null);
+    }
   }
 
   return (
     <main className="onboarding">
       <section className="onboarding__panel" aria-labelledby="permission-title">
         <header className="onboarding__header">
-          <p className="onboarding__eyebrow">자동 전송 준비</p>
-          <h1 id="permission-title">필요한 권한을 확인해 주세요</h1>
+          <p className="onboarding__eyebrow">
+            {t("onboarding.permission.eyebrow")}
+          </p>
+          <h1 id="permission-title">{t("onboarding.permission.title")}</h1>
           <p className="onboarding__description">
-            권한 요청은 앱에서만 처리되며 언제든 설정에서 바꿀 수 있어요.
+            {t("onboarding.permission.description")}
           </p>
         </header>
         {readiness === null && error === null ? (
-          <LoadingState label="권한 상태를 확인하는 중" />
+          <LoadingState label={t("onboarding.permission.loading")} />
         ) : (
           <div className="onboarding__list">
             {Object.entries(permissionCopy).map(
@@ -84,12 +105,15 @@ export default function PermissionPage() {
                     </div>
                     <Button
                       variant={complete ? "ghost" : "secondary"}
-                      disabled={complete}
+                      disabled={complete || requesting !== null}
+                      loading={requesting === permission}
                       onClick={() =>
                         void request(permission as keyof typeof permissionCopy)
                       }
                     >
-                      {complete ? "완료" : "설정"}
+                      {complete
+                        ? t("onboarding.permission.complete")
+                        : t("onboarding.permission.settings")}
                     </Button>
                   </article>
                 );
@@ -98,10 +122,16 @@ export default function PermissionPage() {
           </div>
         )}
         <div className="onboarding__permission-actions">
-          <Link to="/location-permission-guide">위치 권한 안내</Link>
-          <Link to="/battery-optimization-guide">배터리 설정 안내</Link>
+          <Link to="/location-permission-guide">
+            {t("onboarding.permission.locationGuide")}
+          </Link>
+          <Link to="/battery-optimization-guide">
+            {t("onboarding.permission.batteryGuide")}
+          </Link>
         </div>
-        <Button onClick={() => void refresh()}>상태 다시 확인</Button>
+        <Button onClick={() => void refresh()}>
+          {t("onboarding.permission.refresh")}
+        </Button>
         {error === null ? null : (
           <p className="onboarding__error" role="alert">
             {error}

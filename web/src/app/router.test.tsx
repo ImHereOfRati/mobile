@@ -22,7 +22,7 @@ describe("app router", () => {
     renderRoute("/app/auth");
     expect(
       await screen.findByRole("heading", {
-        name: "도착하면 자동으로 알려드려요",
+        name: /위치를 기반으로\s+대신\s+연락을 보낼게요\./,
       }),
     ).toBeInTheDocument();
   });

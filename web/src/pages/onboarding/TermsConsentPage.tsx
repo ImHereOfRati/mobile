@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
@@ -9,6 +10,7 @@ import { activateWithTerms, loadTerms, type Term } from "./terms-service";
 export default function TermsConsentPage() {
   const api = useApiClient();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [terms, setTerms] = useState<Term[] | null>(null);
   const [agreed, setAgreed] = useState<Set<number>>(new Set());
   const [submitting, setSubmitting] = useState(false);
@@ -33,11 +35,11 @@ export default function TermsConsentPage() {
       })
       .catch((reason: unknown) => {
         if ((reason as { name?: string }).name !== "AbortError") {
-          setError("약관을 불러오지 못했습니다.");
+          setError(t("onboarding.termsConsent.loadFailed"));
         }
       });
     return () => controller.abort();
-  }, [api, navigate]);
+  }, [api, navigate, t]);
 
   function toggle(id: number) {
     setAgreed((current) => {
@@ -55,7 +57,7 @@ export default function TermsConsentPage() {
       await activateWithTerms(api, terms, agreed);
       navigate("/user-permission", { replace: true });
     } catch {
-      setError("동의 내용을 저장하지 못했습니다.");
+      setError(t("onboarding.termsConsent.saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -65,14 +67,16 @@ export default function TermsConsentPage() {
     <main className="onboarding">
       <section className="onboarding__panel" aria-labelledby="terms-title">
         <header className="onboarding__header">
-          <p className="onboarding__eyebrow">약관 동의</p>
-          <h1 id="terms-title">ImHere 이용을 위해 확인해 주세요</h1>
+          <p className="onboarding__eyebrow">
+            {t("onboarding.termsConsent.eyebrow")}
+          </p>
+          <h1 id="terms-title">{t("onboarding.termsConsent.title")}</h1>
           <p className="onboarding__description">
-            선택 항목은 동의하지 않아도 서비스를 이용할 수 있어요.
+            {t("onboarding.termsConsent.description")}
           </p>
         </header>
         {terms === null && error === null ? (
-          <LoadingState label="약관을 불러오는 중" />
+          <LoadingState label={t("onboarding.termsConsent.loading")} />
         ) : (
           <div className="onboarding__list">
             {terms !== null && terms.length > 0 ? (
@@ -88,7 +92,7 @@ export default function TermsConsentPage() {
                     )
                   }
                 />
-                <strong>전체 동의</strong>
+                <strong>{t("onboarding.termsConsent.all")}</strong>
               </label>
             ) : null}
             {terms?.map((term) => (
@@ -99,9 +103,15 @@ export default function TermsConsentPage() {
                   onChange={() => toggle(term.id)}
                 />
                 <span>
-                  {term.isRequired ? "[필수]" : "[선택]"} {term.title}
+                  [
+                  {term.isRequired
+                    ? t("onboarding.termsConsent.required")
+                    : t("onboarding.termsConsent.optional")}
+                  ] {term.title}
                 </span>
-                <Link to={`/terms-detail/${term.id}`}>보기</Link>
+                <Link to={`/terms-detail/${term.id}`}>
+                  {t("onboarding.termsConsent.view")}
+                </Link>
               </label>
             ))}
           </div>
@@ -111,7 +121,7 @@ export default function TermsConsentPage() {
           loading={submitting}
           onClick={() => void submit()}
         >
-          동의하고 계속하기
+          {t("onboarding.termsConsent.submit")}
         </Button>
         {error === null ? null : (
           <p className="onboarding__error" role="alert">
