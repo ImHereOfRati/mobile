@@ -1,10 +1,7 @@
 import type { BridgeMethodResult, NativeBridge } from "@imhere/bridge-contract";
 
 import type { ApiClient, SliceResponse } from "@/api/api-client";
-import {
-  MapProxyService,
-  reverseGeocodeLabel,
-} from "@/map/map-proxy-service";
+import { MapProxyService, reverseGeocodeLabel } from "@/map/map-proxy-service";
 
 import type { Geofence, RecipientOption } from "./geofence-model";
 

@@ -92,8 +92,7 @@ export function NativeAuthRouteGuard() {
     };
   }, [bridge, requestedUrl]);
 
-  const current =
-    snapshot?.requestedUrl === requestedUrl ? snapshot : null;
+  const current = snapshot?.requestedUrl === requestedUrl ? snapshot : null;
   return (
     <AuthRouteGuard
       auth={

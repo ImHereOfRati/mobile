@@ -23,8 +23,6 @@ describe("reverseGeocodeLabel", () => {
   });
 
   it("falls back to coordinates when the proxy has no region", () => {
-    expect(reverseGeocodeLabel({}, 37.5665, 126.978)).toBe(
-      "37.5665, 126.9780",
-    );
+    expect(reverseGeocodeLabel({}, 37.5665, 126.978)).toBe("37.5665, 126.9780");
   });
 });

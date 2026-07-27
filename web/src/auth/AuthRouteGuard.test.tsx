@@ -1,10 +1,6 @@
 import { createMockBridge } from "@imhere/bridge-contract";
 import { render, screen } from "@testing-library/react";
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-} from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
 import { BridgeContext } from "@/bridge/bridge-context";
