@@ -8,6 +8,52 @@
   grid-template-columns: 1fr auto;
   gap: var(--space-3);
   align-items: end;
+  padding: 0;
+}
+
+.location-picker__search .ds-button {
+  min-width: 4.5rem;
+  min-height: 3.25rem;
+  border-radius: var(--radius-sm);
+}
+
+.location-picker__search .ds-field__label {
+  margin-bottom: var(--space-2);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+}
+
+.location-picker__search .ds-field__input {
+  min-height: 3.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
+}
+
+.location-picker__search .ds-field__input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.location-picker__results-panel {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-divider));
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 0 4px 14px rgb(15 23 42 / 7%);
+}
+
+.location-picker__results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-divider);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+
+.location-picker__results-heading strong {
+  color: var(--color-text);
 }
 
 .location-picker__map {
@@ -35,7 +81,6 @@
   gap: 0;
   padding: 0;
   margin: 0;
-  border-top: 1px solid var(--color-divider);
   list-style: none;
 }
 
@@ -44,7 +89,7 @@
   width: 100%;
   min-height: 44px;
   gap: var(--space-1);
-  padding: var(--space-3) 0;
+  padding: 0.875rem 1rem;
   border: 0;
   border-bottom: 1px solid var(--color-divider);
   color: var(--color-text);
@@ -53,8 +98,19 @@
   background: transparent;
 }
 
+.location-picker__results li:last-child button {
+  border-bottom: 0;
+}
+
+.location-picker__results button:hover {
+  background: var(--color-surface-raised);
+}
+
 .location-picker__results span {
+  overflow: hidden;
   color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 30rem) {

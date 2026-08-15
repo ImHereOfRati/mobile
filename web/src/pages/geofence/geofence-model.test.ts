@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  bitmaskFromDays,
   defaultGeofenceDraft,
-  daysFromBitmask,
   toBridgeInput,
   type RecipientOption,
 } from "./geofence-model";
@@ -31,20 +29,13 @@ const recipients: RecipientOption[] = [
 ];
 
 describe("geofence model", () => {
-  it("round-trips a custom weekday bitmask", () => {
-    const days = new Set([1, 3, 5]);
-    expect(daysFromBitmask(bitmaskFromDays(days))).toEqual(days);
-  });
-
-  it("builds the native payload with both recipient sources", () => {
+  it("builds a one-shot native payload with both recipient sources", () => {
     const payload = toBridgeInput(
       {
         ...defaultGeofenceDraft,
         name: "회사",
         address: "서울시 중구",
         eventType: "both",
-        repeatType: "custom",
-        customDays: new Set([1, 2, 3, 4, 5]),
         deviceContactIds: new Set(["contact-1"]),
         serverRecipientKeys: new Set(["friendship-1"]),
       },
@@ -55,8 +46,7 @@ describe("geofence model", () => {
       name: "회사",
       address: "서울시 중구",
       eventType: "both",
-      repeatType: "custom",
-      customDaysBitmask: 62,
+      repeatType: "none",
       deviceContactIds: ["contact-1"],
       serverRecipients: [
         {

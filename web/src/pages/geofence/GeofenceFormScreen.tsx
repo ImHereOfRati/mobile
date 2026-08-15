@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
 import { useAnalytics } from "@/analytics/analytics-context";
@@ -24,21 +24,12 @@ import {
   type EventType,
   type GeofenceDraft,
   type RecipientOption,
-  type RepeatType,
   toBridgeInput,
   validateGeofenceDraft,
 } from "./geofence-model";
 import { findGeofence, loadRecipientOptions } from "./geofence-service";
 
-const eventTypes: EventType[] = ["arrival", "departure", "both"];
-const repeatTypes: RepeatType[] = [
-  "none",
-  "daily",
-  "weekday",
-  "weekend",
-  "custom",
-];
-const weekDays = [0, 1, 2, 3, 4, 5, 6];
+const eventTypes: EventType[] = ["arrival", "departure"];
 
 export function GeofenceFormScreen({ id }: { id?: number }) {
   const { t } = useTranslation();
@@ -56,12 +47,24 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([
-      loadRecipientOptions(api, bridge),
-      id === undefined ? bridge.getCurrentPosition() : findGeofence(bridge, id),
-    ])
-      .then(([options, source]) => {
+    void bridge
+      .getAutoSendReadiness()
+      .then(async (readiness) => {
         if (cancelled) return;
+        if (!readiness.locationAlways) {
+          navigate("/auto-send-readiness", { replace: true });
+          return;
+        }
+        return Promise.all([
+          loadRecipientOptions(api, bridge),
+          id === undefined
+            ? bridge.getCurrentPosition()
+            : findGeofence(bridge, id),
+        ]);
+      })
+      .then((result) => {
+        if (cancelled || result === undefined) return;
+        const [options, source] = result;
         setRecipients(options);
         if (id === undefined) {
           const position = source as Awaited<
@@ -84,7 +87,7 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
     return () => {
       cancelled = true;
     };
-  }, [api, bridge, id, t]);
+  }, [api, bridge, id, navigate, t]);
 
   const update = useCallback(
     <Key extends keyof GeofenceDraft>(key: Key, value: GeofenceDraft[Key]) => {
@@ -96,7 +99,7 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
     [],
   );
 
-  function updateMap(selection: MapSelection) {
+  const updateMap = useCallback((selection: MapSelection) => {
     setDraft((current) =>
       current === null
         ? current
@@ -105,10 +108,11 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
             address: selection.address ?? current.address,
             latitude: selection.latitude,
             longitude: selection.longitude,
+            name: selection.name ?? current.name,
             radiusMeters: selection.radiusMeters,
           },
     );
-  }
+  }, []);
 
   function toggleRecipient(option: RecipientOption) {
     if (draft === null) return;
@@ -126,14 +130,6 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
     setErrors((current) => ({ ...current, recipients: "" }));
   }
 
-  function toggleDay(day: number) {
-    if (draft === null) return;
-    const next = new Set(draft.customDays);
-    if (next.has(day)) next.delete(day);
-    else next.add(day);
-    update("customDays", next);
-  }
-
   async function submit() {
     if (draft === null) return;
     const nextErrors = validateGeofenceDraft(draft);
@@ -145,7 +141,6 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
       await analytics.track("geofence_saved", {
         event_type: draft.eventType,
         mode: id === undefined ? "create" : "edit",
-        repeat_type: draft.repeatType,
       });
       setSaved(true);
     } catch {
@@ -161,9 +156,6 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
         <p className="feature-page__error" role="alert">
           {loadError}
         </p>
-        <Link className="feature-page__back" to="/geofence">
-          {t("common.backToList")}
-        </Link>
       </section>
     );
   }
@@ -179,16 +171,15 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
     address: draft.address,
     latitude: draft.latitude,
     longitude: draft.longitude,
+    name: draft.name,
     radiusMeters: draft.radiusMeters,
   };
+  const hasDeviceRecipients = draft.deviceContactIds.size > 0;
 
   return (
     <section className="feature-page" aria-labelledby="geofence-form-title">
       <header className="feature-page__header">
         <div>
-          <Link className="feature-page__back" to="/geofence">
-            ← {t("common.backToList")}
-          </Link>
           <span className="feature-page__eyebrow">
             {t("geofence.form.eyebrow")}
           </span>
@@ -244,6 +235,12 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
             label={t("geofence.form.message")}
             value={draft.message}
             error={errors.message || undefined}
+            disabled={hasDeviceRecipients}
+            helperText={
+              hasDeviceRecipients
+                ? "기기 연락처 알림은 장소 이름이 자동으로 적용됩니다."
+                : "{location}은 장소 이름으로 치환됩니다."
+            }
             onChange={(event) => update("message", event.target.value)}
           />
         </section>
@@ -264,44 +261,6 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
               </label>
             ))}
           </div>
-        </fieldset>
-
-        <fieldset className="feature-form__section">
-          <legend>{t("geofence.form.repeat")}</legend>
-          <div className="feature-form__options">
-            {repeatTypes.map((repeatType) => (
-              <label className="feature-form__option" key={repeatType}>
-                <input
-                  type="radio"
-                  name="repeatType"
-                  value={repeatType}
-                  checked={draft.repeatType === repeatType}
-                  onChange={() => update("repeatType", repeatType)}
-                />
-                {t(`geofence.repeat.${repeatType}`)}
-              </label>
-            ))}
-          </div>
-          {draft.repeatType === "custom" ? (
-            <div className="feature-form__options">
-              {weekDays.map((day) => (
-                <label className="feature-form__option" key={day}>
-                  <input
-                    type="checkbox"
-                    checked={draft.customDays.has(day)}
-                    onChange={() => toggleDay(day)}
-                  />
-                  {t(`geofence.weekday.${day}`)}
-                </label>
-              ))}
-            </div>
-          ) : null}
-          {errors.customDays === undefined ||
-          errors.customDays.length === 0 ? null : (
-            <p className="feature-page__error" role="alert">
-              {errors.customDays}
-            </p>
-          )}
         </fieldset>
 
         <section className="feature-form__section">

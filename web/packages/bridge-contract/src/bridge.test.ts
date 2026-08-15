@@ -21,7 +21,7 @@ class FakeTransport implements BridgeTransport {
 
 describe("bridge contract", () => {
   it("exposes the complete method and event surface", () => {
-    expect(Object.keys(bridgeContract.methods)).toHaveLength(36);
+    expect(Object.keys(bridgeContract.methods)).toHaveLength(39);
     expect(Object.keys(bridgeContract.events)).toEqual([
       "onAppResumed",
       "onPermissionChanged",
@@ -49,7 +49,8 @@ describe("bridge contract", () => {
         | "batteryOptimization"
         | "locationAlways"
         | "locationWhenInUse"
-        | "notification";
+        | "notification"
+        | "contacts";
     }>();
     expectTypeOf<
       Parameters<BridgeApi["registerGeofence"]>[0]

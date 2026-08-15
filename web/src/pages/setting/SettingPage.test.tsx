@@ -135,4 +135,70 @@ describe("SettingPage", () => {
       ),
     ).toBe(true);
   });
+
+  it("opens app settings when always-on location permission needs setup", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async (input: RequestInfo | URL) =>
+          new Response(
+            envelope(
+              String(input).includes("/api/users/my")
+                ? {
+                    id: "me",
+                    email: "me@example.com",
+                    nickname: "nickname",
+                    oAuth2Provider: "KAKAO",
+                  }
+                : [],
+            ),
+          ),
+      ),
+    );
+    const controller = createMockBridge({
+      getAppInfo: async () => ({
+        appVersion: "2.0.0",
+        buildNumber: "42",
+        platform: "android",
+        locale: "ko-KR",
+        theme: "light",
+      }),
+      getAutoSendReadiness: async () => ({
+        ready: false,
+        locationAlways: false,
+        locationService: true,
+        notification: true,
+        batteryOptimization: true,
+        missing: ["locationAlways"],
+      }),
+      queryRecords: async () => ({ items: [] }),
+    });
+
+    render(
+      <BridgeProvider bridge={controller.bridge}>
+        <ThemeProvider>
+          <MemoryRouter>
+            <SettingPage />
+          </MemoryRouter>
+        </ThemeProvider>
+      </BridgeProvider>,
+    );
+
+    await screen.findByText("2.0.0 (42)");
+    await act(async () => {
+      screen.getByText("항상 위치 권한").click();
+    });
+
+    expect(
+      controller.calls.some((call) => call.method === "openAppSettings"),
+    ).toBe(true);
+    expect(
+      controller.calls.some(
+        (call) =>
+          call.method === "requestPermission" &&
+          (call.args[0] as { permission: string }).permission ===
+            "locationAlways",
+      ),
+    ).toBe(false);
+  });
 });

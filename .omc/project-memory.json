@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1782912570572,
-  "projectRoot": "C:\\Project\\ImHere\\ImHereMobile",
+  "lastScanned": 1786341301985,
+  "projectRoot": "C:\\Project\\ImHere\\client",
   "techStack": {
     "languages": [],
     "frameworks": [],
@@ -41,38 +41,44 @@
     "android": {
       "path": "android",
       "purpose": null,
-      "fileCount": 10,
-      "lastAccessed": 1782912570541,
+      "fileCount": 9,
+      "lastAccessed": 1786341301935,
       "keyFiles": [
         "build.gradle.kts",
-        "cert.der",
         "gradle.properties",
         "gradlew",
-        "gradlew.bat"
+        "gradlew.bat",
+        "iamhere_android.iml"
       ]
     },
     "assets": {
       "path": "assets",
       "purpose": "Static assets",
-      "fileCount": 0,
-      "lastAccessed": 1782912570541,
-      "keyFiles": []
+      "fileCount": 2,
+      "lastAccessed": 1786341301936,
+      "keyFiles": [
+        "google_g.png",
+        "logo.png"
+      ]
     },
     "build": {
       "path": "build",
       "purpose": "Build output",
-      "fileCount": 2,
-      "lastAccessed": 1782912570542,
+      "fileCount": 36,
+      "lastAccessed": 1786341301937,
       "keyFiles": [
         "9f6fe9248f319fd34a3038b465e5a0f9.cache.dill.track.dill",
-        "last_build_run.json"
+        "a63544bfbeab5d7d52016a98156514cc.cache.dill.track.dill",
+        "after-onboarding.png",
+        "after-onboarding2.png",
+        "after-terms.png"
       ]
     },
     "coverage": {
       "path": "coverage",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1782912570543,
+      "lastAccessed": 1786341301938,
       "keyFiles": [
         "lcov.info"
       ]
@@ -81,14 +87,21 @@
       "path": "docs",
       "purpose": "Documentation",
       "fileCount": 0,
-      "lastAccessed": 1782912570543,
+      "lastAccessed": 1786341301939,
+      "keyFiles": []
+    },
+    "infra": {
+      "path": "infra",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786341301940,
       "keyFiles": []
     },
     "ios": {
       "path": "ios",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1782912570544,
+      "lastAccessed": 1786341301941,
       "keyFiles": [
         "Podfile",
         "Podfile.lock"
@@ -98,7 +111,7 @@
       "path": "lib",
       "purpose": "Library code",
       "fileCount": 2,
-      "lastAccessed": 1782912570544,
+      "lastAccessed": 1786341301941,
       "keyFiles": [
         "firebase_options.dart",
         "main.dart"
@@ -108,7 +121,7 @@
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 3,
-      "lastAccessed": 1782912570545,
+      "lastAccessed": 1786341301942,
       "keyFiles": [
         "obvious_test.ps1",
         "obvious_test.sh",
@@ -118,17 +131,35 @@
     "test": {
       "path": "test",
       "purpose": "Test files",
-      "fileCount": 1,
-      "lastAccessed": 1782912570546,
+      "fileCount": 0,
+      "lastAccessed": 1786341301943,
+      "keyFiles": []
+    },
+    "tool": {
+      "path": "tool",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786341301944,
+      "keyFiles": []
+    },
+    "web": {
+      "path": "web",
+      "purpose": null,
+      "fileCount": 12,
+      "lastAccessed": 1786341301944,
       "keyFiles": [
-        "widget_test.dart"
+        "eslint.config.js",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "tsconfig.app.json"
       ]
     },
     "android\\app": {
       "path": "android\\app",
       "purpose": "Application code",
       "fileCount": 2,
-      "lastAccessed": 1782912570547,
+      "lastAccessed": 1786341301945,
       "keyFiles": [
         "build.gradle.kts",
         "google-services.json"
@@ -138,18 +169,103 @@
       "path": "build\\app",
       "purpose": "Application code",
       "fileCount": 1,
-      "lastAccessed": 1782912570548,
+      "lastAccessed": 1786341301947,
       "keyFiles": [
         "deeplink.json"
       ]
+    },
+    "web\\app": {
+      "path": "web\\app",
+      "purpose": "Application code",
+      "fileCount": 1,
+      "lastAccessed": 1786341301951,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "web\\dist": {
+      "path": "web\\dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 1,
+      "lastAccessed": 1786341301951,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "web\\node_modules": {
+      "path": "web\\node_modules",
+      "purpose": "Dependencies",
+      "fileCount": 3,
+      "lastAccessed": 1786341301952,
+      "keyFiles": []
     }
   },
   "hotPaths": [
     {
-      "path": "lib\\integration\\fcm\\fcm_message_handler.dart",
-      "accessCount": 4,
-      "lastAccessed": 1782913595836,
+      "path": "docs\\ops\\account-migration-plan.md",
+      "accessCount": 158,
+      "lastAccessed": 1785852034494,
       "type": "file"
+    },
+    {
+      "path": "lib\\main.dart",
+      "accessCount": 11,
+      "lastAccessed": 1786341873688,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\geofence\\background\\geofence_background_runtime.dart",
+      "accessCount": 9,
+      "lastAccessed": 1786341883302,
+      "type": "file"
+    },
+    {
+      "path": "lib\\shell\\webview_host.dart",
+      "accessCount": 6,
+      "lastAccessed": 1786341542143,
+      "type": "file"
+    },
+    {
+      "path": "lib\\integration\\fcm\\fcm_message_handler.dart",
+      "accessCount": 5,
+      "lastAccessed": 1786341901070,
+      "type": "file"
+    },
+    {
+      "path": "iam_here_flutter_secret.env",
+      "accessCount": 4,
+      "lastAccessed": 1786342428991,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 4,
+      "lastAccessed": 1786342602892,
+      "type": "directory"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 3,
+      "lastAccessed": 1785847699910,
+      "type": "file"
+    },
+    {
+      "path": "remoteconfig.template.json",
+      "accessCount": 3,
+      "lastAccessed": 1785849818990,
+      "type": "file"
+    },
+    {
+      "path": "lib\\integration\\firebase\\firebase_service.dart",
+      "accessCount": 3,
+      "lastAccessed": 1786341916887,
+      "type": "file"
+    },
+    {
+      "path": "lib\\shell\\bridge\\bridge_handler_registry.dart",
+      "accessCount": 3,
+      "lastAccessed": 1786342611763,
+      "type": "directory"
     },
     {
       "path": "lib\\feature\\record\\view_model\\notification_view_model.dart",
@@ -162,6 +278,54 @@
       "accessCount": 2,
       "lastAccessed": 1782913006255,
       "type": "file"
+    },
+    {
+      "path": "lib\\shell\\web_url_resolver.dart",
+      "accessCount": 2,
+      "lastAccessed": 1785847967219,
+      "type": "file"
+    },
+    {
+      "path": "lib\\integration\\firebase\\firebase_remote_service.dart",
+      "accessCount": 2,
+      "lastAccessed": 1785849883292,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\geofence\\service\\fcm_arrival_service.dart",
+      "accessCount": 2,
+      "lastAccessed": 1785851727846,
+      "type": "file"
+    },
+    {
+      "path": "lib\\firebase_options.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786341847438,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\auth\\service\\google_auth_service.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786341893565,
+      "type": "file"
+    },
+    {
+      "path": "lib\\feature\\geofence\\background\\geofence_background_callback.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786341908553,
+      "type": "file"
+    },
+    {
+      "path": "test\\shell\\bridge\\geofence_device_bridge_handlers_test.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786342615902,
+      "type": "file"
+    },
+    {
+      "path": "test",
+      "accessCount": 2,
+      "lastAccessed": 1786342703334,
+      "type": "directory"
     },
     {
       "path": "lib\\feature\\record\\view\\record_send_history_section.dart",
@@ -230,15 +394,93 @@
       "type": "file"
     },
     {
-      "path": "lib\\feature\\geofence\\background\\geofence_background_runtime.dart",
+      "path": "playstore_description.md",
       "accessCount": 1,
-      "lastAccessed": 1782913542312,
+      "lastAccessed": 1782980462677,
       "type": "file"
     },
     {
-      "path": "lib\\feature\\geofence\\background\\geofence_background_callback.dart",
+      "path": "infra\\aws\\web-cache-policies.yml",
       "accessCount": 1,
-      "lastAccessed": 1782913542888,
+      "lastAccessed": 1785732525125,
+      "type": "file"
+    },
+    {
+      "path": "web\\src\\api\\use-api-client.ts",
+      "accessCount": 1,
+      "lastAccessed": 1785732568765,
+      "type": "file"
+    },
+    {
+      "path": "android\\key.properties",
+      "accessCount": 1,
+      "lastAccessed": 1785837191730,
+      "type": "file"
+    },
+    {
+      "path": "firebase.json",
+      "accessCount": 1,
+      "lastAccessed": 1785847393827,
+      "type": "file"
+    },
+    {
+      "path": "lib\\common\\config\\app_origin.dart",
+      "accessCount": 1,
+      "lastAccessed": 1785847914164,
+      "type": "file"
+    },
+    {
+      "path": "web\\src",
+      "accessCount": 1,
+      "lastAccessed": 1786341333676,
+      "type": "directory"
+    },
+    {
+      "path": "web\\src\\app",
+      "accessCount": 1,
+      "lastAccessed": 1786341334112,
+      "type": "directory"
+    },
+    {
+      "path": "lib",
+      "accessCount": 1,
+      "lastAccessed": 1786341719201,
+      "type": "directory"
+    },
+    {
+      "path": "pubspec.yaml",
+      "accessCount": 1,
+      "lastAccessed": 1786341736831,
+      "type": "directory"
+    },
+    {
+      "path": "lib\\common\\util\\app_logger.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786341822166,
+      "type": "file"
+    },
+    {
+      "path": "lib\\common\\config\\app_env.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786341833487,
+      "type": "file"
+    },
+    {
+      "path": "iam_here_flutter_secret.env.example",
+      "accessCount": 1,
+      "lastAccessed": 1786341926349,
+      "type": "file"
+    },
+    {
+      "path": "lib\\shell\\bridge\\geofence_device_bridge_handlers.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786342584767,
+      "type": "file"
+    },
+    {
+      "path": "test\\shell\\bridge\\geofence_address_bridge_test.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786342707762,
       "type": "file"
     }
   ],

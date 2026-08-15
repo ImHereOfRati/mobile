@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:iamhere/common/config/app_env.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/firebase_options.dart';
 
 import 'firebase_cloud_message_service.dart';
@@ -15,6 +19,7 @@ class FirebaseService {
   late final FirebaseCloudMessageService fcmService;
 
   Future<void> initialize() async {
+    await AppEnv.ensureLoaded();
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -24,12 +29,26 @@ class FirebaseService {
     remoteConfig = FirebaseRemoteService();
 
     await crashlyticsService.initialize();
-    await fcmService.initialize();
+    // Neither notification permission nor remote config should block the
+    // first Flutter frame. Both have safe local fallbacks and finish in the
+    // background after Firebase itself is ready.
+    unawaited(_initializeFcmInBackground());
+    unawaited(_initializeRemoteConfigInBackground());
+  }
+
+  Future<void> _initializeFcmInBackground() async {
+    try {
+      await fcmService.initialize();
+    } catch (error, stack) {
+      AppLogger.error('Firebase Messaging initialization failed', error, stack);
+    }
+  }
+
+  Future<void> _initializeRemoteConfigInBackground() async {
     try {
       await remoteConfig.initialize();
     } catch (_) {
-      // Remote Config is an optional rollout source. Callers use build-time
-      // fallbacks when the latest values cannot be fetched.
+      // Remote Config is optional; callers use build-time fallbacks.
     }
   }
 }

@@ -118,40 +118,60 @@ export function GeofenceListScreen() {
           <h1 id="geofence-list-title">{t("geofence.list.title")}</h1>
           <p>{t("geofence.list.description")}</p>
         </div>
-        <Button onClick={() => navigate("/geofence/message")}>
-          {t("geofence.list.add")}
-        </Button>
       </header>
 
       <div className="feature-page__status-grid">
         <div className="feature-page__status-card">
-          <span>{t("geofence.list.locationService")}</span>
-          <strong>
-            {locationEnabled === null
-              ? t("common.loadingShort")
-              : locationEnabled
-                ? t("common.enabled")
-                : t("common.disabled")}
-          </strong>
+          <StatusIcon kind="location" />
+          <div>
+            <span>{t("geofence.list.locationService")}</span>
+            <strong
+              className={
+                locationEnabled === false ? "status-needs-action" : ""
+              }
+            >
+              {locationEnabled === null
+                ? t("common.loadingShort")
+                : locationEnabled
+                  ? t("common.enabled")
+                  : t("common.disabled")}
+            </strong>
+          </div>
         </div>
         <div className="feature-page__status-card">
-          <span>{t("geofence.list.autoSend")}</span>
-          <strong>
-            {readiness === null
-              ? t("common.loadingShort")
-              : readiness.ready
-                ? t("geofence.list.ready")
-                : t("geofence.list.needsSetup", {
-                    count: readiness.missing.length,
-                  })}
-          </strong>
+          <StatusIcon kind="auto-send" />
+          <div>
+            <span>{t("geofence.list.autoSend")}</span>
+            <strong>
+            {readiness === null ? (
+              t("common.loadingShort")
+            ) : readiness.ready ? (
+              t("geofence.list.ready")
+            ) : (
+              <>
+                <span
+                  className={
+                    readiness.missing.length > 0
+                      ? "auto-send-missing-count"
+                      : undefined
+                  }
+                >
+                  {readiness.missing.length}개
+                </span>{" "}
+                설정 필요
+              </>
+            )}
+            </strong>
+          </div>
         </div>
       </div>
 
       {readiness !== null && !readiness.ready ? (
         <div className="feature-page__banner" role="status">
           {t("geofence.list.permissionWarning")}{" "}
-          <Link to="/setting">{t("geofence.list.openPermission")}</Link>
+          <Link to="/auto-send-readiness">
+            {t("geofence.list.openPermission")}
+          </Link>
         </div>
       ) : null}
       {platform === "ios" && items !== null ? (
@@ -191,7 +211,6 @@ export function GeofenceListScreen() {
               titleAs="h2"
               description={item.address}
               detail={formatGeofenceCondition(item)}
-              meta={t(`geofence.repeat.${item.repeatType}`)}
               status={
                 item.awaitingDeparture
                   ? t("geofence.list.awaitingDeparture")
@@ -266,6 +285,27 @@ export function GeofenceListScreen() {
         </div>
       </BottomSheet>
     </section>
+  );
+}
+
+function StatusIcon({ kind }: { kind: "location" | "auto-send" }) {
+  return (
+    <span
+      className={`feature-page__status-icon feature-page__status-icon--${kind}`}
+      aria-hidden="true"
+    >
+      {kind === "location" ? (
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" />
+          <circle cx="12" cy="9" r="2.25" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M12 3.5 19 6v5.2c0 4.2-2.8 7.7-7 9.3-4.2-1.6-7-5.1-7-9.3V6l7-2.5Z" />
+          <path d="m8.8 12 2.1 2.1 4.4-4.4" />
+        </svg>
+      )}
+    </span>
   );
 }
 

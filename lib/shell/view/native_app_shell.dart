@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iamhere/shell/shell_theme.dart';
 
 enum NativeShellTab { geofence, friend, record, setting }
 
@@ -104,16 +105,9 @@ class NativeAppShell extends StatelessWidget {
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: page.showBackButton
-            ? IconButton(
-                tooltip: '뒤로',
-                onPressed: onBack,
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
-              )
-            : null,
-        titleSpacing: page.showBackButton ? 0 : 20,
+        titleSpacing: 20,
         title: Text(
-          page.title,
+          'ImHere',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
@@ -122,6 +116,15 @@ class NativeAppShell extends StatelessWidget {
             letterSpacing: -0.5,
           ),
         ),
+        actions: page.showBackButton
+            ? [
+                IconButton(
+                  tooltip: 'Back',
+                  onPressed: onBack,
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                ),
+              ]
+            : null,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Divider(
@@ -153,14 +156,8 @@ class _NativeBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final dividerColor = Theme.of(context).dividerColor;
-
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(top: BorderSide(color: dividerColor)),
-      ),
+      decoration: const BoxDecoration(color: Colors.white),
       child: SafeArea(
         top: false,
         child: SizedBox(
@@ -198,7 +195,7 @@ class _NativeBottomNavigation extends StatelessWidget {
                         dimension: 48,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: Color(0xFF0071E3),
+                            color: ShellTheme.primaryBlue,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -244,7 +241,10 @@ class _NativeBottomNavigation extends StatelessWidget {
     required IconData selectedIcon,
   }) {
     final selected = tab == selectedTab;
-    final color = selected ? const Color(0xFF0071E3) : const Color(0xFF6B7684);
+    final mutedColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.56);
+    final color = selected ? ShellTheme.primaryBlue : mutedColor;
 
     return Expanded(
       child: Semantics(

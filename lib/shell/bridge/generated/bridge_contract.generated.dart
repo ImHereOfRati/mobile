@@ -33,6 +33,9 @@ const bridgeMethodNames = <String>[
   'deleteAllRecords',
   'deleteAllNotifications',
   'getDeviceContacts',
+  'pickDeviceContact',
+  'updateDeviceContact',
+  'deleteDeviceContact',
   'getCurrentPosition',
   'getLocationServiceStatus',
   'getAppInfo',
@@ -240,6 +243,7 @@ enum PermissionType {
   locationAlways,
   notification,
   batteryOptimization,
+  contacts,
 }
 
 class PermissionResult {
@@ -841,6 +845,50 @@ class DeviceContact {
       'id': id,
       'displayName': displayName,
       'phoneNumbers': phoneNumbers.map((item) => item).toList(),
+    };
+  }
+}
+
+class UpdateDeviceContact {
+  const UpdateDeviceContact({
+    required this.id,
+    required this.displayName,
+  });
+
+  final String id;
+  final String displayName;
+
+  factory UpdateDeviceContact.fromJson(Map<String, Object?> json) {
+    return UpdateDeviceContact(
+      id: json['id'] as String,
+      displayName: json['displayName'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'id': id,
+      'displayName': displayName,
+    };
+  }
+}
+
+class DeviceContactId {
+  const DeviceContactId({
+    required this.id,
+  });
+
+  final String id;
+
+  factory DeviceContactId.fromJson(Map<String, Object?> json) {
+    return DeviceContactId(
+      id: json['id'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'id': id,
     };
   }
 }

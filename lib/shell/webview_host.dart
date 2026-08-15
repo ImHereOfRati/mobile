@@ -70,7 +70,9 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
           onPageFinished: (_) => _pageReady(),
           onUrlChange: (change) {
             final url = change.url;
-            if (url != null) _updatePage(url);
+            if (url != null) {
+              _updatePage(url);
+            }
           },
           onWebResourceError: (error) {
             if (error.isForMainFrame == false) return;
@@ -110,17 +112,35 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
     }
   }
 
+  @override
+  void didChangePlatformBrightness() {
+    if (_state != WebViewHostState.ready) return;
+    final brightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    unawaited(
+      _events.themeChanged(brightness == Brightness.dark ? 'dark' : 'light'),
+    );
+  }
+
   Future<void> _load() async {
     if (mounted) setState(() => _state = WebViewHostState.loading);
-    if (!await widget.isOnline()) {
-      if (mounted) setState(() => _state = WebViewHostState.offline);
-      return;
-    }
+    final revealTimer = Timer(const Duration(seconds: 1), _revealWebView);
     try {
+      // Let WebView start the request immediately. A DNS preflight here can
+      // add up to three seconds to every cold start even when the page itself
+      // is reachable. Connectivity is checked only after a real load fails.
       await _controller.loadRequest(widget.initialUrl);
+      _revealWebView();
     } catch (_) {
       await _handleLoadFailure();
+    } finally {
+      revealTimer.cancel();
     }
+  }
+
+  void _revealWebView() {
+    if (!mounted || _state != WebViewHostState.loading) return;
+    setState(() => _state = WebViewHostState.ready);
   }
 
   void _pageReady() {

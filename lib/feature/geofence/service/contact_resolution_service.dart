@@ -36,7 +36,9 @@ class ContactResolutionService implements GeofenceRecipientResolver {
         return [];
       }
 
-      final allContacts = await _contactRepository.findAll();
+      final allContacts = (await _contactRepository.findAll())
+          .where((contact) => !contact.hidden)
+          .toList();
       final recipients = allContacts
           .where((contact) => contactIds.contains(contact.id))
           .toList();

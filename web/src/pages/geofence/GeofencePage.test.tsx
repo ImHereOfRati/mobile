@@ -1,7 +1,7 @@
 import { createMockBridge } from "@imhere/bridge-contract";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axe from "axe-core";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
 import { BridgeProvider } from "@/bridge/BridgeProvider";
@@ -16,7 +16,7 @@ const geofence = {
   longitude: 126.978,
   radiusMeters: 500,
   eventType: "both" as const,
-  repeatType: "weekday" as const,
+  repeatType: "none" as const,
   message: "회사에 도착했습니다.",
   active: true,
   awaitingDeparture: false,
@@ -56,7 +56,6 @@ describe("GeofencePage", () => {
     const { controller } = renderList();
     expect(await screen.findByRole("heading", { name: "회사" })).toBeVisible();
     expect(screen.getByText("500m 경계 진입·이탈 시")).toBeVisible();
-    expect(screen.getByText("평일")).toBeVisible();
 
     fireEvent.click(screen.getByRole("checkbox"));
     await waitFor(() =>
@@ -85,5 +84,40 @@ describe("GeofencePage", () => {
     expect(
       screen.getByRole("dialog", { name: "알림 장소를 삭제할까요?" }),
     ).toBeVisible();
+  });
+
+  it("redirects to permission setup before loading the place form", async () => {
+    const controller = createMockBridge({
+      getAutoSendReadiness: async () => ({
+        ready: false,
+        locationAlways: false,
+        locationService: true,
+        notification: true,
+        batteryOptimization: true,
+        missing: ["locationAlways"],
+      }),
+    });
+
+    render(
+      <BridgeProvider bridge={controller.bridge}>
+        <MemoryRouter initialEntries={["/geofence/message"]}>
+          <Routes>
+            <Route
+              path="/geofence/message"
+              element={<GeofencePage screen="message" />}
+            />
+            <Route
+              path="/auto-send-readiness"
+              element={<p>permission-guide</p>}
+            />
+          </Routes>
+        </MemoryRouter>
+      </BridgeProvider>,
+    );
+
+    expect(await screen.findByText("permission-guide")).toBeVisible();
+    expect(
+      controller.calls.some((call) => call.method === "getCurrentPosition"),
+    ).toBe(false);
   });
 });

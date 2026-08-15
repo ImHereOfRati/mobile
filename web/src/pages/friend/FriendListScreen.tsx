@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
+import { ApiHttpError } from "@/api/api-client";
 import { useApiClient } from "@/api/use-api-client";
 import { useBridge } from "@/bridge/bridge-context";
 import { BottomSheet, Button, FlatListRow, MoreButton } from "@/design-system";
@@ -25,6 +26,7 @@ export function FriendListScreen({
 }: FriendListScreenProps) {
   const api = useApiClient();
   const bridge = useBridge();
+  const navigate = useNavigate();
   const [relationships, setRelationships] = useState<Friendship[]>([]);
   const [contacts, setContacts] = useState<
     Awaited<ReturnType<typeof bridge.getDeviceContacts>>
@@ -36,6 +38,9 @@ export function FriendListScreen({
   const [finderOpen, setFinderOpen] = useState(finderInitiallyOpen);
   const [actionTarget, setActionTarget] = useState<
     Extract<UnifiedFriend, { kind: "server" }> | undefined
+  >();
+  const [contactTarget, setContactTarget] = useState<
+    Extract<UnifiedFriend, { kind: "device" }> | undefined
   >();
   const [actionDetail, setActionDetail] = useState<Friendship>();
 
@@ -55,20 +60,53 @@ export function FriendListScreen({
     }
   };
 
-  const load = async (nextPage: number, append = false) => {
+  const load = async (nextPage: number, append = false, attempt = 0) => {
     setError("");
     try {
-      const [friendPage, deviceContacts] = await Promise.all([
-        friendService.list(api, nextPage),
-        nextPage === 0 ? bridge.getDeviceContacts() : Promise.resolve(contacts),
+      if (nextPage === 0 && attempt === 0) {
+        await bridge.getAuthState().catch(() => undefined);
+      }
+      const [friendResult, contactsResult] = await Promise.allSettled([
+        Promise.resolve().then(() => friendService.list(api, nextPage)),
+        nextPage === 0
+          ? Promise.resolve().then(() => bridge.getDeviceContacts())
+          : Promise.resolve(contacts),
       ]);
+      if (friendResult.status === "rejected") {
+        // Some API deployments use 404 for an account with no friendships.
+        // Treat that response as an empty list instead of a load failure.
+        if (
+          !(friendResult.reason instanceof ApiHttpError) ||
+          friendResult.reason.status !== 404
+        ) {
+          throw friendResult.reason;
+        }
+      }
+      const friendPage =
+        friendResult.status === "fulfilled"
+          ? {
+              content: Array.isArray(friendResult.value?.content)
+                ? friendResult.value.content
+                : [],
+              hasNext: friendResult.value?.hasNext === true,
+            }
+          : { content: [], hasNext: false };
       setRelationships((current) =>
         append ? [...current, ...friendPage.content] : friendPage.content,
       );
-      if (nextPage === 0) setContacts(deviceContacts);
+      if (nextPage === 0 && contactsResult.status === "fulfilled") {
+        setContacts(contactsResult.value);
+      }
       setPage(nextPage);
       setHasNext(friendPage.hasNext);
     } catch {
+      if (attempt < 1) {
+        // On Android the WebView can mount just before Flutter finishes
+        // restoring the access token. Retry once so the first friend screen
+        // load does not turn that short bridge/auth race into a hard error.
+        await new Promise((resolve) => window.setTimeout(resolve, 1000));
+        return load(nextPage, append, attempt + 1);
+      }
       setError("친구 목록을 불러오지 못했습니다.");
     } finally {
       setLoading(false);
@@ -124,8 +162,6 @@ export function FriendListScreen({
         );
         return;
       }
-      const label = action === "delete" ? "삭제" : "차단";
-      if (!window.confirm(`${item.displayName}님을 ${label}할까요?`)) return;
       await (action === "delete"
         ? friendService.delete(api, item.relationship.id)
         : friendService.block(api, item.relationship.friend.id));
@@ -137,6 +173,24 @@ export function FriendListScreen({
     }
   };
 
+  const mutateDeviceContact = async (
+    item: Extract<UnifiedFriend, { kind: "device" }>,
+    action: "alias" | "delete",
+  ) => {
+    try {
+      if (action === "alias") {
+        navigate(`/friend/device-contact/${item.contact.id}/edit`);
+        return;
+      }
+      await bridge.deleteDeviceContact({ id: item.contact.id });
+      setContacts((current) =>
+        current.filter((contact) => contact.id !== item.contact.id),
+      );
+    } catch {
+      setError("기기 연락처를 변경하지 못했습니다.");
+    }
+  };
+
   return (
     <main className="feature-page" data-clarity-mask="true">
       <header className="feature-page__header">
@@ -145,18 +199,18 @@ export function FriendListScreen({
           <h1>친구</h1>
           <p>ImHere 친구와 기기 연락처를 한곳에서 확인하세요.</p>
         </div>
-        <Button onClick={() => setFinderOpen(true)}>새로운 친구 찾기</Button>
       </header>
 
       <nav aria-label="친구 관리" className="feature-page__actions">
+        <Button onClick={() => setFinderOpen(true)}>친구 추가</Button>
         <Link className="ds-button ds-button--secondary" to="/friend/requests">
-          받은 친구 요청
+          받은 요청
         </Link>
         <Link
           className="ds-button ds-button--secondary"
           to="/friend/restrictions"
         >
-          차단·거절 관리
+          친구 관리
         </Link>
       </nav>
 
@@ -183,6 +237,11 @@ export function FriendListScreen({
                   key={item.id}
                   title={item.displayName}
                   titleAs="h3"
+                  onLongPress={
+                    item.kind === "device"
+                      ? () => setContactTarget(item)
+                      : undefined
+                  }
                   description={`${item.description || "전화번호 없음"} · ${
                     item.kind === "server" ? "ImHere 친구" : "기기 연락처"
                   }`}
@@ -193,7 +252,13 @@ export function FriendListScreen({
                         label={`${item.displayName} 더보기`}
                         onClick={() => void openActions(item)}
                       />
-                    ) : undefined
+                    ) : (
+                      <MoreButton
+                        aria-label={`${item.displayName} 연락처 더보기`}
+                        label={`${item.displayName} 연락처 더보기`}
+                        onClick={() => setContactTarget(item)}
+                      />
+                    )
                   }
                 />
               ))}
@@ -211,7 +276,45 @@ export function FriendListScreen({
         title="친구 찾기"
         onClose={() => setFinderOpen(false)}
       >
-        <FriendFinder />
+        <FriendFinder
+          onContactSelected={(contact) =>
+            setContacts((current) =>
+              current.some((item) => item.id === contact.id)
+                ? current
+                : [...current, contact],
+            )
+          }
+        />
+      </BottomSheet>
+      <BottomSheet
+        open={contactTarget !== undefined}
+        title={contactTarget?.displayName ?? "기기 연락처"}
+        onClose={() => setContactTarget(undefined)}
+      >
+        <div className="feature-page__sheet-actions">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (contactTarget === undefined) return;
+              const target = contactTarget;
+              setContactTarget(undefined);
+              void mutateDeviceContact(target, "alias");
+            }}
+          >
+            닉네임 수정
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (contactTarget === undefined) return;
+              const target = contactTarget;
+              setContactTarget(undefined);
+              void mutateDeviceContact(target, "delete");
+            }}
+          >
+            삭제
+          </Button>
+        </div>
       </BottomSheet>
       <BottomSheet
         open={actionTarget !== undefined}

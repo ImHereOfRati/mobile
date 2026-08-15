@@ -22,4 +22,20 @@ class DeviceContactReader {
       };
     }).toList();
   }
+
+  Future<Map<String, Object?>?> pick() async {
+    final raw = await _channel.invokeMethod<Object?>('pickDeviceContact');
+    if (raw == null) return null;
+    if (raw is! Map) {
+      throw const FormatException('Invalid native contact payload.');
+    }
+    final map = raw.map((key, value) => MapEntry(key.toString(), value));
+    return <String, Object?>{
+      'id': map['id']?.toString() ?? '',
+      'displayName': map['displayName']?.toString() ?? '',
+      'phoneNumbers': (map['phoneNumbers'] as List? ?? const [])
+          .map((value) => value.toString())
+          .toList(),
+    };
+  }
 }

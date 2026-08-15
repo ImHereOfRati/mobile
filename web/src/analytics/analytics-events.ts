@@ -16,7 +16,6 @@ export interface AnalyticsEventMap {
   geofence_saved: {
     event_type: "arrival" | "departure" | "both";
     mode: "create" | "edit";
-    repeat_type: "none" | "daily" | "weekday" | "weekend" | "custom";
   };
   geofence_toggled: {
     active: boolean;

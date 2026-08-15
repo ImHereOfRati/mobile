@@ -73,7 +73,6 @@ describe("AnalyticsClient", () => {
     await client.track("geofence_saved", {
       event_type: "arrival",
       mode: "create",
-      repeat_type: "weekday",
     });
 
     expect(browser.google).toEqual([
@@ -82,7 +81,6 @@ describe("AnalyticsClient", () => {
         parameters: {
           event_type: "arrival",
           mode: "create",
-          repeat_type: "weekday",
         },
       },
     ]);
@@ -95,7 +93,6 @@ describe("AnalyticsClient", () => {
           parameters: {
             event_type: "arrival",
             mode: "create",
-            repeat_type: "weekday",
           },
         },
       ],

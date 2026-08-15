@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:iamhere/common/config/app_env.dart';
 import 'package:iamhere/common/config/app_origin.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_workmanager.dart';
@@ -23,26 +24,28 @@ import 'package:workmanager/workmanager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _initializeBackgroundWork();
+  unawaited(_initializeBackgroundWork());
   _configureSystemChrome();
 
   try {
     final bootstrap = await _initializeAppDependencies();
     runApp(
-      ShellApp(
-        webUrlResolver: WebUrlResolver(
-          loadRemoteUrl: () async => bootstrap.remoteConfig?.webAppUrlOrNull,
+      ProviderScope(
+        child: ShellApp(
+          webUrlResolver: WebUrlResolver(
+            loadRemoteUrl: () async => bootstrap.remoteConfig?.webAppUrlOrNull,
+          ),
+          rpcServer: ShellBridgeFactory.create(),
+          isOnline: hasNetworkConnection,
+          enablePush: bootstrap.firebaseReady,
+          forceUpdate: bootstrap.forceUpdate,
+          onUpdate: bootstrap.storeUrl == null
+              ? null
+              : () => launchUrl(
+                  bootstrap.storeUrl!,
+                  mode: LaunchMode.externalApplication,
+                ),
         ),
-        rpcServer: ShellBridgeFactory.create(),
-        isOnline: hasNetworkConnection,
-        enablePush: bootstrap.firebaseReady,
-        forceUpdate: bootstrap.forceUpdate,
-        onUpdate: bootstrap.storeUrl == null
-            ? null
-            : () => launchUrl(
-                bootstrap.storeUrl!,
-                mode: LaunchMode.externalApplication,
-              ),
       ),
     );
   } catch (error, stack) {
@@ -76,11 +79,7 @@ void _configureSystemChrome() {
 }
 
 Future<_BootstrapResult> _initializeAppDependencies() async {
-  try {
-    await dotenv.load(fileName: 'iam_here_flutter_secret.env');
-  } catch (error) {
-    AppLogger.warning('Environment file could not be loaded: $error');
-  }
+  await AppEnv.ensureLoaded();
 
   FirebaseRemoteService? remoteConfig;
   var firebaseReady = false;
@@ -103,8 +102,8 @@ Future<_BootstrapResult> _initializeAppDependencies() async {
     getIt<FcmTokenService>().startTokenRefreshListener();
   }
 
-  final kakaoKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
-  if (kakaoKey != null && kakaoKey.isNotEmpty) {
+  final kakaoKey = AppEnv.maybe('KAKAO_NATIVE_APP_KEY');
+  if (kakaoKey != null) {
     KakaoSdk.init(nativeAppKey: kakaoKey);
   }
   final packageInfo = await PackageInfo.fromPlatform();

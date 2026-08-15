@@ -83,6 +83,7 @@ describe("NaverLocationPicker", () => {
       address: "서울특별시 중구 세종대로 110",
       latitude: 37.5663,
       longitude: 126.9779,
+      name: "서울시청",
     });
   });
 });

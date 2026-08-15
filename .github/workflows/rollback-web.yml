@@ -59,7 +59,7 @@ jobs:
           RELEASE_SHA: ${{ inputs.release_sha }}
           WEB_PUBLIC_ORIGIN: ${{ vars.WEB_PUBLIC_ORIGIN }}
         run: |
-          release_url="${WEB_PUBLIC_ORIGIN%/}/app/releases/${RELEASE_SHA}/"
+          release_url="${WEB_PUBLIC_ORIGIN%/}/app/releases/${RELEASE_SHA}/index.html"
           echo "url=$release_url" >> "$GITHUB_OUTPUT"
 
       - name: Smoke previous release

@@ -24,6 +24,7 @@ export const PermissionType = s.enum("PermissionType", [
   "locationAlways",
   "notification",
   "batteryOptimization",
+  "contacts",
 ] as const);
 export const PermissionStatus = s.enum("PermissionStatus", [
   "granted",
@@ -235,6 +236,15 @@ export const DeviceContact = s.object("DeviceContact", {
   phoneNumbers: s.array(s.string),
 });
 
+export const UpdateDeviceContact = s.object("UpdateDeviceContact", {
+  id: s.string,
+  displayName: s.string,
+});
+
+export const DeviceContactId = s.object("DeviceContactId", {
+  id: s.string,
+});
+
 export const Position = s.object("Position", {
   latitude: s.number,
   longitude: s.number,
@@ -334,6 +344,9 @@ export const bridgeContract = {
     deleteAllRecords: method(null, null),
     deleteAllNotifications: method(null, null),
     getDeviceContacts: method(null, s.array(DeviceContact)),
+    pickDeviceContact: method(null, s.nullable(DeviceContact)),
+    updateDeviceContact: method(UpdateDeviceContact, DeviceContact),
+    deleteDeviceContact: method(DeviceContactId, null),
     getCurrentPosition: method(null, Position),
     getLocationServiceStatus: method(null, LocationServiceStatus),
     getAppInfo: method(null, AppInfo),

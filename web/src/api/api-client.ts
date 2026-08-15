@@ -37,7 +37,7 @@ export class ApiClient {
   constructor(
     private readonly baseUrl: string,
     private readonly tokens: AccessTokenProvider,
-    private readonly fetchImpl: Fetch = globalThis.fetch,
+    private readonly fetchImpl: Fetch = globalThis.fetch.bind(globalThis),
   ) {}
 
   async request<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
@@ -58,7 +58,12 @@ export class ApiClient {
     signal: AbortSignal,
     retried: boolean,
   ): Promise<T> {
-    const token = await this.tokens.getAccessToken();
+    // Native WebView bridges can briefly be unavailable while Flutter
+    // restores its session. A missing token must not prevent the request from
+    // being issued; the server response can still be handled normally.
+    const token = await this.tokens
+      .getAccessToken()
+      .catch(() => ({ accessToken: null }));
     const response = await this.fetchImpl(
       buildApiUrl(this.baseUrl, path, options.apiVersion ?? 1),
       {

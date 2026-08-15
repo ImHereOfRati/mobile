@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
+import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
@@ -31,6 +33,7 @@ class ShellBridgeFactory {
   static BridgeRpcServer create() {
     final tokenStorage = getIt<TokenStorageService>();
     final authCoordinator = getIt<AuthLoginCoordinator>();
+    final authInvalidationNotifier = getIt<AuthInvalidationNotifier>();
     final auth = AuthBridgeHandlers(
       readAccessToken: tokenStorage.getAccessToken,
       readUserStatus: tokenStorage.getUserStatus,
@@ -46,7 +49,11 @@ class ShellBridgeFactory {
       signInWithGoogle: () =>
           _loginAndSyncFcm(authCoordinator, authCoordinator.handleGoogleLogin),
       activateWithTerms: getIt<AuthService>().activateWithTerms,
-      signOut: tokenStorage.deleteAllTokens,
+      signOut: () async {
+        await tokenStorage.deleteAllTokens();
+        authInvalidationNotifier.requestInvalidation();
+        await SystemNavigator.pop();
+      },
       withdraw: () async {
         final response = await getIt<Dio>().delete<void>(
           '/api/users/my/withdrawal',
@@ -56,6 +63,8 @@ class ShellBridgeFactory {
           throw StateError('Account withdrawal failed.');
         }
         await tokenStorage.deleteAllTokens();
+        authInvalidationNotifier.requestInvalidation();
+        await SystemNavigator.pop();
       },
     );
     final permissions = PermissionBridgeHandlers(
@@ -64,16 +73,20 @@ class ShellBridgeFactory {
       batteryOptimization: getIt<PermissionServiceInterface>(
         instanceName: 'batteryOptimization',
       ),
+      contacts: getIt<PermissionServiceInterface>(instanceName: 'friend'),
+    );
+    final deviceContacts = DeviceContactSyncService(
+      const DeviceContactReader(),
+      getIt<ContactLocalRepository>(),
     );
     final geofenceAndDevice = GeofenceDeviceBridgeHandlers(
       geofences: getIt<GeofenceLocalRepository>(),
+      contacts: getIt<ContactLocalRepository>(),
       recipients: getIt<GeofenceServerRecipientLocalRepository>(),
       records: getIt<GeofenceRecordLocalRepository>(),
       notifications: getIt<NotificationLocalRepository>(),
-      loadDeviceContacts: DeviceContactSyncService(
-        const DeviceContactReader(),
-        getIt<ContactLocalRepository>(),
-      ).load,
+      loadDeviceContacts: deviceContacts.load,
+      loadDeviceContactPicker: deviceContacts.pick,
       notifyServerRecipients:
           ({required receiverUserIds, required location}) async {
             await getIt<FcmArrivalService>().sendGeofenceNotifications(

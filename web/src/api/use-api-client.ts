@@ -17,7 +17,7 @@ export function useApiClient() {
         import.meta.env.MODE === "development" &&
           window.ImHereBridge === undefined
           ? browserPreviewFetch
-          : globalThis.fetch,
+          : globalThis.fetch.bind(globalThis),
       ),
     [bridge],
   );

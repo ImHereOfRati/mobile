@@ -132,6 +132,8 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const titleId = useId();
   const sheetRef = useRef<HTMLElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -154,7 +156,7 @@ export function BottomSheet({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab") return;
@@ -185,7 +187,7 @@ export function BottomSheet({
       document.body.style.overflow = previousOverflow;
       previousFocus?.focus();
     };
-  }, [onClose, open]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -388,6 +390,7 @@ interface FlatListRowProps {
   element?: "article" | "li";
   meta?: ReactNode;
   onClick?: () => void;
+  onLongPress?: () => void;
   status?: ReactNode;
   title: ReactNode;
   titleAs?: "strong" | "h2" | "h3";
@@ -401,12 +404,29 @@ export function FlatListRow({
   element = "article",
   meta,
   onClick,
+  onLongPress,
   status,
   title,
   titleAs = "strong",
 }: FlatListRowProps) {
   const Root = element as ElementType;
   const Title = titleAs as ElementType;
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const clearLongPress = () => {
+    if (longPressTimer.current === undefined) return;
+    clearTimeout(longPressTimer.current);
+    longPressTimer.current = undefined;
+  };
+  const startLongPress = () => {
+    if (onLongPress === undefined) return;
+    clearLongPress();
+    longPressTimer.current = setTimeout(() => {
+      longPressTimer.current = undefined;
+      onLongPress();
+    }, 550);
+  };
   const copy = (
     <>
       <Title>{title}</Title>
@@ -420,7 +440,19 @@ export function FlatListRow({
   );
 
   return (
-    <Root className="ds-list-row">
+    <Root
+      className="ds-list-row"
+      onPointerDown={startLongPress}
+      onPointerUp={clearLongPress}
+      onPointerCancel={clearLongPress}
+      onPointerLeave={clearLongPress}
+      onContextMenu={(event: React.MouseEvent) => {
+        if (onLongPress === undefined) return;
+        event.preventDefault();
+        clearLongPress();
+        onLongPress();
+      }}
+    >
       {onClick === undefined ? (
         <div className="ds-list-row__main">{copy}</div>
       ) : (

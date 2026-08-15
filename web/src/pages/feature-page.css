@@ -4,7 +4,7 @@
   width: 100%;
   min-height: 100dvh;
   gap: var(--space-6);
-  padding: max(var(--space-5), env(safe-area-inset-top)) var(--space-5)
+  padding: var(--space-4) var(--space-5)
     max(var(--space-12), env(safe-area-inset-bottom));
   color: var(--color-text);
   background: var(--color-background);
@@ -26,7 +26,7 @@
 }
 
 .feature-page__header {
-  min-height: var(--touch-target-min);
+  min-height: 0;
 }
 
 .feature-page__header h1 {
@@ -74,10 +74,43 @@
 
 .feature-page__status-card {
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   min-height: 4.25rem;
-  gap: var(--space-1);
+  gap: var(--space-3);
+  align-items: center;
   align-content: center;
   padding: var(--space-3) 0;
+}
+
+.feature-page__status-card > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.feature-page__status-icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-md);
+  place-items: center;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.feature-page__status-icon--auto-send {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.feature-page__status-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .feature-page__status-card + .feature-page__status-card {
@@ -90,6 +123,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.auto-send-missing-count {
+  color: var(--color-error);
+  font-weight: 800;
+}
+
+.status-needs-action {
+  color: var(--color-error) !important;
 }
 
 .feature-page__status-card span {
@@ -551,6 +593,10 @@
   padding-block: 0;
 }
 
+.feature-page__actions .ds-button {
+  text-decoration: none;
+}
+
 @media (min-width: 48rem) {
   .feature-page {
     width: min(100%, 42rem);
@@ -579,9 +625,9 @@
 
 html[data-native-shell="true"] .feature-page {
   min-height: 100%;
-  padding-top: var(--space-4);
+  padding-top: var(--space-2);
 }
 
-html[data-native-shell="true"] .feature-page__header > .ds-button {
+html[data-native-shell="true"] .feature-page__header {
   display: none;
 }

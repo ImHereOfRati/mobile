@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
+import 'package:iamhere/common/config/app_env.dart';
 import 'package:iamhere/common/config/app_origin.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/firebase_options.dart';
@@ -72,6 +73,8 @@ void _initializeFlutterRuntime() {
 
 Future<void> _initializeFirebaseIfNeeded() async {
   if (Firebase.apps.isEmpty) {
+    // dotenv 상태는 아이솔레이트별로 분리되므로 백그라운드에서도 직접 로드한다.
+    await AppEnv.ensureLoaded();
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

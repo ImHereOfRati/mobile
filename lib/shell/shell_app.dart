@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/auth/service/auth_session_sync_service.dart';
+import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
+import 'package:iamhere/feature/auth/service/auth_service.dart';
+import 'package:iamhere/feature/terms/service/terms_service.dart';
 import 'package:iamhere/feature/auth/presentation/auth_flow_app.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
@@ -54,6 +58,7 @@ class _ShellAppState extends State<ShellApp> {
   void initState() {
     super.initState();
     _initialUrl = _prepareServiceUrl();
+    getIt<AuthInvalidationNotifier>().addListener(_handleAuthInvalidation);
     if (widget.enablePush) {
       setupShellMessageTapHandler(_pushPaths.add);
     }
@@ -76,6 +81,7 @@ class _ShellAppState extends State<ShellApp> {
   @override
   void dispose() {
     _stopDeliveryRetryTimer();
+    getIt<AuthInvalidationNotifier>().removeListener(_handleAuthInvalidation);
     _lifecycleListener.dispose();
     unawaited(_pushPaths.close());
     super.dispose();
@@ -128,13 +134,30 @@ class _ShellAppState extends State<ShellApp> {
   }
 
   void _retryBootstrap() {
-    setState(() => _initialUrl = _prepareServiceUrl());
+    _reloadInitialUrl();
+  }
+
+  void _handleAuthInvalidation() {
+    if (!mounted) return;
+    _authInitialLocation = '/auth';
+    final initialUrl = Future<Uri?>.value(null);
+    setState(() {
+      _initialUrl = initialUrl;
+    });
+  }
+
+  void _reloadInitialUrl() {
+    if (!mounted) return;
+    final initialUrl = _prepareServiceUrl();
+    setState(() {
+      _initialUrl = initialUrl;
+    });
   }
 
   Future<Uri?> _prepareServiceUrl() async {
-    // Authentication and onboarding are native. The WebView is created only
-    // after an active session exists, so it can remain a service-only shell.
-    await _syncAuthSession();
+    // Resolve the local auth snapshot first so the first screen is not blocked
+    // by the active-session network check. Auth sync continues in the
+    // background from the lifecycle/post-frame hooks.
     final storage = getIt<TokenStorageService>();
     final token = await storage.getAccessToken();
     final status = (await storage.getUserStatus())?.toUpperCase();
@@ -181,9 +204,12 @@ class _ShellAppState extends State<ShellApp> {
           }
           if (url == null) {
             return AuthFlowApp(
+              key: ValueKey(_authInitialLocation),
               initialLocation: _authInitialLocation,
-              onAuthenticated: () =>
-                  setState(() => _initialUrl = _prepareServiceUrl()),
+              authLoginCoordinator: getIt<AuthLoginCoordinator>(),
+              authService: getIt<AuthService>(),
+              termsService: getIt<TermsService>(),
+              onAuthenticated: _reloadInitialUrl,
             );
           }
           return WebViewHost(

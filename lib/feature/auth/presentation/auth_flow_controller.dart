@@ -4,7 +4,6 @@ import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/oauth_provider.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/terms/service/terms_service.dart';
-import 'package:iamhere/infrastructure/di/di_setup.dart';
 
 enum AuthFlowStatus { idle, loading, authenticated, pending, failure }
 
@@ -17,16 +16,27 @@ class AuthFlowState {
   const AuthFlowState.idle() : this(AuthFlowStatus.idle);
 }
 
+class AuthFlowDependencies {
+  final AuthLoginCoordinator coordinator;
+  final AuthService authService;
+
+  const AuthFlowDependencies(this.coordinator, this.authService);
+}
+
 final authFlowControllerProvider =
-    StateNotifierProvider<AuthFlowController, AuthFlowState>(
-      (ref) => AuthFlowController(
-        getIt<AuthLoginCoordinator>(),
-        getIt<AuthService>(),
+    StateNotifierProvider.family<
+      AuthFlowController,
+      AuthFlowState,
+      AuthFlowDependencies
+    >(
+      (ref, dependencies) => AuthFlowController(
+        dependencies.coordinator,
+        dependencies.authService,
       ),
     );
 
-final activeTermsProvider = FutureProvider<List<Term>>(
-  (ref) => getIt<TermsService>().loadActiveTerms(),
+final activeTermsProvider = FutureProvider.family<List<Term>, TermsService>(
+  (ref, termsService) => termsService.loadActiveTerms(),
 );
 
 class AuthFlowController extends StateNotifier<AuthFlowState> {
@@ -56,18 +66,27 @@ class AuthFlowController extends StateNotifier<AuthFlowState> {
     );
   }
 
-  Future<void> acceptTerms(Iterable<Term> terms, Set<int> agreedIds) async {
+  Future<bool> acceptTerms(Iterable<Term> terms, Set<int> agreedIds) async {
     state = const AuthFlowState(AuthFlowStatus.loading);
-    await _authService.activateWithTerms(
-      terms
-          .map(
-            (term) => <String, Object?>{
-              'id': term.id,
-              'agreed': agreedIds.contains(term.id),
-            },
-          )
-          .toList(growable: false),
-    );
-    state = const AuthFlowState(AuthFlowStatus.authenticated);
+    try {
+      await _authService.activateWithTerms(
+        terms
+            .map(
+              (term) => <String, Object?>{
+                'id': term.id,
+                'agreed': agreedIds.contains(term.id),
+              },
+            )
+            .toList(growable: false),
+      );
+      state = const AuthFlowState(AuthFlowStatus.authenticated);
+      return true;
+    } catch (error) {
+      state = AuthFlowState(
+        AuthFlowStatus.failure,
+        errorMessage: error.toString(),
+      );
+      return false;
+    }
   }
 }

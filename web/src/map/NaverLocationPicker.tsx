@@ -10,6 +10,7 @@ export interface MapSelection {
   address?: string;
   latitude: number;
   longitude: number;
+  name?: string;
   radiusMeters: 250 | 500 | 1000;
 }
 
@@ -34,6 +35,7 @@ export function NaverLocationPicker({
   value,
 }: NaverLocationPickerProps) {
   const elementRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<NaverMap | undefined>(undefined);
   const markerRef = useRef<NaverMarker | undefined>(undefined);
   const circleRef = useRef<NaverCircle | undefined>(undefined);
   const valueRef = useRef(value);
@@ -72,7 +74,11 @@ export function NaverLocationPicker({
           currentValue.latitude,
           currentValue.longitude,
         );
-        const map = new maps.Map(element, { center, zoom: 16 });
+        const primaryColor =
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--color-primary")
+            .trim() || "blue";
+        const map = new maps.Map(element, { center, zoom: 14 });
         const marker = new maps.Marker({
           map,
           position: center,
@@ -82,11 +88,15 @@ export function NaverLocationPicker({
           map,
           center,
           radius: currentValue.radiusMeters,
-          strokeColor: "var(--color-primary)",
-          fillColor: "var(--color-primary-soft)",
+          strokeColor: primaryColor,
+          strokeOpacity: 1,
+          strokeWeight: 5,
+          fillColor: primaryColor,
+          fillOpacity: 0,
         });
         markerRef.current = marker;
         circleRef.current = circle;
+        mapRef.current = map;
 
         const select = (coord: NaverCoordinate) => {
           const next = {
@@ -112,6 +122,7 @@ export function NaverLocationPicker({
     return () => {
       cancelled = true;
       const maps = window.naver?.maps;
+      mapRef.current = undefined;
       if (maps != null && mapClickListener !== undefined) {
         maps.Event.removeListener(mapClickListener);
       }
@@ -142,32 +153,63 @@ export function NaverLocationPicker({
   }
 
   function selectPlace(place: PlaceSearchResult) {
+    const maps = window.naver?.maps;
+    const center = maps?.LatLng
+      ? new maps.LatLng(place.latitude, place.longitude)
+      : undefined;
+    if (center !== undefined) {
+      mapRef.current?.setCenter(center);
+      markerRef.current?.setPosition(center);
+      circleRef.current?.setCenter(center);
+    }
+    setResults([]);
     onChange({
       ...value,
       address: place.address,
       latitude: place.latitude,
       longitude: place.longitude,
+      name: value.name?.trim() || place.title,
     });
   }
 
   return (
     <section className="location-picker" aria-label="장소와 반경 선택">
-      <div className="location-picker__search">
+      <form
+        className="location-picker__search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submitSearch();
+        }}
+      >
         <TextField
           label="장소 검색"
           placeholder="주소 또는 장소명을 입력하세요"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter") return;
-            event.preventDefault();
-            void submitSearch();
-          }}
         />
-        <Button loading={searching} onClick={() => void submitSearch()}>
+        <Button type="submit" loading={searching}>
           검색
         </Button>
-      </div>
+      </form>
+
+      {results.length === 0 ? null : (
+        <div className="location-picker__results-panel">
+          <div className="location-picker__results-heading">
+            <strong>검색 결과</strong>
+            <span>{results.length}개</span>
+          </div>
+          <ul className="location-picker__results">
+            {results.map((place) => (
+              <li key={`${place.latitude}:${place.longitude}`}>
+                <button type="button" onClick={() => selectPlace(place)}>
+                  <strong>{place.title}</strong>
+                  <span>{place.address}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {browserPreview || mapFailed ? (
         <EmptyState
@@ -197,18 +239,6 @@ export function NaverLocationPicker({
         ))}
       </fieldset>
 
-      {results.length === 0 ? null : (
-        <ul className="location-picker__results">
-          {results.map((place) => (
-            <li key={`${place.latitude}:${place.longitude}`}>
-              <button type="button" onClick={() => selectPlace(place)}>
-                <strong>{place.title}</strong>
-                <span>{place.address}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
     </section>
   );
 }

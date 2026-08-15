@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { useBridge } from "@/bridge/bridge-context";
 
@@ -39,13 +39,8 @@ export function RecordDetailScreen({
     });
   }, [bridge, id, kind]);
 
-  const back =
-    kind === "notification" ? "/record/notifications" : "/record/send-history";
   return (
     <main className="feature-page" data-clarity-mask="true">
-      <Link className="feature-page__back" to={back}>
-        ← 목록으로
-      </Link>
       {status && <p aria-live="polite">{status}</p>}
       {item && (
         <article className="feature-page__list-card">

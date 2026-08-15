@@ -18,6 +18,10 @@ const FriendPage = lazy(() => import("@/pages/friend/FriendPage"));
 const RecordPage = lazy(() => import("@/pages/record/RecordPage"));
 const SettingPage = lazy(() => import("@/pages/setting/SettingPage"));
 const AgreementPage = lazy(() => import("@/pages/setting/AgreementPage"));
+const TermDetailPage = lazy(() => import("@/pages/setting/TermDetailPage"));
+const AutoSendReadinessPage = lazy(
+  () => import("@/pages/setting/AutoSendReadinessPage"),
+);
 
 export const appRoutes: RouteObject[] = [
   {
@@ -64,6 +68,10 @@ export const appRoutes: RouteObject[] = [
             element: <FriendPage screen="restrictions" />,
           },
           {
+            path: "friend/device-contact/:contactId/edit",
+            element: <FriendPage screen="deviceContactEdit" />,
+          },
+          {
             path: "record",
             element: <RecordPage screen="overview" />,
           },
@@ -98,6 +106,14 @@ export const appRoutes: RouteObject[] = [
           {
             path: "setting/agreements",
             element: <AgreementPage />,
+          },
+          {
+            path: "terms-detail/:termId",
+            element: <TermDetailPage />,
+          },
+          {
+            path: "auto-send-readiness",
+            element: <AutoSendReadinessPage />,
           },
         ],
       },

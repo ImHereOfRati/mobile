@@ -8,6 +8,7 @@ class PermissionBridgeHandlers {
   final PermissionServiceInterface location;
   final PermissionServiceInterface notification;
   final PermissionServiceInterface batteryOptimization;
+  final PermissionServiceInterface contacts;
   final Future<bool> Function() _openSettings;
   final Future<bool> Function() _isLocationServiceEnabled;
 
@@ -15,6 +16,7 @@ class PermissionBridgeHandlers {
     required this.location,
     required this.notification,
     required this.batteryOptimization,
+    required this.contacts,
     Future<bool> Function()? openSettings,
     Future<bool> Function()? isLocationServiceEnabled,
   }) : _openSettings = openSettings ?? permissions.openAppSettings,
@@ -74,6 +76,7 @@ class PermissionBridgeHandlers {
     'locationWhenInUse' || 'locationAlways' => location,
     'notification' => notification,
     'batteryOptimization' => batteryOptimization,
+    'contacts' => contacts,
     _ => throw ArgumentError.value(type, 'permission'),
   };
 

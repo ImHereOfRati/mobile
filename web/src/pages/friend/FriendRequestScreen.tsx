@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-
 import { useApiClient } from "@/api/use-api-client";
 
 import type { FriendRequest, FriendRequestViewType } from "./friend-model";
@@ -109,9 +107,6 @@ export function FriendRequestScreen() {
 
   return (
     <main className="feature-page" data-clarity-mask="true">
-      <Link className="feature-page__back" to="/friend">
-        ← 친구 목록
-      </Link>
       <header className="feature-page__header">
         <div>
           <span className="feature-page__eyebrow">관계 관리</span>

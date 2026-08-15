@@ -9,6 +9,7 @@ void main() {
       location: _PermissionService(PermissionState.grantedWhenInUse),
       notification: _PermissionService(PermissionState.grantedAlways),
       batteryOptimization: _PermissionService(PermissionState.grantedAlways),
+      contacts: _PermissionService(PermissionState.grantedAlways),
       isLocationServiceEnabled: () async => true,
     ).build();
 
@@ -27,6 +28,7 @@ void main() {
       location: _PermissionService(PermissionState.grantedWhenInUse),
       notification: _PermissionService(PermissionState.denied),
       batteryOptimization: _PermissionService(PermissionState.denied),
+      contacts: _PermissionService(PermissionState.denied),
     ).build();
 
     expect(

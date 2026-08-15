@@ -129,6 +129,9 @@ const geofenceAndDeviceBridgeMethodNames = <String>{
   'deleteAllRecords',
   'deleteAllNotifications',
   'getDeviceContacts',
+  'pickDeviceContact',
+  'updateDeviceContact',
+  'deleteDeviceContact',
   'getCurrentPosition',
   'getLocationServiceStatus',
 };

@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-
 import { useApiClient } from "@/api/use-api-client";
 import { InfiniteLoadButton } from "@/pages/friend/InfiniteLoadButton";
 
@@ -57,9 +55,6 @@ export function ServerNotificationScreen() {
 
   return (
     <main className="feature-page" data-clarity-mask="true">
-      <Link className="feature-page__back" to="/record">
-        ← 활동 기록
-      </Link>
       <header className="feature-page__header">
         <div>
           <span className="feature-page__eyebrow">계정 알림</span>

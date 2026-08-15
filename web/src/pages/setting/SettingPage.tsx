@@ -8,7 +8,14 @@ import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/api/use-api-client";
 import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
-import { Button, SettingsGroup, SettingsRow, useTheme } from "@/design-system";
+import {
+  BottomSheet,
+  Button,
+  SettingsGroup,
+  SettingsRow,
+  TextField,
+  useTheme,
+} from "@/design-system";
 import { loadTerms, type Term } from "./terms-service";
 import { formatActivityTime } from "@/pages/record/record-model";
 
@@ -31,13 +38,20 @@ export default function SettingPage() {
   const [terms, setTerms] = useState<Term[]>([]);
   const [contactAccess, setContactAccess] = useState(false);
   const [status, setStatus] = useState("설정 정보를 불러오는 중입니다.");
+  const [confirmation, setConfirmation] = useState<
+    "signOut" | "withdraw" | null
+  >(null);
+  const [nicknameSheetOpen, setNicknameSheetOpen] = useState(false);
+  const [nicknameDraft, setNicknameDraft] = useState("");
+  const [nicknameSaving, setNicknameSaving] = useState(false);
 
   const refreshNative = async () => {
-    const [infoResult, readinessResult, recordResult] =
+    const [infoResult, readinessResult, recordResult, contactsResult] =
       await Promise.allSettled([
         bridge.getAppInfo(),
         bridge.getAutoSendReadiness(),
         bridge.queryRecords({ limit: 1 }),
+        bridge.getPermissionStatus({ permission: "contacts" }),
       ]);
     if (infoResult.status === "fulfilled") setAppInfo(infoResult.value);
     if (readinessResult.status === "fulfilled") {
@@ -45,6 +59,9 @@ export default function SettingPage() {
     }
     if (recordResult.status === "fulfilled") {
       setLastRecord(recordResult.value.items[0]);
+    }
+    if (contactsResult?.status === "fulfilled") {
+      setContactAccess(contactsResult.value.status === "granted");
     }
   };
 
@@ -75,26 +92,38 @@ export default function SettingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, bridge]);
 
+  const openNicknameEditor = () => {
+    setNicknameDraft(me?.nickname ?? "");
+    setNicknameSheetOpen(true);
+  };
+
   const editNickname = async () => {
-    const nickname = window
-      .prompt("새 닉네임을 입력하세요.", me?.nickname)
-      ?.trim();
-    if (!nickname || nickname.length > 30) return;
+    const nickname = nicknameDraft.trim();
+    if (!nickname || nickname.length > 30) {
+      setStatus("닉네임은 1~30자로 입력해 주세요.");
+      return;
+    }
+    setNicknameSaving(true);
     try {
       setMe(await settingService.changeNickname(api, nickname));
       setStatus("닉네임을 변경했습니다.");
+      setNicknameSheetOpen(false);
     } catch {
       setStatus("닉네임을 변경하지 못했습니다.");
+    } finally {
+      setNicknameSaving(false);
     }
   };
 
   const openPermission = async (
-    permission: "locationAlways" | "notification" | "batteryOptimization",
+    permission:
+      "locationAlways" | "notification" | "batteryOptimization" | "contacts",
     granted: boolean,
   ) => {
     try {
-      if (granted) await bridge.openAppSettings();
-      else await bridge.requestPermission({ permission });
+      if (permission === "locationAlways" || granted) {
+        await bridge.openAppSettings();
+      } else await bridge.requestPermission({ permission });
       await refreshNative();
     } catch {
       setStatus("권한 설정을 열지 못했습니다.");
@@ -102,20 +131,12 @@ export default function SettingPage() {
   };
 
   const signOut = async () => {
-    if (!window.confirm("로그아웃할까요?")) return;
     await bridge.signOut();
     await analytics.setConsent(false);
     navigate("/auth", { replace: true });
   };
 
   const withdraw = async () => {
-    if (
-      !window.confirm(
-        "회원 탈퇴 시 계정과 연결된 정보가 삭제되며 되돌릴 수 없습니다. 탈퇴할까요?",
-      )
-    ) {
-      return;
-    }
     try {
       await settingService.withdraw(api);
     } catch {
@@ -142,7 +163,7 @@ export default function SettingPage() {
             </span>
           }
           detail="닉네임 수정"
-          onClick={() => void editNickname()}
+          onClick={openNicknameEditor}
         />
       </SettingsGroup>
 
@@ -190,12 +211,7 @@ export default function SettingPage() {
         <PermissionItem
           granted={contactAccess}
           label="연락처 접근 권한"
-          onClick={() =>
-            void bridge
-              .getDeviceContacts()
-              .then(() => setContactAccess(true))
-              .catch(() => setStatus("연락처 권한을 확인하지 못했습니다."))
-          }
+          onClick={() => void openPermission("contacts", contactAccess)}
         />
       </SettingsGroup>
 
@@ -260,13 +276,66 @@ export default function SettingPage() {
 
       <footer className="setting-footer">
         <p>ImHere · 소중한 사람과 위치의 순간을 나눠요.</p>
-        <Button variant="secondary" onClick={() => void signOut()}>
+        <Button variant="secondary" onClick={() => setConfirmation("signOut")}>
           로그아웃
         </Button>
-        <Button variant="danger" onClick={() => void withdraw()}>
+        <Button variant="danger" onClick={() => setConfirmation("withdraw")}>
           회원 탈퇴
         </Button>
       </footer>
+
+      <BottomSheet
+        open={nicknameSheetOpen}
+        title="닉네임 수정"
+        onClose={() => setNicknameSheetOpen(false)}
+      >
+        <form
+          className="feature-page__sheet-actions"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void editNickname();
+          }}
+        >
+          <TextField
+            autoFocus
+            label="닉네임"
+            maxLength={30}
+            value={nicknameDraft}
+            onChange={(event) => setNicknameDraft(event.target.value)}
+          />
+          <Button loading={nicknameSaving} type="submit">
+            저장
+          </Button>
+        </form>
+      </BottomSheet>
+
+      <BottomSheet
+        open={confirmation !== null}
+        title={confirmation === "withdraw" ? "회원 탈퇴" : "로그아웃"}
+        onClose={() => setConfirmation(null)}
+      >
+        <div className="feature-page__sheet-actions">
+          <p className="setting-note">
+            {confirmation === "withdraw"
+              ? "회원 탈퇴 시 계정과 연결된 정보가 삭제되며 되돌릴 수 없습니다. 탈퇴할까요?"
+              : "로그아웃할까요?"}
+          </p>
+          <Button
+            variant={confirmation === "withdraw" ? "danger" : "primary"}
+            onClick={() => {
+              const action = confirmation;
+              setConfirmation(null);
+              if (action === "signOut") void signOut();
+              if (action === "withdraw") void withdraw();
+            }}
+          >
+            {confirmation === "withdraw" ? "회원 탈퇴" : "로그아웃"}
+          </Button>
+          <Button variant="secondary" onClick={() => setConfirmation(null)}>
+            취소
+          </Button>
+        </div>
+      </BottomSheet>
     </main>
   );
 }
@@ -282,6 +351,7 @@ function PermissionItem({
 }) {
   return (
     <SettingsRow
+      className={granted ? "" : "permission-item--needs-action"}
       label={label}
       detail={granted ? "허용됨" : "설정 필요"}
       onClick={onClick}

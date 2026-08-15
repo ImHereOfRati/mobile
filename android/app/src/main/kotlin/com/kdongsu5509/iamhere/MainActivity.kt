@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.Intent
 import android.os.Build
 import android.provider.ContactsContract
 import androidx.annotation.NonNull
@@ -17,7 +18,9 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     private val contactsChannelName = "com.iamhere.app/contacts"
     private val contactsPermissionRequest = 41
+    private val contactPickerRequest = 42
     private var pendingContactsResult: MethodChannel.Result? = null
+    private var pendingPickerResult: MethodChannel.Result? = null
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +33,7 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             contactsChannelName,
         ).setMethodCallHandler { call, result ->
-            if (call.method != "getDeviceContacts") {
+            if (call.method != "getDeviceContacts" && call.method != "pickDeviceContact") {
                 result.notImplemented()
                 return@setMethodCallHandler
             }
@@ -40,9 +43,17 @@ class MainActivity : FlutterActivity() {
                     Manifest.permission.READ_CONTACTS,
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                result.success(readContacts())
+                if (call.method == "pickDeviceContact") {
+                    pickContact(result)
+                } else {
+                    result.success(readContacts())
+                }
             } else {
-                pendingContactsResult = result
+                if (call.method == "pickDeviceContact") {
+                    pendingPickerResult = result
+                } else {
+                    pendingContactsResult = result
+                }
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(Manifest.permission.READ_CONTACTS),
@@ -59,6 +70,16 @@ class MainActivity : FlutterActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode != contactsPermissionRequest) return
+        if (pendingPickerResult != null) {
+            val result = pendingPickerResult
+            pendingPickerResult = null
+            if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+                pickContact(result!!)
+            } else {
+                result?.error("CONTACTS_PERMISSION_DENIED", "연락처 권한이 필요합니다.", null)
+            }
+            return
+        }
         val result = pendingContactsResult ?: return
         pendingContactsResult = null
         if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
@@ -66,6 +87,56 @@ class MainActivity : FlutterActivity() {
         } else {
             result.error("CONTACTS_PERMISSION_DENIED", "연락처 권한이 필요합니다.", null)
         }
+    }
+
+    private fun pickContact(result: MethodChannel.Result) {
+        pendingPickerResult = result
+        startActivityForResult(
+            Intent(
+                Intent.ACTION_PICK,
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            ),
+            contactPickerRequest,
+        )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != contactPickerRequest) return
+        val result = pendingPickerResult ?: return
+        pendingPickerResult = null
+        if (resultCode != RESULT_OK || data?.data == null) {
+            result.success(null)
+            return
+        }
+        val uri = data.data!!
+        val projection = arrayOf(
+            ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY,
+            ContactsContract.CommonDataKinds.Phone.NUMBER,
+        )
+        contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            if (!cursor.moveToFirst()) {
+                result.success(null)
+                return
+            }
+            val id = cursor.getString(cursor.getColumnIndexOrThrow(
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+            ))
+            val name = cursor.getString(cursor.getColumnIndexOrThrow(
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY,
+            )).orEmpty()
+            val number = cursor.getString(cursor.getColumnIndexOrThrow(
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+            )).orEmpty().replace(Regex("[^0-9+]"), "")
+            result.success(
+                mapOf(
+                    "id" to id,
+                    "displayName" to name,
+                    "phoneNumbers" to listOf(number),
+                ),
+            )
+        } ?: result.success(null)
     }
 
     private fun readContacts(): List<Map<String, Any>> {

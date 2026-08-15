@@ -221,7 +221,7 @@ class GeofenceDeliveryPipeline {
     return composeSmsBody(
       eventType: EventType.fromName(snapshot.deliveryEventType),
       message: snapshot.geofence.message,
-      location: snapshot.geofence.fullLocation,
+      location: snapshot.geofence.name,
     );
   }
 

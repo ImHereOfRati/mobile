@@ -38,7 +38,8 @@ void main() {
       ),
     );
 
-    expect(find.text('친구'), findsNWidgets(2));
+    expect(find.text('친구'), findsOneWidget);
+    expect(find.text('ImHere'), findsOneWidget);
     expect(find.byTooltip('뒤로'), findsNothing);
     expect(find.bySemanticsLabel('장소 추가'), findsOneWidget);
 
@@ -60,7 +61,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byTooltip('뒤로'));
+    await tester.tap(find.byTooltip('Back'));
     expect(backed, isTrue);
   });
 }

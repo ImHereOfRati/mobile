@@ -1,0 +1,32 @@
+{
+  "parameters": {
+    "base_url": {
+      "defaultValue": {
+        "value": "https://imhere.ratiko.co.kr"
+      },
+      "description": "Backend API origin. Endpoints are prefixed with /api, so this must be the origin root without a path.",
+      "valueType": "STRING"
+    },
+    "web_app_url": {
+      "defaultValue": {
+        "value": "https://imhere.ratiko.co.kr/app"
+      },
+      "description": "Deprecated Web shell URL. The client derives <base_url>/app; keep this parameter only for older app builds.",
+      "valueType": "STRING"
+    },
+    "minimum_app_version": {
+      "defaultValue": {
+        "value": "2.0.0"
+      },
+      "description": "Forces an update when the installed version is lower. Must never exceed the version currently live on the store.",
+      "valueType": "STRING"
+    },
+    "android_store_url": {
+      "defaultValue": {
+        "value": "https://play.google.com/store/apps/details?id=com.kdongsu5509.iamhere"
+      },
+      "description": "Store link used by the forced-update screen on Android.",
+      "valueType": "STRING"
+    }
+  }
+}

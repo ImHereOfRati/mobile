@@ -110,21 +110,89 @@ button.setting-item {
 }
 
 .setting-footer {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: var(--space-2);
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-divider);
 }
 
 .setting-footer p {
-  flex: 1 0 100%;
   margin: 0;
   color: var(--color-text-secondary);
   font-size: var(--text-body-small);
 }
 
 .setting-footer .ds-button {
+  width: 100%;
   min-height: var(--touch-target-min);
   padding: 0 var(--space-3);
+}
+
+.permission-item--needs-action small {
+  color: var(--color-error);
+  font-weight: 750;
+}
+
+.auto-send-readiness .ds-settings-row {
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-height: auto;
+  padding: var(--space-3) 0;
+}
+
+.auto-send-readiness__warning {
+  margin: 0;
+}
+
+.auto-send-readiness .ds-settings-row > span {
+  display: grid;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.auto-send-readiness .ds-settings-row small {
+  max-width: none;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  text-align: left;
+}
+
+.auto-send-readiness .ds-settings-row > small {
+  flex: none;
+  align-self: center;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.auto-send-readiness .permission-item--needs-action > small {
+  color: var(--color-error);
+  font-weight: 750;
+}
+
+.auto-send-readiness .permission-item--needs-action > span small {
+  max-width: none;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  text-align: left;
+}
+
+.setting-term-detail {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.setting-term-detail h1 {
+  margin: 0;
+  font-size: var(--text-headline-large);
+}
+
+.setting-term-detail__meta {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-small);
+}
+
+.setting-term-detail__content {
+  white-space: pre-wrap;
+  line-height: var(--line-body-large);
 }

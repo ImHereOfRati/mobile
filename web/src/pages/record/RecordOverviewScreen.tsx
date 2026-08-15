@@ -66,13 +66,6 @@ export function RecordOverviewScreen() {
           <h1>기록</h1>
           <p>받은 알림, 친구 요청, 자동 전송 결과를 확인하세요.</p>
         </div>
-        <button
-          className="ds-button ds-button--secondary"
-          onClick={() => void refresh()}
-          type="button"
-        >
-          새로고침
-        </button>
       </header>
       {status && <p aria-live="polite">{status}</p>}
 

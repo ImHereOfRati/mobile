@@ -93,9 +93,6 @@ export default function AgreementPage() {
 
   return (
     <main className="feature-page" data-clarity-mask="true">
-      <Link className="feature-page__back" to="/setting">
-        ← 설정
-      </Link>
       <header className="feature-page__header">
         <div>
           <span className="feature-page__eyebrow">계정</span>

@@ -1,0 +1,143 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/feature/auth/presentation/auth_flow_controller.dart';
+import 'package:iamhere/feature/terms/service/terms_service.dart';
+
+class TermsPage extends ConsumerStatefulWidget {
+  final AuthFlowDependencies dependencies;
+  final TermsService termsService;
+  final VoidCallback onDone;
+
+  const TermsPage({
+    super.key,
+    required this.dependencies,
+    required this.termsService,
+    required this.onDone,
+  });
+
+  @override
+  ConsumerState<TermsPage> createState() => _TermsPageState();
+}
+
+class _TermsPageState extends ConsumerState<TermsPage> {
+  final Set<int> _agreed = <int>{};
+  bool _isSubmitting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final terms = ref.watch(activeTermsProvider(widget.termsService));
+    final authState = ref.watch(
+      authFlowControllerProvider(widget.dependencies),
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('약관 동의')),
+      body: terms.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Text(
+            '약관을 불러오지 못했습니다.\n$error',
+            textAlign: TextAlign.center,
+          ),
+        ),
+        data: (items) {
+          final requiredOk = items
+              .where((term) => term.isRequired)
+              .every((term) => _agreed.contains(term.id));
+          final allOk = items.isNotEmpty && _agreed.length == items.length;
+
+          return ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              Text(
+                '서비스 이용을 위해 약관을 확인해 주세요.',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              const Text('필수 약관에 동의해야 회원가입을 완료할 수 있습니다.'),
+              const SizedBox(height: 24),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('전체 동의'),
+                value: allOk,
+                onChanged: _isSubmitting
+                    ? null
+                    : (value) => setState(() {
+                        _agreed
+                          ..clear()
+                          ..addAll(
+                            value == true
+                                ? items.map((term) => term.id)
+                                : const <int>{},
+                          );
+                      }),
+              ),
+              const Divider(),
+              ...items.expand<Widget>(
+                (term) => [
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      '[${term.isRequired ? '필수' : '선택'}] ${term.title}',
+                    ),
+                    value: _agreed.contains(term.id),
+                    onChanged: _isSubmitting
+                        ? null
+                        : (value) => setState(
+                            () => value == true
+                                ? _agreed.add(term.id)
+                                : _agreed.remove(term.id),
+                          ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Text(term.content),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: requiredOk &&
+                        !_isSubmitting &&
+                        authState.status != AuthFlowStatus.loading
+                    ? () => _submit(items)
+                    : null,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('동의하고 시작하기'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _submit(List<Term> items) async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+
+    final success = await ref
+        .read(authFlowControllerProvider(widget.dependencies).notifier)
+        .acceptTerms(items, Set<int>.of(_agreed));
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (success) {
+      widget.onDone();
+      return;
+    }
+
+    final message = ref
+        .read(authFlowControllerProvider(widget.dependencies))
+        .errorMessage;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message ?? '약관 동의 처리에 실패했습니다.')),
+    );
+  }
+}

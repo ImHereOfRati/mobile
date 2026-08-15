@@ -1,0 +1,7 @@
+{
+  "tool_name": "PowerShell",
+  "tool_input_preview": "{\"command\":\"flutter test 2>&1 | Select-String -Pattern \\\"\\\\[E\\\\]\\\" -Context 0,18 | Select-Object -First 1\",\"timeout\":600000,\"description\":\"Show failing test detail\"}",
+  "error": "Exit code 255\n> 00:16 +246 -1: loading C:/Project/ImHere/client/test/shell/bridge/geofence_address_bridge_test.dart [E]\r\n    Failed to load \"C:/Project/ImHere/client/test/shell/bridge/geofence_address_bridge_test.dart\":\r\n    Compilation failed for testPath=C:/Project/ImHere/client/test/shell/bridge/geofence_address_bridge_test.dart: test/shell/bridge/geofence_address_bridge_test.dart:\r\n15:49: Error: Required named parameter 'loadDeviceContactPicker' must be provided.\r\n        final handler = Geo...",
+  "timestamp": "2026-08-10T06:18:16.442Z",
+  "retry_count": 2
+}

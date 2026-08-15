@@ -115,7 +115,7 @@ describe("FriendPage", () => {
     expect(await screen.findByRole("heading", { name: "엄마" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "회사" })).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "새로운 친구 찾기" }));
+    fireEvent.click(screen.getByRole("button", { name: "친구 추가" }));
     const finder = screen.getByRole("dialog", { name: "친구 찾기" });
     expect(finder).toBeVisible();
     expect(

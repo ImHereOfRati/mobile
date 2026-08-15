@@ -31,15 +31,28 @@ void main() {
       {
         'id': '7',
         'displayName': '기존 연락처',
-        'phoneNumbers': ['01012345678'],
-      },
-      {
-        'id': '8',
-        'displayName': '새 연락처',
-        'phoneNumbers': ['010-9999-0000'],
+        'phoneNumbers': ['010-1234-5678'],
       },
     ]);
-    expect((await repository.findAll()).map((item) => item.id), [7, 8]);
+    expect((await repository.findAll()).map((item) => item.id), [7]);
+  });
+
+  test('keeps saved local contacts when native contact access fails', () async {
+    final repository = _Contacts([
+      ContactEntity(id: 11, name: '로컬 친구', number: '010-1111-2222'),
+    ]);
+    final service = DeviceContactSyncService(
+      const _FailingReader(),
+      repository,
+    );
+
+    expect(await service.load(), [
+      {
+        'id': '11',
+        'displayName': '로컬 친구',
+        'phoneNumbers': ['010-1111-2222'],
+      },
+    ]);
   });
 }
 
@@ -50,6 +63,15 @@ class _Reader extends DeviceContactReader {
 
   @override
   Future<List<Map<String, Object?>>> read() async => values;
+}
+
+class _FailingReader extends DeviceContactReader {
+  const _FailingReader();
+
+  @override
+  Future<List<Map<String, Object?>>> read() async {
+    throw StateError('contacts unavailable');
+  }
 }
 
 class _Contacts implements ContactRepository {
@@ -65,6 +87,12 @@ class _Contacts implements ContactRepository {
     final saved = entity.copyWith(id: values.length + 7);
     values.add(saved);
     return saved;
+  }
+
+  @override
+  Future<void> update(ContactEntity entity) async {
+    final index = values.indexWhere((item) => item.id == entity.id);
+    if (index >= 0) values[index] = entity;
   }
 
   @override

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Simple OOP Code"
+  short_description: "Build simple responsibility-driven Flutter and React code"
+  default_prompt: "Use $write-simple-oop-code to implement this Flutter or React change with the simplest responsibility-driven design."

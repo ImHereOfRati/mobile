@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/friend/repository/contact_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_repository.dart';
@@ -20,20 +21,24 @@ typedef ServerRecipientNotifier =
 
 class GeofenceDeviceBridgeHandlers {
   final GeofenceRepository geofences;
+  final ContactRepository contacts;
   final GeofenceServerRecipientRepository recipients;
   final GeofenceRecordRepository records;
   final NotificationRepository notifications;
   final Future<List<Map<String, Object?>>> Function() loadDeviceContacts;
+  final Future<Map<String, Object?>?> Function() loadDeviceContactPicker;
   final ServerRecipientNotifier notifyServerRecipients;
   final NativeGeofenceRegistrarInterface registrar;
   final LocatePermissionService location;
 
   GeofenceDeviceBridgeHandlers({
     required this.geofences,
+    required this.contacts,
     required this.recipients,
     required this.records,
     required this.notifications,
     required this.loadDeviceContacts,
+    required this.loadDeviceContactPicker,
     required this.notifyServerRecipients,
     required this.registrar,
     required this.location,
@@ -53,6 +58,9 @@ class GeofenceDeviceBridgeHandlers {
     'deleteAllRecords': (_) => records.deleteAll(),
     'deleteAllNotifications': (_) => notifications.deleteAll(),
     'getDeviceContacts': (_) => _deviceContacts(),
+    'pickDeviceContact': (_) => _pickDeviceContact(),
+    'updateDeviceContact': _updateDeviceContact,
+    'deleteDeviceContact': _deleteDeviceContact,
     'getCurrentPosition': (_) => _currentPosition(),
     'getLocationServiceStatus': (_) => _locationServiceStatus(),
   };
@@ -226,6 +234,34 @@ class GeofenceDeviceBridgeHandlers {
 
   Future<List<Map<String, Object?>>> _deviceContacts() async {
     return loadDeviceContacts();
+  }
+
+  Future<Map<String, Object?>?> _pickDeviceContact() async {
+    return loadDeviceContactPicker();
+  }
+
+  Future<Map<String, Object?>> _updateDeviceContact(Object? params) async {
+    final map = _map(params);
+    final id = int.parse(_string(map, 'id'));
+    final name = _string(map, 'displayName');
+    final existing = (await contacts.findAll()).firstWhere(
+      (contact) => contact.id == id,
+    );
+    final updated = existing.copyWith(name: name);
+    await contacts.update(updated);
+    return {
+      'id': updated.id.toString(),
+      'displayName': updated.name,
+      'phoneNumbers': [updated.number],
+    };
+  }
+
+  Future<void> _deleteDeviceContact(Object? params) async {
+    final id = int.parse(_string(_map(params), 'id'));
+    final existing = (await contacts.findAll()).firstWhere(
+      (contact) => contact.id == id,
+    );
+    await contacts.update(existing.copyWith(hidden: true));
   }
 
   Future<Map<String, Object?>> _currentPosition() async {

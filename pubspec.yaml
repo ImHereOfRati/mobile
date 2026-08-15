@@ -59,4 +59,14 @@ flutter:
   uses-material-design: true
 
   assets:
-    - iam_here_flutter_secret.env
+      - iam_here_flutter_secret.env
+      - assets/kakao.png
+      - assets/google.png
+
+  fonts:
+    - family: GmarketSans
+      fonts:
+        - asset: assets/fonts/gmarket_sans_medium.ttf
+          weight: 500
+        - asset: assets/fonts/gmarket_sans_bold.ttf
+          weight: 700

@@ -33,8 +33,14 @@ Resources:
         ParametersInCacheKeyAndForwardedToOrigin:
           CookiesConfig:
             CookieBehavior: none
-          EnableAcceptEncodingBrotli: true
-          EnableAcceptEncodingGzip: true
+          # TTL이 전부 0이라 캐싱이 꺼진 정책이다. 이 상태에서 CloudFront는
+          # EnableAcceptEncoding*을 켜는 걸 거부한다:
+          #   "The parameter EnableAcceptEncodingGzip is invalid for policy
+          #    with caching disabled."
+          # 그렇다고 키를 빼면 CFN 스키마가 필수라며 막는다:
+          #   "required key [EnableAcceptEncodingGzip] not found"
+          # 그래서 키는 두되 false로 명시한다. 압축은 오리진과 뷰어가 협상한다.
+          EnableAcceptEncodingGzip: false
           HeadersConfig:
             HeaderBehavior: none
           QueryStringsConfig:

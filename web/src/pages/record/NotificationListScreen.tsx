@@ -50,7 +50,6 @@ export function NotificationListScreen() {
 
   return (
     <RecordListLayout
-      back="/record"
       description="기기에 안전하게 저장된 푸시 알림입니다."
       eyebrow="수신함"
       title="받은 알림"
@@ -86,13 +85,11 @@ export function NotificationListScreen() {
 }
 
 export function RecordListLayout({
-  back,
   eyebrow,
   title,
   description,
   children,
 }: {
-  back: string;
   children: React.ReactNode;
   description: string;
   eyebrow: string;
@@ -100,9 +97,6 @@ export function RecordListLayout({
 }) {
   return (
     <main className="feature-page" data-clarity-mask="true">
-      <Link className="feature-page__back" to={back}>
-        ← 기록
-      </Link>
       <header className="feature-page__header">
         <div>
           <span className="feature-page__eyebrow">{eyebrow}</span>

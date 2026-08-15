@@ -66,7 +66,6 @@ export function SendHistoryScreen() {
 
   return (
     <RecordListLayout
-      back="/record"
       description="네이티브 자동 전송 파이프라인이 남긴 결과입니다."
       eyebrow="자동 알림"
       title="전송 기록"

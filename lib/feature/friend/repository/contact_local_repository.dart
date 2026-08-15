@@ -20,6 +20,11 @@ class ContactLocalRepository implements ContactRepository {
   }
 
   @override
+  Future<void> update(ContactEntity entity) async {
+    await _contactDatabaseService.update(entity);
+  }
+
+  @override
   Future<void> delete(int id) async {
     await _contactDatabaseService.delete(id);
   }

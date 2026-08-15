@@ -8,6 +8,7 @@ export function validateCloudFrontConfig({
   apiOriginRequestPolicyId,
 }) {
   const behaviors = distribution.CacheBehaviors?.Items ?? [];
+  const defaultBehavior = distribution.DefaultCacheBehavior;
   const release = behaviors.find(
     (behavior) => behavior.PathPattern === "/app/releases/*",
   );
@@ -28,6 +29,16 @@ export function validateCloudFrontConfig({
   if (api.OriginRequestPolicyId !== apiOriginRequestPolicyId) {
     throw new Error(
       "API behavior does not forward the required authorization and query data.",
+    );
+  }
+  const hasSpaRewrite = (defaultBehavior?.FunctionAssociations?.Items ?? []).some(
+    (association) => association.EventType === "viewer-request" &&
+      typeof association.FunctionARN === "string" &&
+      association.FunctionARN.length > 0,
+  );
+  if (!hasSpaRewrite) {
+    throw new Error(
+      "Default behavior is missing the viewer-request SPA rewrite function.",
     );
   }
 }

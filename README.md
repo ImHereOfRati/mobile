@@ -513,11 +513,11 @@ chmod +x scripts/obvious_test.sh
 `.github/workflows/`에는 `labels.yml`(GitHub 라벨 동기화) 하나만 있다. Flutter 빌드/테스트/릴리즈를 자동화하는 CI/CD 파이프라인과 Fastlane 설정은 아직 없다 — 빌드/서명/배포는 수동 절차로 진행된다. 백엔드는 GitHub Actions로 완전 자동화된 CI/CD가 있다(`imhere_server` 저장소의 `docs/deployment.md` 참고).
 
 ### 외부 링크
-- 백엔드 API Swagger: <https://fortuneki.site/swagger-ui/index.html>
+- 백엔드 API Swagger: <https://imhere.ratiko.co.kr/swagger-ui/index.html>
 - 플레이스토어: <https://play.google.com/store/apps/details?id=com.kdongsu5509.iamhere>
 - 백엔드 저장소: <https://github.com/kdongsu5509/imhere_server>
 
 ### 외부 링크
-- 백엔드 API Swagger: <https://fortuneki.site/swagger-ui/index.html>
+- 백엔드 API Swagger: <https://imhere.ratiko.co.kr/swagger-ui/index.html>
 - 플레이스토어: <https://play.google.com/store/apps/details?id=com.kdongsu5509.iamhere>
 - 백엔드 저장소: <https://github.com/kdongsu5509/imhere_server>

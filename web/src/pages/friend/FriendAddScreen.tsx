@@ -2,6 +2,8 @@ import { type FormEvent, useState } from "react";
 
 import { useApiClient } from "@/api/use-api-client";
 import { useAnalytics } from "@/analytics/analytics-context";
+import { useBridge } from "@/bridge/bridge-context";
+import type { BridgeMethodResult } from "@imhere/bridge-contract";
 import { Button } from "@/design-system";
 
 import type { UserSearchResult } from "./friend-model";
@@ -15,9 +17,16 @@ const RELATION_LABEL: Record<RelationState, string> = {
   none: "",
 };
 
-export function FriendFinder() {
+type DeviceContact = BridgeMethodResult<"getDeviceContacts">[number];
+
+interface FriendFinderProps {
+  onContactSelected?: (contact: DeviceContact) => void;
+}
+
+export function FriendFinder({ onContactSelected }: FriendFinderProps) {
   const api = useApiClient();
   const analytics = useAnalytics();
+  const bridge = useBridge();
   const [keyword, setKeyword] = useState("");
   const [message, setMessage] = useState("ImHere에서 친구가 되어 주세요.");
   const [results, setResults] = useState<UserSearchResult[]>([]);
@@ -27,6 +36,7 @@ export function FriendFinder() {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [relations, setRelations] = useState(new Map<string, RelationState>());
+  const [contactsLoading, setContactsLoading] = useState(false);
 
   /**
    * 검색 결과만으로는 이미 친구인지, 내가 차단한 상대인지 알 수 없다. 서버에
@@ -94,6 +104,24 @@ export function FriendFinder() {
     }
   };
 
+  const importContacts = async () => {
+    setContactsLoading(true);
+    setStatus("");
+    try {
+      const selected = await bridge.pickDeviceContact();
+      if (selected === null) {
+        setStatus("연락처 선택을 취소했습니다.");
+        return;
+      }
+      onContactSelected?.(selected);
+      setStatus(`${selected.displayName} 연락처를 추가했습니다.`);
+    } catch {
+      setStatus("연락처를 가져오지 못했습니다. 권한을 확인해주세요.");
+    } finally {
+      setContactsLoading(false);
+    }
+  };
+
   return (
     <div className="friend-finder" data-clarity-mask="true">
       {selectedUser === null ? (
@@ -102,7 +130,6 @@ export function FriendFinder() {
             <span className="ds-field__label">닉네임 또는 이메일</span>
             <input
               className="ds-field__input"
-              data-sheet-autofocus
               onChange={(event) => setKeyword(event.target.value)}
               placeholder="닉네임 또는 이메일"
               required
@@ -111,6 +138,14 @@ export function FriendFinder() {
           </label>
           <Button loading={loading} type="submit">
             검색
+          </Button>
+          <Button
+            loading={contactsLoading}
+            onClick={() => void importContacts()}
+            type="button"
+            variant="secondary"
+          >
+            연락처로 추가
           </Button>
         </form>
       ) : (

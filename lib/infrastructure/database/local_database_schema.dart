@@ -30,7 +30,8 @@ class LocalDatabaseSchema {
   /// v10: geofence.created_at, geofence.updated_at
   /// v11: geofence_server_recipient.friend_user_id
   /// v12: notifications.sender_alias
-  static const int version = 12;
+  /// v13: contacts.hidden
+  static const int version = 13;
 
   static Future<void> onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
@@ -83,6 +84,17 @@ class LocalDatabaseSchema {
     if (oldVersion < 12) {
       await _migrateToV12(db);
     }
+    if (oldVersion < 13) {
+      await _migrateToV13(db);
+    }
+  }
+
+  static Future<void> _migrateToV13(Database db) async {
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.contactTableName} '
+      'ADD COLUMN hidden INTEGER DEFAULT 0',
+    );
   }
 
   static Future<void> _migrateToV2(Database db) async {
@@ -231,7 +243,8 @@ class LocalDatabaseSchema {
 
   static const String _createContactsTable =
       'CREATE TABLE ${LocalDatabaseProperties.contactTableName}'
-      '(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, number TEXT UNIQUE)';
+      '(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, number TEXT UNIQUE, '
+      'hidden INTEGER DEFAULT 0)';
 
   static const String _createGeofenceTable =
       'CREATE TABLE ${LocalDatabaseProperties.geofenceTableName}'

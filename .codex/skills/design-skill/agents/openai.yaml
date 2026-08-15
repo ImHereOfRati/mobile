@@ -1,0 +1,5 @@
+interface:
+  display_name: "ImHere Mobile-first Design"
+  short_description: "Apply the ImHere mobile-first visual and UX system"
+  brand_color: "#0071E3"
+  default_prompt: "Use $design-skill to design or refine this ImHere screen for mobile first, then expand it for desktop."
