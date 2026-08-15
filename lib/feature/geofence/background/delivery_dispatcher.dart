@@ -1,6 +1,8 @@
 import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
 
@@ -21,9 +23,16 @@ class DeliveryDispatcher {
     final event = DeliveryEvent.fromStoredName(snapshot.deliveryEventType);
 
     if (snapshot.smsPhoneNumbers.isNotEmpty) {
+      // FCM 본문에는 길이 제한이 없으므로 SMS 로 나가는 값만 잘라낸다.
+      final smsBody = clampSmsBody(body);
+      if (smsBody.length != body.length) {
+        AppLogger.warning(
+          'BG_QUEUE: SMS body truncated to $smsBodyMaxLength characters',
+        );
+      }
       final smsResult = await _smsNotificationService.sendSmsToRecipients(
         phoneNumbers: snapshot.smsPhoneNumbers,
-        body: body,
+        body: smsBody,
         location: snapshot.geofence.fullLocation,
         type: event.notificationType,
       );

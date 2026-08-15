@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  composeSmsBody,
   defaultGeofenceMessage,
   defaultGeofenceDraft,
-  resolveDraftMessage,
+  exceedsSmsLimit,
   toBridgeInput,
+  validateGeofenceDraft,
   type RecipientOption,
 } from "./geofence-model";
 
@@ -40,26 +42,81 @@ describe("geofence model", () => {
     );
   });
 
-  it("keeps the typed message when only server recipients are selected", () => {
-    expect(
-      resolveDraftMessage({
-        ...defaultGeofenceDraft,
-        name: "회사",
-        message: "직접 입력한 알림",
-        serverRecipientKeys: new Set(["friendship-1"]),
-      }),
-    ).toBe("직접 입력한 알림");
+  it("never shows the raw {location} token in the default message", () => {
+    expect(defaultGeofenceDraft.message).toBe(
+      "안녕하세요! 장소에 도착했습니다.",
+    );
   });
 
-  it("fills the locked message from the place name for device recipients", () => {
+  it("blocks only the edits that grow an over-limit SMS body", () => {
+    const base = {
+      ...defaultGeofenceDraft,
+      name: "회사",
+      deviceContactIds: new Set(["contact-1"]),
+      message: "가".repeat(36),
+    };
+
+    expect(exceedsSmsLimit(base, { ...base, message: "가".repeat(37) })).toBe(
+      true,
+    );
+    // 줄이는 편집은 이미 한도를 넘긴 상태에서도 통과해야 한다.
+    const overLimit = { ...base, message: "가".repeat(50) };
     expect(
-      resolveDraftMessage({
+      exceedsSmsLimit(overLimit, { ...overLimit, message: "가".repeat(49) }),
+    ).toBe(false);
+    // 장소 이름도 {location} 치환과 자동 생성 문구를 통해 본문을 늘린다.
+    const withToken = { ...base, message: "{location} 도착" };
+    expect(
+      exceedsSmsLimit(withToken, { ...withToken, name: "가".repeat(33) }),
+    ).toBe(false);
+    expect(
+      exceedsSmsLimit(withToken, { ...withToken, name: "가".repeat(34) }),
+    ).toBe(true);
+    // 기기 연락처가 없으면 길이를 재지 않는다.
+    expect(
+      exceedsSmsLimit(base, {
+        ...base,
+        deviceContactIds: new Set<string>(),
+        message: "가".repeat(200),
+      }),
+    ).toBe(false);
+  });
+
+  it("composes the SMS body exactly like the native formatter", () => {
+    expect(
+      composeSmsBody({
         ...defaultGeofenceDraft,
         name: "회사",
-        message: "",
-        deviceContactIds: new Set(["contact-1"]),
+        message: "{location} 도착",
       }),
-    ).toBe("안녕하세요! 회사에 도착했습니다.");
+    ).toBe("[ImHere]\n회사 도착");
+    expect(
+      composeSmsBody({
+        ...defaultGeofenceDraft,
+        name: "회사",
+        message: "  ",
+        eventType: "departure",
+      }),
+    ).toBe("[ImHere]\n회사 출발");
+  });
+
+  it("rejects an SMS body over the server limit only for device recipients", () => {
+    const draft = {
+      ...defaultGeofenceDraft,
+      name: "회사",
+      address: "서울시 중구",
+      message: "가".repeat(40),
+      serverRecipientKeys: new Set(["friendship-1"]),
+    };
+    expect(validateGeofenceDraft(draft).message).toBeUndefined();
+
+    const smsDraft = {
+      ...draft,
+      deviceContactIds: new Set(["contact-1"]),
+    };
+    expect(validateGeofenceDraft(smsDraft).message).toBe(
+      "문자 본문이 45자를 넘었어요. (현재 49자, 머리말 9자 포함)",
+    );
   });
 
   it("builds a one-shot native payload with both recipient sources", () => {

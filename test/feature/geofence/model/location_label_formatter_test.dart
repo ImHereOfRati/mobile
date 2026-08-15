@@ -54,6 +54,24 @@ void main() {
     );
   });
 
+  test('clampSmsBody keeps bodies within the server limit', () {
+    final withinLimit = '[ImHere]\n${'가' * 36}';
+    expect(withinLimit.length, smsBodyMaxLength);
+    expect(clampSmsBody(withinLimit), withinLimit);
+
+    final tooLong = '[ImHere]\n${'가' * 40}';
+    expect(clampSmsBody(tooLong).length, smsBodyMaxLength);
+    expect(clampSmsBody(tooLong), '[ImHere]\n${'가' * 36}');
+  });
+
+  test('clampSmsBody never splits a surrogate pair', () {
+    // 45번째 자리에서 자르면 이모지가 반쪽만 남는다.
+    final clamped = clampSmsBody('${'가' * 44}😀');
+
+    expect(clamped.length, smsBodyMaxLength - 1);
+    expect(clamped, '가' * 44);
+  });
+
   test('composeSmsPreview supports WEB sender preview', () {
     expect(
       composeSmsPreview(

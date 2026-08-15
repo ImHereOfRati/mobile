@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/feature/geofence/background/delivery_dispatcher.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
@@ -62,10 +63,30 @@ void main() {
 
     expect(result, isFalse);
   });
+
+  test('서버 제한을 넘는 본문은 SMS 로만 잘라 보내고 FCM 은 그대로 보낸다', () async {
+    final sms = _FakeSmsNotificationService(Success(null));
+    final fcm = _FakeFcmArrivalService(Success(null));
+    final dispatcher = DeliveryDispatcher(sms, fcm);
+    final body = '[ImHere]\n${'가' * 40}';
+
+    await dispatcher.send(
+      snapshot(
+        smsPhoneNumbers: const ['01012345678'],
+        serverUserIds: const ['550e8400-e29b-41d4-a716-446655440000'],
+      ),
+      body: body,
+    );
+
+    expect(sms.lastBody, '[ImHere]\n${'가' * 36}');
+    expect(sms.lastBody!.length, smsBodyMaxLength);
+    expect(fcm.lastBody, body);
+  });
 }
 
 class _FakeSmsNotificationService implements SmsNotificationService {
   final Result<void> result;
+  String? lastBody;
 
   _FakeSmsNotificationService(this.result);
 
@@ -75,11 +96,15 @@ class _FakeSmsNotificationService implements SmsNotificationService {
     required String body,
     required String location,
     required String type,
-  }) async => result;
+  }) async {
+    lastBody = body;
+    return result;
+  }
 }
 
 class _FakeFcmArrivalService implements FcmArrivalService {
   final Result<void> result;
+  String? lastBody;
 
   _FakeFcmArrivalService(this.result);
 
@@ -89,5 +114,8 @@ class _FakeFcmArrivalService implements FcmArrivalService {
     required String body,
     required String location,
     required String type,
-  }) async => result;
+  }) async {
+    lastBody = body;
+    return result;
+  }
 }
