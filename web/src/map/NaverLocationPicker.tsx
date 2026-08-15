@@ -152,9 +152,7 @@ export function NaverLocationPicker({
 
   return (
     <section className="location-picker" aria-label="장소와 반경 선택">
-      <div
-        className="location-picker__search"
-      >
+      <div className="location-picker__search">
         <TextField
           label="장소 검색"
           placeholder="주소 또는 장소명을 입력하세요"

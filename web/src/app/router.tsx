@@ -9,9 +9,7 @@ import { AppRoot } from "@/app/AppRoot";
 import { AppShell } from "@/app/AppShell";
 import { NotFoundPage } from "@/app/NotFoundPage";
 import { RouteErrorFallback } from "@/app/RouteErrorFallback";
-import { NativeAuthRouteGuard } from "@/auth/AuthRouteGuard";
 
-const OnboardingPage = lazy(() => import("@/pages/onboarding/OnboardingPage"));
 const ComponentCatalogPage = lazy(
   () => import("@/pages/catalog/ComponentCatalogPage"),
 );
@@ -27,114 +25,85 @@ export const appRoutes: RouteObject[] = [
     errorElement: <RouteErrorFallback />,
     children: [
       {
-        element: <NativeAuthRouteGuard />,
+        index: true,
+        element: <Navigate replace to="/geofence" />,
+      },
+      {
+        path: "catalog",
+        element: <ComponentCatalogPage />,
+      },
+      {
+        element: <AppShell />,
         children: [
           {
-            index: true,
-            element: <Navigate replace to="/auth" />,
+            path: "geofence",
+            element: <GeofencePage screen="list" />,
           },
           {
-            path: "auth",
-            element: <OnboardingPage screen="auth" />,
+            path: "geofence/message",
+            element: <GeofencePage screen="message" />,
           },
           {
-            path: "terms-consent",
-            element: <OnboardingPage screen="termsConsent" />,
+            path: "geofence/:geofenceId/edit",
+            element: <GeofencePage screen="edit" />,
           },
           {
-            path: "terms-detail/:termId",
-            element: <OnboardingPage screen="termsDetail" />,
+            path: "friend",
+            element: <FriendPage screen="list" />,
           },
           {
-            path: "user-permission",
-            element: <OnboardingPage screen="userPermission" />,
+            path: "friend/add",
+            element: <FriendPage screen="add" />,
           },
           {
-            path: "location-permission-guide",
-            element: <OnboardingPage screen="locationPermissionGuide" />,
+            path: "friend/requests",
+            element: <FriendPage screen="requests" />,
           },
           {
-            path: "battery-optimization-guide",
-            element: <OnboardingPage screen="batteryOptimizationGuide" />,
+            path: "friend/restrictions",
+            element: <FriendPage screen="restrictions" />,
           },
           {
-            path: "catalog",
-            element: <ComponentCatalogPage />,
+            path: "record",
+            element: <RecordPage screen="overview" />,
           },
           {
-            element: <AppShell />,
-            children: [
-              {
-                path: "geofence",
-                element: <GeofencePage screen="list" />,
-              },
-              {
-                path: "geofence/message",
-                element: <GeofencePage screen="message" />,
-              },
-              {
-                path: "geofence/:geofenceId/edit",
-                element: <GeofencePage screen="edit" />,
-              },
-              {
-                path: "friend",
-                element: <FriendPage screen="list" />,
-              },
-              {
-                path: "friend/add",
-                element: <FriendPage screen="add" />,
-              },
-              {
-                path: "friend/requests",
-                element: <FriendPage screen="requests" />,
-              },
-              {
-                path: "friend/restrictions",
-                element: <FriendPage screen="restrictions" />,
-              },
-              {
-                path: "record",
-                element: <RecordPage screen="overview" />,
-              },
-              {
-                path: "record/notifications",
-                element: <RecordPage screen="notifications" />,
-              },
-              {
-                path: "record/notifications/:recordId",
-                element: <RecordPage screen="notificationDetail" />,
-              },
-              {
-                path: "record/server-notifications",
-                element: <RecordPage screen="serverNotifications" />,
-              },
-              {
-                path: "record/friend-requests",
-                element: <RecordPage screen="friendRequests" />,
-              },
-              {
-                path: "record/send-history",
-                element: <RecordPage screen="sendHistory" />,
-              },
-              {
-                path: "record/send-history/:recordId",
-                element: <RecordPage screen="sendHistoryDetail" />,
-              },
-              {
-                path: "setting",
-                element: <SettingPage />,
-              },
-              {
-                path: "setting/agreements",
-                element: <AgreementPage />,
-              },
-            ],
+            path: "record/notifications",
+            element: <RecordPage screen="notifications" />,
           },
           {
-            path: "*",
-            element: <NotFoundPage />,
+            path: "record/notifications/:recordId",
+            element: <RecordPage screen="notificationDetail" />,
+          },
+          {
+            path: "record/server-notifications",
+            element: <RecordPage screen="serverNotifications" />,
+          },
+          {
+            path: "record/friend-requests",
+            element: <RecordPage screen="friendRequests" />,
+          },
+          {
+            path: "record/send-history",
+            element: <RecordPage screen="sendHistory" />,
+          },
+          {
+            path: "record/send-history/:recordId",
+            element: <RecordPage screen="sendHistoryDetail" />,
+          },
+          {
+            path: "setting",
+            element: <SettingPage />,
+          },
+          {
+            path: "setting/agreements",
+            element: <AgreementPage />,
           },
         ],
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />,
       },
     ],
   },

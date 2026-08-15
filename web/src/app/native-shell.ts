@@ -11,11 +11,6 @@ declare global {
 
 export function getNativePageTitle(path: string) {
   if (path === "/" || path === "/auth") return "ImHere";
-  if (path === "/terms-consent") return "약관 동의";
-  if (path.startsWith("/terms-detail/")) return "약관 상세";
-  if (path === "/user-permission") return "권한 설정";
-  if (path === "/location-permission-guide") return "위치 권한 안내";
-  if (path === "/battery-optimization-guide") return "배터리 설정 안내";
   if (path === "/catalog") return "디자인 시스템";
   if (path === "/geofence/message") return "장소 추가";
   if (/^\/geofence\/[^/]+\/edit$/.test(path)) return "장소 수정";

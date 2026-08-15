@@ -30,6 +30,11 @@ type Toast = {
   message: string;
 };
 
+const landingShareData = {
+  title: "ImHere | 위치 기반 서비스",
+  text: "친구의 출발과 도착 순간만 알려주는 위치 기반 알림 서비스 ImHere.",
+};
+
 function InstallDialog({ onClose }: { onClose: () => void }) {
   return (
     <div
@@ -98,6 +103,7 @@ export function LandingPage() {
   const [events, setEvents] = useState<DemoEvent[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showDownload, setShowDownload] = useState(false);
+  const [shareStatus, setShareStatus] = useState("");
   const mapRef = useRef<JourneyMapHandle>(null);
   const nextIdRef = useRef(1);
   const destination = destinationById(flow.destination);
@@ -178,6 +184,29 @@ export function LandingPage() {
     dispatch({ type: "reset-route" });
   };
 
+  const shareLanding = useCallback(async () => {
+    const url = window.location.href;
+
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ ...landingShareData, url });
+        setShareStatus("공유 창을 열었어요.");
+        return;
+      }
+
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setShareStatus("링크를 복사했어요.");
+        return;
+      }
+
+      setShareStatus("주소창의 링크를 복사해 공유해 주세요.");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareStatus("공유하지 못했어요. 주소창의 링크를 복사해 주세요.");
+    }
+  }, []);
+
   const handleDeparture = useCallback(() => {
     if (!departureEnabled) return;
     addEvent("depart", "출발", "광화문");
@@ -240,6 +269,14 @@ export function LandingPage() {
         <a className="brand" href="/" aria-label="ImHere 홈">
           <strong>ImHere</strong>
         </a>
+        <div className="topbar__share">
+          <button className="share-button" type="button" onClick={shareLanding}>
+            공유하기
+          </button>
+          <span className="sr-only" role="status" aria-live="polite">
+            {shareStatus}
+          </span>
+        </div>
       </header>
 
       <main>
@@ -249,7 +286,7 @@ export function LandingPage() {
             <h1 id="product-title">ImHere</h1>
             <ul className="product-points">
               <li>위치 기반</li>
-              <li>안심 귀가</li>
+              <li>위치 기반 알림</li>
               <li>자동 알림</li>
             </ul>
             <a className="product-cta" href="#experience">
@@ -266,7 +303,7 @@ export function LandingPage() {
         >
           <header className="experience-heading">
             <p className="eyebrow">3단계 체험</p>
-            <h2 id="experience-title">철수에게 귀가 알림을 보내보세요</h2>
+            <h2 id="experience-title">철수에게 위치 알림을 보내보세요</h2>
           </header>
 
           <div className="workspace">
@@ -295,7 +332,7 @@ export function LandingPage() {
                         <span className="friend-avatar">철</span>
                         <span>
                           <strong>철수</strong>
-                          <small>귀가 알림 요청</small>
+                          <small>위치 알림 요청</small>
                         </span>
                       </div>
                       <div className="button-row">
@@ -456,7 +493,7 @@ export function LandingPage() {
                 className={`setup-step ${flow.step === "run" ? "is-active" : ""}`}
               >
                 <span className="step-number">3</span>
-                <h2>귀가 시작</h2>
+                <h2>이동 시작</h2>
                 {flow.step === "run" && (
                   <div className="step-body">
                     <div className="simulation-actions">
@@ -553,7 +590,7 @@ export function LandingPage() {
                 <div
                   className="route-progress"
                   role="progressbar"
-                  aria-label="귀가 경로 진행률"
+                  aria-label="이동 경로 진행률"
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={Math.round(flow.progress * 100)}
@@ -566,9 +603,9 @@ export function LandingPage() {
               </span>
             </section>
 
-            <aside className="panel activity-panel" aria-label="안심 알림 내역">
+            <aside className="panel activity-panel" aria-label="위치 알림 내역">
               <div className="activity-head">
-                <h2>안심 알림</h2>
+                <h2>위치 알림</h2>
                 <button
                   className="text-button"
                   type="button"
@@ -608,6 +645,59 @@ export function LandingPage() {
                 </ol>
               )}
             </aside>
+          </div>
+        </section>
+
+        <section className="seo-support" aria-labelledby="seo-support-title">
+          <div className="seo-support__inner">
+            <p className="eyebrow">ImHere 위치 기반 알림</p>
+            <h2 id="seo-support-title">
+              친구의 도착을 기다리는 가장 간편한 방법
+            </h2>
+            <p className="seo-support__lead">
+              ImHere는 서로 수락한 친구에게 출발과 도착 순간을 알려주는 위치
+              기반 알림 서비스입니다. 목적지와 알림 반경을 설정하면 지오펜싱이
+              위치 변화를 감지하고, 필요한 순간에 푸시 알림과 문자 알림을
+              전달합니다.
+            </p>
+            <div className="seo-support__grid">
+              <article>
+                <h3>친구 위치 알림</h3>
+                <p>
+                  이동 중인 친구의 출발과 도착 정보를 필요한 순간에 전달합니다.
+                </p>
+              </article>
+              <article>
+                <h3>지오펜싱 자동 알림</h3>
+                <p>
+                  정해 둔 장소와 반경을 기준으로 출발·도착 알림을 자동
+                  처리합니다.
+                </p>
+              </article>
+              <article>
+                <h3>푸시와 문자 전달</h3>
+                <p>
+                  ImHere 친구에게는 푸시로, 앱이 없는 상대에게는 문자로
+                  알립니다.
+                </p>
+              </article>
+            </div>
+            <div className="seo-faq" aria-label="ImHere 자주 묻는 질문">
+              <details>
+                <summary>ImHere는 어떤 서비스인가요?</summary>
+                <p>
+                  친구의 출발과 목적지 도착을 자동으로 알려주는 위치 기반 알림
+                  서비스입니다.
+                </p>
+              </details>
+              <details>
+                <summary>상대방도 ImHere를 설치해야 하나요?</summary>
+                <p>
+                  ImHere 친구에게는 푸시 알림을 보내고, 앱이 없는 상대에게는
+                  문자 알림을 보낼 수 있습니다.
+                </p>
+              </details>
+            </div>
           </div>
         </section>
       </main>

@@ -16,7 +16,8 @@ export interface ServerNotification {
 }
 
 /** 서버가 클라이언트 발송을 허용하는 타입(NotificationType.CLIENT_ALLOWED). */
-export type SendableNotificationType = "ARRIVAL" | "DEPARTURE" | "LOCATION_TARGET";
+export type SendableNotificationType =
+  "ARRIVAL" | "DEPARTURE" | "LOCATION_TARGET";
 
 export interface SendNotificationInput {
   extraData?: Record<string, string>;

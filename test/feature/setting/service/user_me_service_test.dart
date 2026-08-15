@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/setting/service/user_me_service.dart';
+import 'package:iamhere/feature/auth/service/invalid_auth_session_exception.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -65,5 +66,19 @@ void main() {
     );
 
     expect(await service.fetchMyInfo(), isNull);
+  });
+
+  test('raises an invalid-session error for unauthorized responses', () async {
+    when(dio.get('/api/users/my', options: anyNamed('options'))).thenThrow(
+      DioException(
+        requestOptions: RequestOptions(path: '/api/users/my'),
+        response: Response(
+          statusCode: 403,
+          requestOptions: RequestOptions(path: '/api/users/my'),
+        ),
+      ),
+    );
+
+    expect(service.fetchMyInfo, throwsA(isA<InvalidAuthSessionException>()));
   });
 }

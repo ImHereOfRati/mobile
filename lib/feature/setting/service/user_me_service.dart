@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/feature/auth/service/invalid_auth_session_exception.dart';
 import 'package:iamhere/feature/setting/service/dto/user_me_response_dto.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:injectable/injectable.dart';
@@ -27,6 +28,10 @@ class UserMeService implements UserMeServiceInterface {
         UserMeResponseDto.fromJson,
       ).data;
     } on DioException catch (error) {
+      final statusCode = error.response?.statusCode;
+      if (statusCode == 401 || statusCode == 403) {
+        throw InvalidAuthSessionException(statusCode!);
+      }
       AppLogger.error('Failed to load current user: ${error.message}');
       return null;
     } catch (error) {

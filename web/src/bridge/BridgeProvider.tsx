@@ -1,7 +1,4 @@
-import {
-  createWindowBridge,
-  type NativeBridge,
-} from "@imhere/bridge-contract";
+import { createWindowBridge, type NativeBridge } from "@imhere/bridge-contract";
 import { type PropsWithChildren, useEffect, useState } from "react";
 
 import { AnalyticsProvider } from "@/analytics/AnalyticsProvider";

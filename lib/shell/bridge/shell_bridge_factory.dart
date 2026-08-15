@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
@@ -104,12 +105,17 @@ class ShellBridgeFactory {
     Future<Result<MemberState>> Function() authenticate,
   ) async {
     final result = await authenticate();
-    final status = result.when(
-      success: (state) =>
-          state == MemberState.existingUser ? 'active' : 'pending',
+    final state = result.when(
+      success: (value) => value,
       failure: (message) => throw StateError(message),
     );
-    await authCoordinator.requestFCMTokenAndSendToServer();
-    return status;
+    if (state == MemberState.existingUser) {
+      await authCoordinator.requestFCMTokenAndSendToServer();
+    } else {
+      AppLogger.debug(
+        'AuthBridge: pending/new user -> skip active-only FCM enrollment',
+      );
+    }
+    return state == MemberState.existingUser ? 'active' : 'pending';
   }
 }

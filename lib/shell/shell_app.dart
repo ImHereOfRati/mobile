@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/auth/service/auth_session_sync_service.dart';
+import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/presentation/auth_flow_app.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
@@ -43,14 +45,15 @@ class _ShellAppState extends State<ShellApp> {
   static const _deliveryQueuePollInterval = Duration(seconds: 30);
   final StreamController<String> _pushPaths =
       StreamController<String>.broadcast();
-  late Future<Uri> _initialUrl;
+  late Future<Uri?> _initialUrl;
   late final AppLifecycleListener _lifecycleListener;
   Timer? _deliveryRetryTimer;
+  String _authInitialLocation = '/auth';
 
   @override
   void initState() {
     super.initState();
-    _initialUrl = widget.webUrlResolver.resolve();
+    _initialUrl = _prepareServiceUrl();
     if (widget.enablePush) {
       setupShellMessageTapHandler(_pushPaths.add);
     }
@@ -125,7 +128,30 @@ class _ShellAppState extends State<ShellApp> {
   }
 
   void _retryBootstrap() {
-    setState(() => _initialUrl = widget.webUrlResolver.resolve());
+    setState(() => _initialUrl = _prepareServiceUrl());
+  }
+
+  Future<Uri?> _prepareServiceUrl() async {
+    // Authentication and onboarding are native. The WebView is created only
+    // after an active session exists, so it can remain a service-only shell.
+    await _syncAuthSession();
+    final storage = getIt<TokenStorageService>();
+    final token = await storage.getAccessToken();
+    final status = (await storage.getUserStatus())?.toUpperCase();
+    final isActive = await storage.getIsActive();
+    if (token == null || token.isEmpty) {
+      _authInitialLocation = '/auth';
+      return null;
+    }
+    if (status == 'PENDING') {
+      _authInitialLocation = '/terms';
+      return null;
+    }
+    if (isActive == false) {
+      _authInitialLocation = '/auth';
+      return null;
+    }
+    return widget.webUrlResolver.resolve();
   }
 
   @override
@@ -143,14 +169,23 @@ class _ShellAppState extends State<ShellApp> {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: FutureBuilder<Uri>(
+      home: FutureBuilder<Uri?>(
         future: _initialUrl,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return ShellStatusView.fatalError(onRetry: _retryBootstrap);
           }
           final url = snapshot.data;
-          if (url == null) return const ShellStatusView.splash();
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const ShellStatusView.splash();
+          }
+          if (url == null) {
+            return AuthFlowApp(
+              initialLocation: _authInitialLocation,
+              onAuthenticated: () =>
+                  setState(() => _initialUrl = _prepareServiceUrl()),
+            );
+          }
           return WebViewHost(
             initialUrl: url,
             rpcServer: widget.rpcServer,

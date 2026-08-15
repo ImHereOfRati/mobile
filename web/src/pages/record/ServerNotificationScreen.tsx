@@ -85,7 +85,9 @@ export function ServerNotificationScreen() {
                   {`${item.senderAlias} · ${formatActivityTime(item.createdAt)}`}
                 </p>
               </div>
-              {!item.isRead && <span className="feature-page__chip">안 읽음</span>}
+              {!item.isRead && (
+                <span className="feature-page__chip">안 읽음</span>
+              )}
             </div>
             {!item.isRead && (
               <button

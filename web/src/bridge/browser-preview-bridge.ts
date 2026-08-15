@@ -1,12 +1,4 @@
-import {
-  createMockBridge,
-  type BridgeMethodResult,
-} from "@imhere/bridge-contract";
-
-interface BrowserPreviewSession {
-  auth: BridgeMethodResult<"getAuthState">;
-  autoSendReady: boolean;
-}
+import { createMockBridge } from "@imhere/bridge-contract";
 
 const previewGeofence = {
   id: 1,
@@ -44,61 +36,16 @@ const previewRecord = {
   message: "집에 도착했어요.",
 };
 
-export function getBrowserPreviewSession(
-  pathname: string,
-): BrowserPreviewSession {
-  if (pathname === "/auth") {
-    return {
-      auth: { authenticated: false, userStatus: null },
-      autoSendReady: false,
-    };
-  }
-
-  if (
-    pathname === "/terms-consent" ||
-    pathname.startsWith("/terms-detail/")
-  ) {
-    return {
-      auth: { authenticated: true, userStatus: "pending" },
-      autoSendReady: false,
-    };
-  }
-
-  if (
-    pathname === "/user-permission" ||
-    pathname === "/location-permission-guide" ||
-    pathname === "/battery-optimization-guide"
-  ) {
-    return {
-      auth: { authenticated: true, userStatus: "active" },
-      autoSendReady: false,
-    };
-  }
-
-  return {
-    auth: { authenticated: true, userStatus: "active" },
-    autoSendReady: true,
-  };
-}
-
 export function createBrowserPreviewBridge() {
   return createMockBridge({
-    getAuthState: async () =>
-      getBrowserPreviewSession(window.location.pathname.replace(/^\/app/, ""))
-        .auth,
     getAutoSendReadiness: async () => {
-      const { autoSendReady } = getBrowserPreviewSession(
-        window.location.pathname.replace(/^\/app/, ""),
-      );
       return {
-        ready: autoSendReady,
-        locationAlways: autoSendReady,
+        ready: true,
+        locationAlways: true,
         locationService: true,
-        notification: autoSendReady,
-        batteryOptimization: autoSendReady,
-        missing: autoSendReady
-          ? []
-          : ["locationAlways", "notification", "batteryOptimization"],
+        notification: true,
+        batteryOptimization: true,
+        missing: [],
       };
     },
     getAppInfo: async () => ({

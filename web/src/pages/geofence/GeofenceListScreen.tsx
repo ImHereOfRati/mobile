@@ -151,7 +151,7 @@ export function GeofenceListScreen() {
       {readiness !== null && !readiness.ready ? (
         <div className="feature-page__banner" role="status">
           {t("geofence.list.permissionWarning")}{" "}
-          <Link to="/user-permission">{t("geofence.list.openPermission")}</Link>
+          <Link to="/setting">{t("geofence.list.openPermission")}</Link>
         </div>
       ) : null}
       {platform === "ios" && items !== null ? (

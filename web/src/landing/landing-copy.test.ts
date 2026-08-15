@@ -7,7 +7,7 @@ describe("landing copy and presentation", () => {
   it("introduces ImHere before inviting the visitor into the experience", () => {
     const productIndex = landingPageSource.indexOf('id="product-title"');
     const experienceIndex =
-      landingPageSource.indexOf("철수에게 귀가 알림을 보내보세요");
+      landingPageSource.indexOf("철수에게 위치 알림을 보내보세요");
 
     expect(productIndex).toBeGreaterThanOrEqual(0);
     expect(experienceIndex).toBeGreaterThan(productIndex);
@@ -28,5 +28,11 @@ describe("landing copy and presentation", () => {
   it("opens the install dialog after the experience", () => {
     expect(landingPageSource).toContain("설치하기");
     expect(landingPageSource).toContain("<InstallDialog");
+  });
+
+  it("exposes search-friendly service information in the page body", () => {
+    expect(landingPageSource).toContain("위치 기반 알림");
+    expect(landingPageSource).toContain("지오펜싱");
+    expect(landingPageSource).toContain("푸시와 문자 전달");
   });
 });

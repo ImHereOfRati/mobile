@@ -1,4 +1,5 @@
 import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/feature/auth/service/invalid_auth_session_exception.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:injectable/injectable.dart';
@@ -15,6 +16,17 @@ class AuthSessionSyncService {
     if (accessToken == null || accessToken.isEmpty) {
       AppLogger.debug('AuthSessionSync: no access token -> skip');
       return false;
+    }
+
+    // Newly authenticated users are intentionally PENDING until the WebView
+    // collects terms consent. `/api/users/my` is active-user-only, so calling
+    // it here would return 403 and incorrectly clear a valid pending session.
+    final storedUserStatus = await _tokenStorage.getUserStatus();
+    if (storedUserStatus?.toUpperCase() == 'PENDING') {
+      AppLogger.debug(
+        'AuthSessionSync: pending session -> skip active user sync',
+      );
+      return true;
     }
 
     AppLogger.debug('AuthSessionSync: syncing signed-in session');
@@ -44,6 +56,14 @@ class AuthSessionSyncService {
       );
       AppLogger.debug('AuthSessionSync: snapshot saved');
       return true;
+    } on InvalidAuthSessionException catch (error) {
+      // The account may have been deleted or the stored JWT may be revoked.
+      // Do not let the WebView observe the stale pending session on startup.
+      await _tokenStorage.deleteAllTokens();
+      AppLogger.warning(
+        'AuthSessionSync: invalid session (${error.statusCode}); local auth cleared',
+      );
+      return false;
     } catch (e, st) {
       AppLogger.error('인증 세션 동기화 실패', e, st);
       return false;

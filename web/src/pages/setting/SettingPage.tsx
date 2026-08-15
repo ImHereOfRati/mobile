@@ -9,7 +9,7 @@ import { useApiClient } from "@/api/use-api-client";
 import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
 import { Button, SettingsGroup, SettingsRow, useTheme } from "@/design-system";
-import { loadTerms, type Term } from "@/pages/onboarding/terms-service";
+import { loadTerms, type Term } from "./terms-service";
 import { formatActivityTime } from "@/pages/record/record-model";
 
 import { settingService, SUPPORT_URL, type UserMe } from "./setting-service";

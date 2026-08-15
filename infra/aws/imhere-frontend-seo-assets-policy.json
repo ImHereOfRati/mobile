@@ -1,0 +1,19 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManageLandingSeoAssets",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::imhere-web-prod/og-image.svg",
+        "arn:aws:s3:::imhere-web-prod/robots.txt",
+        "arn:aws:s3:::imhere-web-prod/sitemap.xml"
+      ]
+    }
+  ]
+}
