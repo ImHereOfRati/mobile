@@ -15,7 +15,7 @@ class WebUrlResolver {
 
   factory WebUrlResolver.firebase(FirebaseRemoteService remoteService) {
     return WebUrlResolver(
-      loadRemoteUrl: () async => remoteService.webAppUrlOrNull,
+      loadRemoteUrl: () async => remoteService.baseUrlOrNull,
     );
   }
 
@@ -34,8 +34,14 @@ class WebUrlResolver {
     if (raw == null) return null;
     final uri = Uri.tryParse(raw);
     if (uri == null || !uri.hasAuthority) return null;
-    if (uri.scheme != 'https') return null;
-    return uri;
+    if (uri.scheme != 'https' ||
+        uri.query.isNotEmpty ||
+        uri.fragment.isNotEmpty) {
+      return null;
+    }
+    final basePath = uri.path.replaceFirst(RegExp(r'/+$'), '');
+    if (basePath == '/app') return uri;
+    return uri.replace(path: '${basePath.isEmpty ? '' : basePath}/app');
   }
 
   static String? _normalise(String? value) {

@@ -6,7 +6,7 @@ void main() {
 
   test('uses a valid HTTPS Remote Config URL', () async {
     final resolver = WebUrlResolver(
-      loadRemoteUrl: () async => ' https://release.example/app ',
+      loadRemoteUrl: () async => ' https://release.example ',
       fallbackUrl: fallback,
     );
 

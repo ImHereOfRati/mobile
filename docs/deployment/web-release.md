@@ -1,13 +1,20 @@
 # Web release deployment and rollback
 
-The production React app is deployed as an immutable, commit-addressed release:
+The production React app is deployed as an immutable, commit-addressed release,
+and the public landing page is synchronized to the bucket root:
 
-`s3://<bucket>/app/releases/<40-character commit SHA>/`
+`s3://<bucket>/app/releases/<40-character commit SHA>/index.html`
 
-Flutter resolves the active release from the Firebase Remote Config parameter
-`web_app_url`. A normal deployment never overwrites the currently active
-release. It uploads a new path, validates CloudFront, smoke-tests the public
-URL, and only then updates Remote Config.
+Flutter derives the Web shell URL as `<base_url>/app` from Firebase Remote
+Config. Web deployment does not update the app URL or require an app release.
+Immutable releases remain available for rollback and diagnostics.
+
+The browser API origin is owned by the backend deployment. Set
+`BACKEND_PUBLIC_ORIGIN` from `ImHereServer/docs/infra/cicd.md` (production:
+`https://imhere.ratiko.co.kr`). The workflow passes it to the web build as
+`VITE_API_BASE_URL`. The native shell reads the same backend address from
+Firebase Remote Config's `base_url`; the web release workflow does not change
+that backend parameter.
 
 ## One-time infrastructure setup
 
@@ -35,9 +42,9 @@ URL, and only then updates Remote Config.
 
    Grant only:
 
-   - `s3:ListBucket` for the release prefix;
+   - `s3:ListBucket` for the app prefixes;
    - `s3:GetObject`, `s3:PutObject`, and `s3:DeleteObject` under
-     `app/releases/*`;
+     `app/*` (including `app/releases/*` and the mutable `app/` root);
    - `cloudfront:GetDistributionConfig` for the production distribution.
 
    Do not create or store an AWS access key for Actions.
@@ -55,16 +62,16 @@ URL, and only then updates Remote Config.
    | `WEB_APP_BUCKET`                 | S3 bucket name                           |
    | `WEB_CLOUDFRONT_DISTRIBUTION_ID` | Production distribution ID               |
    | `WEB_PUBLIC_ORIGIN`              | Public origin, without `/app`            |
+   | `BACKEND_PUBLIC_ORIGIN`          | Backend origin from server CD docs       |
    | `RELEASE_CACHE_POLICY_ID`        | CloudFormation release policy output     |
    | `API_CACHE_POLICY_ID`            | CloudFormation API cache policy output   |
    | `API_ORIGIN_REQUEST_POLICY_ID`   | CloudFormation API origin policy output  |
    | `GCP_WORKLOAD_IDENTITY_PROVIDER` | Google WIF provider resource name        |
    | `GCP_SERVICE_ACCOUNT`            | Remote Config deployment service account |
    | `FIREBASE_PROJECT_ID`            | Firebase project ID                      |
-   | `VITE_API_BASE_URL`              | Public API base URL                      |
    | `VITE_NAVER_MAP_CLIENT_ID`       | Public Naver Maps client ID              |
    | `VITE_GA_MEASUREMENT_ID`         | GA4 measurement ID                       |
-   | `VITE_CLARITY_PROJECT_ID`        | Microsoft Clarity project ID             |
+   | `VITE_CLARITY_PROJECT_ID`        | Optional; omit when Clarity is not used  |
 
 ## Normal deployment
 
@@ -78,7 +85,8 @@ workflow:
 4. verifies the deployed CloudFront behavior IDs;
 5. fetches the index and its direct JS/CSS assets from the public URL;
 6. obtains a short-lived Google access token through WIF;
-7. validates and publishes `web_app_url` with the latest Remote Config ETag.
+7. leaves Remote Config unchanged. The client reads `base_url`, appends `/app`,
+   and loads the mutable Web shell root.
 
 If required environment variables are absent, the main-branch workflow records
 a notice and skips deployment. It never falls back to long-lived credentials.

@@ -30,9 +30,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
-          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
-          GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
-          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           RELEASE_CACHE_POLICY_ID: ${{ vars.RELEASE_CACHE_POLICY_ID }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
           VITE_NAVER_MAP_CLIENT_ID: ${{ vars.VITE_NAVER_MAP_CLIENT_ID }}
@@ -48,9 +45,6 @@ jobs:
             AWS_ACCESS_KEY_ID \
             AWS_SECRET_ACCESS_KEY \
             AWS_REGION \
-            FIREBASE_PROJECT_ID \
-            GCP_SERVICE_ACCOUNT \
-            GCP_WORKLOAD_IDENTITY_PROVIDER \
             RELEASE_CACHE_POLICY_ID \
             VITE_GA_MEASUREMENT_ID \
             VITE_NAVER_MAP_CLIENT_ID \
@@ -99,12 +93,29 @@ jobs:
       - name: Build commit-addressed app
         working-directory: web
         env:
+          RELEASE_SHA: ${{ github.sha }}
           VITE_API_BASE_URL: ${{ vars.BACKEND_PUBLIC_ORIGIN }}
           VITE_APP_BASE_PATH: /app/releases/${{ github.sha }}/
           VITE_CLARITY_PROJECT_ID: ${{ vars.VITE_CLARITY_PROJECT_ID }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
           VITE_NAVER_MAP_CLIENT_ID: ${{ vars.VITE_NAVER_MAP_CLIENT_ID }}
-        run: pnpm typecheck && pnpm build:app && pnpm build:landing
+        run: pnpm typecheck && pnpm build:app && node scripts/check-release-build.mjs
+
+      - name: Preserve immutable release build
+        run: |
+          rm -rf web/release-app
+          mkdir -p web/release-app
+          cp -a web/dist/app/. web/release-app/
+
+      - name: Build mutable app root
+        working-directory: web
+        env:
+          VITE_API_BASE_URL: ${{ vars.BACKEND_PUBLIC_ORIGIN }}
+          VITE_APP_BASE_PATH: /app/
+          VITE_CLARITY_PROJECT_ID: ${{ vars.VITE_CLARITY_PROJECT_ID }}
+          VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
+          VITE_NAVER_MAP_CLIENT_ID: ${{ vars.VITE_NAVER_MAP_CLIENT_ID }}
+        run: pnpm build:app && node scripts/check-root-build.mjs && pnpm build:landing
 
       - name: Configure short-lived AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0
@@ -118,10 +129,29 @@ jobs:
           RELEASE_SHA: ${{ github.sha }}
           WEB_APP_BUCKET: ${{ vars.WEB_APP_BUCKET }}
         run: |
-          aws s3 sync web/dist/app \
+          aws s3 sync web/release-app \
             "s3://${WEB_APP_BUCKET}/app/releases/${RELEASE_SHA}/" \
             --cache-control "public,max-age=31536000,immutable" \
             --delete \
+            --only-show-errors
+
+      - name: Upload mutable app root
+        env:
+          WEB_APP_BUCKET: ${{ vars.WEB_APP_BUCKET }}
+        run: |
+          aws s3 sync web/dist/app \
+            "s3://${WEB_APP_BUCKET}/app/" \
+            --cache-control "no-cache,no-store,must-revalidate" \
+            --exclude "releases/*" \
+            --delete \
+            --only-show-errors
+          aws s3 cp web/dist/app/index.html "s3://${WEB_APP_BUCKET}/app" \
+            --content-type "text/html" \
+            --cache-control "no-cache,no-store,must-revalidate" \
+            --only-show-errors
+          aws s3 cp web/dist/app/index.html "s3://${WEB_APP_BUCKET}/app/" \
+            --content-type "text/html" \
+            --cache-control "no-cache,no-store,must-revalidate" \
             --only-show-errors
 
       - name: Upload landing page
@@ -162,29 +192,14 @@ jobs:
           RELEASE_URL: ${{ steps.release.outputs.url }}
         run: node web/scripts/smoke-release.mjs
 
-      - id: google-auth
-        name: Configure short-lived Google credentials
-        uses: google-github-actions/auth@v3
-        with:
-          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-          token_format: access_token
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-
-      - name: Activate release in Firebase Remote Config
-        env:
-          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
-          GOOGLE_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
-          RELEASE_URL: ${{ steps.release.outputs.url }}
-        run: node web/scripts/update-remote-config.mjs
-
       - name: Record deployment
         env:
           RELEASE_URL: ${{ steps.release.outputs.url }}
+          WEB_PUBLIC_ORIGIN: ${{ vars.WEB_PUBLIC_ORIGIN }}
         run: |
           {
             echo "## Immutable web deployment"
             echo "- Commit: \`${GITHUB_SHA}\`"
             echo "- Release: ${RELEASE_URL}"
-            echo "- Firebase parameter: \`web_app_url\`"
+            echo "- Mutable app root: ${WEB_PUBLIC_ORIGIN%/}/app"
           } >> "$GITHUB_STEP_SUMMARY"
