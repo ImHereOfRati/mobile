@@ -17,6 +17,7 @@ enum WebViewHostState { loading, ready, offline, forceUpdate, fatalError }
 class WebViewHost extends StatefulWidget {
   final Uri initialUrl;
   final BridgeRpcServer rpcServer;
+  final ValueNotifier<ThemeMode> themeMode;
   final ConnectivityProbe isOnline;
   final bool forceUpdate;
   final Stream<String>? pushPaths;
@@ -27,6 +28,7 @@ class WebViewHost extends StatefulWidget {
     super.key,
     required this.initialUrl,
     required this.rpcServer,
+    required this.themeMode,
     required this.isOnline,
     this.forceUpdate = false,
     this.pushPaths,
@@ -82,6 +84,7 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
       );
     _emitter = BridgeEventEmitter(_controller.runJavaScript);
     _events = ShellEventCoordinator(_emitter);
+    widget.themeMode.addListener(_handleThemeModeChanged);
     _pushSubscription = widget.pushPaths?.listen((path) {
       if (_state == WebViewHostState.ready) {
         unawaited(_events.pushPathOpened(path));
@@ -100,6 +103,7 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    widget.themeMode.removeListener(_handleThemeModeChanged);
     unawaited(_pushSubscription?.cancel());
     super.dispose();
   }
@@ -114,7 +118,10 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
 
   @override
   void didChangePlatformBrightness() {
-    if (_state != WebViewHostState.ready) return;
+    if (_state != WebViewHostState.ready ||
+        widget.themeMode.value != ThemeMode.system) {
+      return;
+    }
     final brightness =
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
     unawaited(
@@ -138,6 +145,21 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
     }
   }
 
+  void _handleThemeModeChanged() {
+    if (!mounted || _state != WebViewHostState.ready) return;
+    unawaited(_events.themeChanged(_themeName()));
+  }
+
+  String _themeName() {
+    final mode = widget.themeMode.value;
+    if (mode == ThemeMode.dark) return 'dark';
+    if (mode == ThemeMode.light) return 'light';
+    return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark
+        ? 'dark'
+        : 'light';
+  }
+
   void _revealWebView() {
     if (!mounted || _state != WebViewHostState.loading) return;
     setState(() => _state = WebViewHostState.ready);
@@ -146,10 +168,7 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
   void _pageReady() {
     if (!mounted) return;
     setState(() => _state = WebViewHostState.ready);
-    final brightness = MediaQuery.platformBrightnessOf(context);
-    unawaited(
-      _events.themeChanged(brightness == Brightness.dark ? 'dark' : 'light'),
-    );
+    unawaited(_events.themeChanged(_themeName()));
     for (final path in List<String>.from(_pendingPushPaths)) {
       unawaited(_events.pushPathOpened(path));
     }

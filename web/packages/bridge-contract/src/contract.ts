@@ -281,6 +281,10 @@ export const StatusBarRequest = s.object("StatusBarRequest", {
   style: StatusBarStyle,
 });
 
+export const ThemeRequest = s.object("ThemeRequest", {
+  theme: AppTheme,
+});
+
 export const AnalyticsEvent = s.object("AnalyticsEvent", {
   name: s.string,
   parameters: s.optional(s.json),
@@ -354,6 +358,7 @@ export const bridgeContract = {
     share: method(ShareRequest, null),
     haptic: method(HapticRequest, null),
     setStatusBarStyle: method(StatusBarRequest, null),
+    setTheme: method(ThemeRequest, null),
     exitApp: method(null, null),
     setAnalyticsConsent: method(AnalyticsConsent, null),
     logEvent: method(AnalyticsEvent, null),

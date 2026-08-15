@@ -58,8 +58,12 @@ class ShellTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: surface,
       appBarTheme: AppBarTheme(
-        backgroundColor: surface,
-        foregroundColor: foreground,
+        backgroundColor: brightness == Brightness.dark
+            ? Colors.black
+            : Colors.white,
+        foregroundColor: brightness == Brightness.dark
+            ? Colors.white
+            : Colors.black,
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,

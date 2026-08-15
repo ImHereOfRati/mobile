@@ -43,6 +43,7 @@ const bridgeMethodNames = <String>[
   'share',
   'haptic',
   'setStatusBarStyle',
+  'setTheme',
   'exitApp',
   'setAnalyticsConsent',
   'logEvent',
@@ -1087,6 +1088,26 @@ class StatusBarRequest {
 enum StatusBarStyle {
   light,
   dark,
+}
+
+class ThemeRequest {
+  const ThemeRequest({
+    required this.theme,
+  });
+
+  final BridgeTheme theme;
+
+  factory ThemeRequest.fromJson(Map<String, Object?> json) {
+    return ThemeRequest(
+      theme: BridgeTheme.values.byName(json['theme'] as String),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'theme': theme.name,
+    };
+  }
 }
 
 class AnalyticsConsent {

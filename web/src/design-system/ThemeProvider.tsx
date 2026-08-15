@@ -66,12 +66,19 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     () => ({
       theme,
       setTheme,
-      toggleTheme: () =>
-        setTheme((currentTheme) =>
-          currentTheme === "light" ? "dark" : "light",
-        ),
+      toggleTheme: () => {
+        const nextTheme = theme === "light" ? "dark" : "light";
+        if (bridge === null) {
+          setTheme(nextTheme);
+          return;
+        }
+        void bridge
+          .setTheme({ theme: nextTheme })
+          .then(() => setTheme(nextTheme))
+          .catch(() => setTheme(nextTheme));
+      },
     }),
-    [theme],
+    [bridge, theme],
   );
 
   return (

@@ -26,6 +26,7 @@ import 'package:iamhere/shell/webview_host.dart';
 class ShellApp extends StatefulWidget {
   final WebUrlResolver webUrlResolver;
   final BridgeRpcServer rpcServer;
+  final ValueNotifier<ThemeMode> themeMode;
   final ConnectivityProbe isOnline;
   final bool enablePush;
   final bool forceUpdate;
@@ -35,6 +36,7 @@ class ShellApp extends StatefulWidget {
     super.key,
     required this.webUrlResolver,
     required this.rpcServer,
+    required this.themeMode,
     required this.isOnline,
     this.enablePush = true,
     this.forceUpdate = false,
@@ -80,6 +82,7 @@ class _ShellAppState extends State<ShellApp> {
 
   @override
   void dispose() {
+    widget.themeMode.dispose();
     _stopDeliveryRetryTimer();
     getIt<AuthInvalidationNotifier>().removeListener(_handleAuthInvalidation);
     _lifecycleListener.dispose();
@@ -179,48 +182,52 @@ class _ShellAppState extends State<ShellApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'ImHere',
-      theme: ShellTheme.light,
-      darkTheme: ShellTheme.dark,
-      themeMode: ThemeMode.system,
-      locale: const Locale('ko', 'KR'),
-      supportedLocales: const [Locale('ko', 'KR')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      home: FutureBuilder<Uri?>(
-        future: _initialUrl,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return ShellStatusView.fatalError(onRetry: _retryBootstrap);
-          }
-          final url = snapshot.data;
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const ShellStatusView.splash();
-          }
-          if (url == null) {
-            return AuthFlowApp(
-              key: ValueKey(_authInitialLocation),
-              initialLocation: _authInitialLocation,
-              authLoginCoordinator: getIt<AuthLoginCoordinator>(),
-              authService: getIt<AuthService>(),
-              termsService: getIt<TermsService>(),
-              onAuthenticated: _reloadInitialUrl,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: widget.themeMode,
+      builder: (context, themeMode, _) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'ImHere',
+        theme: ShellTheme.light,
+        darkTheme: ShellTheme.dark,
+        themeMode: themeMode,
+        locale: const Locale('ko', 'KR'),
+        supportedLocales: const [Locale('ko', 'KR')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        home: FutureBuilder<Uri?>(
+          future: _initialUrl,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return ShellStatusView.fatalError(onRetry: _retryBootstrap);
+            }
+            final url = snapshot.data;
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const ShellStatusView.splash();
+            }
+            if (url == null) {
+              return AuthFlowApp(
+                key: ValueKey(_authInitialLocation),
+                initialLocation: _authInitialLocation,
+                authLoginCoordinator: getIt<AuthLoginCoordinator>(),
+                authService: getIt<AuthService>(),
+                termsService: getIt<TermsService>(),
+                onAuthenticated: _reloadInitialUrl,
+              );
+            }
+            return WebViewHost(
+              initialUrl: url,
+              rpcServer: widget.rpcServer,
+              themeMode: widget.themeMode,
+              isOnline: widget.isOnline,
+              pushPaths: _pushPaths.stream,
+              forceUpdate: widget.forceUpdate,
+              onUpdate: widget.onUpdate,
             );
-          }
-          return WebViewHost(
-            initialUrl: url,
-            rpcServer: widget.rpcServer,
-            isOnline: widget.isOnline,
-            pushPaths: _pushPaths.stream,
-            forceUpdate: widget.forceUpdate,
-            onUpdate: widget.onUpdate,
-          );
-        },
+          },
+        ),
       ),
     );
   }

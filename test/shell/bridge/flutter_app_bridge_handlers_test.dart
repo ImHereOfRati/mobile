@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:iamhere/shell/bridge/flutter_app_bridge_handlers.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test(
     'analytics consent is delegated to Firebase before collection',
     () async {
@@ -31,6 +34,25 @@ void main() {
         'event_type': 'arrival',
         'mode': 'create',
       });
+    },
+  );
+
+  test(
+    'theme changes update the shell and persist the selected mode',
+    () async {
+      final themeMode = ValueNotifier(ThemeMode.light);
+      final savedThemes = <ThemeMode>[];
+      final handlers = FlutterAppBridgeHandlers(
+        analytics: _FakeAnalyticsReporter(),
+        themeMode: themeMode,
+        saveTheme: (theme) async => savedThemes.add(theme),
+      ).build();
+
+      await handlers['setTheme']!({'theme': 'dark'});
+
+      expect(themeMode.value, ThemeMode.dark);
+      expect(savedThemes, [ThemeMode.dark]);
+      themeMode.dispose();
     },
   );
 }

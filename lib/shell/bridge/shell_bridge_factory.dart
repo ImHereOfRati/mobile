@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/common/base/result/result.dart';
@@ -30,7 +31,10 @@ import 'package:iamhere/shell/bridge/permission_bridge_handlers.dart';
 class ShellBridgeFactory {
   const ShellBridgeFactory._();
 
-  static BridgeRpcServer create() {
+  static BridgeRpcServer create({
+    required ValueNotifier<ThemeMode> themeMode,
+    required Future<void> Function(ThemeMode) saveTheme,
+  }) {
     final tokenStorage = getIt<TokenStorageService>();
     final authCoordinator = getIt<AuthLoginCoordinator>();
     final authInvalidationNotifier = getIt<AuthInvalidationNotifier>();
@@ -100,7 +104,10 @@ class ShellBridgeFactory {
       location: LocatePermissionService(),
     );
     final registry = BridgeHandlerRegistry([
-      FlutterAppBridgeHandlers().build(),
+      FlutterAppBridgeHandlers(
+        themeMode: themeMode,
+        saveTheme: saveTheme,
+      ).build(),
       auth.build(),
       permissions.build(),
       geofenceAndDevice.build(),

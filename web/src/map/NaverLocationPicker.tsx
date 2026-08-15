@@ -238,7 +238,6 @@ export function NaverLocationPicker({
           </Button>
         ))}
       </fieldset>
-
     </section>
   );
 }

@@ -64,6 +64,7 @@ export function createBrowserPreviewBridge() {
     getDeviceContacts: async () => [],
     pickDeviceContact: async () => null,
     getLocationServiceStatus: async () => ({ status: "enabled" }),
+    setTheme: async () => {},
     queryGeofences: async () => ({ items: [previewGeofence] }),
     queryNotifications: async () => ({ items: [previewNotification] }),
     queryRecords: async () => ({ items: [previewRecord] }),

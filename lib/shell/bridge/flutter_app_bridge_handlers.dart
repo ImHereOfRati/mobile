@@ -11,10 +11,16 @@ import 'package:url_launcher/url_launcher.dart';
 
 class FlutterAppBridgeHandlers {
   final Future<void> Function()? onExit;
+  final ValueNotifier<ThemeMode>? themeMode;
+  final Future<void> Function(ThemeMode)? saveTheme;
   final AnalyticsReporter _analytics;
 
-  FlutterAppBridgeHandlers({this.onExit, AnalyticsReporter? analytics})
-    : _analytics = analytics ?? FirebaseAnalyticsReporter();
+  FlutterAppBridgeHandlers({
+    this.onExit,
+    this.themeMode,
+    this.saveTheme,
+    AnalyticsReporter? analytics,
+  }) : _analytics = analytics ?? FirebaseAnalyticsReporter();
 
   Map<String, BridgeMethodHandler> build() {
     return <String, BridgeMethodHandler>{
@@ -24,6 +30,7 @@ class FlutterAppBridgeHandlers {
       'share': _share,
       'haptic': _haptic,
       'setStatusBarStyle': _setStatusBarStyle,
+      'setTheme': _setTheme,
       'exitApp': (_) => onExit?.call() ?? SystemNavigator.pop(),
       'setAnalyticsConsent': _setAnalyticsConsent,
       'logEvent': _logEvent,
@@ -51,10 +58,7 @@ class FlutterAppBridgeHandlers {
       'buildNumber': info.buildNumber,
       'platform': Platform.isIOS ? 'ios' : 'android',
       'locale': platformDispatcher.locale.toLanguageTag(),
-      'theme': switch (platformDispatcher.platformBrightness) {
-        Brightness.dark => 'dark',
-        Brightness.light => 'light',
-      },
+      'theme': _themeName(),
     };
   }
 
@@ -92,6 +96,33 @@ class FlutterAppBridgeHandlers {
     SystemChrome.setSystemUIOverlayStyle(
       style == 'light' ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
     );
+  }
+
+  Future<void> _setTheme(Object? params) async {
+    final theme = _requiredString(params, 'theme');
+    final nextTheme = switch (theme) {
+      'dark' => ThemeMode.dark,
+      'light' => ThemeMode.light,
+      'system' => ThemeMode.system,
+      final value => throw ArgumentError.value(value, 'theme'),
+    };
+    themeMode?.value = nextTheme;
+    await saveTheme?.call(nextTheme);
+    SystemChrome.setSystemUIOverlayStyle(
+      nextTheme == ThemeMode.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
+    );
+  }
+
+  String _themeName() {
+    final mode = themeMode?.value ?? ThemeMode.system;
+    if (mode == ThemeMode.dark) return 'dark';
+    if (mode == ThemeMode.light) return 'light';
+    return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark
+        ? 'dark'
+        : 'light';
   }
 
   Future<void> _logEvent(Object? params) async {

@@ -126,9 +126,7 @@ export function GeofenceListScreen() {
           <div>
             <span>{t("geofence.list.locationService")}</span>
             <strong
-              className={
-                locationEnabled === false ? "status-needs-action" : ""
-              }
+              className={locationEnabled === false ? "status-needs-action" : ""}
             >
               {locationEnabled === null
                 ? t("common.loadingShort")
@@ -143,24 +141,24 @@ export function GeofenceListScreen() {
           <div>
             <span>{t("geofence.list.autoSend")}</span>
             <strong>
-            {readiness === null ? (
-              t("common.loadingShort")
-            ) : readiness.ready ? (
-              t("geofence.list.ready")
-            ) : (
-              <>
-                <span
-                  className={
-                    readiness.missing.length > 0
-                      ? "auto-send-missing-count"
-                      : undefined
-                  }
-                >
-                  {readiness.missing.length}개
-                </span>{" "}
-                설정 필요
-              </>
-            )}
+              {readiness === null ? (
+                t("common.loadingShort")
+              ) : readiness.ready ? (
+                t("geofence.list.ready")
+              ) : (
+                <>
+                  <span
+                    className={
+                      readiness.missing.length > 0
+                        ? "auto-send-missing-count"
+                        : undefined
+                    }
+                  >
+                    {readiness.missing.length}개
+                  </span>{" "}
+                  설정 필요
+                </>
+              )}
             </strong>
           </div>
         </div>

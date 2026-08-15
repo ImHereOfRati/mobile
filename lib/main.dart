@@ -15,6 +15,7 @@ import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
 import 'package:iamhere/shell/bridge/shell_bridge_factory.dart';
 import 'package:iamhere/shell/app_version_policy.dart';
 import 'package:iamhere/shell/shell_app.dart';
+import 'package:iamhere/shell/theme_preference_service.dart';
 import 'package:iamhere/shell/view/shell_status_view.dart';
 import 'package:iamhere/shell/web_url_resolver.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
@@ -29,13 +30,19 @@ Future<void> main() async {
 
   try {
     final bootstrap = await _initializeAppDependencies();
+    final themePreferences = ThemePreferenceService();
+    final themeMode = ValueNotifier(await themePreferences.load());
     runApp(
       ProviderScope(
         child: ShellApp(
           webUrlResolver: WebUrlResolver(
             loadRemoteUrl: () async => bootstrap.remoteConfig?.webAppUrlOrNull,
           ),
-          rpcServer: ShellBridgeFactory.create(),
+          rpcServer: ShellBridgeFactory.create(
+            themeMode: themeMode,
+            saveTheme: themePreferences.save,
+          ),
+          themeMode: themeMode,
           isOnline: hasNetworkConnection,
           enablePush: bootstrap.firebaseReady,
           forceUpdate: bootstrap.forceUpdate,

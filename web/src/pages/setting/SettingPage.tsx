@@ -190,7 +190,7 @@ export default function SettingPage() {
         />
         <PermissionItem
           granted={readiness?.locationAlways ?? false}
-          label="항상 위치 권한"
+          label="위치 권한 (항상 허용)"
           onClick={() =>
             void openPermission(
               "locationAlways",
@@ -341,11 +341,13 @@ export default function SettingPage() {
 }
 
 function PermissionItem({
+  detail,
   label,
   granted,
   onClick,
 }: {
   granted: boolean;
+  detail?: string;
   label: string;
   onClick: () => void;
 }) {
@@ -353,7 +355,7 @@ function PermissionItem({
     <SettingsRow
       className={granted ? "" : "permission-item--needs-action"}
       label={label}
-      detail={granted ? "허용됨" : "설정 필요"}
+      detail={detail ?? (granted ? "허용됨" : "허용 안 됨")}
       onClick={onClick}
     />
   );

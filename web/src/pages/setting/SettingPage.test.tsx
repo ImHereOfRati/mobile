@@ -186,7 +186,7 @@ describe("SettingPage", () => {
 
     await screen.findByText("2.0.0 (42)");
     await act(async () => {
-      screen.getByText("항상 위치 권한").click();
+      screen.getByText("위치 권한 (항상 허용)").click();
     });
 
     expect(

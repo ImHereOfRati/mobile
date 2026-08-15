@@ -31,8 +31,11 @@ export function validateCloudFrontConfig({
       "API behavior does not forward the required authorization and query data.",
     );
   }
-  const hasSpaRewrite = (defaultBehavior?.FunctionAssociations?.Items ?? []).some(
-    (association) => association.EventType === "viewer-request" &&
+  const hasSpaRewrite = (
+    defaultBehavior?.FunctionAssociations?.Items ?? []
+  ).some(
+    (association) =>
+      association.EventType === "viewer-request" &&
       typeof association.FunctionARN === "string" &&
       association.FunctionARN.length > 0,
   );

@@ -52,7 +52,9 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
       .then(async (readiness) => {
         if (cancelled) return;
         if (!readiness.locationAlways) {
-          navigate("/auto-send-readiness", { replace: true });
+          navigate("/auto-send-readiness?returnTo=%2Fgeofence%2Fmessage", {
+            replace: true,
+          });
           return;
         }
         return Promise.all([

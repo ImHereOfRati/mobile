@@ -3,6 +3,7 @@ import "@/pages/feature-page.css";
 
 import type { BridgeMethodResult } from "@imhere/bridge-contract";
 import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useBridge } from "@/bridge/bridge-context";
 import { SettingsGroup, SettingsRow } from "@/design-system";
@@ -34,6 +35,9 @@ const items: ReadonlyArray<{
 
 export default function AutoSendReadinessPage() {
   const bridge = useBridge();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const returnTo = new URLSearchParams(location.search).get("returnTo");
   const [readiness, setReadiness] = useState<Readiness>();
   const [message, setMessage] = useState("준비 상태를 확인하는 중입니다.");
 
@@ -51,10 +55,18 @@ export default function AutoSendReadinessPage() {
     return bridge.events.subscribe("onPermissionChanged", () => void refresh());
   }, [bridge, refresh]);
 
+  useEffect(() => {
+    if (readiness?.ready !== true || returnTo !== "/geofence/message") {
+      return;
+    }
+    navigate(returnTo, { replace: true });
+  }, [navigate, readiness?.ready, returnTo]);
+
   async function openPermission(permission: Permission, granted: boolean) {
     try {
-      if (granted) await bridge.openAppSettings();
-      else await bridge.requestPermission({ permission });
+      if (permission === "locationAlways" || granted) {
+        await bridge.openAppSettings();
+      } else await bridge.requestPermission({ permission });
       await refresh();
     } catch {
       setMessage("권한 설정을 열지 못했습니다.");
@@ -89,7 +101,7 @@ export default function AutoSendReadinessPage() {
                   <small>{item.description}</small>
                 </span>
               }
-              detail={granted ? "완료" : "설정 필요"}
+              detail={granted ? "완료" : "허용 안 됨"}
               onClick={() => void openPermission(item.key, granted)}
             />
           );

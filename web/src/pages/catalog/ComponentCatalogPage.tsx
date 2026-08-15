@@ -426,7 +426,7 @@ function SettingPreview({
           action: toggleTheme,
         },
         { label: "알림 권한", detail: "허용됨" },
-        { label: "항상 위치 권한", detail: "확인 필요" },
+        { label: "위치 권한", detail: "앱 사용 중 허용(항상 허용)" },
       ],
     },
     {

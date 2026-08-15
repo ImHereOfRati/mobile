@@ -146,6 +146,7 @@ button.setting-item {
 
 .auto-send-readiness .ds-settings-row > span {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1);
   width: 100%;
 }
@@ -162,6 +163,13 @@ button.setting-item {
   align-self: center;
   color: var(--color-text-secondary);
   text-align: right;
+}
+
+.auto-send-readiness
+  .ds-settings-row:not(.permission-item--needs-action)
+  > small {
+  color: var(--color-primary);
+  font-weight: 750;
 }
 
 .auto-send-readiness .permission-item--needs-action > small {

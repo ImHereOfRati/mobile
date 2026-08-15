@@ -96,13 +96,14 @@ class NativeAppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
         elevation: 0,
         scrolledUnderElevation: 0,
         titleSpacing: 20,
@@ -156,8 +157,11 @@ class _NativeBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final navigationBarColor =
+        theme.navigationBarTheme.backgroundColor ?? theme.colorScheme.surface;
     return DecoratedBox(
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: navigationBarColor),
       child: SafeArea(
         top: false,
         child: SizedBox(

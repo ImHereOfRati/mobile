@@ -11,7 +11,8 @@ export function BridgeProvider({
   children,
 }: PropsWithChildren<{ bridge?: NativeBridge }>) {
   const [connection, setConnection] = useState(() => {
-    if (providedBridge !== undefined) return { bridge: providedBridge, destroy: () => {} };
+    if (providedBridge !== undefined)
+      return { bridge: providedBridge, destroy: () => {} };
     // Flutter injects JavaScript channels while the WebView document is being
     // attached. Do not permanently select the browser preview bridge during
     // that short window, or native-only calls such as getDeviceContacts are

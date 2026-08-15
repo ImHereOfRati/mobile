@@ -85,6 +85,8 @@
   --shadow-card: none;
   --shadow-float: 0 0.75rem 2rem rgb(0 113 227 / 24%);
   --shadow-sheet: 0 -1rem 3rem rgb(25 31 40 / 16%);
+  --shadow-location-input: 0 1px 3px rgb(15 23 42 / 8%);
+  --shadow-location-results: 0 4px 14px rgb(15 23 42 / 7%);
 }
 
 :root[data-theme="dark"] {
@@ -109,6 +111,8 @@
   --shadow-card: 0 0.5rem 1.75rem rgb(0 0 0 / 28%);
   --shadow-float: 0 0.75rem 2rem rgb(10 132 255 / 24%);
   --shadow-sheet: 0 -1rem 3rem rgb(0 0 0 / 48%);
+  --shadow-location-input: 0 1px 3px rgb(0 0 0 / 20%);
+  --shadow-location-results: 0 4px 14px rgb(0 0 0 / 28%);
 }
 
 @media (prefers-reduced-motion: reduce) {

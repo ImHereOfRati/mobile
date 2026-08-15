@@ -64,7 +64,9 @@ export function DeviceContactEditScreen({ contactId }: { contactId?: string }) {
       {loading ? (
         <LoadingState label="연락처를 불러오는 중입니다." rows={2} />
       ) : error && !name ? (
-        <p className="feature-page__error" role="alert">{error}</p>
+        <p className="feature-page__error" role="alert">
+          {error}
+        </p>
       ) : (
         <form
           className="feature-form"
@@ -73,12 +75,28 @@ export function DeviceContactEditScreen({ contactId }: { contactId?: string }) {
             void save();
           }}
         >
-          <TextField label="닉네임" value={name} onChange={(event) => setName(event.target.value)} />
+          <TextField
+            label="닉네임"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
           <TextField label="전화번호" value={phone} readOnly />
-          {error ? <p className="feature-page__error" role="alert">{error}</p> : null}
+          {error ? (
+            <p className="feature-page__error" role="alert">
+              {error}
+            </p>
+          ) : null}
           <div className="feature-page__actions">
-            <Button type="submit" loading={saving}>저장</Button>
-            <Button type="button" variant="secondary" onClick={() => navigate(-1)}>취소</Button>
+            <Button type="submit" loading={saving}>
+              저장
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate(-1)}
+            >
+              취소
+            </Button>
           </div>
         </form>
       )}
