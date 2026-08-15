@@ -10,6 +10,14 @@ class FirebaseRemoteService {
   static const String androidStoreUrl = 'android_store_url';
   static const String iosStoreUrl = 'ios_store_url';
 
+  /// How stale a cached config may be before a fetch is allowed.
+  ///
+  /// The Remote Config backend throttles frequent fetches (roughly 5 per hour
+  /// per app instance), so going much below 15 minutes invites
+  /// `FirebaseRemoteConfigFetchThrottledException`. The background isolate
+  /// reads the same value so the two paths cannot drift apart.
+  static const Duration fetchInterval = Duration(hours: 1);
+
   final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
 
   Future<void> initialize() async {
@@ -17,9 +25,7 @@ class FirebaseRemoteService {
       await _remoteConfig.setConfigSettings(
         RemoteConfigSettings(
           fetchTimeout: const Duration(seconds: 10),
-          minimumFetchInterval: kDebugMode
-              ? Duration.zero
-              : const Duration(hours: 12),
+          minimumFetchInterval: kDebugMode ? Duration.zero : fetchInterval,
         ),
       );
 

@@ -1,5 +1,6 @@
 import 'package:iamhere/infrastructure/database/local_database_properties.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_entity_mapper.dart';
 import 'package:injectable/injectable.dart';
 
 import 'abstract_local_database_engine.dart';
@@ -8,10 +9,12 @@ import 'abstract_local_database_engine.dart';
 class GeofenceDatabaseService extends AbstractLocalDatabaseService {
   GeofenceDatabaseService(super.database);
 
+  static const _mapper = GeofenceEntityMapper();
+
   Future<GeofenceEntity> save(GeofenceEntity entity) => saveEntity(
     entityName: 'geofence',
     table: LocalDatabaseProperties.geofenceTableName,
-    values: entity.toMap(),
+    values: _mapper.toDatabaseMap(entity),
     createEntity: (id) => entity.copyWith(id: id),
     entityDetails: 'Geofence: ${entity.name}',
   );
@@ -20,7 +23,7 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
     entityName: 'Geofence',
     entityId: entity.id,
     table: LocalDatabaseProperties.geofenceTableName,
-    values: entity.copyWith(updatedAt: DateTime.now().toUtc()).toMap(),
+    values: _mapper.toDatabaseMap(entity),
     entityDetails: 'Geofence: ${entity.name}',
   );
 
@@ -39,7 +42,7 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
         FROM $gTable g
         ORDER BY g.name ASC
       ''',
-      fromMap: GeofenceEntity.fromMap,
+      fromMap: _mapper.fromDatabaseMap,
     );
   }
 
@@ -53,11 +56,7 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
       executePartialUpdate(
         entityName: 'geofence active status',
         table: LocalDatabaseProperties.geofenceTableName,
-        values: {
-          'is_active': isActive ? 1 : 0,
-          'awaiting_departure': 0,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        },
+        values: {'is_active': isActive ? 1 : 0, 'awaiting_departure': 0},
         id: id,
         entityDetails: 'ID: $id, isActive: $isActive',
       );
@@ -66,10 +65,7 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
       executePartialUpdate(
         entityName: 'geofence departure wait state',
         table: LocalDatabaseProperties.geofenceTableName,
-        values: {
-          'awaiting_departure': awaitingDeparture ? 1 : 0,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        },
+        values: {'awaiting_departure': awaitingDeparture ? 1 : 0},
         id: id,
         entityDetails: 'ID: $id, awaitingDeparture: $awaitingDeparture',
       );
@@ -77,10 +73,7 @@ class GeofenceDatabaseService extends AbstractLocalDatabaseService {
   Future<void> updateAddress(int id, String address) => executePartialUpdate(
     entityName: 'geofence address',
     table: LocalDatabaseProperties.geofenceTableName,
-    values: {
-      'address': address,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    },
+    values: {'address': address},
     id: id,
     entityDetails: 'ID: $id, address: $address',
   );

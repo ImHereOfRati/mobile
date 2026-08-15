@@ -14,7 +14,7 @@ import 'package:iamhere/shell/bridge/bridge_handler_registry.dart';
 
 typedef ServerRecipientNotifier =
     Future<void> Function({
-      required List<String> receiverEmails,
+      required List<String> receiverUserIds,
       required String location,
     });
 
@@ -64,7 +64,6 @@ class GeofenceDeviceBridgeHandlers {
     final existing = id == null
         ? null
         : all.where((item) => item.id == id).firstOrNull;
-    final now = DateTime.now().toUtc();
     var entity = GeofenceEntity(
       id: id,
       name: _string(map, 'name'),
@@ -83,8 +82,6 @@ class GeofenceDeviceBridgeHandlers {
       eventType: map['eventType'] as String? ?? 'arrival',
       repeatType: map['repeatType'] as String? ?? 'none',
       customDaysBitmask: (map['customDaysBitmask'] as num?)?.toInt(),
-      createdAt: existing?.createdAt ?? now,
-      updatedAt: now,
     );
 
     if (existing == null) {
@@ -95,7 +92,7 @@ class GeofenceDeviceBridgeHandlers {
 
     final savedId = entity.id!;
     await recipients.deleteByGeofenceId(savedId);
-    final receiverEmails = <String>[];
+    final receiverUserIds = <String>[];
     for (final raw in map['serverRecipients'] as List? ?? const []) {
       final recipient = _map(raw);
       final email = _string(recipient, 'friendEmail');
@@ -103,15 +100,16 @@ class GeofenceDeviceBridgeHandlers {
         GeofenceServerRecipientEntity(
           geofenceId: savedId,
           friendRelationshipId: _string(recipient, 'friendRelationshipId'),
+          friendUserId: _string(recipient, 'friendUserId'),
           friendEmail: email,
           friendAlias: recipient['friendAlias'] as String? ?? '',
         ),
       );
-      receiverEmails.add(email);
+      receiverUserIds.add(_string(recipient, 'friendUserId'));
     }
-    if (receiverEmails.isNotEmpty) {
+    if (receiverUserIds.isNotEmpty) {
       await notifyServerRecipients(
-        receiverEmails: receiverEmails,
+        receiverUserIds: receiverUserIds,
         location: entity.fullLocation,
       );
     }
@@ -218,9 +216,7 @@ class GeofenceDeviceBridgeHandlers {
         'title': item.title,
         'body': item.body,
         if (item.path.isNotEmpty) 'path': item.path,
-        if (item.senderNickname.isNotEmpty)
-          'senderNickname': item.senderNickname,
-        if (item.senderEmail.isNotEmpty) 'senderEmail': item.senderEmail,
+        if (item.senderAlias.isNotEmpty) 'senderAlias': item.senderAlias,
         'createdAt': item.createdAt.toUtc().toIso8601String(),
       },
     );
@@ -272,13 +268,12 @@ class GeofenceDeviceBridgeHandlers {
           .map(
             (item) => {
               'friendRelationshipId': item.friendRelationshipId,
+              'friendUserId': item.friendUserId,
               'friendEmail': item.friendEmail,
               'friendAlias': item.friendAlias,
             },
           )
           .toList(),
-      'createdAt': entity.createdAt.toUtc().toIso8601String(),
-      'updatedAt': entity.updatedAt.toUtc().toIso8601String(),
     };
   }
 

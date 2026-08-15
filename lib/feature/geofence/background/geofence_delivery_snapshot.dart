@@ -1,28 +1,31 @@
 import 'dart:convert';
 
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_entity_mapper.dart';
 
 class GeofenceDeliverySnapshot {
+  static const _geofenceMapper = GeofenceEntityMapper();
+
   final GeofenceEntity geofence;
   final List<String> recipientNames;
   final List<String> smsPhoneNumbers;
-  final List<String> serverEmails;
+  final List<String> serverUserIds;
   final String deliveryEventType;
 
   const GeofenceDeliverySnapshot({
     required this.geofence,
     required this.recipientNames,
     required this.smsPhoneNumbers,
-    required this.serverEmails,
+    required this.serverUserIds,
     required this.deliveryEventType,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'geofence': geofence.toMap(),
+      'geofence': _geofenceMapper.toDatabaseMap(geofence),
       'recipientNames': recipientNames,
       'smsPhoneNumbers': smsPhoneNumbers,
-      'serverEmails': serverEmails,
+      'serverUserIds': serverUserIds,
       'deliveryEventType': deliveryEventType,
     };
   }
@@ -37,12 +40,14 @@ class GeofenceDeliverySnapshot {
 
   factory GeofenceDeliverySnapshot.fromMap(Map<String, dynamic> map) {
     return GeofenceDeliverySnapshot(
-      geofence: GeofenceEntity.fromMap(
+      geofence: _geofenceMapper.fromDatabaseMap(
         Map<String, dynamic>.from(map['geofence'] as Map),
       ),
       recipientNames: List<String>.from(map['recipientNames'] as List),
       smsPhoneNumbers: List<String>.from(map['smsPhoneNumbers'] as List),
-      serverEmails: List<String>.from(map['serverEmails'] as List),
+      serverUserIds: List<String>.from(
+        (map['serverUserIds'] ?? map['serverEmails'] ?? const []) as List,
+      ),
       deliveryEventType: _normalizeStoredDeliveryEventType(
         map['deliveryEventType'] as String? ?? map['eventName'] as String?,
       ),

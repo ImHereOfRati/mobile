@@ -1,4 +1,5 @@
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_entity_mapper.dart';
 
 class GeofenceEntity {
   final int? id;
@@ -17,8 +18,6 @@ class GeofenceEntity {
   repeatType; // RepeatType enum name (none/daily/weekday/weekend/custom)
   final int?
   customDaysBitmask; // Bitmask for custom days (only if repeatType == custom)
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   GeofenceEntity({
     this.id,
@@ -35,10 +34,7 @@ class GeofenceEntity {
     this.eventType = 'arrival',
     this.repeatType = 'none',
     this.customDaysBitmask,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : createdAt = createdAt ?? DateTime.now().toUtc(),
-       updatedAt = updatedAt ?? createdAt ?? DateTime.now().toUtc();
+  });
 
   /// SMS 발송 시 사용할 location 문자열: "장소명 (주소)"
   String get fullLocation => composeFullLocation(name, address);
@@ -59,8 +55,6 @@ class GeofenceEntity {
     String? eventType,
     String? repeatType,
     int? customDaysBitmask,
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) {
     return GeofenceEntity(
       id: id ?? this.id,
@@ -77,49 +71,14 @@ class GeofenceEntity {
       eventType: eventType ?? this.eventType,
       repeatType: repeatType ?? this.repeatType,
       customDaysBitmask: customDaysBitmask ?? this.customDaysBitmask,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'address': address,
-      'lat': lat,
-      'lng': lng,
-      'radius': radius,
-      'message': message,
-      'contact_ids': contactIds,
-      'is_active': isActive ? 1 : 0,
-      'awaiting_departure': awaitingDeparture ? 1 : 0,
-      'event_type': eventType,
-      'repeat_type': repeatType,
-      'custom_days_bitmask': customDaysBitmask,
-      'created_at': createdAt.toUtc().toIso8601String(),
-      'updated_at': updatedAt.toUtc().toIso8601String(),
-    };
+    return const GeofenceEntityMapper().toDatabaseMap(this);
   }
 
   factory GeofenceEntity.fromMap(Map<String, dynamic> map) {
-    return GeofenceEntity(
-      id: map['id'] as int?,
-      name: map['name'] as String,
-      address: map['address'] as String? ?? '',
-      lat: map['lat'] as double,
-      lng: map['lng'] as double,
-      radius: map['radius'] as double,
-      message: map['message'] as String,
-      contactIds: map['contact_ids'] as String? ?? '[]',
-      isActive: (map['is_active'] as int? ?? 0) == 1,
-      awaitingDeparture: (map['awaiting_departure'] as int? ?? 0) == 1,
-      serverRecipientCount: map['server_recipient_count'] as int? ?? 0,
-      eventType: map['event_type'] as String? ?? 'arrival',
-      repeatType: map['repeat_type'] as String? ?? 'none',
-      customDaysBitmask: map['custom_days_bitmask'] as int?,
-      createdAt: DateTime.tryParse(map['created_at'] as String? ?? ''),
-      updatedAt: DateTime.tryParse(map['updated_at'] as String? ?? ''),
-    );
+    return const GeofenceEntityMapper().fromDatabaseMap(map);
   }
 }

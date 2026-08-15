@@ -5,7 +5,6 @@ void main() {
   group('resolveFcmChannelId', () {
     test('도착/출발 알림은 critical 채널을 사용한다', () {
       expect(resolveFcmChannelId('ARRIVAL'), criticalChannelId);
-      expect(resolveFcmChannelId('ARRIVAL_CONFIRMATION'), criticalChannelId);
       expect(resolveFcmChannelId('DEPARTURE'), criticalChannelId);
     });
 

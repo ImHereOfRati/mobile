@@ -20,11 +20,13 @@ class RecordingDio extends Fake implements Dio {
     capturedPath = path;
     capturedData = Map<String, dynamic>.from(data as Map);
     return Response<T>(
-      data: {
-        'imhereResponseCode': 'SUCCESS',
-        'message': '알림이 발송 큐에 등록되었습니다.',
-        'data': null,
-      } as T,
+      data:
+          {
+                'imhereResponseCode': 'SUCCESS',
+                'message': '알림이 발송 큐에 등록되었습니다.',
+                'data': null,
+              }
+              as T,
       statusCode: 202,
       requestOptions: RequestOptions(path: path),
     );
@@ -42,7 +44,7 @@ void main() {
 
   test('도착 FCM payload 에 placeName 이 포함된다', () async {
     final result = await sut.sendGeofenceNotifications(
-      receiverEmails: ['server@example.com'],
+      receiverUserIds: ['550e8400-e29b-41d4-a716-446655440000'],
       body: '도착 본문',
       location: '우리집 (서울 강남구)',
       type: 'ARRIVAL',
@@ -52,6 +54,9 @@ void main() {
 
     expect(mockDio.capturedPath, '/api/notifications');
     final payload = mockDio.capturedData!;
+    expect(payload['targetIds'], [
+      '550e8400-e29b-41d4-a716-446655440000',
+    ]);
     expect(payload['extraData']['placeName'], '우리집 (서울 강남구)');
   });
 }

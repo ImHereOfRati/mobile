@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:iamhere/feature/friend/repository/contact_entity.dart';
 import 'package:iamhere/feature/friend/repository/contact_local_repository.dart';
+import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository.dart';
@@ -10,7 +11,7 @@ import 'package:injectable/injectable.dart';
 
 /// Resolve and fetch friend information for geofence recipients
 @injectable
-class ContactResolutionService {
+class ContactResolutionService implements GeofenceRecipientResolver {
   final ContactLocalRepository _contactRepository;
   final GeofenceServerRecipientLocalRepository _serverRecipientRepository;
 
@@ -21,10 +22,11 @@ class ContactResolutionService {
 
   /// Get local contact entities for a geofence's contact IDs
   /// Returns empty list if no contacts found
+  @override
   Future<List<ContactEntity>> resolveContacts(GeofenceEntity geofence) async {
     try {
       final List<dynamic> contactIdsJson = jsonDecode(geofence.contactIds);
-      final List<int> contactIds = contactIdsJson
+      final contactIds = contactIdsJson
           .map((id) => id is int ? id : int.tryParse(id.toString()))
           .whereType<int>()
           .toList();
@@ -51,6 +53,7 @@ class ContactResolutionService {
   }
 
   /// Get server recipient entities persisted for the geofence
+  @override
   Future<List<GeofenceServerRecipientEntity>> resolveServerRecipients(
     GeofenceEntity geofence,
   ) async {
@@ -64,6 +67,7 @@ class ContactResolutionService {
   }
 
   /// Extract and format phone numbers from contacts
+  @override
   List<String> extractPhoneNumbers(List<ContactEntity> contacts) {
     return contacts
         .map((contact) => contact.number.replaceAll(RegExp(r'[^\d]'), ''))
@@ -71,13 +75,14 @@ class ContactResolutionService {
         .toList();
   }
 
-  /// Extract emails from server recipients
-  List<String> extractServerEmails(
+  /// Extract server user UUIDs required by NotificationRequest.targetIds.
+  @override
+  List<String> extractServerUserIds(
     List<GeofenceServerRecipientEntity> serverRecipients,
   ) {
     return serverRecipients
-        .map((r) => r.friendEmail.trim())
-        .where((email) => email.isNotEmpty)
+        .map((r) => r.friendUserId.trim())
+        .where((userId) => userId.isNotEmpty)
         .toList();
   }
 }

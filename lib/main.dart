@@ -4,11 +4,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:iamhere/common/config/app_origin.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_workmanager.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/integration/firebase/firebase_remote_service.dart';
 import 'package:iamhere/integration/firebase/firebase_service.dart';
+import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
 import 'package:iamhere/shell/bridge/shell_bridge_factory.dart';
 import 'package:iamhere/shell/app_version_policy.dart';
 import 'package:iamhere/shell/shell_app.dart';
@@ -52,7 +54,7 @@ Future<void> main() async {
 Future<bool> hasNetworkConnection() async {
   try {
     final addresses = await InternetAddress.lookup(
-      'fortuneki.site',
+      AppOrigin.host,
     ).timeout(const Duration(seconds: 3));
     return addresses.isNotEmpty;
   } on TimeoutException {
@@ -95,8 +97,11 @@ Future<_BootstrapResult> _initializeAppDependencies() async {
   }
 
   await enrollBaseUrlGlobally(
-    baseUrl: remoteConfig?.baseUrlOrNull ?? 'https://fortuneki.site',
+    baseUrl: remoteConfig?.baseUrlOrNull ?? AppOrigin.origin,
   );
+  if (firebaseReady) {
+    getIt<FcmTokenService>().startTokenRefreshListener();
+  }
 
   final kakaoKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
   if (kakaoKey != null && kakaoKey.isNotEmpty) {

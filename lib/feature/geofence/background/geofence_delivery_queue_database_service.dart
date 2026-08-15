@@ -1,14 +1,16 @@
+import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
 import 'package:iamhere/infrastructure/database/local_database_properties.dart';
 import 'package:iamhere/infrastructure/database/local_database_exception.dart';
 import 'package:iamhere/infrastructure/database/service/abstract_local_database_engine.dart';
 
-class GeofenceDeliveryQueueDatabaseService
-    extends AbstractLocalDatabaseService {
+class GeofenceDeliveryQueueDatabaseService extends AbstractLocalDatabaseService
+    implements DeliveryQueueStore {
   static const _processingStaleAfter = Duration(minutes: 15);
 
   GeofenceDeliveryQueueDatabaseService(super.database);
 
+  @override
   Future<GeofenceDeliveryQueueEntity?> enqueue(
     GeofenceDeliveryQueueEntity entity,
   ) async {
@@ -29,6 +31,7 @@ class GeofenceDeliveryQueueDatabaseService
     }
   }
 
+  @override
   Future<List<GeofenceDeliveryQueueEntity>> takeDue({int limit = 10}) async {
     final now = DateTime.now().toUtc().toIso8601String();
     final staleThreshold = DateTime.now()
@@ -57,6 +60,7 @@ class GeofenceDeliveryQueueDatabaseService
     );
   }
 
+  @override
   Future<bool> claim(int id) async {
     final now = DateTime.now().toUtc().toIso8601String();
     final staleThreshold = DateTime.now()
@@ -83,6 +87,7 @@ class GeofenceDeliveryQueueDatabaseService
     return count > 0;
   }
 
+  @override
   Future<void> complete(int id) async {
     await deleteEntityById(
       entityName: 'geofence delivery queue item',
@@ -91,6 +96,7 @@ class GeofenceDeliveryQueueDatabaseService
     );
   }
 
+  @override
   Future<void> reschedule({
     required int id,
     required int retryCount,

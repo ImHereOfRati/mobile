@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:iamhere/integration/fcm/repository/fcm_token_repository.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
+import 'dart:async';
 
 import 'fcm_token_storage_service.dart';
 
@@ -11,6 +12,7 @@ class FcmTokenService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FcmTokenStorageService _storageService;
   final FcmTokenRepository _repository;
+  StreamSubscription<String>? _tokenRefreshSubscription;
 
   FcmTokenService(this._storageService, this._repository);
 
@@ -42,18 +44,19 @@ class FcmTokenService {
   Future<void> deleteToken() async {
     try {
       await _firebaseMessaging.deleteToken();
+      await _storageService.deleteFcmToken();
       AppLogger.debug('FCM Token deleted successfully');
     } catch (e) {
       AppLogger.error('Error deleting FCM token: $e');
     }
   }
 
-  /// FCM 토큰을 생성하고 로컬 저장소에 저장합니다.
+  /// 현재 FCM 토큰을 저장하고 인증된 사용자 계정에 등록합니다.
   ///
-  /// Returns: 성공 시 FCM 토큰, 실패 시 null
-  Future<String?> generateAndSaveFcmToken() async {
+  /// 토큰 생성 실패 시 null을 반환하며, 서버 등록 실패는 로그로 남기고
+  /// 토큰 자체는 반환합니다. 다음 로그인 또는 토큰 갱신 때 재시도합니다.
+  Future<String?> syncTokenAndEnroll() async {
     try {
-      // Firebase로부터 FCM 토큰 발급
       final token = await getToken();
 
       if (token == null) {
@@ -61,43 +64,36 @@ class FcmTokenService {
         return null;
       }
 
-      // 로컬 저장소에 FCM 토큰 저장
+      final enrolled = await _repository.enrollFcmToken(token);
+      if (!enrolled) {
+        AppLogger.error('Failed to enroll FCM token to server');
+        return null;
+      }
+
       await _storageService.saveFcmToken(token);
-      AppLogger.debug('FCM token generated and saved successfully');
 
       return token;
     } catch (e) {
-      AppLogger.error('Error in generateAndSaveFcmToken: $e');
+      AppLogger.error('Error syncing FCM token: $e');
       return null;
     }
   }
 
-  /// 로컬에 저장된 FCM 토큰을 서버에 등록합니다.
-  ///
-  /// Returns: 성공 시 true, 실패 시 false
-  Future<bool> enrollFcmTokenToServer() async {
-    try {
-      // 로컬에서 FCM 토큰 가져오기
-      final token = await _storageService.getFcmToken();
-
-      if (token == null) {
-        AppLogger.debug('No FCM token found in local storage');
-        return false;
+  /// Firebase 토큰이 교체되면 현재 로그인 계정에 새 토큰을 등록한다.
+  /// 앱 생명주기 동안 한 번만 구독해야 한다.
+  void startTokenRefreshListener() {
+    _tokenRefreshSubscription ??= onTokenRefresh.listen((token) async {
+      try {
+        final enrolled = await _repository.enrollFcmToken(token);
+        if (!enrolled) {
+          AppLogger.error('Failed to enroll refreshed FCM token to server');
+          return;
+        }
+        await _storageService.saveFcmToken(token);
+        AppLogger.debug('Refreshed FCM token enrolled successfully');
+      } catch (e) {
+        AppLogger.error('Error enrolling refreshed FCM token: $e');
       }
-
-      // 서버에 FCM 토큰 등록
-      final success = await _repository.enrollFcmToken(token);
-
-      if (success) {
-        AppLogger.debug('FCM token enrolled to server successfully');
-      } else {
-        AppLogger.error('Failed to message FCM token to server');
-      }
-
-      return success;
-    } catch (e) {
-      AppLogger.error('Error in enrollFcmTokenToServer: $e');
-      return false;
-    }
+    });
   }
 }

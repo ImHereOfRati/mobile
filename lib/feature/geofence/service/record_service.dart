@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/record/model/activity_record_error_normalizer.dart';
 import 'package:iamhere/feature/record/model/activity_record_status.dart';
@@ -10,11 +11,12 @@ import 'package:injectable/injectable.dart';
 
 /// Record persistence for geofence entries
 @injectable
-class RecordService {
+class RecordService implements GeofenceDeliveryRecordStore {
   final GeofenceRecordLocalRepository _recordRepository;
 
   RecordService(this._recordRepository);
 
+  @override
   Future<void> markGeofenceRecordPending({
     required GeofenceEntity geofence,
     required List<String> recipientNames,
@@ -36,6 +38,7 @@ class RecordService {
     );
   }
 
+  @override
   Future<void> markGeofenceRecordCompleted({
     required GeofenceEntity geofence,
     required List<String> recipientNames,
@@ -55,6 +58,7 @@ class RecordService {
     );
   }
 
+  @override
   Future<void> markGeofenceRecordFailed({
     required GeofenceEntity geofence,
     required List<String> recipientNames,

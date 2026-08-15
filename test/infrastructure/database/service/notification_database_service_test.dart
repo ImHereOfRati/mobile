@@ -20,26 +20,22 @@ void main() {
   NotificationEntity makeEntity({
     String title = '알림',
     String body = '메시지',
-    String nickname = '엄마',
-    String email = 'a@example.com',
+    String alias = '엄마',
     String path = '/record/notifications',
     DateTime? createdAt,
-  }) =>
-      NotificationEntity(
-        title: title,
-        body: body,
-        senderNickname: nickname,
-        senderEmail: email,
-        path: path,
-        createdAt: createdAt ?? DateTime(2026, 4, 29, 10),
-      );
+  }) => NotificationEntity(
+    title: title,
+    body: body,
+    senderAlias: alias,
+    path: path,
+    createdAt: createdAt ?? DateTime(2026, 4, 29, 10),
+  );
 
-  test('save → findAll round-trip 시 sender_* 컬럼이 그대로 복원된다', () async {
-    await sut.save(makeEntity(nickname: '엄마', email: 'mom@example.com'));
+  test('save → findAll round-trip 시 sender_alias 컬럼이 그대로 복원된다', () async {
+    await sut.save(makeEntity(alias: '엄마'));
 
     final all = await sut.findAll();
-    expect(all.single.senderNickname, '엄마');
-    expect(all.single.senderEmail, 'mom@example.com');
+    expect(all.single.senderAlias, '엄마');
     expect(all.single.path, '/record/notifications');
   });
 

@@ -2,8 +2,7 @@ class NotificationEntity {
   final int? id;
   final String title;
   final String body;
-  final String senderNickname;
-  final String senderEmail;
+  final String senderAlias;
   final String path;
   final DateTime createdAt;
 
@@ -11,8 +10,7 @@ class NotificationEntity {
     this.id,
     required this.title,
     required this.body,
-    required this.senderNickname,
-    required this.senderEmail,
+    required this.senderAlias,
     this.path = '',
     required this.createdAt,
   });
@@ -21,8 +19,7 @@ class NotificationEntity {
     int? id,
     String? title,
     String? body,
-    String? senderNickname,
-    String? senderEmail,
+    String? senderAlias,
     String? path,
     DateTime? createdAt,
   }) {
@@ -30,8 +27,7 @@ class NotificationEntity {
       id: id ?? this.id,
       title: title ?? this.title,
       body: body ?? this.body,
-      senderNickname: senderNickname ?? this.senderNickname,
-      senderEmail: senderEmail ?? this.senderEmail,
+      senderAlias: senderAlias ?? this.senderAlias,
       path: path ?? this.path,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -42,8 +38,7 @@ class NotificationEntity {
       'id': id,
       'title': title,
       'body': body,
-      'sender_nickname': senderNickname,
-      'sender_email': senderEmail,
+      'sender_alias': senderAlias,
       'path': path,
       'created_at': createdAt.toIso8601String(),
     };
@@ -54,8 +49,7 @@ class NotificationEntity {
       id: map['id'] as int?,
       title: map['title'] as String,
       body: map['body'] as String,
-      senderNickname: map['sender_nickname'] as String,
-      senderEmail: map['sender_email'] as String,
+      senderAlias: map['sender_alias'] as String,
       path: map['path'] as String? ?? '',
       createdAt: DateTime.parse(map['created_at'] as String),
     );

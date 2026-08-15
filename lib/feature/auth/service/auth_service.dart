@@ -14,10 +14,9 @@ import 'oauth_provider.dart';
 
 @lazySingleton
 class AuthService {
-  static const String _loginPath = '/api/auth/login';
-  static const String _registrationPath = '/api/auth/registration';
-  static const String _activationPath = '/api/auth/activation';
-  static const String _userNotFoundResponseCode = 'AUTH-300';
+  static const String _authPath = '/api/auth';
+  static const String _agreementPath = '/api/agreements';
+  static const String _refreshPath = '/api/auth/refresh';
   static const Duration _authReceiveTimeout = Duration(seconds: 20);
 
   final Dio _dio;
@@ -26,18 +25,36 @@ class AuthService {
   AuthService(this._dio, this._tokenStorage);
 
   Future<void> activateWithTerms(List<Map<String, Object?>> consents) async {
-    final response = await _dio.post(
-      _activationPath,
+    final agreementResponse = await _dio.post<void>(
+      _agreementPath,
       data: {'consents': consents},
       options: Options(extra: const {'requiresAuthentication': true}),
     );
-    final apiResponse = _convertResponseToDartObject(response);
+
+    if (agreementResponse.statusCode != HttpStatusCode.noContent) {
+      throw InvalidResponseException(
+        'Invalid agreement status code: ${agreementResponse.statusCode}',
+      );
+    }
+
+    // Agreement consent activates a pending user but intentionally returns 204.
+    // Refresh immediately so the native shell does not keep a PENDING JWT.
+    final refreshToken = await _tokenStorage.getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw TokenStorageException('Refresh token is missing after activation.');
+    }
+    final refreshResponse = await _dio.post(
+      _refreshPath,
+      data: {'refreshToken': refreshToken},
+      options: Options(extra: const {'requiresAuthentication': false}),
+    );
+    final apiResponse = _convertResponseToDartObject(refreshResponse);
     _handleErrorResponse(apiResponse);
-    final tokens = _parseToken(response);
+    final tokens = _parseToken(refreshResponse);
     await _saveTokenToStorage(tokens.access, tokens.refresh);
     await _tokenStorage.saveAuthSnapshot(
-      userStatus: tokens.userStatus,
-      isActive: tokens.isActive,
+      userStatus: tokens.userStatus ?? 'ACTIVE',
+      isActive: tokens.isActive ?? true,
     );
   }
 
@@ -50,26 +67,16 @@ class AuthService {
       _validateIdToken(idToken);
       _validateNonce(nonce);
 
-      var response = await _requestAuthenticationToServer(
-        path: _loginPath,
+      final response = await _requestAuthenticationToServer(
+        path: _authPath,
         idToken: idToken,
         nonce: nonce,
         provider: provider,
       );
-      var apiResponse = _convertResponseToDartObject(response);
-
-      if (apiResponse.imhereResponseCode == _userNotFoundResponseCode) {
-        response = await _requestAuthenticationToServer(
-          path: _registrationPath,
-          idToken: idToken,
-          nonce: nonce,
-          provider: provider,
-        );
-        apiResponse = _convertResponseToDartObject(response);
-      }
+      final apiResponse = _convertResponseToDartObject(response);
 
       _handleErrorResponse(apiResponse);
-      final (:code, :access, :refresh, :userStatus, :isActive) = _parseToken(
+      final (:access, :refresh, :userStatus, :isActive, :code) = _parseToken(
         response,
       );
 
@@ -79,7 +86,7 @@ class AuthService {
         isActive: isActive,
       );
 
-      if (userStatus == 'PENDING') {
+      if (userStatus?.toUpperCase() == 'PENDING') {
         return MemberState.pending;
       }
       if (code == HttpStatusCode.created) {
@@ -152,8 +159,8 @@ class AuthService {
     final responseStatusCode = response.statusCode;
 
     if (responseStatusCode == null ||
-        ((responseStatusCode < 200 || responseStatusCode >= 300) &&
-            responseStatusCode != 404)) {
+        responseStatusCode < 200 ||
+        responseStatusCode >= 300) {
       throw InvalidResponseException(
         'Invalid status code: $responseStatusCode',
       );
@@ -186,7 +193,7 @@ class AuthService {
   void _handleErrorResponse(ApiResponse<AuthResponseDto> apiResponse) {
     final responseCode = apiResponse.imhereResponseCode;
 
-    if (responseCode != 'SUCCESS' && responseCode != 'AUTH-300') {
+    if (responseCode != 'SUCCESS') {
       final msg = apiResponse.message.toString();
       throw ServerAuthException(
         responseCode,

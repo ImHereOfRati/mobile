@@ -34,7 +34,7 @@ export default function TermsConsentPage() {
         setTerms(loaded);
         if (loaded.length === 0) {
           await activateWithTerms(bridge, []);
-          await setConsent(true);
+          await setConsent(false);
           await track("terms_accepted", {
             optional_count: 0,
             required_count: 0,
@@ -64,7 +64,10 @@ export default function TermsConsentPage() {
     setSubmitting(true);
     try {
       await activateWithTerms(bridge, terms, agreed);
-      await setConsent(true);
+      const analyticsConsent = terms.some(
+        (term) => term.type === "MARKETING" && agreed.has(term.id),
+      );
+      await setConsent(analyticsConsent);
       await track("terms_accepted", {
         optional_count: terms.filter(
           (term) => !term.isRequired && agreed.has(term.id),

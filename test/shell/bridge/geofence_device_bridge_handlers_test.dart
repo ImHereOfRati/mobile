@@ -40,12 +40,11 @@ void main() {
             'serverRecipients': [
               {
                 'friendRelationshipId': 'friend-1',
+                'friendUserId': '11111111-1111-1111-1111-111111111111',
                 'friendEmail': 'friend@example.com',
                 'friendAlias': '친구',
               },
             ],
-            'createdAt': '2026-01-01T00:00:00.000Z',
-            'updatedAt': '2026-01-02T00:00:00.000Z',
           },
         ],
       });
@@ -61,7 +60,7 @@ GeofenceDeviceBridgeHandlers _handlers() {
     notifications: _Notifications(),
     loadDeviceContacts: () async => const [],
     notifyServerRecipients:
-        ({required receiverEmails, required location}) async {},
+        ({required receiverUserIds, required location}) async {},
     registrar: _Registrar(),
     location: LocatePermissionService(),
   );
@@ -80,8 +79,6 @@ class _Geofences implements GeofenceRepository {
       message: '도착',
       contactIds: '["1"]',
       isActive: true,
-      createdAt: DateTime.parse('2026-01-01T00:00:00Z'),
-      updatedAt: DateTime.parse('2026-01-02T00:00:00Z'),
     ),
   ];
 
@@ -96,6 +93,7 @@ class _Recipients implements GeofenceServerRecipientRepository {
         GeofenceServerRecipientEntity(
           geofenceId: id,
           friendRelationshipId: 'friend-1',
+          friendUserId: '11111111-1111-1111-1111-111111111111',
           friendEmail: 'friend@example.com',
           friendAlias: '친구',
         ),

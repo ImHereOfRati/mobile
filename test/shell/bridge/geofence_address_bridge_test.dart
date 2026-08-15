@@ -19,7 +19,7 @@ void main() {
       notifications: _Notifications(),
       loadDeviceContacts: () async => const [],
       notifyServerRecipients:
-          ({required receiverEmails, required location}) async {},
+          ({required receiverUserIds, required location}) async {},
       registrar: _Registrar(),
       location: LocatePermissionService(),
     ).build()['updateGeofenceAddress']!;

@@ -78,11 +78,10 @@ class AuthLoginCoordinator {
   }
 
   Future<Result<ResultMessage>> requestFCMTokenAndSendToServer() async {
-    final fcmToken = await _fcmTokenService.generateAndSaveFcmToken();
+    final fcmToken = await _fcmTokenService.syncTokenAndEnroll();
     if (fcmToken == null) {
       return Failure(ResultMessage.fcmTokenGenerateFail.toString());
     }
-    await _enrollFcmTokenToServer();
     return Success(ResultMessage.fcmTokenGenerateSuccess);
   }
 
@@ -117,16 +116,6 @@ class AuthLoginCoordinator {
       return Failure(
         ResultMessage.kakaoAccountLoginFail.toString(),
         trace: trace,
-      );
-    }
-  }
-
-  Future<void> _enrollFcmTokenToServer() async {
-    final isSuccess = await _fcmTokenService.enrollFcmTokenToServer();
-    if (!isSuccess) {
-      ErrorAnalyst.log(
-        ResultMessage.fcmTokenServerFail.toString(),
-        StackTrace.current,
       );
     }
   }

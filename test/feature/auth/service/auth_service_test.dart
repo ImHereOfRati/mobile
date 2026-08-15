@@ -50,6 +50,9 @@ class _FakeTokenStorageService extends Fake implements TokenStorageService {
   }
 
   @override
+  Future<String?> getRefreshToken() async => refreshToken;
+
+  @override
   Future<void> savePendingAuth(bool isPending) async {
     pendingAuth = isPending;
   }
@@ -113,8 +116,8 @@ void main() {
   group('AuthService.sendIdTokenToServer - Response Validation', () {
     test('missing accessToken 을 거부한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
           statusCode: 200,
           data: {
             'imhereResponseCode': 'SUCCESS',
@@ -136,8 +139,8 @@ void main() {
 
     test('missing refreshToken 을 거부한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
           statusCode: 200,
           data: {
             'imhereResponseCode': 'SUCCESS',
@@ -159,8 +162,8 @@ void main() {
 
     test('empty accessToken 을 거부한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
           statusCode: 200,
           data: {
             'imhereResponseCode': 'SUCCESS',
@@ -179,8 +182,8 @@ void main() {
 
     test('null data 를 거부한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
           statusCode: 200,
           data: {
             'imhereResponseCode': 'SUCCESS',
@@ -199,8 +202,8 @@ void main() {
 
     test('invalid HTTP status code 을 거부한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
           statusCode: 400,
           data: {
             'imhereResponseCode': 'SUCCESS',
@@ -220,10 +223,10 @@ void main() {
       );
     });
 
-    test('서버 에러 (AUTH-300 아님) 을 거부한다', () async {
+    test('서버 에러 응답을 거부한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
           statusCode: 200,
           data: {
             'imhereResponseCode': 'SERVER_ERROR',
@@ -244,18 +247,9 @@ void main() {
   group('AuthService.sendIdTokenToServer - Happy Path', () {
     test('PENDING 상태 사용자는 PENDING으로 처리한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
-          statusCode: 404,
-          data: {
-            'imhereResponseCode': 'AUTH-300',
-            'message': '사용자 정보를 찾을 수 없습니다.',
-            'data': <String, dynamic>{},
-          },
-        ),
-        '/api/auth/registration': Response(
-          requestOptions: RequestOptions(path: '/api/auth/registration'),
-          statusCode: 201,
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
+          statusCode: 200,
           data: {
             'imhereResponseCode': 'SUCCESS',
             'message': 'OK',
@@ -275,32 +269,24 @@ void main() {
       );
 
       expect(result, MemberState.pending);
-      expect(dio.requestedPaths, ['/api/auth/login', '/api/auth/registration']);
+      expect(dio.requestedPaths, ['/api/auth']);
       expect(tokenStorage.accessToken, 'access-token');
       expect(tokenStorage.refreshToken, 'refresh-token');
       expect(tokenStorage.pendingAuth, isTrue);
     });
 
-    test('AUTH-300 이면 registration 으로 폴백해 신규 사용자로 처리한다', () async {
+    test('ACTIVE 상태 사용자는 기존 사용자로 처리한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
-          statusCode: 404,
-          data: {
-            'imhereResponseCode': 'AUTH-300',
-            'message': '사용자 정보를 찾을 수 없습니다.',
-            'data': <String, dynamic>{},
-          },
-        ),
-        '/api/auth/registration': Response(
-          requestOptions: RequestOptions(path: '/api/auth/registration'),
-          statusCode: 201,
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
+          statusCode: 200,
           data: {
             'imhereResponseCode': 'SUCCESS',
             'message': 'OK',
             'data': {
               'accessToken': 'access-token',
               'refreshToken': 'refresh-token',
+              'userStatus': 'ACTIVE',
             },
           },
         ),
@@ -312,8 +298,8 @@ void main() {
         nonce: nonce,
       );
 
-      expect(result, MemberState.newUser);
-      expect(dio.requestedPaths, ['/api/auth/login', '/api/auth/registration']);
+      expect(result, MemberState.existingUser);
+      expect(dio.requestedPaths, ['/api/auth']);
       expect(tokenStorage.accessToken, 'access-token');
       expect(tokenStorage.refreshToken, 'refresh-token');
       expect(tokenStorage.pendingAuth, isFalse);
@@ -321,8 +307,8 @@ void main() {
 
     test('기존 사용자는 login 응답만으로 처리한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
           statusCode: 200,
           data: {
             'imhereResponseCode': 'SUCCESS',
@@ -342,7 +328,7 @@ void main() {
       );
 
       expect(result, MemberState.existingUser);
-      expect(dio.requestedPaths, ['/api/auth/login']);
+      expect(dio.requestedPaths, ['/api/auth']);
       expect(tokenStorage.accessToken, 'access-token');
       expect(tokenStorage.refreshToken, 'refresh-token');
       expect(tokenStorage.pendingAuth, isFalse);
@@ -350,8 +336,8 @@ void main() {
 
     test('Google provider 는 요청 body provider 를 GOOGLE 로 전송한다', () async {
       final dio = _FakeDio({
-        '/api/auth/login': Response(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+        '/api/auth': Response(
+          requestOptions: RequestOptions(path: '/api/auth'),
           statusCode: 200,
           data: {
             'imhereResponseCode': 'SUCCESS',
@@ -380,43 +366,46 @@ void main() {
     });
   });
 
-  test(
-    'activation saves refreshed tokens without exposing them to React',
-    () async {
-      final dio = _FakeDio({
-        '/api/auth/activation': Response(
-          requestOptions: RequestOptions(path: '/api/auth/activation'),
-          statusCode: 200,
-          data: {
-            'imhereResponseCode': 'SUCCESS',
-            'message': 'OK',
-            'data': {
-              'accessToken': 'active-access',
-              'refreshToken': 'active-refresh',
-              'userStatus': 'ACTIVE',
-              'isActive': true,
-            },
+  test('약관 동의 후 토큰을 갱신하고 ACTIVE 스냅샷을 저장한다', () async {
+    final dio = _FakeDio({
+      '/api/agreements': Response<void>(
+        requestOptions: RequestOptions(path: '/api/agreements'),
+        statusCode: 204,
+      ),
+      '/api/auth/refresh': Response(
+        requestOptions: RequestOptions(path: '/api/auth/refresh'),
+        statusCode: 200,
+        data: {
+          'imhereResponseCode': 'SUCCESS',
+          'message': 'OK',
+          'data': {
+            'accessToken': 'active-access',
+            'refreshToken': 'active-refresh',
+            'userStatus': 'ACTIVE',
+            'isActive': true,
           },
-        ),
-      });
-      final authService = AuthService(dio, tokenStorage);
+        },
+      ),
+    });
+    final authService = AuthService(dio, tokenStorage);
+    tokenStorage.refreshToken = 'pending-refresh';
 
-      await authService.activateWithTerms([
+    await authService.activateWithTerms([
+      {'id': 1, 'agreed': true},
+      {'id': 2, 'agreed': false},
+    ]);
+
+    expect(dio.requestedPaths, ['/api/agreements', '/api/auth/refresh']);
+    expect(dio.requestedBodies.first, {
+      'consents': [
         {'id': 1, 'agreed': true},
         {'id': 2, 'agreed': false},
-      ]);
-
-      expect(dio.requestedPaths, ['/api/auth/activation']);
-      expect(dio.requestedBodies.single, {
-        'consents': [
-          {'id': 1, 'agreed': true},
-          {'id': 2, 'agreed': false},
-        ],
-      });
-      expect(tokenStorage.accessToken, 'active-access');
-      expect(tokenStorage.refreshToken, 'active-refresh');
-      expect(tokenStorage.userStatus, 'ACTIVE');
-      expect(tokenStorage.isActive, isTrue);
-    },
-  );
+      ],
+    });
+    expect(dio.requestedBodies.last, {'refreshToken': 'pending-refresh'});
+    expect(tokenStorage.accessToken, 'active-access');
+    expect(tokenStorage.refreshToken, 'active-refresh');
+    expect(tokenStorage.userStatus, 'ACTIVE');
+    expect(tokenStorage.isActive, isTrue);
+  });
 }

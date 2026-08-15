@@ -51,9 +51,5 @@ String composeSmsPreview({
   required String message,
   required String location,
 }) {
-  return '[WEB 발신]\n${composeSmsBody(
-    eventType: eventType,
-    message: message,
-    location: location,
-  )}';
+  return '[WEB 발신]\n${composeSmsBody(eventType: eventType, message: message, location: location)}';
 }

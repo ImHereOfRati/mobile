@@ -126,92 +126,30 @@ void main() {
   });
 
   group('AuthLoginCoordinator - requestFCMTokenAndSendToServer', () {
-    test('FCM 토큰 생성 성공 시 Success를 반환해야 함', () async {
-      // Arrange
+    test('FCM 토큰 동기화 성공 시 Success를 반환해야 함', () async {
       when(
-        mockFcmTokenService.generateAndSaveFcmToken(),
+        mockFcmTokenService.syncTokenAndEnroll(),
       ).thenAnswer((_) async => 'test_fcm_token');
-      when(
-        mockFcmTokenService.enrollFcmTokenToServer(),
-      ).thenAnswer((_) async => true);
 
-      // Act
       final result = await authViewModel.requestFCMTokenAndSendToServer();
 
-      // Assert
       expect(result, isA<Success<ResultMessage>>());
-      final successResult = result as Success<ResultMessage>;
-      expect(successResult.data, ResultMessage.fcmTokenGenerateSuccess);
-
-      // Verify
-      verify(mockFcmTokenService.generateAndSaveFcmToken()).called(1);
-      verify(mockFcmTokenService.enrollFcmTokenToServer()).called(1);
+      expect(
+        (result as Success<ResultMessage>).data,
+        ResultMessage.fcmTokenGenerateSuccess,
+      );
+      verify(mockFcmTokenService.syncTokenAndEnroll()).called(1);
     });
 
-    test('FCM 토큰 생성 실패 시 Failure를 반환해야 함', () async {
+    test('FCM 토큰 동기화 실패 시 Failure를 반환해야 함', () async {
       when(
-        mockFcmTokenService.generateAndSaveFcmToken(),
+        mockFcmTokenService.syncTokenAndEnroll(),
       ).thenAnswer((_) async => null);
 
-      // Act
       final result = await authViewModel.requestFCMTokenAndSendToServer();
 
-      // Assert
       expect(result, isA<Failure<ResultMessage>>());
-
-      // Verify - enrollFcmTokenToServer는 호출되지 않아야 함
-      verify(mockFcmTokenService.generateAndSaveFcmToken()).called(1);
-      verifyNever(mockFcmTokenService.enrollFcmTokenToServer());
-    });
-
-    test('FCM 권한 요청이 먼저 호출되어야 함', () async {
-      // Arrange
-      when(
-        mockFcmTokenService.generateAndSaveFcmToken(),
-      ).thenAnswer((_) async => 'test_fcm_token');
-      when(
-        mockFcmTokenService.enrollFcmTokenToServer(),
-      ).thenAnswer((_) async => true);
-
-      // Act
-      await authViewModel.requestFCMTokenAndSendToServer();
-
-      // Assert - 호출 순서 검증
-      verifyInOrder([mockFcmTokenService.generateAndSaveFcmToken()]);
-    });
-
-    test('FCM 토큰 서버 등록 성공 시 로그가 출력되어야 함', () async {
-      // Arrange
-      when(
-        mockFcmTokenService.generateAndSaveFcmToken(),
-      ).thenAnswer((_) async => 'test_fcm_token');
-      when(
-        mockFcmTokenService.enrollFcmTokenToServer(),
-      ).thenAnswer((_) async => true);
-
-      // Act
-      final result = await authViewModel.requestFCMTokenAndSendToServer();
-
-      // Assert
-      expect(result, isA<Success<ResultMessage>>());
-      verify(mockFcmTokenService.enrollFcmTokenToServer()).called(1);
-    });
-
-    test('FCM 토큰 서버 등록 실패 시에도 Success를 반환해야 함 (로그만 출력)', () async {
-      // Arrange
-      when(
-        mockFcmTokenService.generateAndSaveFcmToken(),
-      ).thenAnswer((_) async => 'test_fcm_token');
-      when(
-        mockFcmTokenService.enrollFcmTokenToServer(),
-      ).thenAnswer((_) async => false);
-
-      // Act
-      final result = await authViewModel.requestFCMTokenAndSendToServer();
-
-      // Assert - 서버 등록 실패해도 Success 반환 (토큰 생성은 성공했으므로)
-      expect(result, isA<Success<ResultMessage>>());
-      verify(mockFcmTokenService.enrollFcmTokenToServer()).called(1);
+      verify(mockFcmTokenService.syncTokenAndEnroll()).called(1);
     });
   });
 
@@ -282,25 +220,25 @@ void main() {
       ).called(1);
     });
 
-    test('FcmTokenService.generateAndSaveFcmToken이 호출 가능해야 함', () async {
+    test('FcmTokenService.syncTokenAndEnroll이 호출 가능해야 함', () async {
       // Arrange
       when(
-        mockFcmTokenService.generateAndSaveFcmToken(),
+        mockFcmTokenService.syncTokenAndEnroll(),
       ).thenAnswer((_) async => 'fcm_token');
 
       // Act
-      final token = await mockFcmTokenService.generateAndSaveFcmToken();
+      final token = await mockFcmTokenService.syncTokenAndEnroll();
 
       // Assert
       expect(token, 'fcm_token');
-      verify(mockFcmTokenService.generateAndSaveFcmToken()).called(1);
+      verify(mockFcmTokenService.syncTokenAndEnroll()).called(1);
     });
 
     group('AuthLoginCoordinator - 에러 처리', () {
       test('FCM 토큰 생성 중 예외 발생 시 예외를 전파해야 함', () async {
         // Arrange
         when(
-          mockFcmTokenService.generateAndSaveFcmToken(),
+          mockFcmTokenService.syncTokenAndEnroll(),
         ).thenThrow(Exception('Token generation failed'));
 
         // Act & Assert

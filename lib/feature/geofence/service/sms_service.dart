@@ -9,7 +9,6 @@ import 'package:injectable/injectable.dart';
 @lazySingleton
 class SmsService {
   static const String _smsNotificationPath = '/api/notifications';
-  static const String _smsBatchNotificationPath = '/api/notifications/batch';
 
   final Dio _dio;
 
@@ -34,21 +33,12 @@ class SmsService {
         return Failure('No valid phone numbers after cleaning');
       }
 
-      if (cleanPhoneNumbers.length == 1) {
-        return await _sendSingleSms(
-          phoneNumber: cleanPhoneNumbers[0],
-          body: body,
-          location: location,
-          type: type,
-        );
-      } else {
-        return await _sendMultiSms(
-          phoneNumbers: cleanPhoneNumbers,
-          body: body,
-          location: location,
-          type: type,
-        );
-      }
+      return await _sendSms(
+        phoneNumbers: cleanPhoneNumbers,
+        body: body,
+        location: location,
+        type: type,
+      );
     } catch (e) {
       log('Error sending SMS: $e');
       return Failure('Error sending SMS: $e');
@@ -67,9 +57,9 @@ class SmsService {
         .toList();
   }
 
-  /// Send SMS to a single recipient
-  Future<Result<void>> _sendSingleSms({
-    required String phoneNumber,
+  /// The server accepts both single and batch sends through one targetIds DTO.
+  Future<Result<void>> _sendSms({
+    required List<String> phoneNumbers,
     required String body,
     required String location,
     required String type,
@@ -79,43 +69,9 @@ class SmsService {
         _smsNotificationPath,
         data: {
           'notificationMethod': 'SMS',
-          'targetId': phoneNumber,
-          'type': type,
-          'extraData': {'body': body, 'location': location},
-        },
-        options: Options(extra: const {'requiresAuthentication': true}),
-      );
-
-      final isSuccess = _isSuccessfulStatusCode(response.statusCode);
-
-      if (!isSuccess) {
-        return Failure('SMS send failed with status ${response.statusCode}');
-      }
-
-      ApiResponseParser.parseVoid(response.data);
-
-      return Success(null);
-    } catch (e) {
-      log('Error sending single SMS: $e');
-      return Failure('Error sending SMS: $e');
-    }
-  }
-
-  /// Send SMS to multiple recipients
-  Future<Result<void>> _sendMultiSms({
-    required List<String> phoneNumbers,
-    required String body,
-    required String location,
-    required String type,
-  }) async {
-    try {
-      final response = await _dio.post(
-        _smsBatchNotificationPath,
-        data: {
-          'notificationMethod': 'SMS',
           'targetIds': phoneNumbers,
           'type': type,
-          'extraData': {'body': body, 'location': location},
+          'extraData': {'body': body, 'placeName': location},
         },
         options: Options(extra: const {'requiresAuthentication': true}),
       );
@@ -130,7 +86,7 @@ class SmsService {
 
       return Success(null);
     } catch (e) {
-      log('Error sending multi SMS: $e');
+      log('Error sending SMS: $e');
       return Failure('Error sending SMS: $e');
     }
   }

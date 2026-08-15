@@ -26,13 +26,20 @@ class AuthSessionSyncService {
         return false;
       }
 
+      // CompactUserResponse currently has no status fields. Preserve the
+      // authenticated snapshot instead of silently turning PENDING into ACTIVE.
+      final effectiveUserStatus =
+          myInfo.userStatus ?? await _tokenStorage.getUserStatus();
       final effectiveIsActive =
-          myInfo.isActive ?? await _tokenStorage.getIsActive() ?? true;
+          myInfo.isActive ?? await _tokenStorage.getIsActive();
       AppLogger.debug(
-        'AuthSessionSync: myInfo.userStatus=${myInfo.userStatus} myInfo.isActive=${myInfo.isActive} effectiveIsActive=$effectiveIsActive',
+        'AuthSessionSync: myInfo.userStatus=${myInfo.userStatus} '
+        'myInfo.isActive=${myInfo.isActive} '
+        'effectiveUserStatus=$effectiveUserStatus '
+        'effectiveIsActive=$effectiveIsActive',
       );
       await _tokenStorage.saveAuthSnapshot(
-        userStatus: myInfo.userStatus,
+        userStatus: effectiveUserStatus,
         isActive: effectiveIsActive,
       );
       AppLogger.debug('AuthSessionSync: snapshot saved');

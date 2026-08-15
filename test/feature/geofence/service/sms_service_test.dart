@@ -66,7 +66,7 @@ void main() {
 
   test('SMS 다건도 2xx 응답이면 성공으로 처리해야 함', () async {
     final service = SmsService(
-      _buildDio({'/api/notifications/batch': _successBody(204)}),
+      _buildDio({'/api/notifications': _successBody(202)}),
     );
 
     final result = await service.sendSms(

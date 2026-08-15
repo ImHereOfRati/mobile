@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
+import { useAnalytics } from "@/analytics/analytics-context";
 import { loadTerms, type Term } from "@/pages/onboarding/terms-service";
 
 import {
@@ -24,6 +25,7 @@ function needsRenewal(term: Term, latest: AgreementHistoryEntry | undefined) {
 
 export default function AgreementPage() {
   const api = useApiClient();
+  const { setConsent } = useAnalytics();
   const [terms, setTerms] = useState<Term[]>([]);
   const [latestByTerm, setLatestByTerm] = useState(
     new Map<number, AgreementHistoryEntry>(),
@@ -70,17 +72,17 @@ export default function AgreementPage() {
   };
 
   const agree = (term: Term) =>
-    run(
-      () => agreementService.consent(api, [{ id: term.id, agreed: true }]),
-      `${term.title}에 동의했습니다.`,
-    );
+    run(async () => {
+      await agreementService.consent(api, [{ id: term.id, agreed: true }]);
+      if (term.type === "MARKETING") await setConsent(true);
+    }, `${term.title}에 동의했습니다.`);
 
   const withdraw = (term: Term) => {
     if (!window.confirm(`${term.title} 동의를 철회할까요?`)) return;
-    void run(
-      () => agreementService.withdraw(api, term.id),
-      `${term.title} 동의를 철회했습니다.`,
-    );
+    void run(async () => {
+      await agreementService.withdraw(api, term.id);
+      if (term.type === "MARKETING") await setConsent(false);
+    }, `${term.title} 동의를 철회했습니다.`);
   };
 
   const renew = (term: Term) =>

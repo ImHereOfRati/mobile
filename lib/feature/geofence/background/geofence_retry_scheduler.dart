@@ -1,11 +1,12 @@
 import 'dart:io';
 
 import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'geofence_delivery_queue_database_service.dart';
 
-class GeofenceRetryScheduler {
+class GeofenceRetryScheduler implements RetrySchedulerPort {
   static const uniqueWorkName = 'geofence_delivery_retry';
   static const taskName = 'geofence_delivery_retry_task';
 
@@ -13,6 +14,7 @@ class GeofenceRetryScheduler {
 
   GeofenceRetryScheduler(this._queue);
 
+  @override
   Future<void> scheduleNextIfNeeded({bool replaceExisting = true}) async {
     if (!Platform.isAndroid) return;
 

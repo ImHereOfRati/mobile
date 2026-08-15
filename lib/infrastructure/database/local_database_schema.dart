@@ -28,7 +28,9 @@ class LocalDatabaseSchema {
   /// v8: records.delivery_event_type
   /// v9: notifications.path
   /// v10: geofence.created_at, geofence.updated_at
-  static const int version = 10;
+  /// v11: geofence_server_recipient.friend_user_id
+  /// v12: notifications.sender_alias
+  static const int version = 12;
 
   static Future<void> onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
@@ -74,6 +76,12 @@ class LocalDatabaseSchema {
     }
     if (oldVersion < 10) {
       await _migrateToV10(db);
+    }
+    if (oldVersion < 11) {
+      await _migrateToV11(db);
+    }
+    if (oldVersion < 12) {
+      await _migrateToV12(db);
     }
   }
 
@@ -184,6 +192,27 @@ class LocalDatabaseSchema {
     );
   }
 
+  static Future<void> _migrateToV11(Database db) async {
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.geofenceServerRecipientTableName} '
+      'ADD COLUMN friend_user_id TEXT NOT NULL DEFAULT ""',
+    );
+  }
+
+  static Future<void> _migrateToV12(Database db) async {
+    await _safeExec(
+      db,
+      'ALTER TABLE ${LocalDatabaseProperties.notificationTableName} '
+      'ADD COLUMN sender_alias TEXT DEFAULT ""',
+    );
+    await db.execute(
+      'UPDATE ${LocalDatabaseProperties.notificationTableName} '
+      'SET sender_alias = COALESCE(sender_nickname, "") '
+      'WHERE sender_alias = ""',
+    );
+  }
+
   /// onUpgrade 가 부분 실행된 적이 있는 기기 등에서 같은 마이그레이션을
   /// 다시 시도해도 앱을 죽이지 않도록 한다.
   static Future<void> _safeExec(Database db, String sql) async {
@@ -228,6 +257,7 @@ class LocalDatabaseSchema {
       '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
       'geofence_id INTEGER NOT NULL, '
       'friend_relationship_id TEXT NOT NULL, '
+      'friend_user_id TEXT NOT NULL DEFAULT "", '
       'friend_email TEXT NOT NULL, '
       'friend_alias TEXT NOT NULL DEFAULT "", '
       'FOREIGN KEY (geofence_id) REFERENCES '
@@ -253,8 +283,7 @@ class LocalDatabaseSchema {
       '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
       'title TEXT, '
       'body TEXT, '
-      'sender_nickname TEXT DEFAULT "", '
-      'sender_email TEXT DEFAULT "", '
+      'sender_alias TEXT DEFAULT "", '
       'path TEXT DEFAULT "", '
       'created_at TEXT)';
 

@@ -1,57 +1,66 @@
-import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/feature/geofence/background/delivery_dispatcher.dart';
+import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_policy.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_database_service.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
-import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
-import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
-import 'package:iamhere/feature/geofence/service/record_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
-import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 
 class GeofenceDeliveryPipeline {
-  final GeofenceDeliveryQueueDatabaseService _queue;
-  final ContactResolutionService _contactResolutionService;
-  final GeofenceLocalRepository _geofenceRepository;
+  final DeliveryQueueStore _queue;
+  final GeofenceRecipientResolver _recipientResolver;
+  final GeofenceLifecycleStore _geofenceLifecycleStore;
   final NativeGeofenceRegistrarInterface _registrar;
-  final SmsNotificationService _smsNotificationService;
-  final FcmArrivalService _fcmArrivalService;
-  final RecordService _recordService;
-  final GeofenceRetryScheduler _retryScheduler;
-  final AnalyticsReporter _analytics;
+  final GeofenceDeliveryRecordStore _recordStore;
+  final RetrySchedulerPort _retryScheduler;
+  final DeliveryDispatcher _dispatcher;
+  final DeliverySuccessPolicy _successPolicy;
+  final DeliveryRetryPolicy _retryPolicy;
+  final DedupePolicy _dedupePolicy;
+  final Clock _clock;
+  final GeofenceLifecyclePolicy _lifecyclePolicy;
   Future<void>? _drainInFlight;
 
   GeofenceDeliveryPipeline(
     this._queue,
-    this._contactResolutionService,
-    this._geofenceRepository,
+    this._recipientResolver,
+    this._geofenceLifecycleStore,
     this._registrar,
-    this._smsNotificationService,
-    this._fcmArrivalService,
-    this._recordService,
-    this._retryScheduler,
-    this._analytics,
-  );
+    SmsNotificationService smsNotificationService,
+    FcmArrivalService fcmArrivalService,
+    this._recordStore,
+    this._retryScheduler, {
+    DeliverySuccessPolicy successPolicy = const DeliverySuccessPolicy(),
+    DeliveryRetryPolicy retryPolicy = const DeliveryRetryPolicy(),
+    DedupePolicy dedupePolicy = const DedupePolicy(),
+    Clock clock = const SystemClock(),
+    GeofenceLifecyclePolicy lifecyclePolicy = const GeofenceLifecyclePolicy(),
+    DeliveryDispatcher? dispatcher,
+  }) : _successPolicy = successPolicy,
+       _retryPolicy = retryPolicy,
+       _dedupePolicy = dedupePolicy,
+       _clock = clock,
+       _lifecyclePolicy = lifecyclePolicy,
+       _dispatcher =
+           dispatcher ??
+           DeliveryDispatcher(smsNotificationService, fcmArrivalService);
 
-  Future<void> enqueueTriggeredGeofence({
+  Future<bool> enqueueTriggeredGeofence({
     required GeofenceEntity geofence,
     required DeliveryEvent event,
   }) async {
-    if (geofence.id == null) return;
+    if (geofence.id == null) return false;
 
-    final localRecipients = await _contactResolutionService.resolveContacts(
+    final localRecipients = await _recipientResolver.resolveContacts(geofence);
+    final serverRecipients = await _recipientResolver.resolveServerRecipients(
       geofence,
     );
-    final serverRecipients = await _contactResolutionService
-        .resolveServerRecipients(geofence);
 
     final snapshot = GeofenceDeliverySnapshot(
       geofence: geofence,
@@ -63,38 +72,46 @@ class GeofenceDeliveryPipeline {
               : recipient.friendEmail,
         ),
       ],
-      smsPhoneNumbers: _contactResolutionService.extractPhoneNumbers(
-        localRecipients,
-      ),
-      serverEmails: _contactResolutionService.extractServerEmails(
-        serverRecipients,
-      ),
+      smsPhoneNumbers: _recipientResolver.extractPhoneNumbers(localRecipients),
+      serverUserIds: _recipientResolver.extractServerUserIds(serverRecipients),
       deliveryEventType: event.name,
     );
 
     final body = _buildMessageBody(snapshot);
+    final now = _clock.nowUtc();
     final entity = GeofenceDeliveryQueueEntity(
-      dedupeKey: _buildDedupeKey(geofence.id!, event),
+      dedupeKey: _dedupePolicy.buildKey(
+        geofenceId: geofence.id!,
+        event: event,
+        nowUtc: now,
+      ),
       snapshotJson: snapshot.toJson(),
       status: GeofenceDeliveryQueueEntity.pending,
       retryCount: 0,
-      nextAttemptAt: DateTime.now().toUtc(),
+      nextAttemptAt: now,
       lastError: '',
-      createdAt: DateTime.now().toUtc(),
-      updatedAt: DateTime.now().toUtc(),
+      createdAt: now,
+      updatedAt: now,
     );
 
-    await _queue.enqueue(entity);
-    await _recordService.markGeofenceRecordPending(
+    final queued = await _queue.enqueue(entity);
+    if (queued == null) {
+      AppLogger.debug(
+        'BG_QUEUE: duplicate geofence delivery skipped (${entity.dedupeKey})',
+      );
+      return false;
+    }
+
+    await _recordStore.markGeofenceRecordPending(
       geofence: geofence,
       recipientNames: snapshot.recipientNames,
-      deliveryKey: entity.dedupeKey,
+      deliveryKey: queued.dedupeKey,
       message: body,
       deliveryEventType: event.name,
     );
-    await _logAnalytics('geofence_triggered', {'event_type': event.name});
     await processPending();
     await _retryScheduler.scheduleNextIfNeeded();
+    return true;
   }
 
   Future<void> processPending({int limit = 10}) {
@@ -122,9 +139,12 @@ class GeofenceDeliveryPipeline {
     final snapshot = item.snapshot;
     final body = _buildMessageBody(snapshot);
     try {
-      final anySuccess = await _sendSnapshot(snapshot, body: body);
-      if (anySuccess || _hasNoRecipients(snapshot)) {
-        await _recordService.markGeofenceRecordCompleted(
+      final anySuccess = await _dispatcher.send(snapshot, body: body);
+      if (_successPolicy.shouldComplete(
+        snapshot: snapshot,
+        anyChannelSucceeded: anySuccess,
+      )) {
+        await _recordStore.markGeofenceRecordCompleted(
           geofence: snapshot.geofence,
           recipientNames: snapshot.recipientNames,
           deliveryKey: item.dedupeKey,
@@ -134,10 +154,6 @@ class GeofenceDeliveryPipeline {
         );
         await _queue.complete(item.id!);
         await _completeLifecycleAfterSuccess(snapshot);
-        await _logAnalytics('delivery_succeeded', {
-          'event_type': snapshot.deliveryEventType,
-          'retry_count': item.retryCount,
-        });
         AppLogger.debug('BG_QUEUE: completed geofence delivery ${item.id}');
       } else {
         await _handleRetryFailure(
@@ -166,8 +182,8 @@ class GeofenceDeliveryPipeline {
   }) async {
     final nextRetryCount = item.retryCount + 1;
 
-    if (_isTerminalFailure(nextRetryCount)) {
-      await _recordService.markGeofenceRecordFailed(
+    if (_retryPolicy.isTerminalFailure(nextRetryCount)) {
+      await _recordStore.markGeofenceRecordFailed(
         geofence: snapshot.geofence,
         recipientNames: snapshot.recipientNames,
         deliveryKey: item.dedupeKey,
@@ -178,17 +194,13 @@ class GeofenceDeliveryPipeline {
       );
       await _queue.complete(item.id!);
       await _rollbackLifecycleAfterTerminalFailure(snapshot);
-      await _logAnalytics('delivery_failed', {
-        'event_type': snapshot.deliveryEventType,
-        'retry_count': nextRetryCount,
-      });
       AppLogger.error(
         'BG_QUEUE: permanently failed geofence delivery ${item.id} ($lastError)',
       );
       return;
     }
 
-    await _recordService.markGeofenceRecordPending(
+    await _recordStore.markGeofenceRecordPending(
       geofence: snapshot.geofence,
       recipientNames: snapshot.recipientNames,
       deliveryKey: item.dedupeKey,
@@ -205,39 +217,6 @@ class GeofenceDeliveryPipeline {
     AppLogger.warning('BG_QUEUE: rescheduled geofence delivery ${item.id}');
   }
 
-  bool _isTerminalFailure(int retryCount) =>
-      retryCount > GeofenceDeliveryPolicy.maxRetryCount;
-
-  Future<bool> _sendSnapshot(
-    GeofenceDeliverySnapshot snapshot, {
-    required String body,
-  }) async {
-    var anySuccess = false;
-    final event = DeliveryEvent.fromStoredName(snapshot.deliveryEventType);
-
-    if (snapshot.smsPhoneNumbers.isNotEmpty) {
-      final smsResult = await _smsNotificationService.sendSmsToRecipients(
-        phoneNumbers: snapshot.smsPhoneNumbers,
-        body: body,
-        location: snapshot.geofence.fullLocation,
-        type: event.notificationType,
-      );
-      if (smsResult is Success) anySuccess = true;
-    }
-
-    if (snapshot.serverEmails.isNotEmpty) {
-      final fcmResult = await _fcmArrivalService.sendGeofenceNotifications(
-        receiverEmails: snapshot.serverEmails,
-        body: body,
-        location: snapshot.geofence.fullLocation,
-        type: event.notificationType,
-      );
-      if (fcmResult is Success) anySuccess = true;
-    }
-
-    return anySuccess;
-  }
-
   String _buildMessageBody(GeofenceDeliverySnapshot snapshot) {
     return composeSmsBody(
       eventType: EventType.fromName(snapshot.deliveryEventType),
@@ -246,27 +225,22 @@ class GeofenceDeliveryPipeline {
     );
   }
 
-  bool _hasNoRecipients(GeofenceDeliverySnapshot snapshot) =>
-      snapshot.smsPhoneNumbers.isEmpty && snapshot.serverEmails.isEmpty;
-
   Future<void> _completeLifecycleAfterSuccess(
     GeofenceDeliverySnapshot snapshot,
   ) async {
     final geofenceId = snapshot.geofence.id;
     if (geofenceId == null) return;
 
-    final configuredEventType = EventType.fromName(snapshot.geofence.eventType);
-    final deliveryEvent = DeliveryEvent.fromStoredName(
-      snapshot.deliveryEventType,
-    );
-
-    if (configuredEventType == EventType.both &&
-        deliveryEvent == DeliveryEvent.arrival) {
-      await _geofenceRepository.updateAwaitingDeparture(geofenceId, true);
-      return;
+    switch (_lifecyclePolicy.afterSuccessfulDelivery(snapshot)) {
+      case GeofenceLifecycleAction.markAwaitingDeparture:
+        await _geofenceLifecycleStore.updateAwaitingDeparture(geofenceId, true);
+      case GeofenceLifecycleAction.deactivate:
+        await _deactivateGeofence(geofenceId);
+      case GeofenceLifecycleAction.clearAwaitingDeparture:
+      case GeofenceLifecycleAction.restoreActive:
+      case GeofenceLifecycleAction.none:
+        return;
     }
-
-    await _deactivateGeofence(geofenceId);
   }
 
   Future<void> _rollbackLifecycleAfterTerminalFailure(
@@ -275,19 +249,27 @@ class GeofenceDeliveryPipeline {
     final geofenceId = snapshot.geofence.id;
     if (geofenceId == null) return;
 
-    final configuredEventType = EventType.fromName(snapshot.geofence.eventType);
-    final deliveryEvent = DeliveryEvent.fromStoredName(
-      snapshot.deliveryEventType,
-    );
-
-    if (configuredEventType == EventType.both &&
-        deliveryEvent == DeliveryEvent.arrival) {
-      await _geofenceRepository.updateAwaitingDeparture(geofenceId, false);
-      return;
+    switch (_lifecyclePolicy.afterTerminalFailure(snapshot)) {
+      case GeofenceLifecycleAction.clearAwaitingDeparture:
+        await _geofenceLifecycleStore.updateAwaitingDeparture(
+          geofenceId,
+          false,
+        );
+      case GeofenceLifecycleAction.restoreActive:
+        await _restoreActiveGeofence(snapshot, geofenceId);
+      case GeofenceLifecycleAction.markAwaitingDeparture:
+      case GeofenceLifecycleAction.deactivate:
+      case GeofenceLifecycleAction.none:
+        return;
     }
+  }
 
+  Future<void> _restoreActiveGeofence(
+    GeofenceDeliverySnapshot snapshot,
+    int geofenceId,
+  ) async {
     try {
-      await _geofenceRepository.updateActiveStatus(geofenceId, true);
+      await _geofenceLifecycleStore.updateActiveStatus(geofenceId, true);
       await _registrar.register(snapshot.geofence.copyWith(isActive: true));
     } catch (e) {
       AppLogger.error('BG_QUEUE: failed to restore geofence $geofenceId', e);
@@ -296,7 +278,7 @@ class GeofenceDeliveryPipeline {
 
   Future<void> _deactivateGeofence(int geofenceId) async {
     try {
-      await _geofenceRepository.updateActiveStatus(geofenceId, false);
+      await _geofenceLifecycleStore.updateActiveStatus(geofenceId, false);
     } catch (e) {
       AppLogger.error('BG_QUEUE: failed to deactivate geofence $geofenceId', e);
     }
@@ -305,22 +287,6 @@ class GeofenceDeliveryPipeline {
       await _registrar.unregister(geofenceId);
     } catch (e) {
       AppLogger.error('BG_QUEUE: failed to unregister geofence $geofenceId', e);
-    }
-  }
-
-  String _buildDedupeKey(int geofenceId, DeliveryEvent event) {
-    final bucket = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 5000;
-    return '$geofenceId:${event.name}:$bucket';
-  }
-
-  Future<void> _logAnalytics(
-    String name,
-    Map<String, Object> parameters,
-  ) async {
-    try {
-      await _analytics.logEvent(name, parameters: parameters);
-    } catch (error) {
-      AppLogger.warning('Analytics event failed: $name ($error)');
     }
   }
 

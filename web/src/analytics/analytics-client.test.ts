@@ -102,7 +102,7 @@ describe("AnalyticsClient", () => {
     });
   });
 
-  it("infers consent for an already activated member", async () => {
+  it("keeps analytics disabled for an activated member without explicit consent", async () => {
     const controller = createMockBridge({
       getAuthState: async () => ({
         authenticated: true,
@@ -116,11 +116,11 @@ describe("AnalyticsClient", () => {
       localStorage,
     );
 
-    expect(await client.synchronizeConsent()).toBe(true);
-    expect(localStorage.getItem("imhere.analytics-consent.v1")).toBe("granted");
+    expect(await client.synchronizeConsent()).toBe(false);
+    expect(localStorage.getItem("imhere.analytics-consent.v1")).toBeNull();
     expect(controller.calls).toContainEqual({
       method: "setAnalyticsConsent",
-      args: [{ granted: true }],
+      args: [{ granted: false }],
     });
   });
 

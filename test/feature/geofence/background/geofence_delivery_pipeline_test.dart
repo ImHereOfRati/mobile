@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/background/geofence_delivery_policy.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_database_service.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
+import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
@@ -12,7 +14,6 @@ import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/geofence/service/record_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
-import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -38,7 +39,6 @@ void main() {
   late MockFcmArrivalService mockFcm;
   late MockRecordService mockRecord;
   late MockGeofenceRetryScheduler mockScheduler;
-  late _FakeAnalyticsReporter analytics;
   late GeofenceDeliveryPipeline pipeline;
 
   setUp(() {
@@ -50,7 +50,6 @@ void main() {
     mockFcm = MockFcmArrivalService();
     mockRecord = MockRecordService();
     mockScheduler = MockGeofenceRetryScheduler();
-    analytics = _FakeAnalyticsReporter();
 
     pipeline = GeofenceDeliveryPipeline(
       mockQueue,
@@ -61,7 +60,6 @@ void main() {
       mockFcm,
       mockRecord,
       mockScheduler,
-      analytics,
     );
 
     when(
@@ -128,7 +126,7 @@ void main() {
 
     when(
       mockFcm.sendGeofenceNotifications(
-        receiverEmails: anyNamed('receiverEmails'),
+        receiverUserIds: anyNamed('receiverUserIds'),
         body: anyNamed('body'),
         location: anyNamed('location'),
         type: anyNamed('type'),
@@ -136,7 +134,7 @@ void main() {
     ).thenAnswer((_) async => Failure('not configured'));
   });
 
-  GeofenceEntity _geofence({
+  GeofenceEntity geofence({
     int id = 42,
     String eventType = 'arrival',
     bool awaitingDeparture = false,
@@ -153,19 +151,19 @@ void main() {
     awaitingDeparture: awaitingDeparture,
   );
 
-  GeofenceDeliveryQueueEntity _queueItem({
+  GeofenceDeliveryQueueEntity queueItem({
     int id = 1,
     int retryCount = 0,
     String deliveryEventType = 'arrival',
     List<String> smsPhoneNumbers = const [],
-    List<String> serverEmails = const [],
+    List<String> serverUserIds = const [],
     String geofenceEventType = 'arrival',
   }) {
     final snapshot = GeofenceDeliverySnapshot(
-      geofence: _geofence(eventType: geofenceEventType),
+      geofence: geofence(eventType: geofenceEventType),
       recipientNames: [],
       smsPhoneNumbers: smsPhoneNumbers,
-      serverEmails: serverEmails,
+      serverUserIds: serverUserIds,
       deliveryEventType: deliveryEventType,
     );
     return GeofenceDeliveryQueueEntity(
@@ -181,7 +179,7 @@ void main() {
     );
   }
 
-  void _stubTakeDue(List<GeofenceDeliveryQueueEntity> items) {
+  void stubTakeDue(List<GeofenceDeliveryQueueEntity> items) {
     var called = false;
     when(mockQueue.takeDue(limit: anyNamed('limit'))).thenAnswer((_) async {
       if (!called) {
@@ -192,12 +190,151 @@ void main() {
     });
   }
 
+  void stubEmptyRecipients() {
+    when(
+      mockContactResolution.resolveContacts(any),
+    ).thenAnswer((_) async => []);
+    when(
+      mockContactResolution.resolveServerRecipients(any),
+    ).thenAnswer((_) async => []);
+    when(mockContactResolution.extractPhoneNumbers(any)).thenReturn([]);
+    when(mockContactResolution.extractServerUserIds(any)).thenReturn([]);
+  }
+
+  group('GeofenceDeliveryPipeline.enqueueTriggeredGeofence', () {
+    test(
+      'queue 저장 성공 후 pending record, drain, retry schedule 순서로 진행한다',
+      () async {
+        stubEmptyRecipients();
+        stubTakeDue([]);
+        when(mockQueue.enqueue(any)).thenAnswer((invocation) async {
+          final entity =
+              invocation.positionalArguments.single
+                  as GeofenceDeliveryQueueEntity;
+          return entity.copyWith(id: 99);
+        });
+
+        final accepted = await pipeline.enqueueTriggeredGeofence(
+          geofence: geofence(),
+          event: DeliveryEvent.arrival,
+        );
+
+        expect(accepted, isTrue);
+        verifyInOrder([
+          mockQueue.enqueue(any),
+          mockRecord.markGeofenceRecordPending(
+            geofence: anyNamed('geofence'),
+            recipientNames: anyNamed('recipientNames'),
+            deliveryKey: anyNamed('deliveryKey'),
+            message: anyNamed('message'),
+            deliveryEventType: anyNamed('deliveryEventType'),
+            retryCount: anyNamed('retryCount'),
+            lastError: anyNamed('lastError'),
+          ),
+          mockQueue.takeDue(limit: anyNamed('limit')),
+          mockScheduler.scheduleNextIfNeeded(),
+        ]);
+      },
+    );
+
+    test(
+      '중복 dedupe 로 queue 저장이 거절되면 record/process/scheduler 를 실행하지 않는다',
+      () async {
+        stubEmptyRecipients();
+        when(mockQueue.enqueue(any)).thenAnswer((_) async => null);
+
+        final accepted = await pipeline.enqueueTriggeredGeofence(
+          geofence: geofence(),
+          event: DeliveryEvent.arrival,
+        );
+
+        expect(accepted, isFalse);
+        verify(mockQueue.enqueue(any)).called(1);
+        verifyNever(
+          mockRecord.markGeofenceRecordPending(
+            geofence: anyNamed('geofence'),
+            recipientNames: anyNamed('recipientNames'),
+            deliveryKey: anyNamed('deliveryKey'),
+            message: anyNamed('message'),
+            deliveryEventType: anyNamed('deliveryEventType'),
+            retryCount: anyNamed('retryCount'),
+            lastError: anyNamed('lastError'),
+          ),
+        );
+        verifyNever(mockQueue.takeDue(limit: anyNamed('limit')));
+        verifyNever(mockScheduler.scheduleNextIfNeeded());
+      },
+    );
+
+    test('queue 저장 실패 예외 시 record/process/scheduler 를 실행하지 않는다', () async {
+      stubEmptyRecipients();
+      when(mockQueue.enqueue(any)).thenThrow(Exception('database unavailable'));
+
+      await expectLater(
+        pipeline.enqueueTriggeredGeofence(
+          geofence: geofence(),
+          event: DeliveryEvent.arrival,
+        ),
+        throwsA(isA<Exception>()),
+      );
+
+      verify(mockQueue.enqueue(any)).called(1);
+      verifyNever(
+        mockRecord.markGeofenceRecordPending(
+          geofence: anyNamed('geofence'),
+          recipientNames: anyNamed('recipientNames'),
+          deliveryKey: anyNamed('deliveryKey'),
+          message: anyNamed('message'),
+          deliveryEventType: anyNamed('deliveryEventType'),
+          retryCount: anyNamed('retryCount'),
+          lastError: anyNamed('lastError'),
+        ),
+      );
+      verifyNever(mockQueue.takeDue(limit: anyNamed('limit')));
+      verifyNever(mockScheduler.scheduleNextIfNeeded());
+    });
+
+    test('주입된 Clock 으로 dedupe key 와 queue timestamp 를 만든다', () async {
+      final fixedNow = DateTime.utc(2026, 7, 12, 1, 2, 3);
+      pipeline = GeofenceDeliveryPipeline(
+        mockQueue,
+        mockContactResolution,
+        mockGeofenceRepo,
+        mockRegistrar,
+        mockSms,
+        mockFcm,
+        mockRecord,
+        mockScheduler,
+        clock: _FixedClock(fixedNow),
+      );
+      stubEmptyRecipients();
+      stubTakeDue([]);
+      late GeofenceDeliveryQueueEntity enqueued;
+      when(mockQueue.enqueue(any)).thenAnswer((invocation) async {
+        enqueued =
+            invocation.positionalArguments.single
+                as GeofenceDeliveryQueueEntity;
+        return enqueued.copyWith(id: 99);
+      });
+
+      await pipeline.enqueueTriggeredGeofence(
+        geofence: geofence(),
+        event: DeliveryEvent.arrival,
+      );
+
+      expect(enqueued.dedupeKey, '42:arrival:356763624');
+      expect(enqueued.nextAttemptAt, fixedNow);
+      expect(enqueued.createdAt, fixedNow);
+      expect(enqueued.updatedAt, fixedNow);
+    });
+  });
+
   group('GeofenceDeliveryPipeline.processPending — 수신자 없음', () {
     test(
       'SMS/FCM 없을 때 success 로 처리 → record completed + queue completed',
       () async {
-        final item = _queueItem();
-        _stubTakeDue([item]);
+        final item = queueItem();
+        stubTakeDue([item]);
         when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
 
         await pipeline.processPending();
@@ -214,7 +351,6 @@ void main() {
         ).called(1);
         verify(mockQueue.complete(item.id!)).called(1);
         verify(mockGeofenceRepo.updateActiveStatus(42, false)).called(1);
-        expect(analytics.names, contains('delivery_succeeded'));
       },
     );
   });
@@ -223,8 +359,8 @@ void main() {
     test(
       'SMS 성공 → record completed + queue completed + geofence deactivated',
       () async {
-        final item = _queueItem(smsPhoneNumbers: ['01012345678']);
-        _stubTakeDue([item]);
+        final item = queueItem(smsPhoneNumbers: ['01012345678']);
+        stubTakeDue([item]);
         when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
         when(
           mockSms.sendSmsToRecipients(
@@ -256,12 +392,14 @@ void main() {
 
   group('GeofenceDeliveryPipeline.processPending — FCM 성공', () {
     test('FCM 성공 → record completed + queue completed', () async {
-      final item = _queueItem(serverEmails: ['user@example.com']);
-      _stubTakeDue([item]);
+      final item = queueItem(
+        serverUserIds: ['550e8400-e29b-41d4-a716-446655440000'],
+      );
+      stubTakeDue([item]);
       when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
       when(
         mockFcm.sendGeofenceNotifications(
-          receiverEmails: anyNamed('receiverEmails'),
+          receiverUserIds: anyNamed('receiverUserIds'),
           body: anyNamed('body'),
           location: anyNamed('location'),
           type: anyNamed('type'),
@@ -275,10 +413,136 @@ void main() {
     });
   });
 
+  group('GeofenceDeliveryPipeline.processPending — 복수 채널 성공 정책', () {
+    test('SMS 성공 + FCM 실패 → 완료하고 재시도하지 않는다', () async {
+      final item = queueItem(
+        smsPhoneNumbers: ['01012345678'],
+        serverUserIds: ['550e8400-e29b-41d4-a716-446655440000'],
+      );
+      stubTakeDue([item]);
+      when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
+      when(
+        mockSms.sendSmsToRecipients(
+          phoneNumbers: anyNamed('phoneNumbers'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).thenAnswer((_) async => Success<void>(null));
+
+      await pipeline.processPending();
+
+      verify(
+        mockSms.sendSmsToRecipients(
+          phoneNumbers: anyNamed('phoneNumbers'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).called(1);
+      verify(
+        mockFcm.sendGeofenceNotifications(
+          receiverUserIds: anyNamed('receiverUserIds'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).called(1);
+      verify(mockQueue.complete(item.id!)).called(1);
+      verifyNever(
+        mockQueue.reschedule(
+          id: anyNamed('id'),
+          retryCount: anyNamed('retryCount'),
+          lastError: anyNamed('lastError'),
+        ),
+      );
+    });
+
+    test('SMS 실패 + FCM 성공 → 완료하고 재시도하지 않는다', () async {
+      final item = queueItem(
+        smsPhoneNumbers: ['01012345678'],
+        serverUserIds: ['550e8400-e29b-41d4-a716-446655440000'],
+      );
+      stubTakeDue([item]);
+      when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
+      when(
+        mockFcm.sendGeofenceNotifications(
+          receiverUserIds: anyNamed('receiverUserIds'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).thenAnswer((_) async => Success<void>(null));
+
+      await pipeline.processPending();
+
+      verify(
+        mockSms.sendSmsToRecipients(
+          phoneNumbers: anyNamed('phoneNumbers'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).called(1);
+      verify(
+        mockFcm.sendGeofenceNotifications(
+          receiverUserIds: anyNamed('receiverUserIds'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).called(1);
+      verify(mockQueue.complete(item.id!)).called(1);
+      verifyNever(
+        mockQueue.reschedule(
+          id: anyNamed('id'),
+          retryCount: anyNamed('retryCount'),
+          lastError: anyNamed('lastError'),
+        ),
+      );
+    });
+
+    test('SMS 실패 + FCM 실패 → 한 번씩 시도하고 재예약한다', () async {
+      final item = queueItem(
+        smsPhoneNumbers: ['01012345678'],
+        serverUserIds: ['550e8400-e29b-41d4-a716-446655440000'],
+      );
+      stubTakeDue([item]);
+      when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
+
+      await pipeline.processPending();
+
+      verify(
+        mockSms.sendSmsToRecipients(
+          phoneNumbers: anyNamed('phoneNumbers'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).called(1);
+      verify(
+        mockFcm.sendGeofenceNotifications(
+          receiverUserIds: anyNamed('receiverUserIds'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).called(1);
+      verify(
+        mockQueue.reschedule(
+          id: item.id!,
+          retryCount: 1,
+          lastError: anyNamed('lastError'),
+        ),
+      ).called(1);
+      verifyNever(mockQueue.complete(any));
+    });
+  });
+
   group('GeofenceDeliveryPipeline.processPending — 전송 실패', () {
     test('SMS 실패 → reschedule + record pending 업데이트 (retryCount<max)', () async {
-      final item = _queueItem(smsPhoneNumbers: ['01012345678'], retryCount: 0);
-      _stubTakeDue([item]);
+      final item = queueItem(smsPhoneNumbers: ['01012345678'], retryCount: 0);
+      stubTakeDue([item]);
       when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
       // setUp default: SMS returns Failure('not configured') — already covers this
 
@@ -295,11 +559,11 @@ void main() {
     });
 
     test('retryCount > maxRetry → record failed + geofence 복원', () async {
-      final item = _queueItem(
+      final item = queueItem(
         smsPhoneNumbers: ['01012345678'],
         retryCount: 4, // maxRetryCount == 4, so next = 5 > 4
       );
-      _stubTakeDue([item]);
+      stubTakeDue([item]);
       when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
       // setUp default: SMS returns Failure — triggers retry path
       await pipeline.processPending();
@@ -318,7 +582,6 @@ void main() {
       verify(mockQueue.complete(item.id!)).called(1);
       verify(mockGeofenceRepo.updateActiveStatus(42, true)).called(1);
       verify(mockRegistrar.register(any)).called(1);
-      expect(analytics.names, contains('delivery_failed'));
     });
   });
 
@@ -326,11 +589,11 @@ void main() {
     test(
       'both + arrival 성공 → awaitingDeparture=true, geofence deactivate 안 함',
       () async {
-        final item = _queueItem(
+        final item = queueItem(
           deliveryEventType: 'arrival',
           geofenceEventType: 'both',
         );
-        _stubTakeDue([item]);
+        stubTakeDue([item]);
         when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
 
         await pipeline.processPending();
@@ -342,11 +605,11 @@ void main() {
     );
 
     test('both + departure 성공 → geofence deactivated', () async {
-      final item = _queueItem(
+      final item = queueItem(
         deliveryEventType: 'departure',
         geofenceEventType: 'both',
       );
-      _stubTakeDue([item]);
+      stubTakeDue([item]);
       when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
 
       await pipeline.processPending();
@@ -356,13 +619,13 @@ void main() {
     });
 
     test('both + arrival 실패(terminal) → awaitingDeparture=false 복원', () async {
-      final item = _queueItem(
+      final item = queueItem(
         deliveryEventType: 'arrival',
         geofenceEventType: 'both',
         smsPhoneNumbers: ['01012345678'],
         retryCount: 4,
       );
-      _stubTakeDue([item]);
+      stubTakeDue([item]);
       when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
       // setUp default: SMS returns Failure — triggers terminal failure path
       await pipeline.processPending();
@@ -374,7 +637,7 @@ void main() {
 
   group('GeofenceDeliveryPipeline.processPending — single-flight', () {
     test('동시 processPending 호출 시 두 번째는 첫 번째 Future 를 공유', () async {
-      _stubTakeDue([]);
+      stubTakeDue([]);
 
       final f1 = pipeline.processPending();
       final f2 = pipeline.processPending();
@@ -387,17 +650,11 @@ void main() {
   });
 }
 
-final class _FakeAnalyticsReporter implements AnalyticsReporter {
-  final events = <({String name, Map<String, Object>? parameters})>[];
+class _FixedClock implements Clock {
+  final DateTime value;
 
-  List<String> get names => events.map((event) => event.name).toList();
-
-  @override
-  Future<void> logEvent(String name, {Map<String, Object>? parameters}) async {
-    events.add((name: name, parameters: parameters));
-  }
+  const _FixedClock(this.value);
 
   @override
-  Future<void> setConsent(bool granted) async {}
+  DateTime nowUtc() => value;
 }
-// ignore_for_file: no_leading_underscores_for_local_identifiers

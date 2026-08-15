@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:async';
 import 'dart:ui' as ui;
 
@@ -28,7 +27,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       message.notification?.title ?? message.data['title'] ?? 'ImHere 알림';
   final String body = message.notification?.body ?? message.data['body'] ?? '';
   final String? path = extractNotificationPath(message.data);
-  final String channelId = resolveFcmChannelId(message.data['type'] as String?);
+  final String channelId = resolveFcmChannelId(_messageType(message));
 
   await _saveNotificationToLocal(message, title, body, path);
 
@@ -38,6 +37,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       body: body,
       payload: path,
       channelId: channelId,
+      notificationId: _notificationId(message),
     );
   }
 }
@@ -78,7 +78,8 @@ Future<void> setupForegroundMessageListener() async {
         title: title,
         body: body,
         payload: path,
-        channelId: resolveFcmChannelId(message.data['type'] as String?),
+        channelId: resolveFcmChannelId(_messageType(message)),
+        notificationId: _notificationId(message),
       );
     }
   });
@@ -95,8 +96,7 @@ Future<void> _saveNotificationToLocal(
     final entity = NotificationEntity(
       title: title,
       body: body,
-      senderNickname: message.data['senderNickname'] ?? '',
-      senderEmail: message.data['senderEmail'] ?? '',
+      senderAlias: message.data['senderAlias'] ?? '',
       path: path ?? '',
       createdAt: DateTime.now(),
     );
@@ -112,6 +112,7 @@ Future<void> _showNotification({
   required String body,
   String? payload,
   required String channelId,
+  required int notificationId,
 }) async {
   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     channelId,
@@ -128,12 +129,22 @@ Future<void> _showNotification({
   );
 
   await flutterLocalNotificationsPlugin.show(
-    0,
+    notificationId,
     title,
     body,
     notificationDetails,
     payload: payload,
   );
+}
+
+String? _messageType(RemoteMessage message) {
+  final type = message.data['type'];
+  return type is String ? type : null;
+}
+
+int _notificationId(RemoteMessage message) {
+  final seed = Object.hash(message.messageId, message.sentTime);
+  return seed & 0x7fffffff;
 }
 
 String _channelName(String channelId) {
@@ -257,42 +268,8 @@ void setupShellMessageTapHandler(FutureOr<void> Function(String path) onPath) {
 }
 
 String? extractNotificationPath(Map<String, dynamic> data) {
-  final candidates = <Object?>[
-    data['path'],
-    _extractNestedPath(data['extraData']),
-    _extractNestedPath(data['extra_data']),
-  ];
-
-  for (final candidate in candidates) {
-    final path = _normalizePath(candidate as String?);
-    if (path != null) return path;
-  }
-
-  return null;
-}
-
-String? _extractNestedPath(Object? raw) {
-  if (raw is Map<String, dynamic>) {
-    final nestedPath = raw['path'];
-    return nestedPath is String ? nestedPath : null;
-  }
-
-  if (raw is String) {
-    final trimmed = raw.trim();
-    if (trimmed.isEmpty) return null;
-
-    try {
-      final decoded = jsonDecode(trimmed);
-      if (decoded is Map<String, dynamic>) {
-        final nestedPath = decoded['path'];
-        return nestedPath is String ? nestedPath : null;
-      }
-    } catch (_) {
-      return trimmed;
-    }
-  }
-
-  return null;
+  final type = data['type'];
+  return type is String ? resolveFcmNotificationPath(type) : null;
 }
 
 void _handlePayloadNavigation(String? raw) {

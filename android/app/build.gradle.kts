@@ -49,7 +49,12 @@ android {
 
     defaultConfig {
         applicationId = "com.kdongsu5509.iamhere"
-        minSdk = flutter.minSdkVersion
+        // 28 (Android 9), not flutter.minSdkVersion (24). Play App Signing key
+        // rotation is APK signature scheme v3, which only API 28+ understands.
+        // Below that, Play serves builds signed with the retired app signing
+        // key, and only the new certificate is registered with Firebase/Kakao —
+        // so social login would fail exactly on those devices.
+        minSdk = 28
         targetSdk = 36
         compileSdk = 36
 
@@ -92,5 +97,7 @@ flutter {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:34.17.0"))
+    implementation("com.google.firebase:firebase-analytics")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }

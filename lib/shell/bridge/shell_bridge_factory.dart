@@ -74,9 +74,9 @@ class ShellBridgeFactory {
         getIt<ContactLocalRepository>(),
       ).load,
       notifyServerRecipients:
-          ({required receiverEmails, required location}) async {
+          ({required receiverUserIds, required location}) async {
             await getIt<FcmArrivalService>().sendGeofenceNotifications(
-              receiverEmails: receiverEmails,
+              receiverUserIds: receiverUserIds,
               body: '위치 알림 대상자로 등록되었습니다.',
               location: location,
               type: 'LOCATION_TARGET',

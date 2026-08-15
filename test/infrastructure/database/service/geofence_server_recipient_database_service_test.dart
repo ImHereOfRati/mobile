@@ -40,6 +40,7 @@ void main() {
       GeofenceServerRecipientEntity(
         geofenceId: geofenceId,
         friendRelationshipId: relId,
+        friendUserId: '11111111-1111-1111-1111-111111111111',
         friendEmail: email,
         friendAlias: alias,
       );
@@ -67,6 +68,7 @@ void main() {
     await sut.save(GeofenceServerRecipientEntity(
       geofenceId: other.id!,
       friendRelationshipId: 'work',
+      friendUserId: '22222222-2222-2222-2222-222222222222',
       friendEmail: 'c@example.com',
     ));
 
@@ -88,6 +90,7 @@ void main() {
     await sut.save(GeofenceServerRecipientEntity(
       geofenceId: other.id!,
       friendRelationshipId: 'work',
+      friendUserId: '22222222-2222-2222-2222-222222222222',
       friendEmail: 'c@example.com',
     ));
 

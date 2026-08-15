@@ -2,6 +2,8 @@ class HttpStatusCode {
   /// 2XX
   static const int ok = 200;
   static const int created = 201;
+  static const int accepted = 202;
+  static const int noContent = 204;
 
   /// 4XX
   static const int unauthorized = 401;
@@ -13,10 +15,6 @@ class HttpStatusCode {
   static const int internalServerError = 500;
 
   static bool is2XXStatusCode(int stausCode) {
-    if (stausCode == ok || stausCode == created) {
-      return true;
-    }
-
-    return false;
+    return stausCode >= 200 && stausCode < 300;
   }
 }

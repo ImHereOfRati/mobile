@@ -1,12 +1,10 @@
+import 'package:iamhere/common/config/app_origin.dart';
 import 'package:iamhere/integration/firebase/firebase_remote_service.dart';
 
 typedef RemoteWebUrlLoader = Future<String?> Function();
 
 class WebUrlResolver {
-  static const String buildFallbackUrl = String.fromEnvironment(
-    'IMHERE_WEB_URL',
-    defaultValue: 'https://fortuneki.site/app',
-  );
+  static const String buildFallbackUrl = AppOrigin.webAppUrl;
 
   final RemoteWebUrlLoader _loadRemoteUrl;
   final Uri fallbackUrl;

@@ -37,15 +37,11 @@ export class AnalyticsClient {
       return stored;
     }
 
-    try {
-      const auth = await this.bridge.getAuthState();
-      const inferred = auth.authenticated && auth.userStatus === "active";
-      await this.setConsent(inferred, inferred);
-      return inferred;
-    } catch {
-      await this.setConsent(false, false);
-      return false;
-    }
+    // Authentication or account activation is not consent. Until the user
+    // explicitly agrees to the optional analytics/marketing term, collection
+    // must remain disabled.
+    await this.setConsent(false, false);
+    return false;
   }
 
   async setConsent(granted: boolean, persist = true) {
