@@ -14,7 +14,12 @@ describe("landingFlowReducer", () => {
       type: "select-destination",
       destination: "station",
     });
-    const configured = landingFlowReducer(selected, { type: "save-place" });
+    const recipientSelected = landingFlowReducer(selected, {
+      type: "select-recipient",
+    });
+    const configured = landingFlowReducer(recipientSelected, {
+      type: "save-place",
+    });
     const running = landingFlowReducer(configured, { type: "toggle-run" });
     const arrived = landingFlowReducer(running, { type: "arrive" });
 
@@ -38,6 +43,24 @@ describe("landingFlowReducer", () => {
     });
 
     expect(invalid).toBe(initialLandingFlowState);
+  });
+
+  it("requires the accepted friend to be selected as the notification target", () => {
+    const accepted = landingFlowReducer(initialLandingFlowState, {
+      type: "accept-friend",
+    });
+    const missingRecipient = landingFlowReducer(accepted, {
+      type: "save-place",
+    });
+    const selected = landingFlowReducer(accepted, {
+      type: "select-recipient",
+    });
+
+    expect(missingRecipient.placeConfigured).toBe(false);
+    expect(selected.recipientSelected).toBe(true);
+    expect(
+      landingFlowReducer(selected, { type: "save-place" }).placeConfigured,
+    ).toBe(true);
   });
 
   it("keeps the original 100m to 300m notification range", () => {

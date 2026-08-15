@@ -6,7 +6,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAnalytics } from "@/analytics/analytics-context";
 import { useApiClient } from "@/api/use-api-client";
 import { useBridge } from "@/bridge/bridge-context";
-import { BottomSheet, Button, EmptyState, LoadingState } from "@/design-system";
+import {
+  BottomSheet,
+  Button,
+  EmptyState,
+  FlatListRow,
+  LoadingState,
+  MoreButton,
+  ToggleSwitch,
+} from "@/design-system";
 import { MapProxyService } from "@/map/map-proxy-service";
 
 import type { Geofence } from "./geofence-model";
@@ -29,6 +37,7 @@ export function GeofenceListScreen() {
   const [platform, setPlatform] =
     useState<BridgeMethodResult<"getAppInfo">["platform"]>("browser");
   const [error, setError] = useState<string | null>(null);
+  const [actionTarget, setActionTarget] = useState<Geofence | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Geofence | null>(null);
 
   const load = useCallback(async () => {
@@ -175,56 +184,67 @@ export function GeofenceListScreen() {
       ) : (
         <ul className="feature-page__list" data-clarity-mask="true">
           {items.map((item) => (
-            <li className="feature-page__list-card" key={item.id}>
-              <div className="feature-page__row">
-                <div>
-                  <h2>{item.name}</h2>
-                  <p>{item.address}</p>
-                </div>
-                <label className="feature-page__switch">
-                  <input
-                    type="checkbox"
-                    checked={item.active}
-                    onChange={(event) =>
-                      void toggleActive(item, event.target.checked)
-                    }
+            <FlatListRow
+              element="li"
+              key={item.id}
+              title={item.name}
+              titleAs="h2"
+              description={item.address}
+              detail={formatGeofenceCondition(item)}
+              meta={t(`geofence.repeat.${item.repeatType}`)}
+              status={
+                item.awaitingDeparture
+                  ? t("geofence.list.awaitingDeparture")
+                  : undefined
+              }
+              onClick={() => navigate(`/geofence/${item.id}/edit`)}
+              actions={
+                <>
+                  <MoreButton
+                    label={`${item.name} 더보기`}
+                    onClick={() => setActionTarget(item)}
                   />
-                  <span>
-                    {item.active ? t("common.enabled") : t("common.disabled")}
-                  </span>
-                </label>
-              </div>
-              <div className="feature-page__meta">
-                <span className="feature-page__chip">
-                  {t(`geofence.event.${item.eventType}`)}
-                </span>
-                <span className="feature-page__chip">
-                  {item.radiusMeters === 1000 ? "1km" : `${item.radiusMeters}m`}
-                </span>
-                <span className="feature-page__chip">
-                  {t(`geofence.repeat.${item.repeatType}`)}
-                </span>
-              </div>
-              {item.awaitingDeparture ? (
-                <div className="feature-page__banner">
-                  {t("geofence.list.awaitingDeparture")}
-                </div>
-              ) : null}
-              <div className="feature-page__actions">
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate(`/geofence/${item.id}/edit`)}
-                >
-                  {t("common.edit")}
-                </Button>
-                <Button variant="danger" onClick={() => setDeleteTarget(item)}>
-                  {t("common.delete")}
-                </Button>
-              </div>
-            </li>
+                  <ToggleSwitch
+                    label={`${item.name} ${
+                      item.active ? t("common.enabled") : t("common.disabled")
+                    }`}
+                    checked={item.active}
+                    onChange={(active) => void toggleActive(item, active)}
+                  />
+                </>
+              }
+            />
           ))}
         </ul>
       )}
+
+      <BottomSheet
+        open={actionTarget !== null}
+        title={actionTarget?.name ?? ""}
+        onClose={() => setActionTarget(null)}
+      >
+        <div className="feature-page__sheet-actions">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (actionTarget !== null) {
+                navigate(`/geofence/${actionTarget.id}/edit`);
+              }
+            }}
+          >
+            {t("common.edit")}
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setDeleteTarget(actionTarget);
+              setActionTarget(null);
+            }}
+          >
+            {t("common.delete")}
+          </Button>
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         open={deleteTarget !== null}
@@ -247,4 +267,11 @@ export function GeofenceListScreen() {
       </BottomSheet>
     </section>
   );
+}
+
+function formatGeofenceCondition(item: Geofence) {
+  const radius = item.radiusMeters === 1000 ? "1km" : `${item.radiusMeters}m`;
+  if (item.eventType === "arrival") return `${radius} 내 진입 시`;
+  if (item.eventType === "departure") return `${radius} 밖으로 나갈 시`;
+  return `${radius} 경계 진입·이탈 시`;
 }

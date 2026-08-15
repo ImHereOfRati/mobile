@@ -8,7 +8,8 @@ export async function smokeRelease({
   fetchImpl = fetch,
 }) {
   const release = new URL(releaseUrl);
-  const expectedPath = `/app/releases/${expectedSha}/`;
+  const expectedDirectory = `/app/releases/${expectedSha}/`;
+  const expectedPath = `${expectedDirectory}index.html`;
   if (release.pathname !== expectedPath) {
     throw new Error(`Release URL must end with ${expectedPath}`);
   }
@@ -33,7 +34,7 @@ export async function smokeRelease({
     (asset) => new URL(asset, release),
   );
   for (const assetUrl of assetUrls) {
-    if (!assetUrl.pathname.startsWith(expectedPath)) {
+    if (!assetUrl.pathname.startsWith(expectedDirectory)) {
       throw new Error(
         `Asset escaped the immutable release prefix: ${assetUrl.pathname}`,
       );

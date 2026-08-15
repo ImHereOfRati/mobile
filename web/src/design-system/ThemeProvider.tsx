@@ -50,12 +50,15 @@ export function ThemeProvider({ children }: PropsWithChildren) {
       })
       .catch(() => undefined);
     return bridge.events.subscribe("onThemeChanged", ({ theme: next }) => {
-      if (next === "light" || next === "dark") setTheme(next);
-      else {
-        setTheme(
-          matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-        );
+      if (next === "light" || next === "dark") {
+        setTheme(next);
+        return;
       }
+      setTheme(
+        globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light",
+      );
     });
   }, [bridge]);
 

@@ -13,8 +13,6 @@
 .location-picker__map {
   min-height: 20rem;
   overflow: hidden;
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-lg);
   background: var(--color-surface-raised);
 }
 
@@ -34,9 +32,10 @@
 
 .location-picker__results {
   display: grid;
-  gap: var(--space-2);
+  gap: 0;
   padding: 0;
   margin: 0;
+  border-top: 1px solid var(--color-divider);
   list-style: none;
 }
 
@@ -45,13 +44,13 @@
   width: 100%;
   min-height: 44px;
   gap: var(--space-1);
-  padding: var(--space-3);
+  padding: var(--space-3) 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-divider);
   color: var(--color-text);
   text-align: left;
   cursor: pointer;
-  background: var(--color-surface);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-md);
+  background: transparent;
 }
 
 .location-picker__results span {

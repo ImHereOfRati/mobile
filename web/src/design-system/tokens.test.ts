@@ -38,11 +38,11 @@ const dark = readTheme(/:root\[data-theme="dark"\]\s*\{([\s\S]*?)\}/);
 describe("design tokens", () => {
   it("keeps the adopted Flutter brand colors in the light theme", () => {
     expect(light.get("--color-primary")).toBe("#0071e3");
-    expect(light.get("--color-text")).toBe("#1d1d1f");
-    expect(light.get("--color-text-secondary")).toBe("#6e6e73");
-    expect(light.get("--color-background")).toBe("#f5f5f7");
+    expect(light.get("--color-text")).toBe("#191f28");
+    expect(light.get("--color-text-secondary")).toBe("#6b7684");
+    expect(light.get("--color-background")).toBe("#ffffff");
     expect(light.get("--color-surface")).toBe("#ffffff");
-    expect(light.get("--color-divider")).toBe("#d2d2d7");
+    expect(light.get("--color-divider")).toBe("#e9e9e7");
     expect(light.get("--color-error")).toBe("#ff3b30");
     expect(light.get("--color-success")).toBe("#34c759");
   });

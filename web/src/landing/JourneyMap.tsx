@@ -15,13 +15,17 @@ import {
   CylinderGeometry,
   DirectionalLight,
   DoubleSide,
+  EdgesGeometry,
   Group,
   Line,
+  LineBasicMaterial,
   LineCurve3,
   LineDashedMaterial,
+  LineSegments,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
@@ -126,8 +130,9 @@ function createBuilding(
   z: number,
   accent = false,
 ) {
+  const geometry = new BoxGeometry(width, height, depth);
   const building = new Mesh(
-    new BoxGeometry(width, height, depth),
+    geometry,
     new MeshStandardMaterial({
       color: tokenColor(
         accent ? "--color-landing-building-accent" : "--color-landing-building",
@@ -136,7 +141,34 @@ function createBuilding(
     }),
   );
   building.position.set(x, height / 2, z);
-  return building;
+  building.castShadow = true;
+  building.receiveShadow = true;
+
+  const outline = new LineSegments(
+    new EdgesGeometry(geometry),
+    new LineBasicMaterial({
+      color: tokenColor("--color-landing-building-edge"),
+      transparent: true,
+      opacity: 0.62,
+    }),
+  );
+  outline.position.copy(building.position);
+
+  const roof = new Mesh(
+    new BoxGeometry(width * 0.68, 0.18, depth * 0.68),
+    new MeshStandardMaterial({
+      color: tokenColor(
+        accent ? "--color-landing-building" : "--color-landing-building-accent",
+      ),
+      roughness: 0.78,
+    }),
+  );
+  roof.position.set(x, height + 0.09, z);
+  roof.castShadow = true;
+
+  const group = new Group();
+  group.add(building, outline, roof);
+  return group;
 }
 
 function addRoad(
@@ -179,6 +211,7 @@ function addCity(scene: Scene) {
     }),
   );
   ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
   scene.add(ground);
 
   addRoad(scene, 0, 2.5, 48, 3.5, 0);
@@ -342,7 +375,7 @@ function createCar() {
 
   const nameElement = document.createElement("div");
   nameElement.className = "map-runner-label";
-  nameElement.textContent = "철수";
+  nameElement.textContent = "나(Me)";
   const nameLabel = new CSS2DObject(nameElement);
   nameLabel.position.set(0, 2, 0);
   car.add(nameLabel);
@@ -440,6 +473,8 @@ export const JourneyMap = forwardRef<JourneyMapHandle, JourneyMapProps>(
 
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       renderer.outputColorSpace = "srgb";
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = PCFSoftShadowMap;
       renderer.domElement.setAttribute("aria-hidden", "true");
       host.append(renderer.domElement);
 
@@ -450,15 +485,29 @@ export const JourneyMap = forwardRef<JourneyMapHandle, JourneyMapProps>(
       const scene = new Scene();
       scene.background = tokenColor("--color-landing-sky");
       addCity(scene);
-      scene.add(new AmbientLight(tokenColor("--color-surface"), 2.1));
-      const sun = new DirectionalLight(tokenColor("--color-surface"), 3.1);
+      scene.add(new AmbientLight(tokenColor("--color-surface"), 1.45));
+      const sun = new DirectionalLight(tokenColor("--color-surface"), 2.4);
       sun.position.set(-12, 28, 18);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(1024, 1024);
+      sun.shadow.camera.left = -34;
+      sun.shadow.camera.right = 34;
+      sun.shadow.camera.top = 30;
+      sun.shadow.camera.bottom = -30;
+      sun.shadow.camera.near = 1;
+      sun.shadow.camera.far = 75;
+      sun.shadow.bias = -0.0004;
       scene.add(sun);
 
       const camera = new PerspectiveCamera(38, 1, 0.1, 140);
       const resetCamera = () => {
-        camera.position.set(25, 30, 34);
-        controls.target.set(0, 0, 0);
+        const narrowViewportScale = 1 + Math.max(0, 1 - camera.aspect) * 0.8;
+        camera.position.set(
+          25 * narrowViewportScale,
+          30 * narrowViewportScale,
+          34 * narrowViewportScale,
+        );
+        controls.target.set(camera.aspect < 1 ? -1.5 : 0, 0, 0);
         controls.update();
       };
       const controls = new OrbitControls(camera, renderer.domElement);
@@ -611,6 +660,7 @@ export const JourneyMap = forwardRef<JourneyMapHandle, JourneyMapProps>(
 
       destinationRing.visible = initialSettingsRef.current.friendAccepted;
 
+      let awaitingInitialSize = true;
       const resize = () => {
         const width = host.clientWidth;
         const height = host.clientHeight;
@@ -618,6 +668,10 @@ export const JourneyMap = forwardRef<JourneyMapHandle, JourneyMapProps>(
         labelRenderer.setSize(width, height);
         camera.aspect = width / Math.max(height, 1);
         camera.updateProjectionMatrix();
+        if (awaitingInitialSize) {
+          awaitingInitialSize = false;
+          resetCamera();
+        }
       };
       const resizeObserver = new ResizeObserver(resize);
       resizeObserver.observe(host);

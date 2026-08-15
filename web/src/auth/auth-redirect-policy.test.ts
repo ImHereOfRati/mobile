@@ -26,6 +26,7 @@ describe("resolveAuthRedirect", () => {
     expect(resolve(false, "pending", false, "/geofence")).toBe(
       "/terms-consent?redirect=%2Fgeofence",
     );
+    expect(resolve(true, "pending", false, "/terms-detail/1")).toBeNull();
   });
 
   it("sends inactive users to auth with an inactive reason", () => {

@@ -5,6 +5,7 @@ import { useBridge } from "@/bridge/bridge-context";
 
 import {
   formatActivityTime,
+  formatDeliveryStatus,
   type DeliveryRecord,
   type NativeNotification,
 } from "./record-model";
@@ -60,16 +61,16 @@ export function RecordDetailScreen({
                 "createdAt" in item ? item.createdAt : item.occurredAt,
               )}
             </dd>
-            {"senderNickname" in item && item.senderNickname && (
+            {"senderAlias" in item && item.senderAlias && (
               <>
                 <dt>보낸 사람</dt>
-                <dd>{item.senderNickname}</dd>
+                <dd>{item.senderAlias}</dd>
               </>
             )}
             {"status" in item && (
               <>
                 <dt>상태</dt>
-                <dd>{item.status}</dd>
+                <dd>{formatDeliveryStatus(item.status)}</dd>
               </>
             )}
           </dl>

@@ -33,7 +33,10 @@ export default function PermissionGuidePage({
 
   return (
     <main className="onboarding">
-      <section className="onboarding__panel" aria-labelledby="guide-title">
+      <section
+        className="onboarding__panel onboarding__panel--centered"
+        aria-labelledby="guide-title"
+      >
         <header className="onboarding__header">
           <p className="onboarding__eyebrow">
             {t("onboarding.permissionGuide.eyebrow")}

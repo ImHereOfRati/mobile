@@ -19,6 +19,7 @@ const GeofencePage = lazy(() => import("@/pages/geofence/GeofencePage"));
 const FriendPage = lazy(() => import("@/pages/friend/FriendPage"));
 const RecordPage = lazy(() => import("@/pages/record/RecordPage"));
 const SettingPage = lazy(() => import("@/pages/setting/SettingPage"));
+const AgreementPage = lazy(() => import("@/pages/setting/AgreementPage"));
 
 export const appRoutes: RouteObject[] = [
   {
@@ -104,6 +105,10 @@ export const appRoutes: RouteObject[] = [
                 element: <RecordPage screen="notificationDetail" />,
               },
               {
+                path: "record/server-notifications",
+                element: <RecordPage screen="serverNotifications" />,
+              },
+              {
                 path: "record/friend-requests",
                 element: <RecordPage screen="friendRequests" />,
               },
@@ -118,6 +123,10 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "setting",
                 element: <SettingPage />,
+              },
+              {
+                path: "setting/agreements",
+                element: <AgreementPage />,
               },
             ],
           },

@@ -44,7 +44,7 @@ function InstallDialog({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-labelledby="install-dialog-title"
       >
-        <header>
+        <div className="install-dialog__header">
           <span>체험 완료</span>
           <button
             className="install-dialog__close"
@@ -54,7 +54,7 @@ function InstallDialog({ onClose }: { onClose: () => void }) {
           >
             ×
           </button>
-        </header>
+        </div>
         <h2 id="install-dialog-title">ImHere 설치</h2>
         <div className="download-actions">
           <a
@@ -155,7 +155,10 @@ export function LandingPage() {
 
   const savePlace = () => {
     dispatch({ type: "save-place" });
-    pushToast("장소 설정", `${destination.label} · ${flow.radius}m`);
+    pushToast(
+      "장소·알림 대상 설정",
+      `${destination.label} · 철수 · ${flow.radius}m`,
+    );
   };
 
   const toggleRun = () => {
@@ -186,6 +189,7 @@ export function LandingPage() {
       addEvent("arrive", "도착", `${destination.label} · ${flow.radius}m`);
     }
     pushToast("체험 완료", "앱에서 계속", "arrive");
+    setShowDownload(true);
   }, [addEvent, arrivalEnabled, destination.label, flow.radius, pushToast]);
 
   const liveStatus = useMemo(() => {
@@ -331,7 +335,7 @@ export function LandingPage() {
                 <span className="step-number">
                   {flow.placeConfigured ? "✓" : "2"}
                 </span>
-                <h2>장소 선택</h2>
+                <h2>장소·알림 대상 선택</h2>
                 {flow.step === "place" ? (
                   <div className="step-body">
                     <div className="place-options" role="radiogroup">
@@ -361,6 +365,36 @@ export function LandingPage() {
                           {place.shortLabel}
                         </button>
                       ))}
+                    </div>
+                    <div
+                      className="recipient-picker"
+                      role="radiogroup"
+                      aria-labelledby="recipient-picker-label"
+                    >
+                      <span
+                        className="recipient-picker__label"
+                        id="recipient-picker-label"
+                      >
+                        알림 대상
+                      </span>
+                      <button
+                        className={flow.recipientSelected ? "is-selected" : ""}
+                        type="button"
+                        role="radio"
+                        aria-checked={flow.recipientSelected}
+                        onClick={() => dispatch({ type: "select-recipient" })}
+                      >
+                        <span className="friend-avatar" aria-hidden="true">
+                          철
+                        </span>
+                        <span className="recipient-picker__copy">
+                          <strong>철수</strong>
+                          <small>연결된 친구</small>
+                        </span>
+                        <span className="recipient-picker__state">
+                          {flow.recipientSelected ? "선택됨" : "선택"}
+                        </span>
+                      </button>
                     </div>
                     <div className="setting-box">
                       <label className="field-label" htmlFor="radius-range">
@@ -405,14 +439,15 @@ export function LandingPage() {
                     <button
                       className="button button--primary button--wide"
                       type="button"
+                      disabled={!flow.recipientSelected}
                       onClick={savePlace}
                     >
-                      이 장소로 설정
+                      장소와 알림 대상 설정
                     </button>
                   </div>
                 ) : flow.placeConfigured ? (
                   <strong className="step-summary">
-                    {destination.label} · 반경 {flow.radius}m
+                    {destination.label} · 철수 · 반경 {flow.radius}m
                   </strong>
                 ) : null}
               </section>

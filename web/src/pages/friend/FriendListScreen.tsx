@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
 import { useBridge } from "@/bridge/bridge-context";
+import { BottomSheet, Button, FlatListRow, MoreButton } from "@/design-system";
+import { notificationService } from "@/pages/record/notification-service";
 
 import {
   groupFriends,
@@ -10,10 +12,17 @@ import {
   type Friendship,
   type UnifiedFriend,
 } from "./friend-model";
+import { FriendFinder } from "./FriendAddScreen";
 import { friendService } from "./friend-service";
 import { InfiniteLoadButton } from "./InfiniteLoadButton";
 
-export function FriendListScreen() {
+interface FriendListScreenProps {
+  finderInitiallyOpen?: boolean;
+}
+
+export function FriendListScreen({
+  finderInitiallyOpen = false,
+}: FriendListScreenProps) {
   const api = useApiClient();
   const bridge = useBridge();
   const [relationships, setRelationships] = useState<Friendship[]>([]);
@@ -24,6 +33,27 @@ export function FriendListScreen() {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [finderOpen, setFinderOpen] = useState(finderInitiallyOpen);
+  const [actionTarget, setActionTarget] = useState<
+    Extract<UnifiedFriend, { kind: "server" }> | undefined
+  >();
+  const [actionDetail, setActionDetail] = useState<Friendship>();
+
+  // 목록은 페이지를 넘기며 오래 살아 있어서, 다른 기기에서 별명이 바뀌면
+  // 화면의 값이 낡는다. 시트를 열 때 그 한 건만 서버에서 다시 읽는다.
+  const openActions = async (
+    item: Extract<UnifiedFriend, { kind: "server" }>,
+  ) => {
+    setActionTarget(item);
+    setActionDetail(undefined);
+    try {
+      setActionDetail(
+        await friendService.friendship(api, item.relationship.id),
+      );
+    } catch {
+      setActionDetail(item.relationship);
+    }
+  };
 
   const load = async (nextPage: number, append = false) => {
     setError("");
@@ -56,6 +86,24 @@ export function FriendListScreen() {
     [contacts, relationships],
   );
 
+  // 서버가 클라이언트에게 허용하는 발송 타입은 위치 관련 세 가지뿐이다.
+  // 자동 전송이 막혔거나 지금 바로 알리고 싶을 때 쓰는 수동 경로다.
+  const notifyArrival = async (
+    item: Extract<UnifiedFriend, { kind: "server" }>,
+  ) => {
+    setActionTarget(undefined);
+    try {
+      await notificationService.send(api, {
+        notificationMethod: "FCM",
+        targetIds: [item.relationship.friend.id],
+        type: "ARRIVAL",
+      });
+      setError("");
+    } catch {
+      setError("도착 알림을 보내지 못했습니다.");
+    }
+  };
+
   const mutateRelationship = async (
     item: Extract<UnifiedFriend, { kind: "server" }>,
     action: "alias" | "delete" | "block",
@@ -80,7 +128,7 @@ export function FriendListScreen() {
       if (!window.confirm(`${item.displayName}님을 ${label}할까요?`)) return;
       await (action === "delete"
         ? friendService.delete(api, item.relationship.id)
-        : friendService.block(api, item.relationship.id));
+        : friendService.block(api, item.relationship.friend.id));
       setRelationships((current) =>
         current.filter((value) => value.id !== item.relationship.id),
       );
@@ -97,9 +145,7 @@ export function FriendListScreen() {
           <h1>친구</h1>
           <p>ImHere 친구와 기기 연락처를 한곳에서 확인하세요.</p>
         </div>
-        <Link className="ds-button ds-button--primary" to="/friend/add">
-          친구 추가
-        </Link>
+        <Button onClick={() => setFinderOpen(true)}>새로운 친구 찾기</Button>
       </header>
 
       <nav aria-label="친구 관리" className="feature-page__actions">
@@ -132,42 +178,24 @@ export function FriendListScreen() {
             <h2 id={`friend-group-${group}`}>{group}</h2>
             <ul className="feature-page__list">
               {items.map((item) => (
-                <li className="feature-page__list-card" key={item.id}>
-                  <div className="feature-page__row">
-                    <div>
-                      <h3>{item.displayName}</h3>
-                      <p>{item.description || "전화번호 없음"}</p>
-                    </div>
-                    <span className="feature-page__chip">
-                      {item.kind === "server" ? "ImHere" : "기기"}
-                    </span>
-                  </div>
-                  {item.kind === "server" && (
-                    <div className="feature-page__actions">
-                      <button
-                        className="ds-button ds-button--secondary"
-                        onClick={() => void mutateRelationship(item, "alias")}
-                        type="button"
-                      >
-                        별명 수정
-                      </button>
-                      <button
-                        className="ds-button ds-button--secondary"
-                        onClick={() => void mutateRelationship(item, "delete")}
-                        type="button"
-                      >
-                        삭제
-                      </button>
-                      <button
-                        className="ds-button ds-button--danger"
-                        onClick={() => void mutateRelationship(item, "block")}
-                        type="button"
-                      >
-                        차단
-                      </button>
-                    </div>
-                  )}
-                </li>
+                <FlatListRow
+                  element="li"
+                  key={item.id}
+                  title={item.displayName}
+                  titleAs="h3"
+                  description={`${item.description || "전화번호 없음"} · ${
+                    item.kind === "server" ? "ImHere 친구" : "기기 연락처"
+                  }`}
+                  actions={
+                    item.kind === "server" ? (
+                      <MoreButton
+                        aria-label={`${item.displayName} 더보기`}
+                        label={`${item.displayName} 더보기`}
+                        onClick={() => void openActions(item)}
+                      />
+                    ) : undefined
+                  }
+                />
               ))}
             </ul>
           </section>
@@ -178,6 +206,73 @@ export function FriendListScreen() {
         label="친구 더 보기"
         load={() => load(page + 1, true)}
       />
+      <BottomSheet
+        open={finderOpen}
+        title="친구 찾기"
+        onClose={() => setFinderOpen(false)}
+      >
+        <FriendFinder />
+      </BottomSheet>
+      <BottomSheet
+        open={actionTarget !== undefined}
+        title={actionTarget?.displayName ?? ""}
+        onClose={() => {
+          setActionTarget(undefined);
+          setActionDetail(undefined);
+        }}
+      >
+        {actionDetail?.friend && (
+          <p className="setting-note">
+            {`${actionDetail.friend.nickname} · ${actionDetail.friend.email}`}
+            <br />
+            {`${actionDetail.createdAt?.slice(0, 10) ?? "-"}부터 친구`}
+            {actionDetail.friendAlias && ` · 별명 ${actionDetail.friendAlias}`}
+          </p>
+        )}
+        <div className="feature-page__sheet-actions">
+          <Button
+            onClick={() => {
+              if (actionTarget === undefined) return;
+              void notifyArrival(actionTarget);
+            }}
+          >
+            도착 알림 보내기
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (actionTarget === undefined) return;
+              const target = actionTarget;
+              setActionTarget(undefined);
+              void mutateRelationship(target, "alias");
+            }}
+          >
+            별명 수정
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (actionTarget === undefined) return;
+              const target = actionTarget;
+              setActionTarget(undefined);
+              void mutateRelationship(target, "delete");
+            }}
+          >
+            삭제
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (actionTarget === undefined) return;
+              const target = actionTarget;
+              setActionTarget(undefined);
+              void mutateRelationship(target, "block");
+            }}
+          >
+            차단
+          </Button>
+        </div>
+      </BottomSheet>
     </main>
   );
 }

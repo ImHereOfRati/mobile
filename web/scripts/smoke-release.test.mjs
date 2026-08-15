@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { smokeRelease } from "./smoke-release.mjs";
 
 const sha = "a".repeat(40);
-const releaseUrl = `https://app.example.com/app/releases/${sha}/`;
+const releaseUrl = `https://app.example.com/app/releases/${sha}/index.html`;
 const cacheHeaders = {
   "cache-control": "public,max-age=31536000,immutable",
 };

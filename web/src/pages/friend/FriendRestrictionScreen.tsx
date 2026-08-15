@@ -40,7 +40,7 @@ export function FriendRestrictionScreen() {
       return;
     }
     try {
-      await friendService.unblock(api, item.id);
+      await friendService.unblock(api, item.restricted.id);
       setItems((current) => current.filter((value) => value.id !== item.id));
       setStatus("제한을 해제했습니다.");
     } catch {

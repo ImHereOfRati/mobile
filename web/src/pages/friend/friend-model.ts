@@ -18,6 +18,9 @@ export interface Friendship {
   updatedAt: string;
 }
 
+/** 서버 FriendRequestViewType. 받은 요청과 보낸 요청은 같은 목록 API를 공유한다. */
+export type FriendRequestViewType = "RECEIVED" | "SENT";
+
 export interface FriendRequest {
   createdAt: string;
   id: string;

@@ -65,7 +65,10 @@ export default function AuthPage() {
 
   return (
     <main className="onboarding">
-      <section className="onboarding__panel" aria-labelledby="auth-title">
+      <section
+        className="onboarding__panel onboarding__panel--centered"
+        aria-labelledby="auth-title"
+      >
         <header className="onboarding__header">
           <p className="onboarding__eyebrow">{t("onboarding.auth.eyebrow")}</p>
           <h1 id="auth-title">{title}</h1>

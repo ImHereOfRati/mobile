@@ -1,13 +1,15 @@
 import {
   type ButtonHTMLAttributes,
+  type ElementType,
   type InputHTMLAttributes,
   type PropsWithChildren,
   type ReactNode,
   useEffect,
   useId,
+  useRef,
 } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "text" | "danger";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
@@ -115,6 +117,7 @@ export function Card({
 }
 
 interface BottomSheetProps extends PropsWithChildren {
+  closeLabel?: string;
   onClose: () => void;
   open: boolean;
   title: string;
@@ -122,20 +125,66 @@ interface BottomSheetProps extends PropsWithChildren {
 
 export function BottomSheet({
   children,
+  closeLabel = "바텀시트 닫기",
   onClose,
   open,
   title,
 }: BottomSheetProps) {
   const titleId = useId();
+  const sheetRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!open) return undefined;
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    const focusableSelector =
+      'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    document.body.style.overflow = "hidden";
+
+    const focusFirst = globalThis.setTimeout(() => {
+      const preferredFocus = sheetRef.current?.querySelector<HTMLElement>(
+        "[data-sheet-autofocus]",
+      );
+      (
+        preferredFocus ??
+        sheetRef.current?.querySelector<HTMLElement>(focusableSelector)
+      )?.focus();
+    }, 0);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = [
+        ...(sheetRef.current?.querySelectorAll<HTMLElement>(
+          focusableSelector,
+        ) ?? []),
+      ];
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
     };
-    globalThis.addEventListener("keydown", handleEscape);
-    return () => globalThis.removeEventListener("keydown", handleEscape);
+
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => {
+      globalThis.clearTimeout(focusFirst);
+      globalThis.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
   }, [onClose, open]);
 
   if (!open) return null;
@@ -145,10 +194,11 @@ export function BottomSheet({
       <button
         className="ds-sheet-layer__backdrop"
         type="button"
-        aria-label="바텀시트 닫기"
+        aria-label="메뉴 닫기"
         onClick={onClose}
       />
       <section
+        ref={sheetRef}
         className="ds-sheet"
         role="dialog"
         aria-modal="true"
@@ -159,7 +209,7 @@ export function BottomSheet({
           <h2 className="type-headline-medium" id={titleId}>
             {title}
           </h2>
-          <Button variant="ghost" aria-label="바텀시트 닫기" onClick={onClose}>
+          <Button variant="ghost" aria-label={closeLabel} onClick={onClose}>
             닫기
           </Button>
         </header>
@@ -234,6 +284,202 @@ export function ListItem({
   ) : (
     <button className="ds-list-item ds-list-item--button" onClick={onClick}>
       {content}
+    </button>
+  );
+}
+
+interface MoreButtonProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
+  label: string;
+}
+
+/** Compact overflow action used by catalog and production list rows. */
+export function MoreButton({
+  className = "",
+  label,
+  ...props
+}: MoreButtonProps) {
+  return (
+    <button
+      className={`ds-more-button ${className}`.trim()}
+      type="button"
+      aria-label={label}
+      {...props}
+    >
+      <span aria-hidden="true">•••</span>
+    </button>
+  );
+}
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  disabled?: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}
+
+/** The single switch implementation used by catalog previews and app screens. */
+export function ToggleSwitch({
+  checked,
+  disabled = false,
+  label,
+  onChange,
+}: ToggleSwitchProps) {
+  return (
+    <label className="ds-switch">
+      <span className="visually-hidden">{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      <span aria-hidden="true" />
+    </label>
+  );
+}
+
+interface ChoiceOption<T extends string> {
+  label: string;
+  value: T;
+}
+
+interface ChoiceRowProps<T extends string> {
+  compact?: boolean;
+  label: string;
+  onChange: (value: T) => void;
+  options: ReadonlyArray<ChoiceOption<T>>;
+  value: T;
+}
+
+/** Horizontally scrollable single-choice control from `/app/catalog/`. */
+export function ChoiceRow<T extends string>({
+  compact = false,
+  label,
+  onChange,
+  options,
+  value,
+}: ChoiceRowProps<T>) {
+  return (
+    <div
+      className={`ds-choice-row${compact ? " ds-choice-row--compact" : ""}`}
+      aria-label={label}
+    >
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={value === option.value}
+          onClick={() => onChange(option.value)}
+        >
+          {compact ? <span>{option.label}</span> : option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface FlatListRowProps {
+  actions?: ReactNode;
+  description?: ReactNode;
+  detail?: ReactNode;
+  element?: "article" | "li";
+  meta?: ReactNode;
+  onClick?: () => void;
+  status?: ReactNode;
+  title: ReactNode;
+  titleAs?: "strong" | "h2" | "h3";
+}
+
+/** Border-only list row shared by catalog previews and production lists. */
+export function FlatListRow({
+  actions,
+  description,
+  detail,
+  element = "article",
+  meta,
+  onClick,
+  status,
+  title,
+  titleAs = "strong",
+}: FlatListRowProps) {
+  const Root = element as ElementType;
+  const Title = titleAs as ElementType;
+  const copy = (
+    <>
+      <Title>{title}</Title>
+      {description === undefined ? null : <span>{description}</span>}
+      {detail === undefined ? null : <span>{detail}</span>}
+      {meta === undefined ? null : <small>{meta}</small>}
+      {status === undefined ? null : (
+        <span className="ds-list-row__status">{status}</span>
+      )}
+    </>
+  );
+
+  return (
+    <Root className="ds-list-row">
+      {onClick === undefined ? (
+        <div className="ds-list-row__main">{copy}</div>
+      ) : (
+        <button className="ds-list-row__main" type="button" onClick={onClick}>
+          {copy}
+        </button>
+      )}
+      {actions === undefined ? null : (
+        <div className="ds-list-row__actions">{actions}</div>
+      )}
+    </Root>
+  );
+}
+
+interface SettingsGroupProps extends PropsWithChildren {
+  title: string;
+}
+
+export function SettingsGroup({ children, title }: SettingsGroupProps) {
+  return (
+    <section className="ds-settings-group">
+      <h2>{title}</h2>
+      <div>{children}</div>
+    </section>
+  );
+}
+
+interface SettingsRowProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
+  detail?: ReactNode;
+  label: ReactNode;
+}
+
+export function SettingsRow({
+  className = "",
+  detail,
+  label,
+  onClick,
+  ...props
+}: SettingsRowProps) {
+  if (onClick === undefined) {
+    return (
+      <div className={`ds-settings-row ${className}`.trim()}>
+        <span>{label}</span>
+        {detail === undefined ? null : <small>{detail}</small>}
+      </div>
+    );
+  }
+  return (
+    <button
+      className={`ds-settings-row ${className}`.trim()}
+      type="button"
+      onClick={onClick}
+      {...props}
+    >
+      <span>{label}</span>
+      {detail === undefined ? null : <small>{detail}</small>}
     </button>
   );
 }

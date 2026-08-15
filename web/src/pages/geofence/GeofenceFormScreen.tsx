@@ -5,7 +5,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useApiClient } from "@/api/use-api-client";
 import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
-import { BottomSheet, Button, LoadingState, TextField } from "@/design-system";
+import {
+  BottomSheet,
+  Button,
+  LoadingState,
+  TextField,
+  ToggleSwitch,
+} from "@/design-system";
 import { MapProxyService } from "@/map/map-proxy-service";
 import {
   NaverLocationPicker,
@@ -342,14 +348,14 @@ export function GeofenceFormScreen({ id }: { id?: number }) {
           )}
         </section>
 
-        <label className="feature-page__switch">
-          <input
-            type="checkbox"
-            checked={draft.active}
-            onChange={(event) => update("active", event.target.checked)}
-          />
+        <div className="feature-page__toggle-row">
           <span>{t("geofence.form.activateImmediately")}</span>
-        </label>
+          <ToggleSwitch
+            checked={draft.active}
+            label={t("geofence.form.activateImmediately")}
+            onChange={(active) => update("active", active)}
+          />
+        </div>
 
         {errors.submit === undefined ? null : (
           <p className="feature-page__error" role="alert">

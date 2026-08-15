@@ -86,6 +86,9 @@ export class ApiClient {
 
     const body = await readBody(response);
     if (!response.ok) throw new ApiHttpError(response.status, body);
+    // 서버는 동의 변경·철회·차단 해제처럼 돌려줄 것이 없는 요청에 204를 낸다.
+    // 봉투가 아예 없는 응답이므로 unwrapEnvelope에 넘기면 성공한 요청에서 던진다.
+    if (body === undefined) return undefined as T;
     return unwrapEnvelope<T>(body);
   }
 

@@ -1,42 +1,71 @@
-import { type FormEvent, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { type FormEvent, useState } from "react";
 
 import { useApiClient } from "@/api/use-api-client";
 import { useAnalytics } from "@/analytics/analytics-context";
-import { useBridge } from "@/bridge/bridge-context";
+import { Button } from "@/design-system";
 
 import type { UserSearchResult } from "./friend-model";
 import { friendService } from "./friend-service";
 
-export function FriendAddScreen() {
+type RelationState = "friend" | "none" | "restricted";
+
+const RELATION_LABEL: Record<RelationState, string> = {
+  friend: "이미 친구",
+  restricted: "차단·거절함",
+  none: "",
+};
+
+export function FriendFinder() {
   const api = useApiClient();
-  const bridge = useBridge();
   const analytics = useAnalytics();
   const [keyword, setKeyword] = useState("");
   const [message, setMessage] = useState("ImHere에서 친구가 되어 주세요.");
   const [results, setResults] = useState<UserSearchResult[]>([]);
-  const [contacts, setContacts] = useState<
-    Awaited<ReturnType<typeof bridge.getDeviceContacts>>
-  >([]);
+  const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(
+    null,
+  );
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [relations, setRelations] = useState(new Map<string, RelationState>());
 
-  useEffect(() => {
-    void bridge
-      .getDeviceContacts()
-      .then(setContacts)
-      .catch(() => setContacts([]));
-  }, [bridge]);
+  /**
+   * 검색 결과만으로는 이미 친구인지, 내가 차단한 상대인지 알 수 없다. 서버에
+   * 상대 기준으로 되물어 이름 옆에 상태를 붙인다. 실패한 항목은 그냥 상태
+   * 표시가 없는 채로 두고 검색 자체를 막지 않는다.
+   */
+  const resolveRelations = async (users: UserSearchResult[]) => {
+    const entries = await Promise.all(
+      users.map(async (user): Promise<[string, RelationState]> => {
+        const [friend, restricted] = await Promise.allSettled([
+          friendService.isFriend(api, user.id),
+          friendService.isRestricted(api, user.id),
+        ]);
+        // 서버는 참·거짓만 준다. truthy 검사로 두면 형태가 다른 응답까지
+        // 관계 있음으로 읽혀 선택 버튼이 잠긴다.
+        if (friend.status === "fulfilled" && friend.value === true) {
+          return [user.id, "friend"];
+        }
+        if (restricted.status === "fulfilled" && restricted.value === true) {
+          return [user.id, "restricted"];
+        }
+        return [user.id, "none"];
+      }),
+    );
+    setRelations(new Map(entries));
+  };
 
   const search = async (event: FormEvent) => {
     event.preventDefault();
     if (!keyword.trim()) return;
     setLoading(true);
     setStatus("");
+    setSelectedUser(null);
+    setRelations(new Map());
     try {
       const page = await friendService.search(api, keyword.trim());
       setResults(page.content);
       if (page.content.length === 0) setStatus("검색 결과가 없습니다.");
+      else await resolveRelations(page.content);
     } catch {
       setStatus("사용자를 검색하지 못했습니다.");
     } finally {
@@ -44,109 +73,122 @@ export function FriendAddScreen() {
     }
   };
 
-  const send = async (user: UserSearchResult) => {
+  const send = async (event: FormEvent) => {
+    event.preventDefault();
+    if (selectedUser === null) return;
+
     setStatus("");
+    setLoading(true);
     try {
-      await friendService.sendRequest(api, user.id, message.trim());
+      await friendService.sendRequest(api, selectedUser.id, message.trim());
       await analytics.track("friend_request_sent", { source: "search" });
-      setStatus(`${user.nickname}님에게 친구 요청을 보냈습니다.`);
-      setResults((current) => current.filter((item) => item.id !== user.id));
+      setStatus(`${selectedUser.nickname}님에게 친구 요청을 보냈습니다.`);
+      setResults((current) =>
+        current.filter((item) => item.id !== selectedUser.id),
+      );
+      setSelectedUser(null);
     } catch {
       setStatus("친구 요청을 보내지 못했습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <main className="feature-page" data-clarity-mask="true">
-      <Link className="feature-page__back" to="/friend">
-        ← 친구 목록
-      </Link>
-      <header className="feature-page__header">
-        <div>
-          <span className="feature-page__eyebrow">새 연결</span>
-          <h1>친구 추가</h1>
-          <p>이메일이나 닉네임으로 ImHere 사용자를 찾아보세요.</p>
-        </div>
-      </header>
-      <form className="feature-form" onSubmit={search}>
-        <label className="ds-field">
-          <span className="ds-field__label">이메일 또는 닉네임</span>
-          <input
-            className="ds-field__input"
-            onChange={(event) => setKeyword(event.target.value)}
-            required
-            value={keyword}
-          />
-        </label>
-        <label className="ds-field">
-          <span className="ds-field__label">요청 메시지</span>
-          <textarea
-            className="ds-field__input"
-            maxLength={200}
-            onChange={(event) => setMessage(event.target.value)}
-            value={message}
-          />
-        </label>
-        <button
-          aria-busy={loading}
-          className="ds-button ds-button--primary"
-          disabled={loading}
-          type="submit"
+    <div className="friend-finder" data-clarity-mask="true">
+      {selectedUser === null ? (
+        <form className="friend-finder__form" onSubmit={search}>
+          <label className="ds-field">
+            <span className="ds-field__label">닉네임 또는 이메일</span>
+            <input
+              className="ds-field__input"
+              data-sheet-autofocus
+              onChange={(event) => setKeyword(event.target.value)}
+              placeholder="닉네임 또는 이메일"
+              required
+              value={keyword}
+            />
+          </label>
+          <Button loading={loading} type="submit">
+            검색
+          </Button>
+        </form>
+      ) : (
+        <form className="friend-finder__form" onSubmit={send}>
+          <div className="friend-finder__selection">
+            <div>
+              <strong>{selectedUser.nickname}</strong>
+              <span>{selectedUser.email}</span>
+            </div>
+            <Button
+              disabled={loading}
+              onClick={() => {
+                setSelectedUser(null);
+                setStatus("");
+              }}
+              variant="ghost"
+            >
+              다시 선택
+            </Button>
+          </div>
+          <label className="ds-field">
+            <span className="ds-field__label">요청 메시지</span>
+            <textarea
+              className="ds-field__input"
+              maxLength={200}
+              onChange={(event) => setMessage(event.target.value)}
+              value={message}
+            />
+          </label>
+          <Button loading={loading} type="submit">
+            친구 요청 보내기
+          </Button>
+        </form>
+      )}
+      {status && (
+        <p className="friend-finder__status" aria-live="polite">
+          {status}
+        </p>
+      )}
+      {selectedUser === null && results.length > 0 && (
+        <section
+          className="friend-finder__results"
+          aria-labelledby="friend-search-results"
         >
-          검색
-        </button>
-      </form>
-      {status && <p aria-live="polite">{status}</p>}
-      {results.length > 0 && (
-        <section aria-labelledby="friend-search-results">
           <h2 id="friend-search-results">검색 결과</h2>
           <ul className="feature-page__list">
-            {results.map((user) => (
-              <li className="feature-page__list-card" key={user.id}>
-                <div>
-                  <h3>{user.nickname}</h3>
-                  <p>{user.email}</p>
-                </div>
-                <button
-                  className="ds-button ds-button--primary"
-                  onClick={() => void send(user)}
-                  type="button"
+            {results.map((user) => {
+              const relation = relations.get(user.id) ?? "none";
+              return (
+                <li
+                  className="feature-page__list-card friend-finder__result"
+                  key={user.id}
                 >
-                  요청 보내기
-                </button>
-              </li>
-            ))}
+                  <div>
+                    <h3>{user.nickname}</h3>
+                    <p>{user.email}</p>
+                    {relation !== "none" && (
+                      <span className="feature-page__chip">
+                        {RELATION_LABEL[relation]}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    disabled={relation !== "none"}
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setStatus("");
+                    }}
+                    variant="secondary"
+                  >
+                    선택
+                  </Button>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
-      <section aria-labelledby="device-contact-heading">
-        <div className="feature-page__section-header">
-          <div>
-            <h2 id="device-contact-heading">기기 연락처 가져오기</h2>
-            <p>연락처를 선택하면 검색어에 전화번호를 채웁니다.</p>
-          </div>
-        </div>
-        <ul className="feature-page__list">
-          {contacts.slice(0, 20).map((contact) => (
-            <li className="feature-page__list-card" key={contact.id}>
-              <div className="feature-page__row">
-                <div>
-                  <h3>{contact.displayName}</h3>
-                  <p>{contact.phoneNumbers.join(", ") || "전화번호 없음"}</p>
-                </div>
-                <button
-                  className="ds-button ds-button--secondary"
-                  disabled={!contact.phoneNumbers[0]}
-                  onClick={() => setKeyword(contact.phoneNumbers[0] ?? "")}
-                  type="button"
-                >
-                  검색에 사용
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </main>
+    </div>
   );
 }

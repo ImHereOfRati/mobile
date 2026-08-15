@@ -30,6 +30,25 @@ describe("ApiClient", () => {
     );
   });
 
+  it("resolves to undefined when the server answers 204", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      void input;
+      return new Response(null, { status: 204 });
+    });
+    const client = new ApiClient(
+      "https://api.example/",
+      {
+        getAccessToken: async () => ({ accessToken: "token" }),
+        refreshAccessToken: async () => ({ accessToken: "new-token" }),
+      },
+      fetchMock,
+    );
+
+    await expect(
+      client.request<void>("/api/agreements/1", { method: "DELETE" }),
+    ).resolves.toBeUndefined();
+  });
+
   it("serializes concurrent 401 refreshes and retries once", async () => {
     let refreshed = false;
     const refreshAccessToken = vi.fn(async () => {

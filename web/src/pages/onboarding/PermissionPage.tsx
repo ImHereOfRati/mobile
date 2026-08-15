@@ -85,7 +85,10 @@ export default function PermissionPage() {
 
   return (
     <main className="onboarding">
-      <section className="onboarding__panel" aria-labelledby="permission-title">
+      <section
+        className="onboarding__panel onboarding__panel--centered"
+        aria-labelledby="permission-title"
+      >
         <header className="onboarding__header">
           <p className="onboarding__eyebrow">
             {t("onboarding.permission.eyebrow")}

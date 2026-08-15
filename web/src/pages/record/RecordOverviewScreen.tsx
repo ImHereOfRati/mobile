@@ -8,6 +8,7 @@ import { friendService } from "@/pages/friend/friend-service";
 
 import {
   formatActivityTime,
+  formatDeliveryStatus,
   type DeliveryRecord,
   type NativeNotification,
 } from "./record-model";
@@ -25,7 +26,7 @@ export function RecordOverviewScreen() {
       await Promise.allSettled([
         bridge.queryNotifications({ limit: 3 }),
         bridge.queryRecords({ limit: 3 }),
-        friendService.requests(api, 0),
+        friendService.requests(api, 0, "RECEIVED"),
       ]);
     setNotifications(
       notificationResult.status === "fulfilled"
@@ -75,6 +76,15 @@ export function RecordOverviewScreen() {
       </header>
       {status && <p aria-live="polite">{status}</p>}
 
+      <nav aria-label="알림 보관함" className="feature-page__actions">
+        <Link
+          className="ds-button ds-button--secondary"
+          to="/record/server-notifications"
+        >
+          서버 알림함
+        </Link>
+      </nav>
+
       <ActivitySection
         empty="최근 받은 알림이 없어요."
         link="/record/notifications"
@@ -113,7 +123,9 @@ export function RecordOverviewScreen() {
             <h3>{item.geofenceName}</h3>
             <p>{item.message}</p>
             <div className="feature-page__meta">
-              <span className="feature-page__chip">{item.status}</span>
+              <span className="feature-page__chip">
+                {formatDeliveryStatus(item.status)}
+              </span>
               <small>{formatActivityTime(item.occurredAt)}</small>
             </div>
           </li>

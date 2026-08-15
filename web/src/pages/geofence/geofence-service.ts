@@ -77,6 +77,7 @@ export async function loadRecipientOptions(
     source: "server",
     value: {
       friendRelationshipId: friendship.id,
+      friendUserId: friendship.friend.id,
       friendEmail: friendship.friend.email,
       friendAlias: friendship.friendAlias || friendship.friend.nickname,
     },

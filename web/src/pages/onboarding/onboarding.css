@@ -9,11 +9,11 @@
   width: min(100%, 31rem);
   min-height: 100dvh;
   gap: var(--space-6);
-  align-content: center;
+  align-content: start;
   margin: 0 auto;
   padding: calc(var(--space-8) + env(safe-area-inset-top)) var(--space-5)
     calc(var(--space-8) + env(safe-area-inset-bottom));
-  background: transparent;
+  background: var(--color-surface);
 }
 
 .onboarding__header,
@@ -31,10 +31,10 @@
   max-width: 25rem;
   margin: 0;
   font-family: var(--font-title);
-  font-size: clamp(1.9rem, 8vw, 2.5rem);
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  line-height: 1.1;
+  font-size: 1.5rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.25;
   white-space: pre-line;
 }
 
@@ -46,15 +46,13 @@
 }
 
 .onboarding__eyebrow {
-  color: var(--color-primary);
-  font-size: var(--text-body-medium);
-  font-weight: 750;
+  display: none;
 }
 
 .onboarding__description {
   max-width: 25rem;
-  font-size: var(--text-body-large);
-  line-height: 1.65;
+  font-size: var(--text-body-medium);
+  line-height: 1.55;
 }
 
 .onboarding__steps,
@@ -109,15 +107,15 @@
 
 .onboarding__error {
   margin: 0;
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
   font-size: var(--text-body-medium);
   line-height: 1.5;
 }
 
 .onboarding__error {
   color: var(--color-error);
-  background: var(--color-error-soft);
+  background: transparent;
 }
 
 .onboarding__term,
@@ -150,15 +148,12 @@
   width: 2.5rem;
   height: 2.5rem;
   place-items: center;
-  border-radius: var(--radius-md);
   color: var(--color-primary);
-  background: var(--color-primary-soft);
+  background: transparent;
   font-weight: 800;
 }
 
 .onboarding__content {
-  max-height: 25rem;
-  overflow: auto;
   color: var(--color-text-secondary);
   line-height: 1.8;
   white-space: pre-wrap;
@@ -185,12 +180,8 @@
     margin-top: 0;
   }
 
-  .onboarding__header h1 {
-    font-size: 2rem;
-  }
-
   .onboarding__description {
-    font-size: 1rem;
+    font-size: var(--text-body-medium);
   }
 }
 
@@ -203,4 +194,8 @@ html[data-native-shell="true"] .onboarding__panel {
   align-content: start;
   padding-top: var(--space-6);
   padding-bottom: var(--space-8);
+}
+
+.onboarding__panel.onboarding__panel--centered {
+  align-content: center;
 }

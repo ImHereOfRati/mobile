@@ -22,8 +22,6 @@ const geofence = {
   awaitingDeparture: false,
   deviceContactIds: [],
   serverRecipients: [],
-  createdAt: "2026-07-26T00:00:00Z",
-  updatedAt: "2026-07-26T00:00:00Z",
 };
 
 function renderList() {
@@ -57,7 +55,8 @@ describe("GeofencePage", () => {
   it("renders native geofences and updates the active state through the bridge", async () => {
     const { controller } = renderList();
     expect(await screen.findByRole("heading", { name: "회사" })).toBeVisible();
-    expect(screen.getByText("도착·출발 모두")).toBeVisible();
+    expect(screen.getByText("500m 경계 진입·이탈 시")).toBeVisible();
+    expect(screen.getByText("평일")).toBeVisible();
 
     fireEvent.click(screen.getByRole("checkbox"));
     await waitFor(() =>
@@ -75,5 +74,16 @@ describe("GeofencePage", () => {
     const { container } = renderList();
     await screen.findByRole("heading", { name: "회사" });
     expect((await axe.run(container)).violations).toEqual([]);
+  });
+
+  it("keeps edit and delete actions in a compact action sheet", async () => {
+    renderList();
+    fireEvent.click(await screen.findByRole("button", { name: "회사 더보기" }));
+    expect(screen.getByRole("dialog", { name: "회사" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "삭제" }));
+    expect(
+      screen.getByRole("dialog", { name: "알림 장소를 삭제할까요?" }),
+    ).toBeVisible();
   });
 });

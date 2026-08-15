@@ -6,8 +6,8 @@ import {
   type Schema,
 } from "./schema";
 
-export const BRIDGE_VERSION = "1.2.0";
-export const MINIMUM_BRIDGE_VERSION = "1.2.0";
+export const BRIDGE_VERSION = "1.3.0";
+export const MINIMUM_BRIDGE_VERSION = "1.3.0";
 
 export const Platform = s.enum("BridgePlatform", [
   "android",
@@ -124,6 +124,7 @@ export const AutoSendReadiness = s.object("AutoSendReadiness", {
 
 export const ServerRecipient = s.object("ServerRecipient", {
   friendRelationshipId: s.string,
+  friendUserId: s.string,
   friendEmail: s.string,
   friendAlias: s.string,
 });
@@ -159,8 +160,6 @@ export const Geofence = s.object("Geofence", {
   awaitingDeparture: s.boolean,
   deviceContactIds: s.array(s.string),
   serverRecipients: s.array(ServerRecipient),
-  createdAt: s.string,
-  updatedAt: s.string,
 });
 
 export const GeofenceId = s.object("GeofenceId", {
@@ -217,8 +216,7 @@ export const Notification = s.object("BridgeNotification", {
   title: s.string,
   body: s.string,
   path: s.optional(s.string),
-  senderNickname: s.optional(s.string),
-  senderEmail: s.optional(s.string),
+  senderAlias: s.optional(s.string),
   createdAt: s.string,
 });
 

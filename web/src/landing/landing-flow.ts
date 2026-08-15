@@ -11,6 +11,7 @@ export type LandingFlowState = {
   step: DemoStep;
   friendAccepted: boolean;
   placeConfigured: boolean;
+  recipientSelected: boolean;
   destination: DestinationId;
   radius: number;
   running: boolean;
@@ -22,6 +23,7 @@ export type LandingFlowState = {
 export type LandingFlowAction =
   | { type: "accept-friend" }
   | { type: "select-destination"; destination: DestinationId }
+  | { type: "select-recipient" }
   | { type: "set-radius"; radius: number }
   | { type: "save-place" }
   | { type: "toggle-run" }
@@ -44,6 +46,7 @@ export const initialLandingFlowState: LandingFlowState = {
   step: "friend",
   friendAccepted: false,
   placeConfigured: false,
+  recipientSelected: false,
   destination: "cityhall",
   radius: 150,
   running: false,
@@ -65,12 +68,16 @@ export function landingFlowReducer(
       return state.step === "place" && !state.placeConfigured
         ? { ...state, destination: action.destination, progress: 0 }
         : state;
+    case "select-recipient":
+      return state.step === "place" && !state.placeConfigured
+        ? { ...state, recipientSelected: true }
+        : state;
     case "set-radius":
       return state.step === "place" && !state.placeConfigured
         ? { ...state, radius: Math.min(300, Math.max(100, action.radius)) }
         : state;
     case "save-place":
-      return state.step === "place"
+      return state.step === "place" && state.recipientSelected
         ? { ...state, step: "run", placeConfigured: true }
         : state;
     case "toggle-run":

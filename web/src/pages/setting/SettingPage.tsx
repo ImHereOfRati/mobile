@@ -3,12 +3,12 @@ import "@/pages/feature-page.css";
 
 import type { BridgeMethodResult } from "@imhere/bridge-contract";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { useApiClient } from "@/api/use-api-client";
 import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
-import { useTheme } from "@/design-system";
+import { Button, SettingsGroup, SettingsRow, useTheme } from "@/design-system";
 import { loadTerms, type Term } from "@/pages/onboarding/terms-service";
 import { formatActivityTime } from "@/pages/record/record-model";
 
@@ -117,53 +117,46 @@ export default function SettingPage() {
       return;
     }
     try {
-      await bridge.withdraw();
-      await analytics.setConsent(false);
-      navigate("/auth", { replace: true });
+      await settingService.withdraw(api);
     } catch {
       setStatus("회원 탈퇴에 실패했습니다.");
+      return;
     }
+    // 계정은 이미 지워졌다. 남은 정리가 실패해도 로그인 화면으로 돌려보내는
+    // 편이 맞다 — 지워진 계정의 토큰을 들고 앱에 남아 있을 이유가 없다.
+    await Promise.allSettled([bridge.signOut(), analytics.setConsent(false)]);
+    navigate("/auth", { replace: true });
   };
 
   return (
     <main className="feature-page" data-clarity-mask="true">
-      <header className="feature-page__header">
-        <div>
-          <span className="feature-page__eyebrow">내 앱 관리</span>
-          <h1>설정</h1>
-          <p>계정, 화면, 권한과 자동 전송 상태를 관리하세요.</p>
-        </div>
-      </header>
+      <h1 className="visually-hidden">설정</h1>
       {status && <p aria-live="polite">{status}</p>}
 
-      <SettingSection title="계정">
-        <li>
-          <button
-            className="setting-item"
-            onClick={() => void editNickname()}
-            type="button"
-          >
+      <SettingsGroup title="계정">
+        <SettingsRow
+          label={
             <span className="setting-profile">
               <strong>{me?.nickname ?? "내 정보"}</strong>
               <span>{me?.email ?? "계정 정보를 확인하는 중"}</span>
             </span>
-            <span className="setting-item__detail">닉네임 수정</span>
-          </button>
-        </li>
-      </SettingSection>
+          }
+          detail="닉네임 수정"
+          onClick={() => void editNickname()}
+        />
+      </SettingsGroup>
 
-      <SettingSection title="디스플레이">
-        <li>
-          <button className="setting-item" onClick={toggleTheme} type="button">
-            <span>화면 테마</span>
-            <span className="setting-item__detail">
-              {theme === "dark" ? "다크" : "라이트"}
-            </span>
-          </button>
-        </li>
-      </SettingSection>
+      <SettingsGroup title="디스플레이">
+        <SettingsRow
+          label="화면 테마"
+          detail={theme === "dark" ? "다크" : "라이트"}
+          role="switch"
+          aria-checked={theme === "dark"}
+          onClick={toggleTheme}
+        />
+      </SettingsGroup>
 
-      <SettingSection title="앱 사용 권한">
+      <SettingsGroup title="앱 사용 권한">
         <PermissionItem
           granted={readiness?.notification ?? false}
           label="앱 알림 권한"
@@ -204,107 +197,77 @@ export default function SettingPage() {
               .catch(() => setStatus("연락처 권한을 확인하지 못했습니다."))
           }
         />
-      </SettingSection>
+      </SettingsGroup>
 
-      <SettingSection title="전송 진단">
-        <li>
-          <Link className="setting-item" to="/record/send-history">
-            <span>마지막 자동 전송</span>
-            <span className="setting-item__detail">
-              {lastRecord
-                ? `${lastRecord.geofenceName} · ${formatActivityTime(lastRecord.occurredAt)}`
-                : "아직 없음"}
-            </span>
-          </Link>
-        </li>
-        <li>
-          <p className="setting-note">
-            일부 기기의 제조사 절전 설정은 자동 전송을 막을 수 있습니다. 전송이
-            누락되면 절전 설정에서 ImHere를 제외해 주세요.
-          </p>
-        </li>
-      </SettingSection>
+      <SettingsGroup title="전송 진단">
+        <SettingsRow
+          label="마지막 자동 전송"
+          detail={
+            lastRecord
+              ? `${lastRecord.geofenceName} · ${formatActivityTime(lastRecord.occurredAt)}`
+              : "아직 없음"
+          }
+          onClick={() => navigate("/record/send-history")}
+        />
+        <p className="setting-note">
+          일부 기기의 제조사 절전 설정은 자동 전송을 막을 수 있습니다. 전송이
+          누락되면 절전 설정에서 ImHere를 제외해 주세요.
+        </p>
+      </SettingsGroup>
 
-      <SettingSection title="서비스 약관">
+      <SettingsGroup title="서비스 약관">
+        <SettingsRow
+          label="약관 동의 관리"
+          detail="동의 내역 보기"
+          onClick={() => navigate("/setting/agreements")}
+        />
         {terms.length === 0 ? (
-          <li>
-            <span className="setting-item">표시할 약관이 없습니다.</span>
-          </li>
+          <SettingsRow label="표시할 약관이 없습니다." />
         ) : (
           terms.map((term) => (
-            <li key={term.id}>
-              <Link className="setting-item" to={`/terms-detail/${term.id}`}>
-                <span>{term.title}</span>
-                <span className="setting-item__detail">보기</span>
-              </Link>
-            </li>
+            <SettingsRow
+              key={term.id}
+              label={term.title}
+              detail="보기"
+              onClick={() => navigate(`/terms-detail/${term.id}`)}
+            />
           ))
         )}
-      </SettingSection>
+      </SettingsGroup>
 
-      <SettingSection title="고객 지원">
-        <li>
-          <button
-            className="setting-item"
-            onClick={() =>
-              void bridge
-                .openExternalUrl({ url: SUPPORT_URL })
-                .catch(() => setStatus("문의하기 페이지를 열지 못했습니다."))
-            }
-            type="button"
-          >
-            <span>문의하기</span>
-            <span className="setting-item__detail">Notion</span>
-          </button>
-        </li>
-      </SettingSection>
+      <SettingsGroup title="고객 지원">
+        <SettingsRow
+          label="문의하기"
+          detail="Notion"
+          onClick={() =>
+            void bridge
+              .openExternalUrl({ url: SUPPORT_URL })
+              .catch(() => setStatus("문의하기 페이지를 열지 못했습니다."))
+          }
+        />
+      </SettingsGroup>
 
-      <SettingSection title="앱 정보">
-        <li>
-          <span className="setting-item">
-            <span>버전 정보</span>
-            <span className="setting-item__detail">
-              {appInfo
-                ? `${appInfo.appVersion} (${appInfo.buildNumber})`
-                : "정보 없음"}
-            </span>
-          </span>
-        </li>
-      </SettingSection>
+      <SettingsGroup title="앱 정보">
+        <SettingsRow
+          label="버전 정보"
+          detail={
+            appInfo
+              ? `${appInfo.appVersion} (${appInfo.buildNumber})`
+              : "정보 없음"
+          }
+        />
+      </SettingsGroup>
 
       <footer className="setting-footer">
         <p>ImHere · 소중한 사람과 위치의 순간을 나눠요.</p>
-        <button
-          className="ds-button ds-button--secondary"
-          onClick={() => void signOut()}
-          type="button"
-        >
+        <Button variant="secondary" onClick={() => void signOut()}>
           로그아웃
-        </button>
-        <button
-          className="ds-button ds-button--danger"
-          onClick={() => void withdraw()}
-          type="button"
-        >
+        </Button>
+        <Button variant="danger" onClick={() => void withdraw()}>
           회원 탈퇴
-        </button>
+        </Button>
       </footer>
     </main>
-  );
-}
-
-function SettingSection({
-  title,
-  children,
-}: {
-  children: React.ReactNode;
-  title: string;
-}) {
-  return (
-    <section className="setting-section">
-      <h2>{title}</h2>
-      <ul className="setting-list">{children}</ul>
-    </section>
   );
 }
 
@@ -318,13 +281,10 @@ function PermissionItem({
   onClick: () => void;
 }) {
   return (
-    <li>
-      <button className="setting-item" onClick={onClick} type="button">
-        <span>{label}</span>
-        <span className="setting-item__detail">
-          {granted ? "허용됨" : "설정 필요"}
-        </span>
-      </button>
-    </li>
+    <SettingsRow
+      label={label}
+      detail={granted ? "허용됨" : "설정 필요"}
+      onClick={onClick}
+    />
   );
 }

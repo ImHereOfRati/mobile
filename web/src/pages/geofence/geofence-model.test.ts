@@ -16,6 +16,7 @@ const recipients: RecipientOption[] = [
     source: "server",
     value: {
       friendRelationshipId: "friendship-1",
+      friendUserId: "friend-1",
       friendEmail: "minji@example.com",
       friendAlias: "민지",
     },

@@ -381,6 +381,11 @@ label {
   border-color: var(--color-primary);
 }
 
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .button--primary {
   display: inline-flex;
   gap: 7px;
@@ -430,6 +435,63 @@ label {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-soft);
+}
+
+.recipient-picker {
+  margin-bottom: 12px;
+  border-top: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.recipient-picker__label {
+  display: block;
+  padding-top: 10px;
+  color: var(--color-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.recipient-picker > button {
+  display: flex;
+  width: 100%;
+  min-height: 60px;
+  gap: 9px;
+  align-items: center;
+  padding: 8px 0;
+  border: 0;
+  color: var(--color-text);
+  background: transparent;
+  text-align: left;
+}
+
+.recipient-picker .friend-avatar {
+  width: 34px;
+  height: 34px;
+}
+
+.recipient-picker__copy {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+
+.recipient-picker__copy strong {
+  font-size: 0.78rem;
+}
+
+.recipient-picker__copy small {
+  color: var(--color-text-secondary);
+  font-size: 0.68rem;
+}
+
+.recipient-picker__state {
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.recipient-picker > button.is-selected .recipient-picker__state {
+  color: var(--color-primary);
 }
 
 .setting-box {
@@ -868,13 +930,13 @@ input[type="range"] {
   animation: dialog-in var(--motion-normal) ease both;
 }
 
-.install-dialog > header {
+.install-dialog__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.install-dialog > header > span {
+.install-dialog__header > span {
   color: var(--color-primary);
   font-size: 0.75rem;
   font-weight: 800;

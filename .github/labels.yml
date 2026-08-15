@@ -25,3 +25,7 @@
 - name: chore
   color: "cfd3d7"
   description: "빌드, 의존성, 설정"
+
+- name: task
+  color: "7057ff"
+  description: "문서, 테스트, 리팩터링 등 일반 작업"

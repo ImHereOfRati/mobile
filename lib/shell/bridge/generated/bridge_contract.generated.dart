@@ -3,8 +3,8 @@
 // Run: pnpm bridge:generate
 // ignore_for_file: prefer_if_null_operators, prefer_null_aware_operators
 
-const bridgeContractVersion = '1.2.0';
-const minimumBridgeContractVersion = '1.2.0';
+const bridgeContractVersion = '1.3.0';
+const minimumBridgeContractVersion = '1.3.0';
 
 const bridgeMethodNames = <String>[
   'getCapabilities',
@@ -400,17 +400,20 @@ enum RepeatType {
 class ServerRecipient {
   const ServerRecipient({
     required this.friendRelationshipId,
+    required this.friendUserId,
     required this.friendEmail,
     required this.friendAlias,
   });
 
   final String friendRelationshipId;
+  final String friendUserId;
   final String friendEmail;
   final String friendAlias;
 
   factory ServerRecipient.fromJson(Map<String, Object?> json) {
     return ServerRecipient(
       friendRelationshipId: json['friendRelationshipId'] as String,
+      friendUserId: json['friendUserId'] as String,
       friendEmail: json['friendEmail'] as String,
       friendAlias: json['friendAlias'] as String,
     );
@@ -419,6 +422,7 @@ class ServerRecipient {
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'friendRelationshipId': friendRelationshipId,
+      'friendUserId': friendUserId,
       'friendEmail': friendEmail,
       'friendAlias': friendAlias,
     };
@@ -441,8 +445,6 @@ class Geofence {
     required this.awaitingDeparture,
     required this.deviceContactIds,
     required this.serverRecipients,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   final int id;
@@ -459,8 +461,6 @@ class Geofence {
   final bool awaitingDeparture;
   final List<String> deviceContactIds;
   final List<ServerRecipient> serverRecipients;
-  final String createdAt;
-  final String updatedAt;
 
   factory Geofence.fromJson(Map<String, Object?> json) {
     return Geofence(
@@ -478,8 +478,6 @@ class Geofence {
       awaitingDeparture: json['awaitingDeparture'] as bool,
       deviceContactIds: (json['deviceContactIds'] as List<Object?>).map((item) => item as String).toList(),
       serverRecipients: (json['serverRecipients'] as List<Object?>).map((item) => ServerRecipient.fromJson(item as Map<String, Object?>)).toList(),
-      createdAt: json['createdAt'] as String,
-      updatedAt: json['updatedAt'] as String,
     );
   }
 
@@ -499,8 +497,6 @@ class Geofence {
       'awaitingDeparture': awaitingDeparture,
       'deviceContactIds': deviceContactIds.map((item) => item).toList(),
       'serverRecipients': serverRecipients.map((item) => item.toJson()).toList(),
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
     };
   }
 }
@@ -767,8 +763,7 @@ class BridgeNotification {
     required this.title,
     required this.body,
     this.path,
-    this.senderNickname,
-    this.senderEmail,
+    this.senderAlias,
     required this.createdAt,
   });
 
@@ -776,8 +771,7 @@ class BridgeNotification {
   final String title;
   final String body;
   final String? path;
-  final String? senderNickname;
-  final String? senderEmail;
+  final String? senderAlias;
   final String createdAt;
 
   factory BridgeNotification.fromJson(Map<String, Object?> json) {
@@ -786,8 +780,7 @@ class BridgeNotification {
       title: json['title'] as String,
       body: json['body'] as String,
       path: json['path'] == null ? null : json['path'] as String,
-      senderNickname: json['senderNickname'] == null ? null : json['senderNickname'] as String,
-      senderEmail: json['senderEmail'] == null ? null : json['senderEmail'] as String,
+      senderAlias: json['senderAlias'] == null ? null : json['senderAlias'] as String,
       createdAt: json['createdAt'] as String,
     );
   }
@@ -798,8 +791,7 @@ class BridgeNotification {
       'title': title,
       'body': body,
       if (path != null) 'path': path!,
-      if (senderNickname != null) 'senderNickname': senderNickname!,
-      if (senderEmail != null) 'senderEmail': senderEmail!,
+      if (senderAlias != null) 'senderAlias': senderAlias!,
       'createdAt': createdAt,
     };
   }

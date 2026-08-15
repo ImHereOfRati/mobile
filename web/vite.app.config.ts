@@ -14,6 +14,7 @@ const sourceRoot = fileURLToPath(new URL("./src", import.meta.url));
 export default defineConfig({
   root: "app",
   base: appBasePath,
+  cacheDir: "../node_modules/.vite-app",
   plugins: [react()],
   resolve: {
     alias: [
