@@ -5,6 +5,17 @@ import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
+import 'package:iamhere/feature/geofence/service/notification_delivery_state.dart';
+
+class DeliveryDispatchResult {
+  final bool anyChannelSucceeded;
+  final bool hasQueuedChannel;
+
+  const DeliveryDispatchResult({
+    required this.anyChannelSucceeded,
+    required this.hasQueuedChannel,
+  });
+}
 
 class DeliveryDispatcher {
   final SmsNotificationService _smsNotificationService;
@@ -15,11 +26,12 @@ class DeliveryDispatcher {
     this._fcmArrivalService,
   );
 
-  Future<bool> send(
+  Future<DeliveryDispatchResult> send(
     GeofenceDeliverySnapshot snapshot, {
     required String body,
   }) async {
     var anySuccess = false;
+    var hasQueuedChannel = false;
     final event = DeliveryEvent.fromStoredName(snapshot.deliveryEventType);
 
     if (snapshot.smsPhoneNumbers.isNotEmpty) {
@@ -36,7 +48,10 @@ class DeliveryDispatcher {
         location: snapshot.geofence.fullLocation,
         type: event.notificationType,
       );
-      if (smsResult is Success) anySuccess = true;
+      if (smsResult case Success(data: final state)) {
+        anySuccess = true;
+        hasQueuedChannel |= state == NotificationDeliveryState.queued;
+      }
     }
 
     if (snapshot.serverUserIds.isNotEmpty) {
@@ -49,6 +64,9 @@ class DeliveryDispatcher {
       if (fcmResult is Success) anySuccess = true;
     }
 
-    return anySuccess;
+    return DeliveryDispatchResult(
+      anyChannelSucceeded: anySuccess,
+      hasQueuedChannel: hasQueuedChannel,
+    );
   }
 }

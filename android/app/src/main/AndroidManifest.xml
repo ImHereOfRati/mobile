@@ -98,10 +98,10 @@
             </intent-filter>
         </receiver>
         <!-- native_geofence 플러그인: 지오펜스 콜백 실행용 Foreground Service -->
-        <!-- Android 14+ (API 34+) 부터 위치 기반 FGS 는 foregroundServiceType="location" 선언 필수 -->
+        <!-- native_geofence background worker binding -->
         <service
             android:name="com.chunkytofustudios.native_geofence.NativeGeofenceForegroundService"
-            android:foregroundServiceType="location"
+            android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="true"/>
     </application>
     <!-- Required to query activities that can process text, see:

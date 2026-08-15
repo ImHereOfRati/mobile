@@ -5,6 +5,8 @@ import 'package:iamhere/common/base/api_response/api_response_parser.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
+import 'notification_delivery_state.dart';
+
 /// SMS sending service with proper dependency injection and error handling
 @lazySingleton
 class SmsService {
@@ -16,7 +18,7 @@ class SmsService {
 
   /// Send SMS to one or more recipients
   /// Returns `Result<void>` indicating success or failure
-  Future<Result<void>> sendSms({
+  Future<Result<NotificationDeliveryState>> sendSms({
     required List<String> phoneNumbers,
     required String body,
     required String location,
@@ -58,7 +60,7 @@ class SmsService {
   }
 
   /// The server accepts both single and batch sends through one targetIds DTO.
-  Future<Result<void>> _sendSms({
+  Future<Result<NotificationDeliveryState>> _sendSms({
     required List<String> phoneNumbers,
     required String body,
     required String location,
@@ -84,7 +86,11 @@ class SmsService {
 
       ApiResponseParser.parseVoid(response.data);
 
-      return Success(null);
+      return Success(
+        response.statusCode == 202
+            ? NotificationDeliveryState.queued
+            : NotificationDeliveryState.delivered,
+      );
     } catch (e) {
       log('Error sending SMS: $e');
       return Failure('Error sending SMS: $e');

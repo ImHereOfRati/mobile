@@ -14,6 +14,7 @@ import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/geofence/service/record_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
+import 'package:iamhere/feature/geofence/service/notification_delivery_state.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -30,6 +31,7 @@ import 'geofence_delivery_pipeline_test.mocks.dart';
   GeofenceRetryScheduler,
 ])
 void main() {
+  provideDummy<Result<NotificationDeliveryState>>(Failure('default'));
   provideDummy<Result<void>>(Failure('default'));
   late MockGeofenceDeliveryQueueDatabaseService mockQueue;
   late MockContactResolutionService mockContactResolution;
@@ -369,7 +371,7 @@ void main() {
             location: anyNamed('location'),
             type: anyNamed('type'),
           ),
-        ).thenAnswer((_) async => Success<void>(null));
+        ).thenAnswer((_) async => Success(NotificationDeliveryState.delivered));
 
         await pipeline.processPending();
 
@@ -388,6 +390,46 @@ void main() {
         verify(mockRegistrar.unregister(42)).called(1);
       },
     );
+
+    test('SMS 202 수락은 record pending + queue completed 로 남긴다', () async {
+      final item = queueItem(smsPhoneNumbers: ['01012345678']);
+      stubTakeDue([item]);
+      when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
+      when(
+        mockSms.sendSmsToRecipients(
+          phoneNumbers: anyNamed('phoneNumbers'),
+          body: anyNamed('body'),
+          location: anyNamed('location'),
+          type: anyNamed('type'),
+        ),
+      ).thenAnswer((_) async => Success(NotificationDeliveryState.queued));
+
+      await pipeline.processPending();
+
+      verify(
+        mockRecord.markGeofenceRecordPending(
+          geofence: anyNamed('geofence'),
+          recipientNames: anyNamed('recipientNames'),
+          deliveryKey: anyNamed('deliveryKey'),
+          message: anyNamed('message'),
+          deliveryEventType: anyNamed('deliveryEventType'),
+          retryCount: anyNamed('retryCount'),
+          lastError: anyNamed('lastError'),
+        ),
+      ).called(1);
+      verifyNever(
+        mockRecord.markGeofenceRecordCompleted(
+          geofence: anyNamed('geofence'),
+          recipientNames: anyNamed('recipientNames'),
+          deliveryKey: anyNamed('deliveryKey'),
+          message: anyNamed('message'),
+          deliveryEventType: anyNamed('deliveryEventType'),
+          retryCount: anyNamed('retryCount'),
+        ),
+      );
+      verify(mockQueue.complete(item.id!)).called(1);
+      verify(mockGeofenceRepo.updateActiveStatus(42, false)).called(1);
+    });
   });
 
   group('GeofenceDeliveryPipeline.processPending — FCM 성공', () {
@@ -404,7 +446,7 @@ void main() {
           location: anyNamed('location'),
           type: anyNamed('type'),
         ),
-      ).thenAnswer((_) async => Success<void>(null));
+      ).thenAnswer((_) async => Success(NotificationDeliveryState.delivered));
 
       await pipeline.processPending();
 
@@ -428,7 +470,7 @@ void main() {
           location: anyNamed('location'),
           type: anyNamed('type'),
         ),
-      ).thenAnswer((_) async => Success<void>(null));
+      ).thenAnswer((_) async => Success(NotificationDeliveryState.delivered));
 
       await pipeline.processPending();
 
@@ -472,7 +514,7 @@ void main() {
           location: anyNamed('location'),
           type: anyNamed('type'),
         ),
-      ).thenAnswer((_) async => Success<void>(null));
+      ).thenAnswer((_) async => Success(NotificationDeliveryState.delivered));
 
       await pipeline.processPending();
 

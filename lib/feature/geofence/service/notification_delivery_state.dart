@@ -1,0 +1,1 @@
+enum NotificationDeliveryState { delivered, queued }

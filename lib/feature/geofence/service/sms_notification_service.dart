@@ -4,6 +4,7 @@ import 'package:iamhere/common/base/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 import 'sms_service.dart';
+import 'notification_delivery_state.dart';
 
 /// SMS notification sending service
 @injectable
@@ -13,8 +14,8 @@ class SmsNotificationService {
   SmsNotificationService(this._smsService);
 
   /// Send SMS to multiple recipients
-  /// Returns [Result<void>] indicating success or failure.
-  Future<Result<void>> sendSmsToRecipients({
+  /// Returns the server-side delivery state or failure.
+  Future<Result<NotificationDeliveryState>> sendSmsToRecipients({
     required List<String> phoneNumbers,
     required String body,
     required String location,
@@ -33,9 +34,9 @@ class SmsNotificationService {
         type: type,
       );
 
-      if (result is Success) {
+      if (result case Success(data: final state)) {
         log('SMS sent successfully to ${phoneNumbers.length} recipients');
-        return Success(null);
+        return Success(state);
       } else {
         log('SMS sending failed: $result');
         return Failure('Failed to send SMS');

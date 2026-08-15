@@ -139,22 +139,38 @@ class GeofenceDeliveryPipeline {
     final snapshot = item.snapshot;
     final body = _buildMessageBody(snapshot);
     try {
-      final anySuccess = await _dispatcher.send(snapshot, body: body);
+      final dispatchResult = await _dispatcher.send(snapshot, body: body);
       if (_successPolicy.shouldComplete(
         snapshot: snapshot,
-        anyChannelSucceeded: anySuccess,
+        anyChannelSucceeded: dispatchResult.anyChannelSucceeded,
       )) {
-        await _recordStore.markGeofenceRecordCompleted(
-          geofence: snapshot.geofence,
-          recipientNames: snapshot.recipientNames,
-          deliveryKey: item.dedupeKey,
-          message: body,
-          deliveryEventType: snapshot.deliveryEventType,
-          retryCount: item.retryCount,
-        );
+        if (dispatchResult.hasQueuedChannel) {
+          await _recordStore.markGeofenceRecordPending(
+            geofence: snapshot.geofence,
+            recipientNames: snapshot.recipientNames,
+            deliveryKey: item.dedupeKey,
+            message: body,
+            deliveryEventType: snapshot.deliveryEventType,
+            retryCount: item.retryCount,
+            lastError: '서버 발송 큐에 등록됨. 최종 전송 결과 대기 중',
+          );
+        } else {
+          await _recordStore.markGeofenceRecordCompleted(
+            geofence: snapshot.geofence,
+            recipientNames: snapshot.recipientNames,
+            deliveryKey: item.dedupeKey,
+            message: body,
+            deliveryEventType: snapshot.deliveryEventType,
+            retryCount: item.retryCount,
+          );
+        }
         await _queue.complete(item.id!);
         await _completeLifecycleAfterSuccess(snapshot);
-        AppLogger.debug('BG_QUEUE: completed geofence delivery ${item.id}');
+        AppLogger.debug(
+          dispatchResult.hasQueuedChannel
+              ? 'BG_QUEUE: accepted by server, final delivery pending ${item.id}'
+              : 'BG_QUEUE: completed geofence delivery ${item.id}',
+        );
       } else {
         await _handleRetryFailure(
           item: item,

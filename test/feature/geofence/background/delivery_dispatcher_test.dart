@@ -6,6 +6,7 @@ import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
+import 'package:iamhere/feature/geofence/service/notification_delivery_state.dart';
 
 void main() {
   GeofenceDeliverySnapshot snapshot({
@@ -44,7 +45,8 @@ void main() {
       body: 'body',
     );
 
-    expect(result, isTrue);
+    expect(result.anyChannelSucceeded, isTrue);
+    expect(result.hasQueuedChannel, isFalse);
   });
 
   test('모든 채널이 실패하면 false 를 반환한다', () async {
@@ -61,11 +63,13 @@ void main() {
       body: 'body',
     );
 
-    expect(result, isFalse);
+    expect(result.anyChannelSucceeded, isFalse);
   });
 
   test('서버 제한을 넘는 본문은 SMS 로만 잘라 보내고 FCM 은 그대로 보낸다', () async {
-    final sms = _FakeSmsNotificationService(Success(null));
+    final sms = _FakeSmsNotificationService(
+      Success(NotificationDeliveryState.delivered),
+    );
     final fcm = _FakeFcmArrivalService(Success(null));
     final dispatcher = DeliveryDispatcher(sms, fcm);
     final body = '[ImHere]\n${'가' * 40}';
@@ -85,13 +89,13 @@ void main() {
 }
 
 class _FakeSmsNotificationService implements SmsNotificationService {
-  final Result<void> result;
+  final Result<NotificationDeliveryState> result;
   String? lastBody;
 
   _FakeSmsNotificationService(this.result);
 
   @override
-  Future<Result<void>> sendSmsToRecipients({
+  Future<Result<NotificationDeliveryState>> sendSmsToRecipients({
     required List<String> phoneNumbers,
     required String body,
     required String location,

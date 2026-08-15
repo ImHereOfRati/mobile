@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/feature/geofence/service/sms_service.dart';
+import 'package:iamhere/feature/geofence/service/notification_delivery_state.dart';
 
 class _FakeHttpClientAdapter implements HttpClientAdapter {
   _FakeHttpClientAdapter(this._responses);
@@ -61,7 +62,14 @@ void main() {
       type: 'ARRIVAL',
     );
 
-    expect(result, isA<Success<void>>());
+    expect(
+      result,
+      isA<Success<NotificationDeliveryState>>().having(
+        (value) => value.data,
+        'data',
+        NotificationDeliveryState.delivered,
+      ),
+    );
   });
 
   test('SMS 다건도 2xx 응답이면 성공으로 처리해야 함', () async {
@@ -76,6 +84,13 @@ void main() {
       type: 'ARRIVAL',
     );
 
-    expect(result, isA<Success<void>>());
+    expect(
+      result,
+      isA<Success<NotificationDeliveryState>>().having(
+        (value) => value.data,
+        'data',
+        NotificationDeliveryState.queued,
+      ),
+    );
   });
 }
