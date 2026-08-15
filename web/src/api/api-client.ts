@@ -61,9 +61,9 @@ export class ApiClient {
     // Native WebView bridges can briefly be unavailable while Flutter
     // restores its session. A missing token must not prevent the request from
     // being issued; the server response can still be handled normally.
-    const token = await this.tokens
+    const token = (await this.tokens
       .getAccessToken()
-      .catch(() => ({ accessToken: null }));
+      .catch(() => ({ accessToken: null }))) ?? { accessToken: null };
     const response = await this.fetchImpl(
       buildApiUrl(this.baseUrl, path, options.apiVersion ?? 1),
       {

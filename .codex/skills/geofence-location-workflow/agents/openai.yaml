@@ -1,0 +1,4 @@
+interface:
+  display_name: "Geofence Location Workflow"
+  short_description: "Reverse geocode, test, and format geofence flows."
+  default_prompt: "Use $geofence-location-workflow to implement or review geofence location and notification message changes with mandatory formatting and browser verification."

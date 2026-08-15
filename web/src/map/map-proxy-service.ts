@@ -20,13 +20,22 @@ interface GeocodeAddress {
   y: string;
 }
 
-interface ReverseGeocodeResponse {
-  results?: {
-    region?: {
-      area1?: { name?: string };
-      area2?: { name?: string };
-    };
-  }[];
+export interface ReverseGeocodeResponse {
+  results?: ReverseGeocodeResult[];
+}
+
+export interface ReverseGeocodeResult {
+  land?: {
+    name?: string;
+    number1?: string;
+    number2?: string;
+  };
+  name?: string;
+  region?: {
+    [key: string]: { name?: string } | undefined;
+    area1?: { name?: string };
+    area2?: { name?: string };
+  };
 }
 
 export class MapProxyService {
@@ -41,18 +50,25 @@ export class MapProxyService {
       search.items.map(async (item): Promise<PlaceSearchResult | null> => {
         const address = item.roadAddress || item.address;
         if (address === undefined) return null;
-        const geocode = await this.api.request<{ addresses: GeocodeAddress[] }>(
-          `/api/maps/geocode?query=${encodeURIComponent(address)}`,
-          { signal },
-        );
-        const coordinate = geocode.addresses[0];
-        if (coordinate === undefined) return null;
-        return {
-          title: stripHtml(item.title),
-          address: coordinate.roadAddress || coordinate.jibunAddress || address,
-          latitude: Number(coordinate.y),
-          longitude: Number(coordinate.x),
-        };
+        try {
+          const geocode = await this.api.request<{
+            addresses: GeocodeAddress[];
+          }>(`/api/maps/geocode?query=${encodeURIComponent(address)}`, {
+            signal,
+          });
+          const coordinate = geocode.addresses[0];
+          if (coordinate === undefined) return null;
+          return {
+            title: stripHtml(item.title),
+            address:
+              coordinate.roadAddress || coordinate.jibunAddress || address,
+            latitude: Number(coordinate.y),
+            longitude: Number(coordinate.x),
+          };
+        } catch (error) {
+          if (signal?.aborted === true) throw error;
+          return null;
+        }
       }),
     );
     return results.filter(
@@ -82,6 +98,32 @@ export function reverseGeocodeLabel(
     .filter((part): part is string => part !== undefined && part.trim() !== "")
     .join(" ");
   return label || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+}
+
+export function reverseGeocodePlaceName(response: ReverseGeocodeResponse) {
+  return response.results?.[0]?.name?.trim() ?? "";
+}
+
+export function reverseGeocodeAddress(
+  response: ReverseGeocodeResponse,
+  latitude: number,
+  longitude: number,
+) {
+  const result = response.results?.[0];
+  if (result === undefined) return "";
+  const region = Object.entries(result.region ?? {})
+    .filter(([key]) => /^area[1-4]$/.test(key))
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, area]) => area?.name?.trim() ?? "")
+    .filter((name) => name.length > 0);
+  const land = result.land;
+  const number = [land?.number1, land?.number2]
+    .filter((part): part is string => part !== undefined && part.length > 0)
+    .join("-");
+  const address = [...region, land?.name?.trim() ?? "", number].filter(
+    (part) => part.length > 0,
+  );
+  return address.join(" ") || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
 }
 
 function stripHtml(value: string) {

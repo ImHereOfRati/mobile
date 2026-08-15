@@ -39,6 +39,24 @@ export const defaultGeofenceDraft: GeofenceDraft = {
   serverRecipientKeys: new Set(),
 };
 
+export function defaultGeofenceMessage(name: string, eventType: EventType) {
+  const location = name.trim() || "장소";
+  if (eventType === "departure") {
+    return `안녕하세요! ${location}에서 출발했습니다.`;
+  }
+  return `안녕하세요! ${location}에 도착했습니다.`;
+}
+
+/**
+ * 기기 연락처(SMS) 수신자가 있으면 알림 메시지 입력이 잠기므로,
+ * 화면 표시와 저장에 쓸 메시지를 장소 이름 기준으로 자동 생성한다.
+ * 잠긴 상태에서 메시지가 비어 검증을 통과하지 못하는 상황을 막는다.
+ */
+export function resolveDraftMessage(draft: GeofenceDraft) {
+  if (draft.deviceContactIds.size === 0) return draft.message;
+  return defaultGeofenceMessage(draft.name, draft.eventType);
+}
+
 export function draftFromGeofence(geofence: Geofence): GeofenceDraft {
   return {
     active: geofence.active,

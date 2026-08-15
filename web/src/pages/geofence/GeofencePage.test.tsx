@@ -86,6 +86,62 @@ describe("GeofencePage", () => {
     ).toBeVisible();
   });
 
+  it("keeps the locked message filled from the place name for device recipients", async () => {
+    const controller = createMockBridge({
+      getAutoSendReadiness: async () => ({
+        ready: true,
+        locationAlways: true,
+        locationService: true,
+        notification: true,
+        batteryOptimization: true,
+        missing: [],
+      }),
+      getCurrentPosition: async () => ({
+        latitude: 37.5665,
+        longitude: 126.978,
+        accuracy: 10,
+        timestamp: new Date().toISOString(),
+      }),
+      getDeviceContacts: async () => [
+        {
+          id: "contact-1",
+          displayName: "가족",
+          phoneNumbers: ["010-1234-5678"],
+        },
+      ],
+    });
+
+    render(
+      <BridgeProvider bridge={controller.bridge}>
+        <MemoryRouter initialEntries={["/geofence/message"]}>
+          <Routes>
+            <Route
+              path="/geofence/message"
+              element={<GeofencePage screen="message" />}
+            />
+          </Routes>
+        </MemoryRouter>
+      </BridgeProvider>,
+    );
+
+    const placeName = await screen.findByLabelText("장소 이름");
+    fireEvent.change(placeName, { target: { value: "회사" } });
+    // 라벨 요소가 헬퍼 문구까지 감싸고 있어 부분 일치로 찾는다.
+    const message = screen.getByLabelText(/^알림 메시지/);
+    expect(message).toHaveValue("안녕하세요! 회사에 도착했습니다.");
+    expect(message).not.toBeDisabled();
+
+    fireEvent.click(await screen.findByRole("checkbox", { name: /가족/ }));
+    expect(message).toBeDisabled();
+    expect(message).toHaveValue("안녕하세요! 회사에 도착했습니다.");
+
+    // 잠긴 입력칸 때문에 저장이 막히는 데드락이 생기지 않아야 한다.
+    fireEvent.submit(placeName.closest("form") as HTMLFormElement);
+    await waitFor(() =>
+      expect(screen.queryByText("알림 메시지를 입력해 주세요.")).toBeNull(),
+    );
+  });
+
   it("redirects to permission setup before loading the place form", async () => {
     const controller = createMockBridge({
       getAutoSendReadiness: async () => ({
