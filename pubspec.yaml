@@ -1,7 +1,7 @@
 name: iamhere
-description: "ImHere native shell"
+description: "ImHere with web-app"
 publish_to: "none"
-version: 2.0.0+19
+version: 3.0.0+20
 
 environment:
   sdk: ^3.8.1
