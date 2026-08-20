@@ -19,7 +19,8 @@ const items: ReadonlyArray<{
   {
     key: "locationAlways",
     label: "항상 위치 권한",
-    description: "백그라운드 위치 감지",
+    description:
+      "앱이 닫혀 있어도 설정한 장소의 도착·이탈을 감지하기 위한 백그라운드 위치 사용",
   },
   {
     key: "notification",
@@ -79,7 +80,10 @@ export default function AutoSendReadinessPage() {
         <div>
           <span className="feature-page__eyebrow">자동 전송</span>
           <h1>자동 전송 준비</h1>
-          <p>자동 전송을 사용하려면 아래 권한을 허용해 주세요.</p>
+          <p>
+            자동 전송을 위해 앱이 닫혀 있거나 사용하지 않는 동안에도 위치 정보를
+            사용해 설정한 장소의 도착·이탈을 감지합니다.
+          </p>
         </div>
       </header>
       {message ? <p aria-live="polite">{message}</p> : null}
