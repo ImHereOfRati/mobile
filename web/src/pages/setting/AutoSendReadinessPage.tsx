@@ -8,6 +8,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useBridge } from "@/bridge/bridge-context";
 import { SettingsGroup, SettingsRow } from "@/design-system";
 
+import { BackgroundLocationDisclosure } from "./BackgroundLocationDisclosure";
+
 type Readiness = BridgeMethodResult<"getAutoSendReadiness">;
 type Permission = "locationAlways" | "notification" | "batteryOptimization";
 
@@ -40,6 +42,7 @@ export default function AutoSendReadinessPage() {
   const navigate = useNavigate();
   const returnTo = new URLSearchParams(location.search).get("returnTo");
   const [readiness, setReadiness] = useState<Readiness>();
+  const [locationDisclosureOpen, setLocationDisclosureOpen] = useState(false);
   const [message, setMessage] = useState("준비 상태를 확인하는 중입니다.");
 
   const refresh = useCallback(async () => {
@@ -66,7 +69,7 @@ export default function AutoSendReadinessPage() {
   async function openPermission(permission: Permission, granted: boolean) {
     try {
       if (permission === "locationAlways" || granted) {
-        await bridge.openAppSettings();
+        setLocationDisclosureOpen(true);
       } else await bridge.requestPermission({ permission });
       await refresh();
     } catch {
@@ -111,6 +114,16 @@ export default function AutoSendReadinessPage() {
           );
         })}
       </SettingsGroup>
+      <BackgroundLocationDisclosure
+        open={locationDisclosureOpen}
+        onClose={() => setLocationDisclosureOpen(false)}
+        onConfirm={() => {
+          setLocationDisclosureOpen(false);
+          void bridge
+            .openAppSettings()
+            .catch(() => setMessage("권한 설정을 열지 못했습니다."));
+        }}
+      />
     </main>
   );
 }

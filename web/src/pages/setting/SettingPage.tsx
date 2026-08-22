@@ -20,6 +20,7 @@ import { loadTerms, type Term } from "./terms-service";
 import { formatActivityTime } from "@/pages/record/record-model";
 
 import { settingService, SUPPORT_URL, type UserMe } from "./setting-service";
+import { BackgroundLocationDisclosure } from "./BackgroundLocationDisclosure";
 
 type AppInfo = BridgeMethodResult<"getAppInfo">;
 type Readiness = BridgeMethodResult<"getAutoSendReadiness">;
@@ -44,6 +45,7 @@ export default function SettingPage() {
   const [nicknameSheetOpen, setNicknameSheetOpen] = useState(false);
   const [nicknameDraft, setNicknameDraft] = useState("");
   const [nicknameSaving, setNicknameSaving] = useState(false);
+  const [locationDisclosureOpen, setLocationDisclosureOpen] = useState(false);
 
   const refreshNative = async () => {
     const [infoResult, readinessResult, recordResult, contactsResult] =
@@ -122,7 +124,7 @@ export default function SettingPage() {
   ) => {
     try {
       if (permission === "locationAlways" || granted) {
-        await bridge.openAppSettings();
+        setLocationDisclosureOpen(true);
       } else await bridge.requestPermission({ permission });
       await refreshNative();
     } catch {
@@ -308,6 +310,17 @@ export default function SettingPage() {
           </Button>
         </form>
       </BottomSheet>
+
+      <BackgroundLocationDisclosure
+        open={locationDisclosureOpen}
+        onClose={() => setLocationDisclosureOpen(false)}
+        onConfirm={() => {
+          setLocationDisclosureOpen(false);
+          void bridge
+            .openAppSettings()
+            .catch(() => setStatus("권한 설정을 열지 못했습니다."));
+        }}
+      />
 
       <BottomSheet
         open={confirmation !== null}

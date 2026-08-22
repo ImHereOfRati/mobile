@@ -44,4 +44,20 @@ describe("LandingPage", () => {
     expect(screen.getByText("서울 시청 · 150m")).toBeVisible();
     expect((await axe.run(container)).violations).toEqual([]);
   });
+
+  it("shows the privacy policy as expandable sections", () => {
+    render(<LandingPage />);
+
+    const section = screen.getByRole("heading", {
+      name: "ImHere 개인정보처리방침",
+    });
+    expect(section).toBeVisible();
+
+    const summary = screen.getByText("1. 수집하는 개인정보 항목");
+    expect(summary).toBeVisible();
+    fireEvent.click(summary);
+    expect(
+      screen.getByText(/계정 정보\(이메일, 닉네임, 로그인 제공자/),
+    ).toBeVisible();
+  });
 });

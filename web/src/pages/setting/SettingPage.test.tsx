@@ -189,6 +189,15 @@ describe("SettingPage", () => {
       screen.getByText("위치 권한 (항상 허용)").click();
     });
 
+    expect(screen.getByText("내용을 확인했고 권한 설정 열기")).toBeVisible();
+    expect(
+      controller.calls.some((call) => call.method === "openAppSettings"),
+    ).toBe(false);
+
+    await act(async () => {
+      screen.getByText("내용을 확인했고 권한 설정 열기").click();
+    });
+
     expect(
       controller.calls.some((call) => call.method === "openAppSettings"),
     ).toBe(true);
