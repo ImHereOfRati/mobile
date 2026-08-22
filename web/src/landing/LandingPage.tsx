@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import { JourneyMap, type JourneyMapHandle } from "@/landing/JourneyMap";
+import { LegalDocumentPage } from "@/landing/LegalDocumentPage";
 import {
   destinationById,
   destinations,
@@ -29,6 +30,13 @@ type Toast = {
   title: string;
   message: string;
 };
+
+function nowLabel() {
+  return new Intl.DateTimeFormat("ko-KR", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date());
+}
 
 const landingShareData = {
   title: "ImHere | 위치 기반 서비스",
@@ -86,186 +94,7 @@ function InstallDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-function PrivacyPolicySection() {
-  return (
-    <section className="privacy-policy" aria-labelledby="privacy-policy-title">
-      <div className="privacy-policy__inner">
-        <p className="eyebrow">ImHere 개인정보 보호</p>
-        <h2 id="privacy-policy-title">ImHere 개인정보처리방침</h2>
-        <p className="privacy-policy__updated">최종 수정일: 2026년 6월 29일</p>
-        <p className="privacy-policy__intro">
-          ImHere(이하 &quot;본 앱&quot;)은 사용자의 개인정보 보호를 중요하게
-          생각합니다. 본 방침은 본 앱이 수집·이용·보관·보호하는 개인정보와 외부
-          서비스 이용 내용을 설명합니다.
-        </p>
-        <div className="privacy-policy__sections">
-          <details>
-            <summary>1. 수집하는 개인정보 항목</summary>
-            <p>
-              계정 정보(이메일, 닉네임, 로그인 제공자, 제공자 식별값, 회원
-              상태), 인증·보안 정보(세션·refresh token 관련 정보), 친구 관계와
-              요청 정보, 알림 정보(대상, 제목, 본문, 발송 상태), FCM 토큰과 기기
-              종류를 처리합니다. 위치 권한이 허용되고 기능이 활성화되면 지오펜스
-              위치·반경, 도착·이탈 이벤트와 알림에 필요한 위치 관련 정보가
-              처리될 수 있습니다. 사용자가 선택한 연락처의 이름과 전화번호는
-              기기에서 처리하며 SMS 발송이 필요한 경우에만 발송 과정에서 전송될
-              수 있습니다.
-            </p>
-          </details>
-          <details>
-            <summary>2. 개인정보 수집 방법</summary>
-            <p>
-              소셜 로그인, 사용자의 직접 입력(닉네임·지오펜스·연락처), 기기
-              권한을 통한 위치·연락처 처리, FCM 토큰 등록, 서비스 이용 과정에서
-              생성되는 친구·알림·오류 정보를 통해 수집합니다.
-            </p>
-          </details>
-          <details>
-            <summary>3. 개인정보의 수집 및 이용 목적</summary>
-            <p>
-              사용자 인증과 계정 관리, 친구 관계 관리, 지오펜스 기반 도착·이탈
-              감지, 푸시·문자 알림 발송, 발송 실패 재시도와 중복 방지, 보안·장애
-              대응 및 고객 문의 처리를 위해 이용합니다. 선택적 분석에 동의한
-              경우 서비스 이용 통계와 기능 개선에도 이용합니다.
-            </p>
-          </details>
-          <details>
-            <summary>4. 개인정보의 보유 및 이용 기간</summary>
-            <p>
-              계정 정보는 회원 탈퇴 시까지 보유하며 법령상 보존이 필요한
-              경우에는 해당 기간 동안 분리 보관합니다. refresh token과 FCM
-              토큰은 만료·교체· 회원 탈퇴·무효화 시 삭제합니다. 친구·알림·동의
-              이력은 서비스 제공, 권리 보호와 분쟁 대응에 필요한 기간 동안
-              보관할 수 있습니다. 위치 관련 정보는 기능 제공에 필요한 최소 기간
-              동안만 처리합니다. 기기 내 연락처와 지오펜스 설정은 사용자가
-              권한·설정을 삭제하거나 앱을 삭제하면 기기에서 삭제됩니다.
-            </p>
-          </details>
-          <details>
-            <summary>5. 개인정보의 제3자 제공</summary>
-            <p>
-              원칙적으로 개인정보를 판매하거나 목적 외로 제공하지 않습니다. 다만
-              로그인 제공자(Kakao, Google, Apple), 푸시 알림(Firebase Cloud
-              Messaging), 문자 발송(Solapi 등)을 위해 각 서비스에 필요한 정보가
-              전송될 수 있습니다. SMS 발송 시 수신 전화번호와 메시지 내용이 문자
-              발송 사업자에 전달될 수 있습니다.
-              <br />
-              <a
-                href="https://www.kakao.com/policy/privacy"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Kakao 개인정보처리방침
-              </a>
-            </p>
-          </details>
-          <details>
-            <summary>6. 개인정보의 처리 위탁</summary>
-            <p>
-              본 앱은 서비스 제공을 위해 위 5항의 외부 서비스 사업자를
-              이용합니다. 사업자별 처리 항목과 목적은 해당 사업자의
-              개인정보처리방침 및 서비스 설정에 따라 달라질 수 있습니다.
-            </p>
-          </details>
-          <details>
-            <summary>7. 개인정보의 파기</summary>
-            <p>
-              보유기간이 지나거나 처리 목적이 달성되면 지체 없이 파기합니다.
-              회원 탈퇴 시 계정과 기기 내 저장 정보를 삭제하고, 법령·분쟁 대응에
-              필요한 정보는 해당 기간이 끝난 뒤 복구할 수 없도록 삭제합니다.
-            </p>
-          </details>
-          <details>
-            <summary>8. 사용자 권리</summary>
-            <p>
-              사용자는 개인정보 열람·정정·삭제·처리정지, 동의 철회와 회원 탈퇴를
-              요청할 수 있습니다. 앱 내 설정 메뉴 또는 아래 개인정보 보호
-              문의처를 통해 요청해 주세요. 위치 권한을 철회하면 위치 기반 알림
-              기능이 제한될 수 있습니다.
-            </p>
-          </details>
-          <details>
-            <summary>9. 개인정보 보호책임자</summary>
-            <p>
-              개인정보 보호 관련 문의는 아래 연락처로 요청해 주세요.
-              <br />
-              이메일: [개인정보 보호책임자 이메일 주소를 입력하세요]
-              <br />
-              전화번호: [개인정보 보호책임자 전화번호를 입력하세요]
-            </p>
-          </details>
-          <details>
-            <summary>10. 개인정보의 안전성 확보 조치</summary>
-            <p>
-              접근 권한 관리, 인증·토큰 보호, 전송·저장 구간의 보안 조치, 접근
-              통제, 로그와 운영 권한 관리, 보안 프로그램과 내부 관리 절차를
-              적용합니다.
-            </p>
-          </details>
-          <details>
-            <summary>11. 위치 정보 처리</summary>
-            <p>
-              GPS 기반 현재 위치와 사용자가 설정한 지오펜스 위치·반경을
-              도착·이탈 감지와 위치 기반 알림에 이용합니다. 백그라운드 위치는
-              사용자가 명시적으로 허용하고 해당 기능을 활성화한 경우에만
-              처리하며, 기능 제공에 필요한 최소 범위로 제한합니다.
-            </p>
-          </details>
-          <details>
-            <summary>12. 연락처 정보 처리</summary>
-            <p>
-              사용자가 선택한 연락처의 이름과 전화번호를 SMS 수신자 관리와 알림
-              발송에 이용합니다. 연락처 전체 목록은 기능에 필요한 경우에만
-              기기에서 읽으며, SMS 발송 과정 외에는 서버로 전송하지 않습니다.
-            </p>
-          </details>
-          <details>
-            <summary>13. SMS 전송 기능</summary>
-            <p>
-              Android에서는 사용자의 권한과 기기 정책에 따라 자동 SMS를 발송할
-              수 있고, iOS에서는 SMS 앱을 열어 사용자가 직접 전송합니다. 기기
-              발송이 아닌 백업 서버 발송이 사용되는 경우 전화번호와 메시지
-              내용이 문자 발송 사업자로 전송될 수 있습니다.
-            </p>
-          </details>
-          <details>
-            <summary>14. 쿠키 및 추적 기술</summary>
-            <p>
-              본 앱은 필수 서비스 제공 외의 분석 도구를 선택 동의 없이
-              활성화하지 않습니다. 선택적 분석에 동의한 경우 Google Analytics
-              4와 Microsoft Clarity가 서비스 이용 이벤트, 브라우저·기기와 접속
-              환경 정보를 처리할 수 있습니다.
-            </p>
-          </details>
-          <details>
-            <summary>15. 아동의 개인정보 보호</summary>
-            <p>
-              본 앱은 만 14세 미만 아동을 대상으로 하지 않으며, 해당 아동의
-              개인정보를 고의로 수집하지 않습니다.
-            </p>
-          </details>
-          <details>
-            <summary>16. 개인정보처리방침 변경</summary>
-            <p>
-              법령, 서비스, 외부 사업자 또는 보안 기술의 변경에 따라 본 방침을
-              수정할 수 있습니다. 중요한 변경은 시행 전에 앱 또는 웹사이트를
-              통해 안내합니다.
-            </p>
-          </details>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function nowLabel() {
-  return new Intl.DateTimeFormat("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date());
-}
-
-export function LandingPage() {
+function ExperienceLandingPage() {
   const [flow, dispatch] = useReducer(
     landingFlowReducer,
     initialLandingFlowState,
@@ -441,6 +270,10 @@ export function LandingPage() {
         <a className="brand" href="/" aria-label="ImHere 홈">
           <strong>ImHere</strong>
         </a>
+        <nav className="topbar__nav" aria-label="법적 문서">
+          <a href="/privacy">개인정보처리방침</a>
+          <a href="/terms">서비스 약관</a>
+        </nav>
         <div className="topbar__share">
           <button className="share-button" type="button" onClick={shareLanding}>
             공유하기
@@ -872,7 +705,6 @@ export function LandingPage() {
             </div>
           </div>
         </section>
-        <PrivacyPolicySection />
       </main>
 
       {flow.completed && (
@@ -902,4 +734,12 @@ export function LandingPage() {
       </div>
     </div>
   );
+}
+
+export function LandingPage() {
+  const path = window.location.pathname.replace(/\/$/, "") || "/";
+
+  if (path === "/privacy") return <LegalDocumentPage type="PRIVACY" />;
+  if (path === "/terms") return <LegalDocumentPage type="SERVICE" />;
+  return <ExperienceLandingPage />;
 }

@@ -1,20 +1,20 @@
 const me = {
   id: "me",
   email: "dongsu@example.com",
-  nickname: "동수",
+  nickname: "?숈닔",
   oAuth2Provider: "KAKAO",
 };
 
 const friend = {
   id: "friend-1",
   email: "mom@example.com",
-  nickname: "엄마",
+  nickname: "?꾨쭏",
   oAuth2Provider: "KAKAO",
 };
 
 const friendship = {
   id: "relationship-1",
-  friendAlias: "엄마",
+  friendAlias: "?꾨쭏",
   friend,
   owner: me,
   createdAt: "2026-07-27T08:00:00Z",
@@ -23,11 +23,11 @@ const friendship = {
 
 const friendRequest = {
   id: "request-1",
-  message: "ImHere에서 친구가 되어 주세요.",
+  message: "ImHere?먯꽌 移쒓뎄媛 ?섏뼱 二쇱꽭??",
   requester: {
     id: "friend-2",
     email: "minsu@example.com",
-    nickname: "민수",
+    nickname: "誘쇱닔",
     oAuth2Provider: "KAKAO",
   },
   receiver: me,
@@ -54,19 +54,7 @@ export const browserPreviewFetch: typeof fetch = async (input, init) => {
   const method = init?.method?.toUpperCase() ?? "GET";
   let data: unknown = null;
 
-  if (url.pathname === "/api/terms") {
-    data = [
-      {
-        id: 1,
-        title: "서비스 이용약관",
-        content: "ImHere 서비스 이용에 필요한 기본 약관입니다.",
-        effectiveDate: "2026-07-01",
-        isRequired: true,
-        type: "SERVICE",
-        version: 1,
-      },
-    ];
-  } else if (url.pathname === "/api/users/my") {
+  if (url.pathname === "/api/users/my") {
     data =
       method === "PATCH"
         ? {
