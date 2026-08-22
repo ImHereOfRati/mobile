@@ -162,6 +162,13 @@ jobs:
             "s3://${WEB_APP_BUCKET}/" \
             --cache-control "no-cache,no-store,must-revalidate" \
             --only-show-errors
+          for route in privacy terms; do
+            aws s3 cp web/dist/landing/index.html \
+              "s3://${WEB_APP_BUCKET}/${route}" \
+              --content-type "text/html" \
+              --cache-control "no-cache,no-store,must-revalidate" \
+              --only-show-errors
+          done
 
       - name: Validate CloudFront behavior policies
         env:
