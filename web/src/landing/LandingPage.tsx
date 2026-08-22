@@ -271,8 +271,8 @@ function ExperienceLandingPage() {
           <strong>ImHere</strong>
         </a>
         <nav className="topbar__nav" aria-label="법적 문서">
-          <a href="/privacy">개인정보처리방침</a>
-          <a href="/terms">서비스 약관</a>
+          <a href="/?document=privacy">개인정보처리방침</a>
+          <a href="/?document=terms">서비스 약관</a>
         </nav>
         <div className="topbar__share">
           <button className="share-button" type="button" onClick={shareLanding}>
@@ -738,8 +738,13 @@ function ExperienceLandingPage() {
 
 export function LandingPage() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
+  const document = new URLSearchParams(window.location.search).get("document");
 
-  if (path === "/privacy") return <LegalDocumentPage type="PRIVACY" />;
-  if (path === "/terms") return <LegalDocumentPage type="SERVICE" />;
+  if (path === "/" && document === "privacy") {
+    return <LegalDocumentPage type="PRIVACY" />;
+  }
+  if (path === "/" && document === "terms") {
+    return <LegalDocumentPage type="SERVICE" />;
+  }
   return <ExperienceLandingPage />;
 }

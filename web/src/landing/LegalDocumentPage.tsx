@@ -82,8 +82,8 @@ function DocumentShell({
           <strong>ImHere</strong>
         </a>
         <nav className="topbar__nav" aria-label="법적 문서">
-          <a href="/privacy">개인정보처리방침</a>
-          <a href="/terms">서비스 약관</a>
+          <a href="/?document=privacy">개인정보처리방침</a>
+          <a href="/?document=terms">서비스 약관</a>
         </nav>
       </header>
       <main className="privacy-policy">

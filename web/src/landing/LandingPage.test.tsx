@@ -18,10 +18,10 @@ describe("LandingPage", () => {
 
     expect(
       screen.getByRole("link", { name: "개인정보처리방침" }),
-    ).toHaveAttribute("href", "/privacy");
+    ).toHaveAttribute("href", "/?document=privacy");
     expect(screen.getByRole("link", { name: "서비스 약관" })).toHaveAttribute(
       "href",
-      "/terms",
+      "/?document=terms",
     );
   });
 
@@ -49,7 +49,7 @@ describe("LandingPage", () => {
           ),
       ),
     );
-    window.history.replaceState({}, "", "/privacy");
+    window.history.replaceState({}, "", "/?document=privacy");
 
     render(<LandingPage />);
 
