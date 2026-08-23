@@ -14,6 +14,7 @@ class AuthFlowApp extends StatefulWidget {
   final AuthLoginCoordinator authLoginCoordinator;
   final AuthService authService;
   final TermsService termsService;
+  final Future<void> Function() requestLocationPermission;
 
   const AuthFlowApp({
     super.key,
@@ -21,6 +22,7 @@ class AuthFlowApp extends StatefulWidget {
     required this.authLoginCoordinator,
     required this.authService,
     required this.termsService,
+    required this.requestLocationPermission,
     this.initialLocation = '/auth',
   });
 
@@ -42,6 +44,7 @@ class _AuthFlowAppState extends State<AuthFlowApp> {
         builder: (_, __) => AuthPage(
           dependencies: _authDependencies,
           onAuthenticated: widget.onAuthenticated,
+          requestLocationPermission: widget.requestLocationPermission,
         ),
       ),
       GoRoute(

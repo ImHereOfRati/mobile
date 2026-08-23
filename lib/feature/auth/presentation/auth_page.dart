@@ -1,17 +1,24 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/feature/auth/presentation/auth_flow_controller.dart';
 import 'package:iamhere/feature/auth/service/oauth_provider.dart';
+import 'package:iamhere/shell/view/background_location_disclosure_details.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
   final AuthFlowDependencies dependencies;
   final VoidCallback onAuthenticated;
+  final Future<void> Function() requestLocationPermission;
 
   const AuthPage({
     super.key,
     required this.dependencies,
     required this.onAuthenticated,
+    required this.requestLocationPermission,
   });
 
   @override
@@ -20,6 +27,46 @@ class AuthPage extends ConsumerStatefulWidget {
 
 class _AuthPageState extends ConsumerState<AuthPage> {
   OauthProvider? _pendingProvider;
+
+  static const _backgroundDisclosureKey =
+      'background_location_disclosure_accepted_v1';
+  static const _secureStorage = FlutterSecureStorage();
+
+  Future<bool> _hasBackgroundLocationConsent() async =>
+      await _secureStorage.read(key: _backgroundDisclosureKey) == 'accepted';
+
+  Future<bool?> _showBackgroundLocationDisclosure() {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        title: const Text('시작 전 안내'),
+        content: const SingleChildScrollView(
+          child: BackgroundLocationDisclosureDetails(),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('취소'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('동의하고 계속'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +77,28 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         : null;
 
     Future<void> login(OauthProvider provider) async {
-      if (busy) return;
+      if (busy || _pendingProvider != null) return;
+      var shouldRequestLocationPermission = false;
+      if (Platform.isAndroid && !await _hasBackgroundLocationConsent()) {
+        final agreed = await _showBackgroundLocationDisclosure();
+        if (!mounted || agreed != true) return;
+        await _secureStorage.write(
+          key: _backgroundDisclosureKey,
+          value: 'accepted',
+        );
+        shouldRequestLocationPermission = true;
+      }
       setState(() => _pendingProvider = provider);
       try {
+        if (shouldRequestLocationPermission) {
+          try {
+            await widget.requestLocationPermission();
+          } catch (error) {
+            AppLogger.warning(
+              'Location permission request failed before sign-in: $error',
+            );
+          }
+        }
         final next = await ref
             .read(authFlowControllerProvider(widget.dependencies).notifier)
             .signIn(provider);

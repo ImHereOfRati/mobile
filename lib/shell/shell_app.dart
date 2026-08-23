@@ -15,6 +15,7 @@ import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dar
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
+import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
 import 'package:iamhere/shell/bridge/bridge_rpc_server.dart';
@@ -214,6 +215,11 @@ class _ShellAppState extends State<ShellApp> {
                 authLoginCoordinator: getIt<AuthLoginCoordinator>(),
                 authService: getIt<AuthService>(),
                 termsService: getIt<TermsService>(),
+                requestLocationPermission: () async {
+                  await getIt<PermissionServiceInterface>(
+                    instanceName: 'location',
+                  ).requestPermission();
+                },
                 onAuthenticated: _reloadInitialUrl,
               );
             }
