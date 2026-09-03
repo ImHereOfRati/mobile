@@ -854,10 +854,13 @@ function ExperienceLandingPage() {
             </h2>
             <p className="seo-support__lead">
               ImHere는 서로 수락한 친구에게 출발과 도착 순간을 알려주는 위치
-              기반 알림 서비스입니다. 목적지와 알림 반경을 설정하면 지오펜싱이
-              위치 변화를 감지하고, 필요한 순간에 푸시 알림과 문자 알림을
-              전달합니다. ImHere는 Google Play에서 Android 앱으로 무료 이용할 수
-              있으며, iOS 버전은 현재 출시 계획이 없습니다.
+              기반 알림 서비스입니다.
+              <br />
+              목적지와 알림 반경을 설정하면 지오펜싱이 위치 변화를 감지하고,
+              필요한 순간에 푸시 알림과 문자 알림을 전달합니다.
+              <br />
+              ImHere는 Google Play에서 Android 앱으로 무료 이용할 수 있으며, iOS
+              버전은 현재 출시 계획이 없습니다.
             </p>
             <div className="seo-support__grid">
               <article>
