@@ -1,5 +1,6 @@
-# native_geofence 플러그인은 iOS 14+ 를 요구한다.
-platform :ios, '14.0'
+# native_geofence 는 iOS 14+, firebase-ios-sdk 12.x 는 iOS 15+ 를 요구한다.
+# Runner 타깃의 IPHONEOS_DEPLOYMENT_TARGET 과 동일하게 유지한다.
+platform :ios, '15.6'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

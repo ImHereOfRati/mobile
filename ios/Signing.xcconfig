@@ -1,0 +1,18 @@
+// 운영자가 채우는 iOS 배포 설정. Debug.xcconfig / Release.xcconfig 에서 include 한다.
+//
+// DEVELOPMENT_TEAM
+//   Apple Developer Program 팀 ID(10자리). Xcode > Settings > Accounts 또는
+//   developer.apple.com > Membership 에서 확인한다. 비어 있으면 아카이브가 실패한다.
+//
+// GOOGLE_IOS_CLIENT_ID / GOOGLE_IOS_REVERSED_CLIENT_ID
+//   Firebase 콘솔 > 프로젝트 설정 > iOS 앱 > GoogleService-Info.plist 의
+//   CLIENT_ID / REVERSED_CLIENT_ID 값. Info.plist 의 GIDClientID 와
+//   Google 로그인 리디렉션 URL scheme 으로 치환된다.
+//   xcconfig 는 '//' 를 주석으로 처리하므로 REVERSED 값에 '//' 가 없어야 한다
+//   (com.googleusercontent.apps.<id> 형식은 안전하다).
+//
+// 세 값 모두 비밀값이 아니므로 저장소에 커밋해도 된다.
+
+DEVELOPMENT_TEAM =
+GOOGLE_IOS_CLIENT_ID =
+GOOGLE_IOS_REVERSED_CLIENT_ID =

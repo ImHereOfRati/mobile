@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+		FCM 원격 알림용 Push Notifications capability.
+		development 로 두면 Xcode 가 App Store 배포용 export 시 production 으로 치환한다.
+	-->
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

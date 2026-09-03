@@ -16,11 +16,16 @@
     <string>현재 위치를 지도에 표시하고 지오펜스 영역을 설정하기 위해 위치 정보가 필요합니다.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>앱이 꺼진 상태에서도 지오펜스 알림을 받기 위해 항상 위치 접근 권한이 필요합니다.</string>
+    <!--
+      location: native_geofence 의 CoreLocation 지오펜스 모니터링.
+      remote-notification: FCM 백그라운드 메시지 핸들러
+      (firebase_cloud_message_service.dart 의 onBackgroundMessage).
+      workmanager 는 Android 전용 경로이므로 fetch/processing 은 선언하지 않는다.
+    -->
     <key>UIBackgroundModes</key>
     <array>
       <string>location</string>
-      <string>fetch</string>
-      <string>processing</string>
+      <string>remote-notification</string>
     </array>
 	<key>NSContactsUsageDescription</key>
 	<string>친구 목록 관리 및 메시지 전송을 위해 연락처 접근이 필요합니다.</string>
@@ -51,10 +56,22 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>kakao840e16595771540d4b1056238cbb6b51://oauth</string>
+				<string>kakao840e16595771540d4b1056238cbb6b51</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>google-sign-in</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(GOOGLE_IOS_REVERSED_CLIENT_ID)</string>
 			</array>
 		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSApplicationQueriesSchemes</key>
@@ -66,6 +83,9 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- HTTPS/시스템 암호화만 사용한다. App Store Connect 수출 규정 질문을 건너뛴다. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
