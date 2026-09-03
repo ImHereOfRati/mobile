@@ -391,7 +391,7 @@ void main() {
       },
     );
 
-    test('SMS 202 수락은 record pending + queue completed 로 남긴다', () async {
+    test('SMS 202 수락은 record completed + queue completed 로 남긴다', () async {
       final item = queueItem(smsPhoneNumbers: ['01012345678']);
       stubTakeDue([item]);
       when(mockQueue.claim(item.id!)).thenAnswer((_) async => true);
@@ -407,17 +407,6 @@ void main() {
       await pipeline.processPending();
 
       verify(
-        mockRecord.markGeofenceRecordPending(
-          geofence: anyNamed('geofence'),
-          recipientNames: anyNamed('recipientNames'),
-          deliveryKey: anyNamed('deliveryKey'),
-          message: anyNamed('message'),
-          deliveryEventType: anyNamed('deliveryEventType'),
-          retryCount: anyNamed('retryCount'),
-          lastError: anyNamed('lastError'),
-        ),
-      ).called(1);
-      verifyNever(
         mockRecord.markGeofenceRecordCompleted(
           geofence: anyNamed('geofence'),
           recipientNames: anyNamed('recipientNames'),
@@ -426,7 +415,7 @@ void main() {
           deliveryEventType: anyNamed('deliveryEventType'),
           retryCount: anyNamed('retryCount'),
         ),
-      );
+      ).called(1);
       verify(mockQueue.complete(item.id!)).called(1);
       verify(mockGeofenceRepo.updateActiveStatus(42, false)).called(1);
     });

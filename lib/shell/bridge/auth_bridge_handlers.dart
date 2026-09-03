@@ -16,7 +16,6 @@ class AuthBridgeHandlers {
   final AuthLogin _signInWithGoogle;
   final TermsActivation _activateWithTerms;
   final AuthVoidAction _signOut;
-  final AuthVoidAction _withdraw;
 
   AuthBridgeHandlers({
     required Future<String?> Function() readAccessToken,
@@ -28,7 +27,6 @@ class AuthBridgeHandlers {
     required AuthLogin signInWithGoogle,
     required TermsActivation activateWithTerms,
     required AuthVoidAction signOut,
-    required AuthVoidAction withdraw,
   }) : _readAccessToken = readAccessToken,
        _readUserStatus = readUserStatus,
        _readIsActive = readIsActive,
@@ -37,8 +35,7 @@ class AuthBridgeHandlers {
        _signInWithKakao = signInWithKakao,
        _signInWithGoogle = signInWithGoogle,
        _activateWithTerms = activateWithTerms,
-       _signOut = signOut,
-       _withdraw = withdraw;
+       _signOut = signOut;
 
   Map<String, BridgeMethodHandler> build() => {
     'getAuthState': (_) => _authState(),
@@ -48,7 +45,6 @@ class AuthBridgeHandlers {
     'signInWithGoogle': (_) => _signIn(_signInWithGoogle),
     'activateWithTerms': _activate,
     'signOut': (_) => _signOut(),
-    'withdraw': (_) => _withdraw(),
   };
 
   Future<Map<String, Object?>> _authState() async {

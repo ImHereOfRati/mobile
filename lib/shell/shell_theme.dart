@@ -120,6 +120,29 @@ class ShellTheme {
           ),
         ),
       ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: brightness == Brightness.dark
+            ? const Color(0xFF1C1D21)
+            : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: brightness == Brightness.dark ? scheme.outline : divider,
+          ),
+        ),
+        titleTextStyle: TextStyle(
+          color: scheme.onSurface,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+        contentTextStyle: TextStyle(
+          color: scheme.onSurfaceVariant,
+          fontSize: 14,
+          height: 1.5,
+        ),
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: scheme.primary,

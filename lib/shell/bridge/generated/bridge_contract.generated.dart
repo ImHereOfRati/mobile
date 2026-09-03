@@ -15,7 +15,6 @@ const bridgeMethodNames = <String>[
   'signInWithGoogle',
   'activateWithTerms',
   'signOut',
-  'withdraw',
   'getPermissionStatus',
   'requestPermission',
   'openAppSettings',

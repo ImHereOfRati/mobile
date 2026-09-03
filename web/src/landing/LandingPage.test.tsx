@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LandingPage } from "./LandingPage";
@@ -13,6 +13,29 @@ afterEach(() => {
 });
 
 describe("LandingPage", () => {
+  it("guides the user to each next selection in order", () => {
+    render(<LandingPage />);
+
+    expect(screen.getByText("수락하기를 눌러주세요")).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "지금 체험 시작하기" }),
+    ).toHaveAttribute("href", "#experience");
+
+    fireEvent.click(screen.getByRole("button", { name: "수락하기" }));
+    expect(screen.getByText("알림 받을 장소를 선택하세요")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("radio", { name: "서울역" }));
+    expect(screen.getByText("알림 받을 친구를 선택하세요")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("radio", { name: /철수/ }));
+    expect(screen.getByText("설정을 저장해 다음 단계로 가세요")).toBeVisible();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "장소와 알림 대상 설정" }),
+    );
+    expect(screen.getByText("이동 시작을 눌러보세요")).toBeVisible();
+  });
+
   it("links the header documents to separate legal pages", () => {
     render(<LandingPage />);
 

@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"echo \\\"=== firebase_options usage ===\\\" && grep -rn \\\"firebase_options\\\\|DefaultFirebaseOptions\\\" lib tool test --include=*.dart | head && echo \\\"=== android gradle google-services ===\\\" &...",
-  "error": "Exit code 2\n=== firebase_options usage ===\nlib/feature/geofence/background/geofence_background_runtime.dart:9:import 'package:iamhere/firebase_options.dart';\nlib/feature/geofence/background/geofence_background_runtime.dart:75:      options: DefaultFirebaseOptions.currentPlatform,\nlib/firebase_options.dart:5:class DefaultFirebaseOptions {\nlib/firebase_options.dart:9:        'DefaultFirebaseOptions have not been configured for web - '\nlib/firebase_options.dart:20:          'DefaultFirebaseOptions ...",
-  "timestamp": "2026-08-03T04:00:08.975Z",
-  "retry_count": 1
-}

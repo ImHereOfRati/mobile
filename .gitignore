@@ -85,3 +85,8 @@ firebase.json
 /web/coverage/
 /web/test-results/
 /web/**/*.tsbuildinfo
+
+# Per-session tool state; regenerated locally and not shared.
+.omc/sessions/
+.omc/state/
+android/.kotlin/

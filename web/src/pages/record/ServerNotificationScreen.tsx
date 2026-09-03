@@ -6,7 +6,7 @@ import {
   notificationService,
   type ServerNotification,
 } from "./notification-service";
-import { formatActivityTime } from "./record-model";
+import { formatActivityTime, formatNotificationStatus } from "./record-model";
 
 const PAGE_SIZE = 20;
 
@@ -84,6 +84,9 @@ export function ServerNotificationScreen() {
                 <span className="feature-page__chip">안 읽음</span>
               )}
             </div>
+            <p className="feature-page__meta">
+              {formatNotificationStatus(item.status)}
+            </p>
             {!item.isRead && (
               <button
                 className="ds-button ds-button--secondary"

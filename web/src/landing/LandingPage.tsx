@@ -14,6 +14,7 @@ import {
   destinations,
   initialLandingFlowState,
   landingFlowReducer,
+  type DestinationId,
 } from "@/landing/landing-flow";
 
 type DemoEvent = {
@@ -30,6 +31,23 @@ type Toast = {
   title: string;
   message: string;
 };
+
+type GuidanceTarget =
+  "friend" | "destination" | "recipient" | "save-place" | "run";
+
+type Guidance = {
+  target: GuidanceTarget;
+  label: string;
+};
+
+function GuidanceHint({ label }: { label: string }) {
+  return (
+    <span className="guidance-hint" role="status">
+      <span aria-hidden="true">↓</span>
+      {label}
+    </span>
+  );
+}
 
 function nowLabel() {
   return new Intl.DateTimeFormat("ko-KR", {
@@ -81,11 +99,11 @@ function InstallDialog({ onClose }: { onClose: () => void }) {
               <strong>다운로드</strong>
             </span>
           </a>
-          <button type="button" disabled aria-label="App Store 출시 예정">
+          <button type="button" disabled aria-label="iOS 현재 제공 계획 없음">
             <span aria-hidden="true">●</span>
             <span>
-              <small>App Store</small>
-              <strong>출시 예정</strong>
+              <small>iOS 앱</small>
+              <strong>현재 제공 계획 없음</strong>
             </span>
           </button>
         </div>
@@ -106,6 +124,14 @@ function ExperienceLandingPage() {
   const [showDownload, setShowDownload] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
   const mapRef = useRef<JourneyMapHandle>(null);
+  const friendButtonRef = useRef<HTMLButtonElement>(null);
+  const destinationRefs = useRef<
+    Partial<Record<DestinationId, HTMLButtonElement | null>>
+  >({});
+  const recipientButtonRef = useRef<HTMLButtonElement>(null);
+  const savePlaceButtonRef = useRef<HTMLButtonElement>(null);
+  const runButtonRef = useRef<HTMLButtonElement>(null);
+  const focusGuidanceRef = useRef(false);
   const nextIdRef = useRef(1);
   const destination = destinationById(flow.destination);
 
@@ -155,12 +181,69 @@ function ExperienceLandingPage() {
     [pushToast],
   );
 
+  const guidance = useMemo<Guidance | null>(() => {
+    if (flow.completed) return null;
+    if (flow.step === "friend") {
+      return { target: "friend", label: "수락하기를 눌러주세요" };
+    }
+    if (!flow.destinationSelected) {
+      return { target: "destination", label: "알림 받을 장소를 선택하세요" };
+    }
+    if (!flow.recipientSelected) {
+      return { target: "recipient", label: "알림 받을 친구를 선택하세요" };
+    }
+    if (flow.step === "place") {
+      return {
+        target: "save-place",
+        label: "설정을 저장해 다음 단계로 가세요",
+      };
+    }
+    return { target: "run", label: "이동 시작을 눌러보세요" };
+  }, [
+    flow.completed,
+    flow.destinationSelected,
+    flow.recipientSelected,
+    flow.step,
+  ]);
+
+  const focusGuidanceTarget = useCallback(() => {
+    if (guidance === null) return;
+
+    const target =
+      guidance.target === "friend"
+        ? friendButtonRef.current
+        : guidance.target === "destination"
+          ? destinationRefs.current[flow.destination]
+          : guidance.target === "recipient"
+            ? recipientButtonRef.current
+            : guidance.target === "save-place"
+              ? savePlaceButtonRef.current
+              : runButtonRef.current;
+
+    target?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    target?.focus({ preventScroll: true });
+  }, [flow.destination, guidance]);
+
+  useEffect(() => {
+    if (!focusGuidanceRef.current) return;
+
+    focusGuidanceRef.current = false;
+    const timer = window.setTimeout(focusGuidanceTarget, 0);
+    return () => window.clearTimeout(timer);
+  }, [focusGuidanceTarget]);
+
+  const requestGuidanceFocus = () => {
+    focusGuidanceRef.current = true;
+  };
+
   const acceptFriend = () => {
+    requestGuidanceFocus();
     dispatch({ type: "accept-friend" });
     pushToast("친구 연결", "철수 연결 완료");
   };
 
   const savePlace = () => {
+    requestGuidanceFocus();
     dispatch({ type: "save-place" });
     pushToast(
       "장소·알림 대상 설정",
@@ -289,13 +372,25 @@ function ExperienceLandingPage() {
           <div>
             <p className="eyebrow">위치 기반 서비스</p>
             <h1 id="product-title">ImHere</h1>
+            <p className="product-intro__lead">
+              친구의 도착과 출발을 놓치지 않도록
+              <br />
+              장소를 정하고 알림을 보내보세요.
+            </p>
             <ul className="product-points">
               <li>위치 기반</li>
               <li>위치 기반 알림</li>
               <li>자동 알림</li>
             </ul>
-            <a className="product-cta" href="#experience">
-              체험
+            <a
+              className="product-cta"
+              href="#experience"
+              onClick={() => {
+                requestGuidanceFocus();
+                window.setTimeout(focusGuidanceTarget, 0);
+              }}
+            >
+              지금 체험 시작하기
               <span aria-hidden="true">↓</span>
             </a>
           </div>
@@ -309,6 +404,29 @@ function ExperienceLandingPage() {
           <header className="experience-heading">
             <p className="eyebrow">3단계 체험</p>
             <h2 id="experience-title">철수에게 위치 알림을 보내보세요</h2>
+            <ol className="experience-guide">
+              <li>
+                <span className="experience-guide__step">1</span>
+                <span>
+                  <strong>친구 연결</strong>에서 <b>수락하기</b>를 누르세요.
+                </span>
+              </li>
+              <li>
+                <span className="experience-guide__step">2</span>
+                <span>
+                  <strong>장소·알림 대상 선택</strong>에서 장소를 고르고,{" "}
+                  <b>알림 대상</b>의 철수를 누른 뒤 <b>장소와 알림 대상 설정</b>
+                  을 누르세요.
+                </span>
+              </li>
+              <li>
+                <span className="experience-guide__step">3</span>
+                <span>
+                  <strong>이동 시작</strong>을 누르면 철수가 설정한 반경에
+                  들어올 때 알림이 도착합니다.
+                </span>
+              </li>
+            </ol>
           </header>
 
           <div className="workspace">
@@ -350,13 +468,23 @@ function ExperienceLandingPage() {
                         >
                           나중에
                         </button>
-                        <button
-                          className="button button--primary"
-                          type="button"
-                          onClick={acceptFriend}
-                        >
-                          수락하기
-                        </button>
+                        <div className="guided-control">
+                          {guidance?.target === "friend" && (
+                            <GuidanceHint label={guidance.label} />
+                          )}
+                          <button
+                            ref={friendButtonRef}
+                            className={`button button--primary ${
+                              guidance?.target === "friend"
+                                ? "guided-target"
+                                : ""
+                            }`.trim()}
+                            type="button"
+                            onClick={acceptFriend}
+                          >
+                            수락하기
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -380,63 +508,108 @@ function ExperienceLandingPage() {
                 <h2>장소·알림 대상 선택</h2>
                 {flow.step === "place" ? (
                   <div className="step-body">
-                    <div className="place-options" role="radiogroup">
-                      {destinations.map((place) => (
+                    <div
+                      className={`guided-control guided-control--choices ${
+                        guidance?.target === "destination"
+                          ? "guided-control--active"
+                          : ""
+                      }`.trim()}
+                    >
+                      {guidance?.target === "destination" && (
+                        <GuidanceHint label={guidance.label} />
+                      )}
+                      <div
+                        className={`place-options ${
+                          flow.destinationSelected
+                            ? "has-selection"
+                            : "needs-selection"
+                        }`}
+                        role="radiogroup"
+                      >
+                        {destinations.map((place) => (
+                          <button
+                            key={place.id}
+                            ref={(element) => {
+                              destinationRefs.current[place.id] = element;
+                            }}
+                            className={
+                              flow.destinationSelected &&
+                              flow.destination === place.id
+                                ? "is-selected"
+                                : ""
+                            }
+                            type="button"
+                            role="radio"
+                            aria-checked={
+                              flow.destinationSelected &&
+                              flow.destination === place.id
+                            }
+                            onClick={() => {
+                              requestGuidanceFocus();
+                              dispatch({
+                                type: "select-destination",
+                                destination: place.id,
+                              });
+                            }}
+                          >
+                            <span aria-hidden="true">
+                              {place.id === "cityhall"
+                                ? "▦"
+                                : place.id === "station"
+                                  ? "▣"
+                                  : "▤"}
+                            </span>
+                            {place.shortLabel}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div
+                      className={`guided-control ${
+                        guidance?.target === "recipient"
+                          ? "guided-control--active"
+                          : ""
+                      }`.trim()}
+                    >
+                      {guidance?.target === "recipient" && (
+                        <GuidanceHint label={guidance.label} />
+                      )}
+                      <div
+                        className="recipient-picker"
+                        role="radiogroup"
+                        aria-labelledby="recipient-picker-label"
+                      >
+                        <span
+                          className="recipient-picker__label"
+                          id="recipient-picker-label"
+                        >
+                          알림 대상
+                        </span>
                         <button
-                          key={place.id}
+                          ref={recipientButtonRef}
                           className={
-                            flow.destination === place.id ? "is-selected" : ""
+                            flow.recipientSelected ? "is-selected" : ""
                           }
                           type="button"
                           role="radio"
-                          aria-checked={flow.destination === place.id}
-                          onClick={() =>
-                            dispatch({
-                              type: "select-destination",
-                              destination: place.id,
-                            })
-                          }
+                          aria-checked={flow.recipientSelected}
+                          onClick={() => {
+                            requestGuidanceFocus();
+                            dispatch({ type: "select-recipient" });
+                          }}
                         >
-                          <span aria-hidden="true">
-                            {place.id === "cityhall"
-                              ? "▦"
-                              : place.id === "station"
-                                ? "▣"
-                                : "▤"}
+                          <span className="friend-avatar" aria-hidden="true">
+                            철
                           </span>
-                          {place.shortLabel}
+                          <span className="recipient-picker__copy">
+                            <strong>철수</strong>
+                            <small>연결된 친구</small>
+                          </span>
+                          <span className="recipient-picker__state">
+                            {flow.recipientSelected ? "선택됨" : "선택"}
+                          </span>
                         </button>
-                      ))}
-                    </div>
-                    <div
-                      className="recipient-picker"
-                      role="radiogroup"
-                      aria-labelledby="recipient-picker-label"
-                    >
-                      <span
-                        className="recipient-picker__label"
-                        id="recipient-picker-label"
-                      >
-                        알림 대상
-                      </span>
-                      <button
-                        className={flow.recipientSelected ? "is-selected" : ""}
-                        type="button"
-                        role="radio"
-                        aria-checked={flow.recipientSelected}
-                        onClick={() => dispatch({ type: "select-recipient" })}
-                      >
-                        <span className="friend-avatar" aria-hidden="true">
-                          철
-                        </span>
-                        <span className="recipient-picker__copy">
-                          <strong>철수</strong>
-                          <small>연결된 친구</small>
-                        </span>
-                        <span className="recipient-picker__state">
-                          {flow.recipientSelected ? "선택됨" : "선택"}
-                        </span>
-                      </button>
+                      </div>
                     </div>
                     <div className="setting-box">
                       <label className="field-label" htmlFor="radius-range">
@@ -478,14 +651,26 @@ function ExperienceLandingPage() {
                         선택 장소 도착 알림 받기
                       </label>
                     </div>
-                    <button
-                      className="button button--primary button--wide"
-                      type="button"
-                      disabled={!flow.recipientSelected}
-                      onClick={savePlace}
-                    >
-                      장소와 알림 대상 설정
-                    </button>
+                    <div className="guided-control guided-control--wide">
+                      {guidance?.target === "save-place" && (
+                        <GuidanceHint label={guidance.label} />
+                      )}
+                      <button
+                        ref={savePlaceButtonRef}
+                        className={`button button--primary button--wide ${
+                          guidance?.target === "save-place"
+                            ? "guided-target"
+                            : ""
+                        }`.trim()}
+                        type="button"
+                        disabled={
+                          !flow.destinationSelected || !flow.recipientSelected
+                        }
+                        onClick={savePlace}
+                      >
+                        장소와 알림 대상 설정
+                      </button>
+                    </div>
                   </div>
                 ) : flow.placeConfigured ? (
                   <strong className="step-summary">
@@ -502,16 +687,24 @@ function ExperienceLandingPage() {
                 {flow.step === "run" && (
                   <div className="step-body">
                     <div className="simulation-actions">
-                      <button
-                        className="button button--primary"
-                        type="button"
-                        onClick={toggleRun}
-                      >
-                        <span aria-hidden="true">
-                          {flow.running ? "❚❚" : "▶"}
-                        </span>
-                        {flow.running ? "잠시 멈춤" : "이동 시작"}
-                      </button>
+                      <div className="guided-control">
+                        {guidance?.target === "run" && (
+                          <GuidanceHint label={guidance.label} />
+                        )}
+                        <button
+                          ref={runButtonRef}
+                          className={`button button--primary ${
+                            guidance?.target === "run" ? "guided-target" : ""
+                          }`.trim()}
+                          type="button"
+                          onClick={toggleRun}
+                        >
+                          <span aria-hidden="true">
+                            {flow.running ? "❚❚" : "▶"}
+                          </span>
+                          {flow.running ? "잠시 멈춤" : "이동 시작"}
+                        </button>
+                      </div>
                       <button
                         className="button icon-button"
                         type="button"
@@ -663,7 +856,8 @@ function ExperienceLandingPage() {
               ImHere는 서로 수락한 친구에게 출발과 도착 순간을 알려주는 위치
               기반 알림 서비스입니다. 목적지와 알림 반경을 설정하면 지오펜싱이
               위치 변화를 감지하고, 필요한 순간에 푸시 알림과 문자 알림을
-              전달합니다.
+              전달합니다. ImHere는 Google Play에서 Android 앱으로 무료 이용할 수
+              있으며, iOS 버전은 현재 출시 계획이 없습니다.
             </p>
             <div className="seo-support__grid">
               <article>
@@ -700,6 +894,13 @@ function ExperienceLandingPage() {
                 <p>
                   ImHere 친구에게는 푸시 알림을 보내고, 앱이 없는 상대에게는
                   문자 알림을 보낼 수 있습니다.
+                </p>
+              </details>
+              <details>
+                <summary>ImHere는 무료인가요?</summary>
+                <p>
+                  네, ImHere는 무료로 이용할 수 있는 위치 기반 알림
+                  서비스입니다.
                 </p>
               </details>
             </div>

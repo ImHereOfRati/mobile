@@ -27,45 +27,37 @@ class AuthLoginCoordinator {
     this._googleAuthService,
   );
 
-  Future<Result<MemberState>> handleKakaoLogin() async {
+  Future<Result<MemberState>> handleKakaoLogin() => _login(
+    provider: OauthProvider.kakao,
+    requestIdToken: _doUserKakaoLogin,
+    missingTokenMessage: ResultMessage.kakaoAccountLoginFail,
+  );
+
+  Future<Result<MemberState>> handleGoogleLogin() => _login(
+    provider: OauthProvider.google,
+    requestIdToken: (nonce) => _googleAuthService.login(nonce: nonce),
+    missingTokenMessage: ResultMessage.googleAuthFailNotGoodResult,
+  );
+
+  /// 제공자별 ID 토큰 발급 절차만 다르고, 이후 서버 교환 과정은 동일하다.
+  Future<Result<MemberState>> _login({
+    required OauthProvider provider,
+    required Future<Result<String?>> Function(String nonce) requestIdToken,
+    required ResultMessage missingTokenMessage,
+  }) async {
     final nonce = _generateNonce();
-    final result = await _doUserKakaoLogin(nonce);
+    final result = await requestIdToken(nonce);
 
     return result.when(
       success: (idToken) async {
         if (idToken == null || idToken.isEmpty) {
-          return Failure(ResultMessage.kakaoAccountLoginFail.toString());
+          return Failure(missingTokenMessage.toString());
         }
         try {
           final state = await _authService.sendIdTokenToServer(
             idToken,
             nonce: nonce,
-            provider: OauthProvider.kakao,
-          );
-          return Success(state);
-        } catch (e, st) {
-          ErrorAnalyst.log(e.toString(), st);
-          return Failure(e.toString());
-        }
-      },
-      failure: (msg) async => Failure(msg),
-    );
-  }
-
-  Future<Result<MemberState>> handleGoogleLogin() async {
-    final nonce = _generateNonce();
-    final result = await _googleAuthService.login(nonce: nonce);
-
-    return result.when(
-      success: (idToken) async {
-        if (idToken == null || idToken.isEmpty) {
-          return Failure(ResultMessage.googleAuthFailNotGoodResult.toString());
-        }
-        try {
-          final state = await _authService.sendIdTokenToServer(
-            idToken,
-            nonce: nonce,
-            provider: OauthProvider.google,
+            provider: provider,
           );
           return Success(state);
         } catch (e, st) {

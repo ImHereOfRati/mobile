@@ -10,6 +10,7 @@ export type Destination = {
 export type LandingFlowState = {
   step: DemoStep;
   friendAccepted: boolean;
+  destinationSelected: boolean;
   placeConfigured: boolean;
   recipientSelected: boolean;
   destination: DestinationId;
@@ -45,6 +46,7 @@ export const destinations: Destination[] = [
 export const initialLandingFlowState: LandingFlowState = {
   step: "friend",
   friendAccepted: false,
+  destinationSelected: false,
   placeConfigured: false,
   recipientSelected: false,
   destination: "cityhall",
@@ -66,7 +68,12 @@ export function landingFlowReducer(
         : state;
     case "select-destination":
       return state.step === "place" && !state.placeConfigured
-        ? { ...state, destination: action.destination, progress: 0 }
+        ? {
+            ...state,
+            destination: action.destination,
+            destinationSelected: true,
+            progress: 0,
+          }
         : state;
     case "select-recipient":
       return state.step === "place" && !state.placeConfigured
@@ -77,7 +84,9 @@ export function landingFlowReducer(
         ? { ...state, radius: Math.min(300, Math.max(100, action.radius)) }
         : state;
     case "save-place":
-      return state.step === "place" && state.recipientSelected
+      return state.step === "place" &&
+        state.destinationSelected &&
+        state.recipientSelected
         ? { ...state, step: "run", placeConfigured: true }
         : state;
     case "toggle-run":

@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/common/base/result/result.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
@@ -56,19 +54,6 @@ class ShellBridgeFactory {
       signOut: () async {
         await tokenStorage.deleteAllTokens();
         authInvalidationNotifier.requestInvalidation();
-        await SystemNavigator.pop();
-      },
-      withdraw: () async {
-        final response = await getIt<Dio>().delete<void>(
-          '/api/users/my/withdrawal',
-          options: Options(extra: const {'requiresAuthentication': true}),
-        );
-        if (response.statusCode != 200 && response.statusCode != 204) {
-          throw StateError('Account withdrawal failed.');
-        }
-        await tokenStorage.deleteAllTokens();
-        authInvalidationNotifier.requestInvalidation();
-        await SystemNavigator.pop();
       },
     );
     final permissions = PermissionBridgeHandlers(

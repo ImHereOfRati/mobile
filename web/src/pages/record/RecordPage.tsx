@@ -1,6 +1,5 @@
 import "@/pages/feature-page.css";
 
-import { NotificationListScreen } from "./NotificationListScreen";
 import { RecordDetailScreen } from "./RecordDetailScreen";
 import { RecordFriendRequestScreen } from "./RecordFriendRequestScreen";
 import { RecordOverviewScreen } from "./RecordOverviewScreen";
@@ -21,7 +20,7 @@ interface RecordPageProps {
 }
 
 export default function RecordPage({ screen }: RecordPageProps) {
-  if (screen === "notifications") return <NotificationListScreen />;
+  if (screen === "notifications") return <ServerNotificationScreen />;
   if (screen === "notificationDetail") {
     return <RecordDetailScreen kind="notification" />;
   }

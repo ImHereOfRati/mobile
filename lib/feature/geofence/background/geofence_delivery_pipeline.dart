@@ -144,31 +144,24 @@ class GeofenceDeliveryPipeline {
         snapshot: snapshot,
         anyChannelSucceeded: dispatchResult.anyChannelSucceeded,
       )) {
-        if (dispatchResult.hasQueuedChannel) {
-          await _recordStore.markGeofenceRecordPending(
-            geofence: snapshot.geofence,
-            recipientNames: snapshot.recipientNames,
-            deliveryKey: item.dedupeKey,
-            message: body,
-            deliveryEventType: snapshot.deliveryEventType,
-            retryCount: item.retryCount,
-            lastError: '서버 발송 큐에 등록됨. 최종 전송 결과 대기 중',
-          );
-        } else {
-          await _recordStore.markGeofenceRecordCompleted(
-            geofence: snapshot.geofence,
-            recipientNames: snapshot.recipientNames,
-            deliveryKey: item.dedupeKey,
-            message: body,
-            deliveryEventType: snapshot.deliveryEventType,
-            retryCount: item.retryCount,
-          );
-        }
+        // The notification API returns 202 when the server accepts the
+        // message into its delivery queue. There is no client-accessible
+        // endpoint or callback for the provider's final SMS result, so
+        // keeping the local activity record pending would leave it there
+        // forever. At this point the app's delivery responsibility is done.
+        await _recordStore.markGeofenceRecordCompleted(
+          geofence: snapshot.geofence,
+          recipientNames: snapshot.recipientNames,
+          deliveryKey: item.dedupeKey,
+          message: body,
+          deliveryEventType: snapshot.deliveryEventType,
+          retryCount: item.retryCount,
+        );
         await _queue.complete(item.id!);
         await _completeLifecycleAfterSuccess(snapshot);
         AppLogger.debug(
           dispatchResult.hasQueuedChannel
-              ? 'BG_QUEUE: accepted by server, final delivery pending ${item.id}'
+              ? 'BG_QUEUE: accepted by server queue ${item.id}'
               : 'BG_QUEUE: completed geofence delivery ${item.id}',
         );
       } else {

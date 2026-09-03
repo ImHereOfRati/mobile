@@ -23,6 +23,17 @@ export function formatDeliveryStatus(status: string) {
   return labels[status] ?? status;
 }
 
+export function formatNotificationStatus(status: string) {
+  const labels: Record<string, string> = {
+    QUEUED: "발송 대기",
+    SENT: "발송됨",
+    DELIVERED: "전달됨",
+    FAILED: "발송 실패",
+    DEAD: "발송 실패",
+  };
+  return labels[status] ?? status;
+}
+
 export function normalizePushPath(path: string) {
   const trimmed = path.trim();
   const normalized = trimmed.startsWith("/app/")

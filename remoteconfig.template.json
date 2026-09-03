@@ -27,6 +27,13 @@
       },
       "description": "Store link used by the forced-update screen on Android.",
       "valueType": "STRING"
+    },
+    "ios_store_url": {
+      "defaultValue": {
+        "value": "https://apps.apple.com/kr/app/id0000000000"
+      },
+      "description": "Store link used by the forced-update screen on iOS. Replace the placeholder with the real App Store id before publishing.",
+      "valueType": "STRING"
     }
   }
 }

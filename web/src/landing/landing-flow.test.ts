@@ -52,7 +52,11 @@ describe("landingFlowReducer", () => {
     const missingRecipient = landingFlowReducer(accepted, {
       type: "save-place",
     });
-    const selected = landingFlowReducer(accepted, {
+    const destinationSelected = landingFlowReducer(accepted, {
+      type: "select-destination",
+      destination: "cityhall",
+    });
+    const selected = landingFlowReducer(destinationSelected, {
       type: "select-recipient",
     });
 

@@ -11,6 +11,7 @@ export interface ServerNotification {
   id: number;
   isRead: boolean;
   senderAlias: string;
+  status: string;
   title: string;
   type: string;
 }

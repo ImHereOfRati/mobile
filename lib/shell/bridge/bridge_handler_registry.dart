@@ -97,7 +97,6 @@ const authBridgeMethodNames = <String>{
   'signInWithGoogle',
   'activateWithTerms',
   'signOut',
-  'withdraw',
 };
 
 const permissionAndAppBridgeMethodNames = <String>{

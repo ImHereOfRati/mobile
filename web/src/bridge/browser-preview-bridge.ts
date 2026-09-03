@@ -19,6 +19,7 @@ const previewGeofence = {
 };
 
 const previewNotification = {
+  status: "SENT",
   id: 1,
   title: "도착 알림",
   body: "친구가 우리 집에 도착했어요",

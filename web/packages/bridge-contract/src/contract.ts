@@ -330,7 +330,6 @@ export const bridgeContract = {
     signInWithGoogle: method(null, AuthSession),
     activateWithTerms: method(TermsActivationRequest, AuthSession),
     signOut: method(null, null),
-    withdraw: method(null, null),
     getPermissionStatus: method(PermissionRequest, PermissionResult),
     requestPermission: method(PermissionRequest, PermissionResult),
     openAppSettings: method(null, null),

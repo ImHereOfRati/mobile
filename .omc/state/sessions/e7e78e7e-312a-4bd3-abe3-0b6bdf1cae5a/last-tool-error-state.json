@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"python - <<'PY'\\nimport os, re, collections\\nroot='lib'\\nimp_re=re.compile(r\\\"\\\"\\\"^\\\\s*(?:import|export)\\\\s+['\\\"]([^'\\\"]+)['\\\"]\\\"\\\"\\\", re.M)\\n\\ndef resolve(src, uri):\\n    if uri.startswit...",
-  "error": "Exit code 1\n  File \"<stdin>\", line 21\r\n    print('������:', *[e.replace('\\','/') for e in entry], sep='\\n  ')\r\n                                                              ^\r\nSyntaxError: unexpected character after line continuation character",
-  "timestamp": "2026-08-04T13:50:07.719Z",
-  "retry_count": 1
-}
