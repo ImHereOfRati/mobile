@@ -45,6 +45,7 @@ export default function SettingPage() {
   const [nicknameSheetOpen, setNicknameSheetOpen] = useState(false);
   const [nicknameDraft, setNicknameDraft] = useState("");
   const [nicknameSaving, setNicknameSaving] = useState(false);
+  const [withdrawSaving, setWithdrawSaving] = useState(false);
   const [locationDisclosureOpen, setLocationDisclosureOpen] = useState(false);
 
   const refreshNative = async () => {
@@ -123,9 +124,13 @@ export default function SettingPage() {
     granted: boolean,
   ) => {
     try {
-      if (permission === "locationAlways" || granted) {
+      if (permission === "locationAlways") {
         setLocationDisclosureOpen(true);
-      } else await bridge.requestPermission({ permission });
+      } else if (granted) {
+        await bridge.openAppSettings();
+      } else {
+        await bridge.requestPermission({ permission });
+      }
       await refreshNative();
     } catch {
       setStatus("권한 설정을 열지 못했습니다.");
@@ -139,15 +144,20 @@ export default function SettingPage() {
   };
 
   const withdraw = async () => {
+    setWithdrawSaving(true);
+    setStatus("회원 탈퇴를 처리하는 중입니다.");
     try {
       await settingService.withdraw(api);
     } catch {
       setStatus("회원 탈퇴에 실패했습니다.");
+      setWithdrawSaving(false);
       return;
     }
+    setConfirmation(null);
     // 계정은 이미 지워졌다. 남은 정리가 실패해도 로그인 화면으로 돌려보내는
     // 편이 맞다 — 지워진 계정의 토큰을 들고 앱에 남아 있을 이유가 없다.
     await Promise.allSettled([bridge.signOut(), analytics.setConsent(false)]);
+    setWithdrawSaving(false);
     navigate("/auth", { replace: true });
   };
 
@@ -337,10 +347,13 @@ export default function SettingPage() {
             variant={confirmation === "withdraw" ? "danger" : "primary"}
             onClick={() => {
               const action = confirmation;
-              setConfirmation(null);
-              if (action === "signOut") void signOut();
+              if (action === "signOut") {
+                setConfirmation(null);
+                void signOut();
+              }
               if (action === "withdraw") void withdraw();
             }}
+            loading={confirmation === "withdraw" && withdrawSaving}
           >
             {confirmation === "withdraw" ? "회원 탈퇴" : "로그아웃"}
           </Button>
