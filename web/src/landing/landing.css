@@ -417,6 +417,50 @@ label {
   line-height: 1.65;
 }
 
+.experience-guide {
+  display: flex;
+  margin: 18px 0 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.87rem;
+  line-height: 1.6;
+  list-style: none;
+}
+
+.experience-guide li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.experience-guide strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.experience-guide b {
+  color: var(--color-text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.experience-guide__step {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: var(--color-divider);
+  color: var(--color-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .workspace {
   display: flex;
   min-width: 0;
@@ -1324,6 +1368,10 @@ input[type="range"] {
   }
 
   .experience-heading > p:last-child {
+    max-width: 600px;
+  }
+
+  .experience-guide {
     max-width: 600px;
   }
 

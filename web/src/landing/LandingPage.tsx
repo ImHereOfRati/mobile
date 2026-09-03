@@ -309,6 +309,29 @@ function ExperienceLandingPage() {
           <header className="experience-heading">
             <p className="eyebrow">3단계 체험</p>
             <h2 id="experience-title">철수에게 위치 알림을 보내보세요</h2>
+            <ol className="experience-guide">
+              <li>
+                <span className="experience-guide__step">1</span>
+                <span>
+                  <strong>친구 연결</strong>에서 <b>수락하기</b>를 누르세요.
+                </span>
+              </li>
+              <li>
+                <span className="experience-guide__step">2</span>
+                <span>
+                  <strong>장소·알림 대상 선택</strong>에서 장소를 고르고,{" "}
+                  <b>알림 대상</b>의 철수를 누른 뒤 <b>장소와 알림 대상 설정</b>
+                  을 누르세요.
+                </span>
+              </li>
+              <li>
+                <span className="experience-guide__step">3</span>
+                <span>
+                  <strong>이동 시작</strong>을 누르면 철수가 설정한 반경에 들어올
+                  때 알림이 도착합니다.
+                </span>
+              </li>
+            </ol>
           </header>
 
           <div className="workspace">
