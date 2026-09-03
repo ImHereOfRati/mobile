@@ -58,7 +58,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
               Expanded(
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('동의하고 계속'),
+                  child: const Text('동의'),
                 ),
               ),
             ],
@@ -112,8 +112,10 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       }
     }
 
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scheme.surface,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
@@ -134,13 +136,13 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                       children: [
                         const SizedBox(height: 36),
                         // Main Catchphrase
-                        const Text(
+                        Text(
                           '지금 ImHere와 함께\n자동 알림을 시작하세요',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
                             height: 1.35,
-                            color: Color(0xFF111111),
+                            color: scheme.onSurface,
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -203,12 +205,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                           ),
 
                         // SNS Login Header Label
-                        const Text(
+                        Text(
                           'SNS 계정으로 간편 로그인하기',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF888888),
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -238,18 +240,19 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF7F8FA),
+                            color: scheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: scheme.outline),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 '앱 필수 및 권한 안내',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF666666),
+                                  color: scheme.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -335,14 +338,18 @@ class _OauthButton extends StatelessWidget {
             ),
     );
 
-    // Vibrant button styling
+    // Vibrant button styling.
+    // 카카오 노랑과 구글 흰색은 브랜드 가이드라인상 고정이고, 테두리와 그림자만
+    // 테마에 맞춰 조정한다.
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final buttonDecoration = BoxDecoration(
       color: isKakao ? const Color(0xFFFEE500) : Colors.white,
       shape: BoxShape.circle,
-      border: Border.all(color: const Color(0xFFE9E9E7)),
+      border: Border.all(color: scheme.outline),
       boxShadow: [
         BoxShadow(
-          color: Colors.black12,
+          color: isDark ? Colors.black45 : Colors.black12,
           blurRadius: 4,
           offset: const Offset(0, 2),
         ),
