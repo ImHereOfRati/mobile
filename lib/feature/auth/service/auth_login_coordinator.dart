@@ -9,6 +9,7 @@ import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/service/google_auth_service.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/oauth_provider.dart';
+import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
@@ -20,11 +21,13 @@ class AuthLoginCoordinator {
   final AuthService _authService;
   final FcmTokenService _fcmTokenService;
   final GoogleAuthService _googleAuthService;
+  final TokenStorageService _tokenStorage;
 
   AuthLoginCoordinator(
     this._authService,
     this._fcmTokenService,
     this._googleAuthService,
+    this._tokenStorage,
   );
 
   Future<Result<MemberState>> handleKakaoLogin() => _login(
@@ -67,6 +70,29 @@ class AuthLoginCoordinator {
       },
       failure: (msg) async => Failure(msg),
     );
+  }
+
+  Future<void> activateWithTerms(List<Map<String, Object?>> consents) async {
+    await _authService.activateWithTerms(consents);
+    await syncFcmForActiveSession();
+  }
+
+  /// 저장된 활성 세션만 등록하며, 알림 실패가 인증이나 앱 시작을 막지 않는다.
+  Future<void> syncFcmForActiveSession() async {
+    try {
+      final accessToken = await _tokenStorage.getAccessToken();
+      if (accessToken == null || accessToken.isEmpty) return;
+      if (await _tokenStorage.getPendingAuth()) return;
+      final status = (await _tokenStorage.getUserStatus())?.toUpperCase();
+      final isActive = await _tokenStorage.getIsActive();
+      if (status == 'PENDING' || status == 'INACTIVE' || isActive == false) {
+        return;
+      }
+      if (status != 'ACTIVE' && isActive != true) return;
+      await requestFCMTokenAndSendToServer();
+    } catch (error, stack) {
+      ErrorAnalyst.log(error.toString(), stack);
+    }
   }
 
   Future<Result<ResultMessage>> requestFCMTokenAndSendToServer() async {

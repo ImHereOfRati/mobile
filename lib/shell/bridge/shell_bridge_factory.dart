@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iamhere/common/util/app_logger.dart';
 import 'package:iamhere/common/base/result/result.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
@@ -50,7 +49,7 @@ class ShellBridgeFactory {
           _loginAndSyncFcm(authCoordinator, authCoordinator.handleKakaoLogin),
       signInWithGoogle: () =>
           _loginAndSyncFcm(authCoordinator, authCoordinator.handleGoogleLogin),
-      activateWithTerms: getIt<AuthService>().activateWithTerms,
+      activateWithTerms: authCoordinator.activateWithTerms,
       signOut: () async {
         await tokenStorage.deleteAllTokens();
         authInvalidationNotifier.requestInvalidation();

@@ -6,6 +6,7 @@ import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/google_auth_service.dart';
 import 'package:iamhere/feature/auth/service/oauth_provider.dart';
+import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -13,7 +14,12 @@ import 'package:mockito/mockito.dart';
 import 'auth_login_coordinator_test.mocks.dart';
 
 // Mock 클래스 생성을 위한 어노테이션
-@GenerateMocks([AuthService, FcmTokenService, GoogleAuthService])
+@GenerateMocks([
+  AuthService,
+  FcmTokenService,
+  GoogleAuthService,
+  TokenStorageService,
+])
 void main() {
   provideDummy<Result<String?>>(Success('dummy'));
   provideDummy<Result<MemberState>>(Success(MemberState.existingUser));
@@ -22,17 +28,115 @@ void main() {
   late MockAuthService mockAuthService;
   late MockFcmTokenService mockFcmTokenService;
   late MockGoogleAuthService mockGoogleAuthService;
+  late MockTokenStorageService mockTokenStorage;
 
   setUp(() {
     mockAuthService = MockAuthService();
     mockFcmTokenService = MockFcmTokenService();
     mockGoogleAuthService = MockGoogleAuthService();
+    mockTokenStorage = MockTokenStorageService();
 
     authViewModel = AuthLoginCoordinator(
       mockAuthService,
       mockFcmTokenService,
       mockGoogleAuthService,
+      mockTokenStorage,
     );
+  });
+
+  group('FCM enrollment for active sessions', () {
+    setUp(() {
+      when(mockTokenStorage.getAccessToken()).thenAnswer((_) async => 'access');
+      when(mockTokenStorage.getPendingAuth()).thenAnswer((_) async => false);
+      when(mockTokenStorage.getUserStatus()).thenAnswer((_) async => 'ACTIVE');
+      when(mockTokenStorage.getIsActive()).thenAnswer((_) async => true);
+      when(
+        mockFcmTokenService.syncTokenAndEnroll(),
+      ).thenAnswer((_) async => 'fcm');
+    });
+
+    test('restored active session enrolls the current token', () async {
+      await authViewModel.syncFcmForActiveSession();
+      verify(mockFcmTokenService.syncTokenAndEnroll()).called(1);
+    });
+
+    test('signed out session does not enroll', () async {
+      when(mockTokenStorage.getAccessToken()).thenAnswer((_) async => null);
+      await authViewModel.syncFcmForActiveSession();
+      verifyNever(mockFcmTokenService.syncTokenAndEnroll());
+    });
+
+    for (final status in ['PENDING', 'INACTIVE', null]) {
+      test('$status session does not enroll', () async {
+        when(mockTokenStorage.getUserStatus()).thenAnswer((_) async => status);
+        when(mockTokenStorage.getIsActive()).thenAnswer((_) async => null);
+        await authViewModel.syncFcmForActiveSession();
+        verifyNever(mockFcmTokenService.syncTokenAndEnroll());
+      });
+    }
+
+    test(
+      'pending flag prevents enrollment even with an active snapshot',
+      () async {
+        when(mockTokenStorage.getPendingAuth()).thenAnswer((_) async => true);
+        await authViewModel.syncFcmForActiveSession();
+        verifyNever(mockFcmTokenService.syncTokenAndEnroll());
+      },
+    );
+
+    test('inactive flag prevents enrollment', () async {
+      when(mockTokenStorage.getIsActive()).thenAnswer((_) async => false);
+      await authViewModel.syncFcmForActiveSession();
+      verifyNever(mockFcmTokenService.syncTokenAndEnroll());
+    });
+
+    test('terms activation completes before enrolling', () async {
+      final consents = <Map<String, Object?>>[
+        {'id': 1, 'agreed': true},
+      ];
+      when(mockTokenStorage.getPendingAuth()).thenAnswer((_) async => true);
+      when(mockAuthService.activateWithTerms(consents)).thenAnswer((_) async {
+        when(mockTokenStorage.getPendingAuth()).thenAnswer((_) async => false);
+      });
+
+      await authViewModel.activateWithTerms(consents);
+
+      verifyInOrder([
+        mockAuthService.activateWithTerms(consents),
+        mockFcmTokenService.syncTokenAndEnroll(),
+      ]);
+    });
+
+    test('failed activation does not enroll', () async {
+      when(
+        mockAuthService.activateWithTerms(any),
+      ).thenThrow(StateError('failed'));
+      await expectLater(authViewModel.activateWithTerms([]), throwsStateError);
+      verifyNever(mockFcmTokenService.syncTokenAndEnroll());
+    });
+
+    test(
+      'enrollment failure does not fail activation and retries next startup',
+      () async {
+        when(mockAuthService.activateWithTerms(any)).thenAnswer((_) async {});
+        when(
+          mockFcmTokenService.syncTokenAndEnroll(),
+        ).thenAnswer((_) async => null);
+        await authViewModel.activateWithTerms([]);
+        when(
+          mockFcmTokenService.syncTokenAndEnroll(),
+        ).thenAnswer((_) async => 'fcm');
+        await authViewModel.syncFcmForActiveSession();
+        verify(mockFcmTokenService.syncTokenAndEnroll()).called(2);
+      },
+    );
+
+    test('enrollment exception does not fail session restoration', () async {
+      when(
+        mockFcmTokenService.syncTokenAndEnroll(),
+      ).thenThrow(StateError('FCM unavailable'));
+      await expectLater(authViewModel.syncFcmForActiveSession(), completes);
+    });
   });
 
   group('AuthLoginCoordinator - handleKakaoLogin', () {
@@ -160,6 +264,7 @@ void main() {
         mockAuthService,
         mockFcmTokenService,
         mockGoogleAuthService,
+        mockTokenStorage,
       );
 
       // Assert
@@ -172,6 +277,7 @@ void main() {
         mockAuthService,
         mockFcmTokenService,
         mockGoogleAuthService,
+        mockTokenStorage,
       );
 
       // Assert
@@ -184,6 +290,7 @@ void main() {
         mockAuthService,
         mockFcmTokenService,
         mockGoogleAuthService,
+        mockTokenStorage,
       );
 
       // Assert

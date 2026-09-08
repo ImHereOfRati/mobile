@@ -53,8 +53,8 @@ class FcmTokenService {
 
   /// 현재 FCM 토큰을 저장하고 인증된 사용자 계정에 등록합니다.
   ///
-  /// 토큰 생성 실패 시 null을 반환하며, 서버 등록 실패는 로그로 남기고
-  /// 토큰 자체는 반환합니다. 다음 로그인 또는 토큰 갱신 때 재시도합니다.
+  /// 토큰 생성이나 서버 등록 실패 시 null을 반환합니다.
+  /// 다음 로그인, 앱 시작 또는 토큰 갱신 때 재시도합니다.
   Future<String?> syncTokenAndEnroll() async {
     try {
       final token = await getToken();

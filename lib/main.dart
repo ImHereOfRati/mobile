@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:iamhere/common/config/app_env.dart';
 import 'package:iamhere/common/config/app_origin.dart';
 import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_workmanager.dart';
 import 'package:iamhere/infrastructure/di/di_setup.dart';
 import 'package:iamhere/integration/firebase/firebase_remote_service.dart';
@@ -107,6 +108,7 @@ Future<_BootstrapResult> _initializeAppDependencies() async {
   );
   if (firebaseReady) {
     getIt<FcmTokenService>().startTokenRefreshListener();
+    unawaited(getIt<AuthLoginCoordinator>().syncFcmForActiveSession());
   }
 
   final kakaoKey = AppEnv.maybe('KAKAO_NATIVE_APP_KEY');
