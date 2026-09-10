@@ -2,9 +2,10 @@ import "./setting.css";
 import "@/pages/feature-page.css";
 
 import type { BridgeMethodResult } from "@imhere/bridge-contract";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useAnalytics } from "@/analytics/analytics-context";
 import { useBridge } from "@/bridge/bridge-context";
 import { SettingsGroup, SettingsRow } from "@/design-system";
 
@@ -38,12 +39,14 @@ const items: ReadonlyArray<{
 
 export default function AutoSendReadinessPage() {
   const bridge = useBridge();
+  const analytics = useAnalytics();
   const location = useLocation();
   const navigate = useNavigate();
   const returnTo = new URLSearchParams(location.search).get("returnTo");
   const [readiness, setReadiness] = useState<Readiness>();
   const [locationDisclosureOpen, setLocationDisclosureOpen] = useState(false);
   const [message, setMessage] = useState("준비 상태를 확인하는 중입니다.");
+  const hasTrackedReady = useRef(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -60,6 +63,14 @@ export default function AutoSendReadinessPage() {
   }, [bridge, refresh]);
 
   useEffect(() => {
+    if (!readiness?.ready || hasTrackedReady.current) return;
+    hasTrackedReady.current = true;
+    void analytics.track("onboarding_ready", {
+      missing_count: readiness.missing.length,
+    });
+  }, [readiness, analytics]);
+
+  useEffect(() => {
     if (readiness?.ready !== true || returnTo !== "/geofence/message") {
       return;
     }
@@ -70,7 +81,13 @@ export default function AutoSendReadinessPage() {
     try {
       if (permission === "locationAlways" || granted) {
         setLocationDisclosureOpen(true);
-      } else await bridge.requestPermission({ permission });
+      } else {
+        const result = await bridge.requestPermission({ permission });
+        await analytics.track("permission_requested", {
+          permission,
+          status: result.status,
+        });
+      }
       await refresh();
     } catch {
       setMessage("권한 설정을 열지 못했습니다.");

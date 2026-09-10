@@ -129,7 +129,11 @@ export default function SettingPage() {
       } else if (granted) {
         await bridge.openAppSettings();
       } else {
-        await bridge.requestPermission({ permission });
+        const result = await bridge.requestPermission({ permission });
+        await analytics.track("permission_requested", {
+          permission,
+          status: result.status,
+        });
       }
       await refreshNative();
     } catch {

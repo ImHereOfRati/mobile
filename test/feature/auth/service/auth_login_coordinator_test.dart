@@ -8,10 +8,23 @@ import 'package:iamhere/feature/auth/service/google_auth_service.dart';
 import 'package:iamhere/feature/auth/service/oauth_provider.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
+import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import 'auth_login_coordinator_test.mocks.dart';
+
+final class _FakeAnalyticsReporter implements AnalyticsReporter {
+  final events = <({String name, Map<String, Object>? parameters})>[];
+
+  @override
+  Future<void> logEvent(String name, {Map<String, Object>? parameters}) async {
+    events.add((name: name, parameters: parameters));
+  }
+
+  @override
+  Future<void> setConsent(bool granted) async {}
+}
 
 // Mock 클래스 생성을 위한 어노테이션
 @GenerateMocks([
@@ -41,6 +54,7 @@ void main() {
       mockFcmTokenService,
       mockGoogleAuthService,
       mockTokenStorage,
+      analytics: _FakeAnalyticsReporter(),
     );
   });
 
@@ -265,6 +279,7 @@ void main() {
         mockFcmTokenService,
         mockGoogleAuthService,
         mockTokenStorage,
+        analytics: _FakeAnalyticsReporter(),
       );
 
       // Assert
@@ -278,6 +293,7 @@ void main() {
         mockFcmTokenService,
         mockGoogleAuthService,
         mockTokenStorage,
+        analytics: _FakeAnalyticsReporter(),
       );
 
       // Assert
@@ -291,6 +307,7 @@ void main() {
         mockFcmTokenService,
         mockGoogleAuthService,
         mockTokenStorage,
+        analytics: _FakeAnalyticsReporter(),
       );
 
       // Assert

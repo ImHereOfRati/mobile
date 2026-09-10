@@ -4,6 +4,7 @@ import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/oauth_provider.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/terms/service/terms_service.dart';
+import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 
 enum AuthFlowStatus { idle, loading, authenticated, pending, failure }
 
@@ -42,9 +43,14 @@ final activeTermsProvider = FutureProvider.family<List<Term>, TermsService>(
 class AuthFlowController extends StateNotifier<AuthFlowState> {
   final AuthLoginCoordinator _coordinator;
   final AuthService _authService;
+  final AnalyticsReporter _analytics;
 
-  AuthFlowController(this._coordinator, this._authService)
-    : super(const AuthFlowState.idle());
+  AuthFlowController(
+    this._coordinator,
+    this._authService, {
+    AnalyticsReporter? analytics,
+  }) : _analytics = analytics ?? FirebaseAnalyticsReporter(),
+       super(const AuthFlowState.idle());
 
   Future<AuthFlowStatus> signIn(OauthProvider provider) async {
     state = const AuthFlowState(AuthFlowStatus.loading);
@@ -78,6 +84,15 @@ class AuthFlowController extends StateNotifier<AuthFlowState> {
               },
             )
             .toList(growable: false),
+      );
+      final requiredCount = terms.where((term) => term.isRequired).length;
+      final optionalCount = terms.length - requiredCount;
+      await _analytics.logEvent(
+        'terms_accepted',
+        parameters: {
+          'required_count': requiredCount,
+          'optional_count': optionalCount,
+        },
       );
       state = const AuthFlowState(AuthFlowStatus.authenticated);
       return true;

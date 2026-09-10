@@ -11,6 +11,7 @@ import 'package:iamhere/feature/auth/service/login_result.dart';
 import 'package:iamhere/feature/auth/service/oauth_provider.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
+import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 
@@ -22,13 +23,15 @@ class AuthLoginCoordinator {
   final FcmTokenService _fcmTokenService;
   final GoogleAuthService _googleAuthService;
   final TokenStorageService _tokenStorage;
+  final AnalyticsReporter _analytics;
 
   AuthLoginCoordinator(
     this._authService,
     this._fcmTokenService,
     this._googleAuthService,
-    this._tokenStorage,
-  );
+    this._tokenStorage, {
+    AnalyticsReporter? analytics,
+  }) : _analytics = analytics ?? FirebaseAnalyticsReporter();
 
   Future<Result<MemberState>> handleKakaoLogin() => _login(
     provider: OauthProvider.kakao,
@@ -48,12 +51,20 @@ class AuthLoginCoordinator {
     required Future<Result<String?>> Function(String nonce) requestIdToken,
     required ResultMessage missingTokenMessage,
   }) async {
+    await _analytics.logEvent(
+      'login_started',
+      parameters: {'provider': provider.name},
+    );
     final nonce = _generateNonce();
     final result = await requestIdToken(nonce);
 
     return result.when(
       success: (idToken) async {
         if (idToken == null || idToken.isEmpty) {
+          await _analytics.logEvent(
+            'login_failed',
+            parameters: {'provider': provider.name},
+          );
           return Failure(missingTokenMessage.toString());
         }
         try {
@@ -62,13 +73,27 @@ class AuthLoginCoordinator {
             nonce: nonce,
             provider: provider,
           );
+          await _analytics.logEvent(
+            'login_completed',
+            parameters: {'provider': provider.name},
+          );
           return Success(state);
         } catch (e, st) {
           ErrorAnalyst.log(e.toString(), st);
+          await _analytics.logEvent(
+            'login_failed',
+            parameters: {'provider': provider.name},
+          );
           return Failure(e.toString());
         }
       },
-      failure: (msg) async => Failure(msg),
+      failure: (msg) async {
+        await _analytics.logEvent(
+          'login_failed',
+          parameters: {'provider': provider.name},
+        );
+        return Failure(msg);
+      },
     );
   }
 

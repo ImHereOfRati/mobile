@@ -1,12 +1,4 @@
 export interface AnalyticsEventMap {
-  delivery_failed: {
-    event_type: "arrival" | "departure";
-    retry_count: number;
-  };
-  delivery_succeeded: {
-    event_type: "arrival" | "departure";
-    retry_count: number;
-  };
   friend_request_sent: {
     source: "search";
   };
@@ -20,9 +12,6 @@ export interface AnalyticsEventMap {
   geofence_toggled: {
     active: boolean;
   };
-  geofence_triggered: {
-    event_type: "arrival" | "departure";
-  };
   login_completed: {
     provider: "google" | "kakao";
   };
@@ -34,6 +23,10 @@ export interface AnalyticsEventMap {
   };
   onboarding_ready: {
     missing_count: number;
+  };
+  permission_requested: {
+    permission: string;
+    status: string;
   };
   screen_view: {
     screen: string;
