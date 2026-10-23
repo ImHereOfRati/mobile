@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">ImHere 앱 로고</title>
+  <path fill="#087df5" d="M256 28c-94 0-170 76-170 170 0 125 170 286 170 286s170-161 170-286C426 104 350 28 256 28Z" />
+  <path fill="#050505" d="M256 98c-57 0-103 46-103 103 0 58 46 103 103 103s103-45 103-103c0-57-46-103-103-103Z" />
+  <path fill="#087df5" d="m197 184 42 42 91-106 25 27-116 135-67-67 25-31Z" />
+</svg>

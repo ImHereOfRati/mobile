@@ -1,0 +1,28 @@
+name: imhere_design_site
+description: ImHere 디자인 시스템 문서 사이트
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  iamhere:
+    path: ..
+  flutter_svg: ^2.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/app-logo.svg
+  fonts:
+    - family: ImHereLogo
+      fonts:
+        - asset: assets/fonts/Jalnan2.otf

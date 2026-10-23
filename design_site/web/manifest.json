@@ -1,0 +1,17 @@
+{
+  "name": "ImHere 디자인 시스템",
+  "short_name": "ImHere Design",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0077FB",
+  "description": "ImHere의 디자인 원칙과 Flutter 컴포넌트",
+  "icons": [
+    {
+      "src": "assets/app-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -90,3 +90,5 @@ firebase.json
 .omc/sessions/
 .omc/state/
 android/.kotlin/
+
+**/.dart_tool/
