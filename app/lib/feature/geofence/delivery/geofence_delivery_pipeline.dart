@@ -1,9 +1,9 @@
 import 'package:iamhere/core/util/app_logger.dart';
-import 'package:iamhere/feature/geofence/background/delivery_dispatcher.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_policy.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
+import 'package:iamhere/feature/geofence/delivery/delivery_dispatcher.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_ports.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_policy.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_delivery_queue_entity.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_snapshot.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';

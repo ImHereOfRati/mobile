@@ -2,7 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/application/drain_delivery_queue_use_case.dart';
 import 'package:iamhere/feature/geofence/background/geofence_background_runtime.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:workmanager/workmanager.dart';
 

@@ -1,4 +1,4 @@
-import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 
 class DrainDeliveryQueueUseCase {

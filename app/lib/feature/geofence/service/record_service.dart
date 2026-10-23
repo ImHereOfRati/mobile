@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_ports.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/record/model/activity_record_error_normalizer.dart';
 import 'package:iamhere/feature/record/model/activity_record_status.dart';

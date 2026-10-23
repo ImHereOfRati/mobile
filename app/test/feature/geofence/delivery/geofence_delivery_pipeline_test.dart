@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/core/result/result.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_policy.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_database_service.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_policy.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_delivery_queue_database_service.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_delivery_queue_entity.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_snapshot.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';

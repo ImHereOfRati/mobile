@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:iamhere/core/util/app_logger.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_ports.dart';
 import 'package:workmanager/workmanager.dart';
 
-import 'geofence_delivery_queue_database_service.dart';
+import '../repository/geofence_delivery_queue_database_service.dart';
 
 class GeofenceRetryScheduler implements RetrySchedulerPort {
   static const uniqueWorkName = 'geofence_delivery_retry';

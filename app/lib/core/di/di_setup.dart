@@ -2,8 +2,8 @@ import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dar
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_database_service.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_delivery_queue_database_service.dart';
 import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';

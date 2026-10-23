@@ -1,4 +1,4 @@
-import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_snapshot.dart';
 
 class GeofenceDeliveryQueueEntity {
   final int? id;

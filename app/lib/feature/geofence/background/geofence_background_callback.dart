@@ -3,7 +3,7 @@ import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/application/handle_geofence_trigger_use_case.dart';
 import 'package:iamhere/feature/geofence/background/geofence_background_runtime.dart';
 import 'package:native_geofence/native_geofence.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 

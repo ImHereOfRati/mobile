@@ -1,5 +1,5 @@
-import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_ports.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_delivery_queue_entity.dart';
 import 'package:iamhere/core/database/local_database_properties.dart';
 import 'package:iamhere/core/database/local_database_exception.dart';
 import 'package:iamhere/core/database/service/abstract_local_database_engine.dart';

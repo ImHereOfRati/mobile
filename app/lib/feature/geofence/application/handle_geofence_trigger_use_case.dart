@@ -1,5 +1,5 @@
-import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
-import 'package:iamhere/feature/geofence/background/geofence_event_filter.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_event_filter.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';

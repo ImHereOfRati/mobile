@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/core/result/result.dart';
-import 'package:iamhere/feature/geofence/background/delivery_dispatcher.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_snapshot.dart';
+import 'package:iamhere/feature/geofence/delivery/delivery_dispatcher.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_snapshot.dart';
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';

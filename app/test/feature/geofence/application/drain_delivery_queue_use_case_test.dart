@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/geofence/application/drain_delivery_queue_use_case.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
+import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';

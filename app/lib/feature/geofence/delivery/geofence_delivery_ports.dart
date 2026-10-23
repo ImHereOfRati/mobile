@@ -1,5 +1,5 @@
 import 'package:iamhere/feature/friend/repository/contact_entity.dart';
-import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
+import 'package:iamhere/feature/geofence/repository/geofence_delivery_queue_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_entity.dart';
 
