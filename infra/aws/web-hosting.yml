@@ -111,12 +111,13 @@ Resources:
           - UseAliases
           - [!Ref LandingDomain, !Ref DesignDomain]
           - !Ref AWS::NoValue
-        ViewerCertificate: !If
-          - UseAliases
-          - AcmCertificateArn: !Ref CertificateArn
-            SslSupportMethod: sni-only
-            MinimumProtocolVersion: TLSv1.2_2021
-          - CloudFrontDefaultCertificate: true
+        # The certificate is attached even while AttachAliases=false:
+        # `aws cloudfront associate-alias` only moves an alias onto a
+        # distribution whose certificate already covers it.
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
         Origins:
           - Id: content
             DomainName: !GetAtt ContentBucket.RegionalDomainName
