@@ -1,0 +1,59 @@
+name: Landing Page CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "landing_page/**"
+      - "app/lib/components/**"
+      - "app/assets/**"
+      - "app/pubspec.yaml"
+      - ".github/workflows/landing-page-ci.yml"
+  pull_request:
+    paths:
+      - "landing_page/**"
+      - "app/lib/components/**"
+      - "app/assets/**"
+      - "app/pubspec.yaml"
+      - ".github/workflows/landing-page-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  landing-page:
+    name: 랜딩 페이지 분석 및 테스트
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: landing_page
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.6
+          channel: stable
+          cache: true
+
+      # The app package lists its runtime env file as an asset, so it must exist
+      # for any project that depends on it.
+      - name: Prepare app package
+        working-directory: .
+        run: cp app/tool/ci/iam_here_flutter_secret.env.example app/iam_here_flutter_secret.env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test
+
+      - name: Build web
+        run: flutter build web --release --base-href /

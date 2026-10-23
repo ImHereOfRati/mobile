@@ -1,0 +1,94 @@
+name: App CD
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: app-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: 안드로이드 릴리스 빌드
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check tag matches pubspec version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version="$(sed -n 's/^version: //p' pubspec.yaml | head -1)"
+          if [[ "v${version%%+*}" != "${GITHUB_REF_NAME}" ]]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match pubspec version ${version}"
+            exit 1
+          fi
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.6
+          channel: stable
+          cache: true
+
+      - name: Restore signing and runtime configuration
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          FLUTTER_SECRET_ENV: ${{ secrets.FLUTTER_SECRET_ENV }}
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          keystore="${RUNNER_TEMP}/upload-keystore.jks"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$keystore"
+          {
+            echo "storeFile=${keystore}"
+            echo "storePassword=${ANDROID_KEYSTORE_PASSWORD}"
+            echo "keyPassword=${ANDROID_KEY_PASSWORD}"
+            echo "keyAlias=${ANDROID_KEY_ALIAS}"
+          } > android/key.properties
+          printf '%s' "$FLUTTER_SECRET_ENV" > iam_here_flutter_secret.env
+          printf '%s' "$FIREBASE_OPTIONS_DART" > lib/firebase_options.dart
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Test
+        run: flutter test
+
+      - name: Build app bundle
+        run: flutter build appbundle --release --dart-define-from-file=iam_here_flutter_secret.env
+
+      - name: Upload app bundle
+        uses: actions/upload-artifact@v5
+        with:
+          name: imhere-android-${{ github.ref_name }}-${{ github.run_number }}
+          path: app/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Clean up secrets
+        if: always()
+        run: rm -f android/key.properties iam_here_flutter_secret.env lib/firebase_options.dart android/app/google-services.json "${RUNNER_TEMP}/upload-keystore.jks"

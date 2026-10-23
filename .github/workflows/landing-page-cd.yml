@@ -1,0 +1,81 @@
+name: Landing Page CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "landing_page/**"
+      - "app/lib/components/**"
+      - "app/assets/**"
+      - "app/pubspec.yaml"
+      - ".github/workflows/landing-page-cd.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-landing-page
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: 랜딩 페이지 배포
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.6
+          channel: stable
+          cache: true
+
+      - name: Prepare app package
+        run: cp app/tool/ci/iam_here_flutter_secret.env.example app/iam_here_flutter_secret.env
+
+      - name: Install dependencies
+        working-directory: landing_page
+        run: flutter pub get
+
+      - name: Test
+        working-directory: landing_page
+        run: flutter test
+
+      - name: Build web
+        working-directory: landing_page
+        run: flutter build web --release --base-href /
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: imhere-landing-${{ github.run_id }}
+
+      # Flutter web output is not content-hashed, so clients revalidate every time.
+      - name: Upload to S3
+        run: |
+          aws s3 sync landing_page/build/web "s3://${{ vars.WEB_BUCKET }}/landing/" \
+            --delete \
+            --cache-control "no-cache" \
+            --only-show-errors
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"
+
+      - name: Record deployment
+        run: |
+          {
+            echo "## Landing page deployment"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- URL: https://imhere.ratiko.co.kr/"
+          } >> "$GITHUB_STEP_SUMMARY"

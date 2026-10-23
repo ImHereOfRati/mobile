@@ -1,0 +1,57 @@
+name: Design Site CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "design_site/**"
+      - "app/lib/components/**"
+      - "app/assets/**"
+      - "app/pubspec.yaml"
+      - ".github/workflows/design-site-ci.yml"
+  pull_request:
+    paths:
+      - "design_site/**"
+      - "app/lib/components/**"
+      - "app/assets/**"
+      - "app/pubspec.yaml"
+      - ".github/workflows/design-site-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-site:
+    name: 디자인 사이트 분석 및 테스트
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: design_site
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.6
+          channel: stable
+          cache: true
+
+      - name: Prepare app package
+        working-directory: .
+        run: cp app/tool/ci/iam_here_flutter_secret.env.example app/iam_here_flutter_secret.env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test
+
+      - name: Build web
+        run: flutter build web --release --base-href /
