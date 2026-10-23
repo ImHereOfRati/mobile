@@ -9,7 +9,7 @@
 | `https://imhere-design.ratiko.co.kr/` | `design/` | `design_site` |
 
 호스트/경로 → prefix 매핑은 `web-hosting.yml`의 CloudFront Function이 처리한다.
-`/api/*`, `/swagger-ui/*`, `/docs/*`는 백엔드(`ApiOriginDomain`, 기본 `ratiko.co.kr`)로 프록시되며 캐시하지 않는다.
+`/api/*`, `/swagger-ui/*`, `/docs/*`는 백엔드(`ApiOriginDomain`, 기본 `imhere-server.ratiko.co.kr`)로 프록시되며 캐시하지 않는다.
 웹앱은 API를 같은 origin(`/api`)으로 호출한다.
 
 ## 최초 설정 (1회)
@@ -60,7 +60,7 @@
 
 | 기존 리소스 | 비고 |
 |---|---|
-| CloudFront `E2CXOALHV4E6I4` (`imhere.ratiko.co.kr`) | 버킷 `imhere-web-prod`, API는 `ratiko.co.kr` |
+| CloudFront `E2CXOALHV4E6I4` (`imhere.ratiko.co.kr`) | 버킷 `imhere-web-prod`, API는 `ratiko.co.kr` (도메인 변경 전 구성) |
 | CloudFront `E324SXCUS1EXU7` (`imhere-design.ratiko.co.kr`) | 버킷 `imhere-design-site-prod-747482682439` |
 
 1. 위 4단계(GitHub 변수)를 마치고 CD 세 개(`landing-page-cd`, `design-site-cd`, `web-cd`)를 수동 실행해 새 버킷을 채운다.

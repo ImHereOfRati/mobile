@@ -21,7 +21,7 @@ Parameters:
     Description: Serves design/ at /.
   ApiOriginDomain:
     Type: String
-    Default: ratiko.co.kr
+    Default: imhere-server.ratiko.co.kr
     Description: Backend host that /api/*, /swagger-ui/* and /docs/* are proxied to (HTTPS).
   AttachAliases:
     Type: String
