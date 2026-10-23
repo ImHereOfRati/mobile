@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/common/base/result/result.dart';
-import 'package:iamhere/common/base/result/result_message.dart';
+import 'package:iamhere/core/result/result.dart';
+import 'package:iamhere/core/result/result_message.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';

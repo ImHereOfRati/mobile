@@ -3,11 +3,11 @@ import 'dart:ui' as ui;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/background/geofence_background_runtime.dart';
 import 'package:iamhere/feature/record/repository/notification_entity.dart';
 import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
-import 'package:iamhere/infrastructure/di/di_setup.dart';
+import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/integration/fcm/fcm_notification_policy.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =

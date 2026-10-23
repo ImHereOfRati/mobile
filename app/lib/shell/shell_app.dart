@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/service/auth_session_sync_service.dart';
 import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
@@ -16,7 +16,7 @@ import 'package:iamhere/feature/geofence/repository/geofence_local_repository.da
 import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
-import 'package:iamhere/infrastructure/di/di_setup.dart';
+import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
 import 'package:iamhere/shell/bridge/bridge_rpc_server.dart';
 import 'package:iamhere/shell/shell_theme.dart';

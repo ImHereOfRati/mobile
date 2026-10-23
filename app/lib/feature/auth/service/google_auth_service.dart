@@ -1,8 +1,8 @@
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:iamhere/common/config/app_env.dart';
-import 'package:iamhere/common/base/result/result.dart';
-import 'package:iamhere/common/base/result/result_message.dart';
-import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/core/config/app_env.dart';
+import 'package:iamhere/core/result/result.dart';
+import 'package:iamhere/core/result/result_message.dart';
+import 'package:iamhere/core/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton

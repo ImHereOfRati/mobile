@@ -1,4 +1,4 @@
-import 'package:iamhere/common/config/app_origin.dart';
+import 'package:iamhere/core/config/app_origin.dart';
 import 'package:iamhere/integration/firebase/firebase_remote_service.dart';
 
 typedef RemoteWebUrlLoader = Future<String?> Function();

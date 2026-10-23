@@ -1,4 +1,4 @@
-import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/background/delivery_dispatcher.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_ports.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_policy.dart';

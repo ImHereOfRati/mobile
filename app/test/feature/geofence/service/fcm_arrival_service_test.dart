@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/core/result/result.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 
 class RecordingDio extends Fake implements Dio {

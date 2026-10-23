@@ -1,9 +1,9 @@
 import 'dart:developer' as dev;
 
 import 'package:dio/dio.dart';
-import 'package:iamhere/common/base/api_response/api_response_parser.dart';
+import 'package:iamhere/core/api_response/api_response_parser.dart';
 import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
-import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/core/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 /// 서버 친구(ImHere 앱 유저)에게 위치 이벤트 FCM 알림 발송

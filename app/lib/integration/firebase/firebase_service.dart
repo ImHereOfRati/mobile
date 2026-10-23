@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:iamhere/common/config/app_env.dart';
-import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/core/config/app_env.dart';
+import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/firebase_options.dart';
 
 import 'firebase_cloud_message_service.dart';

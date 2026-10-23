@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_database_service.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_entity.dart';
 
-import '../../../infrastructure/database/_helpers/test_database_factory.dart';
+import '../../../core/database/_helpers/test_database_factory.dart';
 
 void main() {
   setUpAll(TestDatabaseFactory.ensureInitialized);

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/core/result/result.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_policy.dart';
 import 'package:iamhere/feature/geofence/background/geofence_delivery_queue_database_service.dart';

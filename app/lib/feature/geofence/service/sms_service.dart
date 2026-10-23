@@ -1,8 +1,8 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:iamhere/common/base/api_response/api_response_parser.dart';
-import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/core/api_response/api_response_parser.dart';
+import 'package:iamhere/core/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 import 'notification_delivery_state.dart';

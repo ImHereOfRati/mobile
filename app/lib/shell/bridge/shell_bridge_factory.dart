@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:iamhere/common/util/app_logger.dart';
-import 'package:iamhere/common/base/result/result.dart';
+import 'package:iamhere/core/util/app_logger.dart';
+import 'package:iamhere/core/result/result.dart';
 import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/auth/service/login_result.dart';
@@ -14,8 +14,8 @@ import 'package:iamhere/feature/record/repository/geofence_record_local_reposito
 import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
 import 'package:iamhere/feature/user_permission/service/concrete/locate_permission_service.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
-import 'package:iamhere/infrastructure/di/di_setup.dart';
-import 'package:iamhere/infrastructure/network/instance/token_refresher.dart';
+import 'package:iamhere/core/di/di_setup.dart';
+import 'package:iamhere/core/network/instance/token_refresher.dart';
 import 'package:iamhere/shell/bridge/auth_bridge_handlers.dart';
 import 'package:iamhere/shell/bridge/bridge_handler_registry.dart';
 import 'package:iamhere/shell/bridge/bridge_rpc_server.dart';

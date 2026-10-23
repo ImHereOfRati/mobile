@@ -5,11 +5,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
-import 'package:iamhere/common/config/app_env.dart';
-import 'package:iamhere/common/config/app_origin.dart';
-import 'package:iamhere/common/util/app_logger.dart';
+import 'package:iamhere/core/config/app_env.dart';
+import 'package:iamhere/core/config/app_origin.dart';
+import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/firebase_options.dart';
-import 'package:iamhere/infrastructure/di/di_setup.dart';
+import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/integration/firebase/firebase_remote_service.dart';
 
 final GeofenceBackgroundRuntime _backgroundRuntime = GeofenceBackgroundRuntime(
