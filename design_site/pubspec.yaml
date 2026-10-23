@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   iamhere:
-    path: ..
+    path: ../app
   flutter_svg: ^2.2.3
 
 dev_dependencies:

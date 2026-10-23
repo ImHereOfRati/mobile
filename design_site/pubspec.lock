@@ -560,7 +560,7 @@ packages:
   iamhere:
     dependency: "direct main"
     description:
-      path: ".."
+      path: "../app"
       relative: true
     source: path
     version: "3.0.2+24"

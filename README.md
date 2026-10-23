@@ -355,6 +355,9 @@ lib
 ### 4.3 빌드/실행
 
 ```bash
+# 0. 앱 디렉토리로 이동
+cd app
+
 # 1. 의존성
 flutter pub get
 

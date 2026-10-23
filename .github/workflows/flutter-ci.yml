@@ -5,24 +5,24 @@ on:
     branches:
       - main
     paths:
-      - "lib/**"
-      - "test/**"
-      - "android/**"
-      - "ios/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - "analysis_options.yaml"
+      - "app/lib/**"
+      - "app/test/**"
+      - "app/android/**"
+      - "app/ios/**"
+      - "app/pubspec.yaml"
+      - "app/pubspec.lock"
+      - "app/analysis_options.yaml"
       - "web/packages/bridge-contract/**"
       - ".github/workflows/flutter-ci.yml"
   pull_request:
     paths:
-      - "lib/**"
-      - "test/**"
-      - "android/**"
-      - "ios/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - "analysis_options.yaml"
+      - "app/lib/**"
+      - "app/test/**"
+      - "app/android/**"
+      - "app/ios/**"
+      - "app/pubspec.yaml"
+      - "app/pubspec.lock"
+      - "app/analysis_options.yaml"
       - "web/packages/bridge-contract/**"
       - ".github/workflows/flutter-ci.yml"
   workflow_dispatch:
@@ -33,6 +33,9 @@ permissions:
 jobs:
   flutter:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
     steps:
       - name: Checkout
         uses: actions/checkout@v5

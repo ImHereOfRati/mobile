@@ -20,36 +20,36 @@ desktop.ini
 # -----------------------------
 # 2. Flutter 프로젝트 무시 대상 (Flutter)
 # -----------------------------
-/.dart_tool/
+/app/.dart_tool/
 /.idea/
-/*.iml
-/.metadata
-/.packages
-/.flutter-plugins
-/.flutter-plugins-dependencies
+/app/*.iml
+/app/.metadata
+/app/.packages
+/app/.flutter-plugins
+/app/.flutter-plugins-dependencies
 /build/
-/.pub-cache/
-/.pub/
+/app/.pub-cache/
+/app/.pub/
 /**/doc/api/
 /**/ios/Flutter/.last_build_id
 
 # Android 빌드 관련 (Flutter 내부)
-/android/.gradle/
-/android/app/build/
-/android/local.properties
-/android/app/debug/
-/android/app/profile/
-/android/app/release/
+/app/android/.gradle/
+/app/android/app/build/
+/app/android/local.properties
+/app/android/app/debug/
+/app/android/app/profile/
+/app/android/app/release/
 
 # iOS 빌드 관련 (Flutter 내부)
-/ios/.symlinks/
-/ios/Pods/
-/ios/Runner.xcworkspace/
-/ios/Runner.xcodeproj/project.xcworkspace/
+/app/ios/.symlinks/
+/app/ios/Pods/
+/app/ios/Runner.xcworkspace/
+/app/ios/Runner.xcodeproj/project.xcworkspace/
 
 #파이어베이스 관련
-/android/app/google-services.json
-/lib/firebase_options.dart
+/app/android/app/google-services.json
+/app/lib/firebase_options.dart
 
 # riverpod 파일 관리
 *.g.dart
@@ -61,8 +61,8 @@ desktop.ini
 *.config.dart
 
 # 테스트 측정 결과 제거
-/coverage
-/android/build/reports
+/app/coverage
+/app/android/build/reports
 
 # 민감 데이터 관리(Flutter 내부 민감 데이터)
 *.env

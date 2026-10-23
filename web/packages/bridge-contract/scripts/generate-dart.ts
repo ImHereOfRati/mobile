@@ -15,9 +15,9 @@ import type {
 } from "../src/schema";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
-const repositoryRoot = path.resolve(scriptDirectory, "../../../..");
+const appRoot = path.resolve(scriptDirectory, "../../../../app");
 const outputPath = path.join(
-  repositoryRoot,
+  appRoot,
   "lib",
   "shell",
   "bridge",
@@ -240,5 +240,5 @@ if (checkOnly) {
 } else {
   await mkdir(path.dirname(outputPath), { recursive: true });
   await writeFile(outputPath, expected, "utf8");
-  console.log(path.relative(repositoryRoot, outputPath));
+  console.log(path.relative(appRoot, outputPath));
 }
