@@ -44,16 +44,6 @@
    | `CLOUDFRONT_DISTRIBUTION_ID` | 출력 `DistributionId` |
    | `VITE_GA_MEASUREMENT_ID`, `VITE_CLARITY_PROJECT_ID`, `VITE_NAVER_MAP_CLIENT_ID` | `web` 빌드용 |
 
-## Android 릴리스 시크릿 (`app-cd.yml`)
-
-| Secret | 내용 |
-|---|---|
-| `ANDROID_KEYSTORE_BASE64` | 업로드 키스토어(`base64 -w0`) |
-| `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD`, `ANDROID_KEY_ALIAS` | 키스토어 정보 |
-| `FLUTTER_SECRET_ENV` | `iam_here_flutter_secret.env` 전체 내용 |
-| `FIREBASE_OPTIONS_DART` | `lib/firebase_options.dart` 전체 내용 |
-| `GOOGLE_SERVICES_JSON` | `android/app/google-services.json` 전체 내용 |
-
 ## 전환 이력 및 기존 리소스 정리
 
 전환은 완료됐다 (두 도메인 모두 `E15GIB9OVWS7YR`에서 서빙, 스택은 `AttachAliases=true`).
