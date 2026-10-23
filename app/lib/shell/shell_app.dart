@@ -13,7 +13,7 @@ import 'package:iamhere/feature/auth/presentation/auth_flow_app.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
-import 'package:iamhere/feature/geofence/service/missing_background_location_exception.dart';
+import 'package:iamhere/feature/geofence/model/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:iamhere/core/di/di_setup.dart';

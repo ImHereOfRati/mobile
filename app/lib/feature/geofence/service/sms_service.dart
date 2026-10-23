@@ -5,7 +5,7 @@ import 'package:iamhere/core/api_response/api_response_parser.dart';
 import 'package:iamhere/core/result/result.dart';
 import 'package:injectable/injectable.dart';
 
-import 'notification_delivery_state.dart';
+import '../model/notification_delivery_state.dart';
 
 /// SMS sending service with proper dependency injection and error handling
 @lazySingleton

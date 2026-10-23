@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/feature/auth/service/login_result.dart';
-import 'package:iamhere/feature/auth/service/oauth_provider.dart';
+import 'package:iamhere/feature/auth/model/login_result.dart';
+import 'package:iamhere/feature/auth/model/oauth_provider.dart';
 import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 
 class _FakeDio extends Fake implements Dio {

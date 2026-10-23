@@ -1,7 +1,7 @@
-import 'package:iamhere/feature/user_permission/service/concrete/battery_optimization_permission_service.dart';
-import 'package:iamhere/feature/user_permission/service/concrete/contact_permission_service.dart';
-import 'package:iamhere/feature/user_permission/service/concrete/fcm_alert_permission_service.dart';
-import 'package:iamhere/feature/user_permission/service/concrete/locate_permission_service.dart';
+import 'package:iamhere/feature/user_permission/service/battery_optimization_permission_service.dart';
+import 'package:iamhere/feature/user_permission/service/contact_permission_service.dart';
+import 'package:iamhere/feature/user_permission/service/fcm_alert_permission_service.dart';
+import 'package:iamhere/feature/user_permission/service/locate_permission_service.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:injectable/injectable.dart';
 

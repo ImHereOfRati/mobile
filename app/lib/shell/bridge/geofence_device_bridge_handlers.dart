@@ -10,7 +10,7 @@ import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_re
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/record/repository/geofence_record_repository.dart';
 import 'package:iamhere/feature/record/repository/notification_repository.dart';
-import 'package:iamhere/feature/user_permission/service/concrete/locate_permission_service.dart';
+import 'package:iamhere/feature/user_permission/service/locate_permission_service.dart';
 import 'package:iamhere/shell/bridge/bridge_handler_registry.dart';
 
 typedef ServerRecipientNotifier =

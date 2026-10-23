@@ -9,7 +9,7 @@ import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
-import 'package:iamhere/feature/geofence/service/record_service.dart';
+import 'package:iamhere/feature/record/service/record_service.dart';
 
 import 'di_setup.config.dart';
 

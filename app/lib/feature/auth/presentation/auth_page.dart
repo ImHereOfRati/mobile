@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/presentation/auth_flow_controller.dart';
-import 'package:iamhere/feature/auth/service/oauth_provider.dart';
+import 'package:iamhere/feature/auth/model/oauth_provider.dart';
 import 'package:iamhere/shell/view/background_location_disclosure_details.dart';
 
 class AuthPage extends ConsumerStatefulWidget {

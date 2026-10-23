@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
-import 'package:iamhere/feature/auth/service/login_result.dart';
-import 'package:iamhere/feature/auth/service/oauth_provider.dart';
+import 'package:iamhere/feature/auth/model/login_result.dart';
+import 'package:iamhere/feature/auth/model/oauth_provider.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/terms/service/terms_service.dart';
 import 'package:iamhere/integration/firebase/analytics_reporter.dart';

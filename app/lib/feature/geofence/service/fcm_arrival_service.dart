@@ -2,7 +2,7 @@ import 'dart:developer' as dev;
 
 import 'package:dio/dio.dart';
 import 'package:iamhere/core/api_response/api_response_parser.dart';
-import 'package:iamhere/feature/friend/service/dto/fcm_notification_request_dto.dart';
+import 'package:iamhere/feature/friend/model/fcm_notification_request_dto.dart';
 import 'package:iamhere/core/result/result.dart';
 import 'package:injectable/injectable.dart';
 

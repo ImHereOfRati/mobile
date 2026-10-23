@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/setting/service/user_me_service.dart';
-import 'package:iamhere/feature/auth/service/invalid_auth_session_exception.dart';
+import 'package:iamhere/feature/auth/model/invalid_auth_session_exception.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
