@@ -46,12 +46,12 @@ class _CatalogPageState extends State<CatalogPage> {
           children: [
             SvgPicture.asset(
               'assets/app-logo.svg',
-              width: 32,
-              height: 32,
+              width: 23,
+              height: 23,
               semanticsLabel: 'ImHere 로고',
             ),
             const SizedBox(width: 10),
-            ImHereLogo(caption: wide ? 'Design' : null),
+            ImHereLogo(scale: 5 / 7, caption: wide ? 'Design' : null),
           ],
         ),
         backgroundColor: colors.background,

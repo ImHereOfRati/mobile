@@ -6,7 +6,7 @@ import 'foundation.dart';
 /// The typeface and size are fixed: the logo ignores the app text theme and
 /// the system text scale, so it looks the same on every screen.
 class ImHereLogo extends StatelessWidget {
-  const ImHereLogo({super.key, this.color, this.caption});
+  const ImHereLogo({super.key, this.color, this.caption, this.scale = 1.0});
 
   /// Family registered from `assets/fonts/Jalnan2.otf`.
   static const fontFamily = 'ImHereLogo';
@@ -20,6 +20,9 @@ class ImHereLogo extends StatelessWidget {
   /// Word set after the wordmark in the same typeface and a muted color, for
   /// product names such as "ImHere Design".
   final String? caption;
+
+  /// Relative scale applied to [fontSize] (e.g. `5 / 7` in compact app bars).
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +47,7 @@ class ImHereLogo extends StatelessWidget {
         textScaler: TextScaler.noScaling,
         style: TextStyle(
           fontFamily: fontFamily,
-          fontSize: metrics.resolve(fontSize),
+          fontSize: metrics.resolve(fontSize * scale),
           height: 1,
           letterSpacing: 0,
           color: color ?? colors.text,

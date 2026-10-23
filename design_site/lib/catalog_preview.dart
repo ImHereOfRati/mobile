@@ -576,10 +576,12 @@ class _CatalogPreviewState extends State<CatalogPreview> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const ImHereParagraph(
-        text: '맨 위 막대는 한 단계 뒤로 가는 형태예요. 아래는 흐름을 끝내는 닫기 형태예요.',
+        text: '위쪽 막대는 한 단계 뒤로 가는 형태예요. 아래는 흐름을 끝내는 닫기 형태예요.',
         muted: true,
       ),
       const SizedBox(height: 16),
+      ImHereTopBar(title: '알림 내역', onBack: () => _showMessage('이전 화면으로 돌아가요.')),
+      const SizedBox(height: 12),
       ImHereTopBar(title: '장소 추가', onClose: () => _showMessage('추가를 그만뒀어요.')),
     ],
   );

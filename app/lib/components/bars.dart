@@ -3,6 +3,53 @@ import 'package:flutter/material.dart';
 import 'button.dart';
 import 'foundation.dart';
 import 'icon.dart';
+import 'logo.dart';
+
+/// App-level header with the [ImHereLogo], notification icon, and a bottom divider.
+class ImHereAppHeader extends StatelessWidget {
+  const ImHereAppHeader({super.key, this.onNotificationTap});
+
+  final VoidCallback? onNotificationTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ImHereColors.of(context);
+    final metrics = ImHereMetrics.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.background,
+        border: Border(bottom: BorderSide(color: colors.divider)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: metrics.touchTarget),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: metrics.resolve(ImHereSpace.gutter),
+              right: metrics.resolve(ImHereSpace.xs),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const ImHereLogo(scale: 5 / 7),
+                IconButton(
+                  tooltip: '알림',
+                  onPressed: onNotificationTap,
+                  icon: const ImHereIcon(glyph: ImHereGlyph.bell),
+                  constraints: BoxConstraints(
+                    minWidth: metrics.touchTarget,
+                    minHeight: metrics.touchTarget,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Line tabs. Up to five labels share the width equally; from six on they
 /// hug their text and scroll, so long labels are never squeezed.

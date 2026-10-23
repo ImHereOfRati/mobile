@@ -80,7 +80,7 @@ void main() {
       expect(nav.bottom, closeTo(frame.bottom, 1), reason: entry.title);
       expect(nav.left, greaterThanOrEqualTo(frame.left - 1));
       expect(nav.right, lessThanOrEqualTo(frame.right + 1));
-      final bar = tester.getRect(find.byType(ImHereTopBar).first);
+      final bar = tester.getRect(find.byType(ImHereAppHeader));
       expect(bar.top, closeTo(frame.top, 1), reason: entry.title);
     }
 
@@ -93,9 +93,9 @@ void main() {
     await tester.tap(find.text('설정'));
     await tester.pump();
     expect(tester.takeException(), isNull);
-    await tester.tap(find.byTooltip('장소 추가'));
+    await tester.tap(find.byTooltip('알림'));
     await tester.pump();
-    expect(find.text('장소 추가 화면을 열었어요.'), findsOneWidget);
+    expect(find.text('알림 내역을 열었어요.'), findsOneWidget);
   });
 
   testWidgets('작은 화면에서 글자를 두 배로 키워도 컴포넌트가 넘치지 않는다', (tester) async {

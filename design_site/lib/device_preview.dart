@@ -152,10 +152,9 @@ class _DevicePreviewState extends State<DevicePreview> {
     },
   );
 
-  /// App shell top bar: pinned to the top of every preview.
-  Widget _topBar() => ImHereTopBar(
-    title: widget.entry.title,
-    onBack: () => setState(() => message = '이전 화면으로 돌아가요.'),
+  /// App shell header: pinned to the top of every preview.
+  Widget _topBar() => ImHereAppHeader(
+    onNotificationTap: () => setState(() => message = '알림 내역을 열었어요.'),
   );
 
   /// App shell navigation: pinned to the bottom of every preview.
@@ -168,8 +167,6 @@ class _DevicePreviewState extends State<DevicePreview> {
     ],
     index: navigationIndex,
     onChanged: (value) => setState(() => navigationIndex = value),
-    onAdd: () => setState(() => message = '장소 추가 화면을 열었어요.'),
-    addTooltip: '장소 추가',
   );
 
   Widget _content() {
