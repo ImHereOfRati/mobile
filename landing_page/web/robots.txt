@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://imhere.ratiko.co.kr/sitemap.xml

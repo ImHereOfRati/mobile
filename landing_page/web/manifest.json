@@ -1,0 +1,17 @@
+{
+  "name": "ImHere | 자동 출발·도착 알림",
+  "short_name": "ImHere",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0055B8",
+  "description": "출발, 도착 연락. ImHere가 대신할게요.",
+  "icons": [
+    {
+      "src": "assets/app-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
