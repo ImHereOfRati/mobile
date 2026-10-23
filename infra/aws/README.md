@@ -54,18 +54,18 @@
 | `FIREBASE_OPTIONS_DART` | `lib/firebase_options.dart` 전체 내용 |
 | `GOOGLE_SERVICES_JSON` | `android/app/google-services.json` 전체 내용 |
 
-## 전환 및 기존 리소스 정리
+## 전환 이력 및 기존 리소스 정리
 
-기존 운영 리소스(계정 `747482682439`)는 새 스택이 준비될 때까지 건드리지 않는다.
+전환은 완료됐다 (두 도메인 모두 `E15GIB9OVWS7YR`에서 서빙, 스택은 `AttachAliases=true`).
 
-| 기존 리소스 | 비고 |
+옛 구성은 서버 저장소의 `infra/cloudformation/web-distribution.yml`이 관리하던 배포이며, 이제 쓰이지 않는다.
+정리 대상은 다음과 같다.
+
+| 옛 리소스 | 삭제 방법 |
 |---|---|
-| CloudFront `E2CXOALHV4E6I4` (`imhere.ratiko.co.kr`) | 버킷 `imhere-web-prod`, API는 `ratiko.co.kr` (도메인 변경 전 구성) |
-| CloudFront `E324SXCUS1EXU7` (`imhere-design.ratiko.co.kr`) | 버킷 `imhere-design-site-prod-747482682439` |
+| CloudFront `E2CXOALHV4E6I4` | 스택 `imhere-web-distribution` (ap-northeast-2) 삭제 |
+| 캐시 정책 3종 | 스택 `imhere-web-cache-policies` (ap-northeast-2) 삭제 |
+| CloudFront `E324SXCUS1EXU7` (디자인) | 비활성화 후 `delete-distribution` |
+| 버킷 `imhere-web-prod`, `imhere-design-site-prod-747482682439` | 비운 뒤 삭제 |
 
-1. 위 4단계(GitHub 변수)를 마치고 CD 세 개(`landing-page-cd`, `design-site-cd`, `web-cd`)를 수동 실행해 새 버킷을 채운다.
-2. `https://<새 배포 도메인>/`, `/app/`, `/api/...`를 확인한다. 디자인 사이트는 `Host` 헤더가 필요하므로 별칭 이동 후 확인한다.
-3. 별칭 이동: 기존 배포에서 별칭을 제거하거나 `aws cloudfront associate-alias`로 새 배포에 옮긴 뒤
-   스택을 `AttachAliases=true`로 업데이트한다.
-4. 가비아 CNAME(`imhere`, `imhere-design`)을 새 `DistributionDomainName`으로 바꾼다.
-5. 정상 확인 후 기존 두 배포를 비활성화 → 삭제하고, 기존 두 버킷을 비운 뒤 삭제한다.
+삭제는 되돌릴 수 없다. 서버 저장소의 `web-distribution.yml`과 ADR-025도 이 구성을 가리키도록 갱신해야 한다.
