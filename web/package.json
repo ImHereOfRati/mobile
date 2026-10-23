@@ -12,12 +12,9 @@
     "bridge:generate": "tsx packages/bridge-contract/scripts/generate-dart.ts",
     "dev": "vite --config vite.app.config.ts",
     "dev:app": "vite --config vite.app.config.ts",
-    "dev:landing": "vite --config vite.landing.config.ts",
     "e2e": "playwright test",
-    "build": "corepack pnpm typecheck && corepack pnpm build:app && corepack pnpm build:landing && corepack pnpm check:build-isolation",
+    "build": "corepack pnpm typecheck && corepack pnpm build:app && node scripts/check-root-build.mjs",
     "build:app": "vite build --config vite.app.config.ts",
-    "build:landing": "vite build --config vite.landing.config.ts && node scripts/prerender-landing.mjs",
-    "check:build-isolation": "node scripts/check-build-isolation.mjs",
     "check:release-build": "node scripts/check-release-build.mjs",
     "cloudfront:validate": "node scripts/validate-cloudfront-config.mjs",
     "check:tokens": "node scripts/check-color-tokens.mjs",
@@ -39,8 +36,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-i18next": "17.0.11",
-    "react-router-dom": "7.18.1",
-    "three": "0.178.0"
+    "react-router-dom": "7.18.1"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -52,7 +48,6 @@
     "@types/node": "22.18.0",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
-    "@types/three": "0.178.1",
     "@vitejs/plugin-react": "6.0.4",
     "@vitest/coverage-v8": "4.1.10",
     "axe-core": "4.12.1",

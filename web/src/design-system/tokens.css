@@ -1,19 +1,4 @@
 :root {
-  --color-landing-sky: #eef3f7;
-  --color-landing-map: #dfe7df;
-  --color-landing-road: #f7f7f5;
-  --color-landing-grid: #aab4bd;
-  --color-landing-building: #c9d0d7;
-  --color-landing-building-accent: #91a8bd;
-  --color-landing-building-edge: #71808d;
-  --color-landing-park: #b9d6b5;
-  --color-landing-water: #9dcced;
-  --color-landing-hill: #91bb88;
-  --color-landing-route: #0071e3;
-  --color-landing-rubber: #343a40;
-  --color-landing-person: #efb18c;
-  --color-landing-avatar: #486b87;
-  --color-landing-amber: #f5a623;
   color-scheme: light;
 
   --space-1: 0.25rem;

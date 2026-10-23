@@ -11,7 +11,6 @@ declare global {
 
 export function getNativePageTitle(path: string) {
   if (path === "/" || path === "/auth") return "ImHere";
-  if (path === "/catalog") return "디자인 시스템";
   if (path === "/geofence/message") return "장소 추가";
   if (/^\/geofence\/[^/]+\/edit$/.test(path)) return "장소 수정";
   if (path.startsWith("/geofence")) return "장소";

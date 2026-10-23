@@ -10,9 +10,6 @@ import { AppShell } from "@/app/AppShell";
 import { NotFoundPage } from "@/app/NotFoundPage";
 import { RouteErrorFallback } from "@/app/RouteErrorFallback";
 
-const ComponentCatalogPage = lazy(
-  () => import("@/pages/catalog/ComponentCatalogPage"),
-);
 const GeofencePage = lazy(() => import("@/pages/geofence/GeofencePage"));
 const FriendPage = lazy(() => import("@/pages/friend/FriendPage"));
 const RecordPage = lazy(() => import("@/pages/record/RecordPage"));
@@ -31,10 +28,6 @@ export const appRoutes: RouteObject[] = [
       {
         index: true,
         element: <Navigate replace to="/geofence" />,
-      },
-      {
-        path: "catalog",
-        element: <ComponentCatalogPage />,
       },
       {
         element: <AppShell />,

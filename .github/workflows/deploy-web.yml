@@ -115,7 +115,7 @@ jobs:
           VITE_CLARITY_PROJECT_ID: ${{ vars.VITE_CLARITY_PROJECT_ID }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
           VITE_NAVER_MAP_CLIENT_ID: ${{ vars.VITE_NAVER_MAP_CLIENT_ID }}
-        run: pnpm build:app && node scripts/check-root-build.mjs && pnpm build:landing
+        run: pnpm build:app && node scripts/check-root-build.mjs
 
       - name: Configure short-lived AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0
@@ -154,14 +154,6 @@ jobs:
             --cache-control "no-cache,no-store,must-revalidate" \
             --only-show-errors
 
-      - name: Upload landing page
-        env:
-          WEB_APP_BUCKET: ${{ vars.WEB_APP_BUCKET }}
-        run: |
-          aws s3 sync web/dist/landing \
-            "s3://${WEB_APP_BUCKET}/" \
-            --cache-control "no-cache,no-store,must-revalidate" \
-            --only-show-errors
 
       - name: Validate CloudFront behavior policies
         env:

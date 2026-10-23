@@ -56,7 +56,7 @@ class NativeShellPage {
     if (path == '/user-permission') return '권한 설정';
     if (path == '/location-permission-guide') return '위치 권한 안내';
     if (path == '/battery-optimization-guide') return '배터리 설정 안내';
-    if (path == '/catalog') return '디자인 시스템';
+
     if (path == '/geofence/message') return '장소 추가';
     if (RegExp(r'^/geofence/[^/]+/edit$').hasMatch(path)) return '장소 수정';
     if (path.startsWith('/geofence')) return '장소';
