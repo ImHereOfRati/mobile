@@ -153,10 +153,10 @@ enum CatalogEntry {
     CatalogSection.component,
     '같은 화면 안의 정보를 바꿔 볼 때 씁니다.\n여섯 개부터는 글자 길이에 맞춰 옆으로 넘겨 봐요.',
   ),
-  topBar(
-    '상단 바',
+  appBar(
+    '앱바',
     CatalogSection.component,
-    '현재 화면의 제목과 나갈 길을 보여줍니다.\n한 단계 뒤로는 화살표, 흐름을 끝낼 때는 닫기를 써요.',
+    '모든 화면의 위쪽에는 ImHere 로고가 있는 앱바만 씁니다.\n알림 아이콘은 알림을 열 수 있는 화면에서만 보여 줘요.',
   );
 
   const CatalogEntry(this.title, this.section, this.description);

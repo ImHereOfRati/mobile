@@ -80,7 +80,8 @@ void main() {
       expect(nav.bottom, closeTo(frame.bottom, 1), reason: entry.title);
       expect(nav.left, greaterThanOrEqualTo(frame.left - 1));
       expect(nav.right, lessThanOrEqualTo(frame.right + 1));
-      final bar = tester.getRect(find.byType(ImHereAppHeader));
+      // 앱바 항목은 본문에 예시 앱바가 더 있어, 폰 화면 맨 위의 앱바(첫 번째)만 본다.
+      final bar = tester.getRect(find.byType(ImHereAppHeader).first);
       expect(bar.top, closeTo(frame.top, 1), reason: entry.title);
     }
 
@@ -380,7 +381,7 @@ void main() {
     expect(ImHereTheme.dark.textTheme.titleMedium?.fontFamily, isNull);
   });
 
-  testWidgets('상단 바와 하단 영역은 안전 영역을 비켜 간다', (tester) async {
+  testWidgets('앱바와 하단 영역은 안전 영역을 비켜 간다', (tester) async {
     const insets = EdgeInsets.only(top: 32, bottom: 24);
     await tester.pumpWidget(
       MaterialApp(
@@ -393,7 +394,7 @@ void main() {
             child: Scaffold(
               body: Column(
                 children: [
-                  const ImHereTopBar(title: '알림 기록'),
+                  const ImHereAppHeader(),
                   const Spacer(),
                   ImHereBottomAction(label: '저장하기', onPressed: () {}),
                 ],
@@ -404,7 +405,7 @@ void main() {
       ),
     );
     expect(
-      tester.getTopLeft(find.text('알림 기록')).dy,
+      tester.getTopLeft(find.byType(ImHereLogo)).dy,
       greaterThanOrEqualTo(insets.top),
     );
     final screenHeight =

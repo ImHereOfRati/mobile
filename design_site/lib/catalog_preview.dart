@@ -62,7 +62,7 @@ class _CatalogPreviewState extends State<CatalogPreview> {
     CatalogEntry.callout => _callout(),
     CatalogEntry.notificationBadge => _notificationBadge(),
     CatalogEntry.tab => _tabs(),
-    CatalogEntry.topBar => _topBar(),
+    CatalogEntry.appBar => _appBar(),
   };
 
   Widget _overview() => Column(
@@ -197,7 +197,7 @@ class _CatalogPreviewState extends State<CatalogPreview> {
         const ImHereListRow(title: '좌우', description: '안전 영역 경계에서 16dp'),
         const SizedBox(height: 16),
         const ImHereParagraph(
-          text: '상단 바는 위쪽을, 하단 버튼과 내비게이션은 아래쪽을 스스로 비켜 갑니다.',
+          text: '앱바는 위쪽을, 하단 버튼과 내비게이션은 아래쪽을 스스로 비켜 갑니다.',
           muted: true,
         ),
       ],
@@ -572,17 +572,22 @@ class _CatalogPreviewState extends State<CatalogPreview> {
     onChanged: (value) => setState(() => tabIndex = value),
   );
 
-  Widget _topBar() => Column(
+  Widget _appBar() => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const ImHereParagraph(
-        text: '위쪽 막대는 한 단계 뒤로 가는 형태예요. 아래는 흐름을 끝내는 닫기 형태예요.',
+        text: '앱바는 ImHere 로고 하나만 써요. 아래는 알림을 열 수 있는 화면의 앱바예요.',
         muted: true,
       ),
       const SizedBox(height: 16),
-      ImHereTopBar(title: '알림 내역', onBack: () => _showMessage('이전 화면으로 돌아가요.')),
-      const SizedBox(height: 12),
-      ImHereTopBar(title: '장소 추가', onClose: () => _showMessage('추가를 그만뒀어요.')),
+      ImHereAppHeader(onNotificationTap: () => _showMessage('알림 화면으로 가요.')),
+      const SizedBox(height: 16),
+      const ImHereParagraph(
+        text: '로그인 전처럼 열 알림이 없는 화면에서는 알림 아이콘을 숨겨요.',
+        muted: true,
+      ),
+      const SizedBox(height: 16),
+      const ImHereAppHeader(showNotification: false),
     ],
   );
 
