@@ -3,7 +3,7 @@ import 'package:iamhere/core/api_response/api_response.dart';
 import 'package:iamhere/core/network/properties/http_status_code.dart';
 import 'package:iamhere/core/result/result_message.dart';
 import 'package:iamhere/feature/auth/model/dto/auth_response.dart';
-import 'package:iamhere/feature/auth/model/dto/auth_session_dto.dart';
+import 'package:iamhere/feature/auth/model/dto/auth_api_response_dto.dart';
 import 'package:iamhere/feature/auth/model/dto/oauth_request.dart';
 import 'package:iamhere/feature/auth/model/exception/auth_exception.dart';
 import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
@@ -20,7 +20,7 @@ class AuthRepository {
 
   final Dio _dio;
 
-  Future<AuthSessionDto> authenticate({
+  Future<AuthApiResponseDto> authenticate({
     required String idToken,
     required String nonce,
     required OauthProvider provider,
@@ -40,7 +40,7 @@ class AuthRepository {
           validateStatus: (status) => status != null && status < 500,
         ),
       );
-      return _parseSession(response);
+      return _parseAuthResponse(response);
     } on DioException catch (error, stackTrace) {
       throw NetworkException(
         error.message ?? 'Unknown error',
@@ -62,16 +62,16 @@ class AuthRepository {
     }
   }
 
-  Future<AuthSessionDto> refresh(String refreshToken) async {
+  Future<AuthApiResponseDto> refresh(String refreshToken) async {
     final response = await _dio.post(
       _refreshPath,
       data: {'refreshToken': refreshToken},
       options: Options(extra: const {'requiresAuthentication': false}),
     );
-    return _parseSession(response);
+    return _parseAuthResponse(response);
   }
 
-  AuthSessionDto _parseSession(Response<dynamic> response) {
+  AuthApiResponseDto _parseAuthResponse(Response<dynamic> response) {
     final statusCode = response.statusCode;
     if (statusCode == null || statusCode < 200 || statusCode >= 300) {
       throw InvalidResponseException('Invalid status code: $statusCode');
@@ -92,7 +92,7 @@ class AuthRepository {
         authData.refreshToken.isEmpty) {
       throw TokenParseException();
     }
-    return AuthSessionDto(statusCode: statusCode, response: authData);
+    return AuthApiResponseDto(statusCode: statusCode, data: authData);
   }
 
   ApiResponse<AuthResponseDto> _parseApiResponse(Response<dynamic> response) {

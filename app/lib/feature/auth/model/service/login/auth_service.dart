@@ -21,14 +21,14 @@ class AuthService {
       throw TokenStorageException('Refresh token is missing after activation.');
     }
 
-    final session = await _authRepository.refresh(refreshToken);
-    await _saveSession(
-      session.response.accessToken,
-      session.response.refreshToken,
+    final authResponse = await _authRepository.refresh(refreshToken);
+    await _saveTokens(
+      authResponse.data.accessToken,
+      authResponse.data.refreshToken,
     );
     await _tokenStorage.saveAuthSnapshot(
-      userStatus: session.response.userStatus ?? 'ACTIVE',
-      isActive: session.response.isActive ?? true,
+      userStatus: authResponse.data.userStatus ?? 'ACTIVE',
+      isActive: authResponse.data.isActive ?? true,
     );
   }
 
@@ -39,13 +39,13 @@ class AuthService {
   }) async {
     try {
       _validateCredentials(idToken, nonce);
-      final session = await _authRepository.authenticate(
+      final authResponse = await _authRepository.authenticate(
         idToken: idToken,
         nonce: nonce,
         provider: provider,
       );
-      final response = session.response;
-      await _saveSession(response.accessToken, response.refreshToken);
+      final response = authResponse.data;
+      await _saveTokens(response.accessToken, response.refreshToken);
       await _tokenStorage.saveAuthSnapshot(
         userStatus: response.userStatus,
         isActive: response.isActive,
@@ -54,7 +54,7 @@ class AuthService {
       if (response.userStatus?.toUpperCase() == 'PENDING') {
         return MemberState.pending;
       }
-      if (session.statusCode == HttpStatusCode.created) {
+      if (authResponse.statusCode == HttpStatusCode.created) {
         return MemberState.newUser;
       }
       return MemberState.existingUser;
@@ -69,7 +69,7 @@ class AuthService {
     if (nonce.trim().isEmpty) throw InvalidNonceException();
   }
 
-  Future<void> _saveSession(String accessToken, String refreshToken) async {
+  Future<void> _saveTokens(String accessToken, String refreshToken) async {
     try {
       await _tokenStorage.saveAccessToken(accessToken);
       await _tokenStorage.saveRefreshToken(refreshToken);
