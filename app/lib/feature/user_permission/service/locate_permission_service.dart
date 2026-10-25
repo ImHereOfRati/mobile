@@ -64,6 +64,19 @@ class LocatePermissionService implements PermissionServiceInterface {
     throw Exception("위치 권한이 충분히 허용되지 않았습니다. 현재 상태: ${status.name}");
   }
 
+  /// '항상 허용'까지 올리는 요청.
+  ///
+  /// '앱 사용 중' 권한을 먼저 받고, 받았다면 '항상 허용'을 이어서 요청한다.
+  /// Android 11 이상에서는 시스템이 다이얼로그 대신 위치 권한 설정 화면을 열어
+  /// 사용자가 직접 '항상 허용'을 고르게 하므로, 돌아온 뒤의 실제 상태를 다시
+  /// 읽어 돌려준다.
+  Future<PermissionState> requestAlwaysPermission() async {
+    final base = await requestLocationPermissions();
+    if (base != PermissionState.grantedWhenInUse) return base;
+    await Permission.locationAlways.request();
+    return checkPermissionStatus();
+  }
+
   /// 위치 권한 요청.
   ///
   /// 먼저 '앱 사용 중' 권한을 시스템 다이얼로그로 요청하고, 그 결과 상태만 반환한다.

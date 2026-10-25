@@ -39,7 +39,6 @@ void main() {
           home: AuthPage(
             authLoginCoordinator: coordinator,
             onAuthenticated: () {},
-            requestLocationPermission: () async {},
           ),
         ),
       ),

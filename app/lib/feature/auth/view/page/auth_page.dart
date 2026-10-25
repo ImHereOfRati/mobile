@@ -1,30 +1,21 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/components/components.dart';
-import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
 import 'package:iamhere/feature/auth/viewmodel/sign_in_view_model.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/feature/auth/view/widget/auth_story.dart';
 import 'package:iamhere/feature/auth/view/widget/oauth_button.dart';
-import 'package:iamhere/feature/auth/view/widget/permission_disclosure_dialog.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
   final SocialLoginService authLoginCoordinator;
   final VoidCallback onAuthenticated;
-  final Future<void> Function() requestLocationPermission;
-  final Future<void> Function()? requestNotificationPermission;
 
   const AuthPage({
     super.key,
     required this.authLoginCoordinator,
     required this.onAuthenticated,
-    required this.requestLocationPermission,
-    this.requestNotificationPermission,
   });
 
   @override
@@ -33,29 +24,6 @@ class AuthPage extends ConsumerStatefulWidget {
 
 class _AuthPageState extends ConsumerState<AuthPage> {
   OauthProvider? _pendingProvider;
-
-  static const _backgroundDisclosureKey =
-      'background_location_disclosure_accepted_v1';
-  static const _notificationDisclosureKey =
-      'notification_disclosure_accepted_v1';
-  static const _secureStorage = FlutterSecureStorage();
-
-  Future<bool> _hasBackgroundLocationConsent() async =>
-      await _secureStorage.read(key: _backgroundDisclosureKey) == 'accepted';
-
-  Future<bool?> _showBackgroundLocationDisclosure() {
-    return showDialog<bool>(
-      context: context,
-      builder: (_) => const LocationDisclosureDialog(),
-    );
-  }
-
-  Future<bool?> _showNotificationDisclosure() {
-    return showDialog<bool>(
-      context: context,
-      builder: (_) => const NotificationDisclosureDialog(),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,42 +39,6 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       if (busy || _pendingProvider != null) return;
       setState(() => _pendingProvider = provider);
       try {
-        if (Platform.isAndroid && !await _hasBackgroundLocationConsent()) {
-          if (!mounted) return;
-          final agreed = await _showBackgroundLocationDisclosure();
-          if (!mounted || agreed != true) return;
-          await _secureStorage.write(
-            key: _backgroundDisclosureKey,
-            value: 'accepted',
-          );
-          try {
-            await widget.requestLocationPermission();
-          } catch (error) {
-            AppLogger.warning(
-              'Location permission request failed before sign-in: $error',
-            );
-          }
-        }
-        if (widget.requestNotificationPermission != null &&
-            await _secureStorage.read(key: _notificationDisclosureKey) !=
-                'accepted') {
-          if (!mounted) return;
-          final agreed = await _showNotificationDisclosure();
-          if (!mounted) return;
-          if (agreed == true) {
-            await _secureStorage.write(
-              key: _notificationDisclosureKey,
-              value: 'accepted',
-            );
-            try {
-              await widget.requestNotificationPermission!();
-            } catch (error) {
-              AppLogger.warning(
-                'Notification permission request failed before sign-in: $error',
-              );
-            }
-          }
-        }
         final next = await ref
             .read(signInViewModelProvider(widget.authLoginCoordinator).notifier)
             .signIn(provider);

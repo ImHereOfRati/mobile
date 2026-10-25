@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/feature/auth/view/widget/permission_disclosure_dialog.dart';
-import 'package:iamhere/feature/setting/model/setting_status.dart';
-import 'package:iamhere/feature/setting/service/setting_status_service_interface.dart';
-import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
+import 'package:iamhere/feature/setting/model/type/setting_status.dart';
+import 'package:iamhere/feature/setting/model/service/setting_status_service_interface.dart';
+import 'package:iamhere/feature/setting/model/service/user_me_service_interface.dart';
 import 'package:iamhere/feature/setting/view/widget/setting_account_row.dart';
 import 'package:iamhere/feature/setting/view/widget/setting_footer.dart';
 import 'package:iamhere/feature/setting/view/widget/setting_nickname_sheet.dart';
@@ -87,6 +87,10 @@ class _SettingPageState extends ConsumerState<SettingPage>
     final textTheme = Theme.of(context).textTheme;
     final account = ref.watch(_accountProvider);
     final status = ref.watch(_statusProvider).value;
+    // 모두 허용돼 있으면 한 번에 설정하기 행을 보여 주지 않는다.
+    final allPermissionsGranted =
+        status != null &&
+        _permissionItems.every((item) => status.isGranted(item.permission));
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -130,7 +134,8 @@ class _SettingPageState extends ConsumerState<SettingPage>
                   granted: status?.isGranted(item.permission) ?? false,
                   onTap: () => _onPermissionTap(item.permission),
                 ),
-              if (widget.onOpenPermissionGuide != null)
+              if (widget.onOpenPermissionGuide != null &&
+                  !allPermissionsGranted)
                 ImHereListRow(
                   title: '한 번에 설정하기',
                   description: '모든 권한을 이어서 허용해요',
