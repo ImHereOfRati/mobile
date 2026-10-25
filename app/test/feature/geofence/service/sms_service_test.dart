@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/core/result/result.dart';
-import 'package:iamhere/feature/geofence/service/sms_service.dart';
+import 'package:iamhere/feature/geofence/model/service/sms_service.dart';
 import 'package:iamhere/feature/geofence/model/notification_delivery_state.dart';
 
 class _FakeHttpClientAdapter implements HttpClientAdapter {

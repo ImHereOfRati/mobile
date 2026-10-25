@@ -1,6 +1,6 @@
 import 'package:iamhere/core/database/local_database_properties.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity_mapper.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity_mapper.dart';
 import 'package:injectable/injectable.dart';
 
 import 'abstract_local_database_engine.dart';

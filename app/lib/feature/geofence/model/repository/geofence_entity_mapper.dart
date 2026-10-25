@@ -1,4 +1,4 @@
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 
 /// Maps geofence entities to and from the persisted row shape.
 ///

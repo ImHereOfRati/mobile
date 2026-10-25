@@ -1,6 +1,6 @@
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 
 class GeofenceEventFilter {
   const GeofenceEventFilter._();

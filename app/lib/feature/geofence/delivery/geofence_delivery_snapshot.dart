@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity_mapper.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity_mapper.dart';
 
 class GeofenceDeliverySnapshot {
   static const _geofenceMapper = GeofenceEntityMapper();

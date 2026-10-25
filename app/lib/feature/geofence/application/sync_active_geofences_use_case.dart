@@ -1,6 +1,6 @@
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/missing_background_location_exception.dart';
-import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
+import 'package:iamhere/feature/geofence/model/service/native_geofence_registrar_interface.dart';
 
 enum GeofenceSyncStatus { synced, missingBackgroundLocation, failed }
 

@@ -1,4 +1,4 @@
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 
 /// OS 네이티브 지오펜스(Geofence) 등록/해제/동기화 인터페이스.
 ///

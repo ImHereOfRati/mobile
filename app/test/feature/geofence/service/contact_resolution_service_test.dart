@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/friend/model/repository/contact_entity.dart';
 import 'package:iamhere/feature/friend/model/repository/contact_local_repository.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository.dart';
-import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_server_recipient_local_repository.dart';
+import 'package:iamhere/feature/geofence/model/service/contact_resolution_service.dart';
 
 void main() {
   test('resolves string contact ids saved by the React bridge', () async {

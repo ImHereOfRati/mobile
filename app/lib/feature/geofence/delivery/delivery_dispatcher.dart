@@ -3,8 +3,8 @@ import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_snapshot.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
-import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
-import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
+import 'package:iamhere/feature/geofence/model/service/fcm_arrival_service.dart';
+import 'package:iamhere/feature/geofence/model/service/sms_notification_service.dart';
 import 'package:iamhere/feature/geofence/model/notification_delivery_state.dart';
 
 class DeliveryDispatchResult {

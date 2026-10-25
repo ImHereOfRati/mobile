@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:injectable/injectable.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_delivery_queue_database_service.dart';
-import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
-import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
-import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
-import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_delivery_queue_database_service.dart';
+import 'package:iamhere/feature/geofence/model/service/contact_resolution_service.dart';
+import 'package:iamhere/feature/geofence/model/service/fcm_arrival_service.dart';
+import 'package:iamhere/feature/geofence/model/service/native_geofence_registrar_interface.dart';
+import 'package:iamhere/feature/geofence/model/service/sms_notification_service.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/record/model/service/record_service.dart';
 
 import 'di_setup.config.dart';

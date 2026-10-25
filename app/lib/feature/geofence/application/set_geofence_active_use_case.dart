@@ -1,6 +1,6 @@
 import 'package:iamhere/feature/geofence/application/geofence_command_result.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
-import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/model/service/native_geofence_registrar_interface.dart';
 
 class SetGeofenceActiveUseCase {
   final GeofenceLocalRepository _repo;

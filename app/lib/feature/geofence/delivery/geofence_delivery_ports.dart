@@ -1,7 +1,7 @@
 import 'package:iamhere/feature/friend/model/repository/contact_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_delivery_queue_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_delivery_queue_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_server_recipient_entity.dart';
 
 abstract interface class DeliveryQueueStore {
   Future<GeofenceDeliveryQueueEntity?> enqueue(

@@ -4,7 +4,7 @@ import 'package:iamhere/core/result/result.dart';
 import 'package:injectable/injectable.dart';
 
 import 'sms_service.dart';
-import '../model/notification_delivery_state.dart';
+import '../../model/notification_delivery_state.dart';
 
 /// SMS notification sending service
 @injectable

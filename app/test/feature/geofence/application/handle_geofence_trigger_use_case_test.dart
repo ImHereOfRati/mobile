@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/geofence/application/handle_geofence_trigger_use_case.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_local_repository.dart';
 
 void main() {
   GeofenceEntity geofence({

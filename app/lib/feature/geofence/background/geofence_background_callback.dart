@@ -5,7 +5,7 @@ import 'package:iamhere/feature/geofence/background/geofence_background_runtime.
 import 'package:native_geofence/native_geofence.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_local_repository.dart';
 
 /// OS 가 지오펜스 진입 이벤트를 발생시키면 호출되는 최상위 함수.
 @pragma('vm:entry-point')

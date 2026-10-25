@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/geofence/application/sync_active_geofences_use_case.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/missing_background_location_exception.dart';
-import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
+import 'package:iamhere/feature/geofence/model/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 
 void main() {

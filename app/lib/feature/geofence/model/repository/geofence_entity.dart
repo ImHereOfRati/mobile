@@ -1,5 +1,5 @@
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity_mapper.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity_mapper.dart';
 
 class GeofenceEntity {
   final int? id;

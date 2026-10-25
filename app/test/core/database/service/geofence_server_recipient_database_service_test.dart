@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/core/database/service/geofence_database_service.dart';
 import 'package:iamhere/core/database/service/geofence_server_recipient_database_service.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_server_recipient_entity.dart';
 
 import '../_helpers/test_database_factory.dart';
 

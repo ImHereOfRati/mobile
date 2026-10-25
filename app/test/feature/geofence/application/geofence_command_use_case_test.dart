@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/feature/geofence/application/delete_geofence_use_case.dart';
 import 'package:iamhere/feature/geofence/application/set_geofence_active_use_case.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
-import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/model/service/native_geofence_registrar_interface.dart';
 
 void main() {
   GeofenceEntity geofence({int id = 1, bool isActive = false}) {

@@ -2,8 +2,8 @@ import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dar
 import 'package:iamhere/feature/geofence/delivery/geofence_event_filter.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/repository/geofence_local_repository.dart';
 
 enum GeofenceTriggerStatus { queued, notFound, inactive, ignored, rejected }
 
