@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:iamhere/components/foundation.dart';
+import 'package:iamhere/components/components.dart';
 
 enum NativeShellTab { geofence, friend, record, setting }
 
@@ -77,6 +77,8 @@ class NativeShellPage {
   }
 }
 
+/// 웹 화면을 감싸는 앱 공통 껍데기. 헤더와 하단 네비게이션은 ImHere 디자인
+/// 시스템 컴포넌트로 그리고, 웹은 본문만 그린다.
 class NativeAppShell extends StatelessWidget {
   final Widget child;
   final NativeShellPage page;
@@ -91,186 +93,46 @@ class NativeAppShell extends StatelessWidget {
     required this.onBack,
   });
 
+  static const _tabs = [
+    (tab: NativeShellTab.geofence, path: '/geofence'),
+    (tab: NativeShellTab.friend, path: '/friend'),
+    (tab: NativeShellTab.record, path: '/record'),
+    (tab: NativeShellTab.setting, path: '/setting'),
+  ];
+
+  static const _navItems = [
+    ImHereNavItem(glyph: ImHereGlyph.place, label: '장소'),
+    ImHereNavItem(glyph: ImHereGlyph.friends, label: '친구'),
+    ImHereNavItem(glyph: ImHereGlyph.history, label: '기록'),
+    ImHereNavItem(glyph: ImHereGlyph.settings, label: '설정'),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final colors = ImHereColors.of(context);
+    final selectedTab = page.selectedTab;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: colors.surface,
-        foregroundColor: colors.text,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        titleSpacing: 20,
-        title: Text(
-          'ImHere',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 21,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
-        ),
-        actions: page.showBackButton
-            ? [
-                IconButton(
-                  tooltip: 'Back',
-                  onPressed: onBack,
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+      backgroundColor: ImHereColors.of(context).background,
+      body: Column(
+        children: [
+          page.showBackButton
+              ? ImHereTopBar(title: page.title, onBack: onBack)
+              : ImHereAppHeader(
+                  onNotificationTap: () => onNavigate('/record/notifications'),
                 ),
-              ]
-            : null,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: colors.divider),
-        ),
+          Expanded(child: child),
+        ],
       ),
-      body: child,
-      bottomNavigationBar: page.selectedTab == null
+      bottomNavigationBar: selectedTab == null
           ? null
-          : _NativeBottomNavigation(
-              selectedTab: page.selectedTab!,
-              onNavigate: onNavigate,
+          : ImHereNavigation(
+              items: _navItems,
+              index: _tabs.indexWhere((item) => item.tab == selectedTab),
+              onChanged: (index) {
+                HapticFeedback.lightImpact();
+                onNavigate(_tabs[index].path);
+              },
             ),
-    );
-  }
-}
-
-class _NativeBottomNavigation extends StatelessWidget {
-  final NativeShellTab selectedTab;
-  final ValueChanged<String> onNavigate;
-
-  const _NativeBottomNavigation({
-    required this.selectedTab,
-    required this.onNavigate,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final navigationBarColor =
-        theme.navigationBarTheme.backgroundColor ?? theme.colorScheme.surface;
-    return DecoratedBox(
-      decoration: BoxDecoration(color: navigationBarColor),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: [
-              _tab(
-                context,
-                tab: NativeShellTab.geofence,
-                path: '/geofence',
-                label: '장소',
-                icon: Icons.location_on_outlined,
-                selectedIcon: Icons.location_on_rounded,
-              ),
-              _tab(
-                context,
-                tab: NativeShellTab.friend,
-                path: '/friend',
-                label: '친구',
-                icon: Icons.people_outline_rounded,
-                selectedIcon: Icons.people_rounded,
-              ),
-              Expanded(
-                child: Semantics(
-                  button: true,
-                  label: '장소 추가',
-                  child: InkResponse(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      onNavigate('/geofence/message');
-                    },
-                    radius: 28,
-                    child: Center(
-                      child: SizedBox.square(
-                        dimension: 48,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: ImHereColors.of(context).action,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.add_rounded,
-                            color: ImHereColors.of(context).onAction,
-                            size: 28,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              _tab(
-                context,
-                tab: NativeShellTab.record,
-                path: '/record',
-                label: '기록',
-                icon: Icons.history_rounded,
-                selectedIcon: Icons.history_rounded,
-              ),
-              _tab(
-                context,
-                tab: NativeShellTab.setting,
-                path: '/setting',
-                label: '설정',
-                icon: Icons.settings_outlined,
-                selectedIcon: Icons.settings_rounded,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _tab(
-    BuildContext context, {
-    required NativeShellTab tab,
-    required String path,
-    required String label,
-    required IconData icon,
-    required IconData selectedIcon,
-  }) {
-    final selected = tab == selectedTab;
-    final colors = ImHereColors.of(context);
-    final color = selected ? colors.action : colors.textMuted;
-
-    return Expanded(
-      child: Semantics(
-        selected: selected,
-        button: true,
-        label: label,
-        child: InkResponse(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onNavigate(path);
-          },
-          child: SizedBox.expand(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(selected ? selectedIcon : icon, color: color, size: 23),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 11,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

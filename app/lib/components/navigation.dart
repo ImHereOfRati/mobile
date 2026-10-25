@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'callout.dart';
 import 'foundation.dart';
 import 'icon.dart';
-import 'pressable.dart';
 
 @immutable
 class ImHereNavItem {
@@ -97,74 +96,72 @@ class ImHereNavigation extends StatelessWidget {
         label: item.hasUpdate ? '${item.label}, 새 소식 있음' : item.label,
         excludeSemantics: true,
         onTap: () => onChanged(itemIndex),
-        child: ImHerePressable(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => onChanged(itemIndex),
-            child: AnimatedContainer(
-              duration: duration,
-              curve: Curves.easeOutCubic,
-              constraints: BoxConstraints(
-                minHeight: metrics.touchTarget * 5 / 7 * 1.15,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onChanged(itemIndex),
+          child: AnimatedContainer(
+            duration: duration,
+            curve: Curves.easeOutCubic,
+            constraints: BoxConstraints(
+              minHeight: metrics.touchTarget * 5 / 7 * 1.15,
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: metrics.resolve(ImHereSpace.xs),
+              vertical: metrics.resolve(4),
+            ),
+            decoration: BoxDecoration(
+              color: selected ? colors.background : Colors.transparent,
+              borderRadius: BorderRadius.circular(
+                metrics.resolve(ImHereRadius.pill),
               ),
-              padding: EdgeInsets.symmetric(
-                horizontal: metrics.resolve(ImHereSpace.xs),
-                vertical: metrics.resolve(4),
-              ),
-              decoration: BoxDecoration(
-                color: selected ? colors.background : Colors.transparent,
-                borderRadius: BorderRadius.circular(
-                  metrics.resolve(ImHereRadius.pill),
+              border: selected
+                  ? Border.all(
+                      color: colors.divider.withValues(alpha: 0.8),
+                      width: 0.5,
+                    )
+                  : null,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedScale(
+                  duration: duration,
+                  curve: Curves.easeOutBack,
+                  scale: selected ? 1.08 : 1.0,
+                  child: item.hasUpdate
+                      ? ImHereNotificationBadge(
+                          child: ImHereIcon(
+                            glyph: item.glyph,
+                            color: color,
+                            size: 22,
+                          ),
+                        )
+                      : ImHereIcon(glyph: item.glyph, color: color, size: 22),
                 ),
-                border: selected
-                    ? Border.all(
-                        color: colors.divider.withValues(alpha: 0.8),
-                        width: 0.5,
-                      )
-                    : null,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedScale(
-                    duration: duration,
-                    curve: Curves.easeOutBack,
-                    scale: selected ? 1.08 : 1.0,
-                    child: item.hasUpdate
-                        ? ImHereNotificationBadge(
-                            child: ImHereIcon(
-                              glyph: item.glyph,
-                              color: color,
-                              size: 22,
-                            ),
-                          )
-                        : ImHereIcon(glyph: item.glyph, color: color, size: 22),
+                SizedBox(height: metrics.resolve(3)),
+                AnimatedDefaultTextStyle(
+                  duration: duration,
+                  curve: Curves.easeOutCubic,
+                  style:
+                      (Theme.of(context).textTheme.labelSmall ??
+                              const TextStyle(fontSize: 11))
+                          .copyWith(
+                            fontSize: metrics.resolve(11),
+                            height: 1.1,
+                            color: color,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: metrics.resolve(3)),
-                  AnimatedDefaultTextStyle(
-                    duration: duration,
-                    curve: Curves.easeOutCubic,
-                    style:
-                        (Theme.of(context).textTheme.labelSmall ??
-                                const TextStyle(fontSize: 11))
-                            .copyWith(
-                              fontSize: metrics.resolve(11),
-                              height: 1.1,
-                              color: color,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                            ),
-                    child: Text(
-                      item.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
