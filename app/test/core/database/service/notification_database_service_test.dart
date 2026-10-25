@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/core/database/service/notification_database_service.dart';
-import 'package:iamhere/feature/record/repository/notification_entity.dart';
+import 'package:iamhere/feature/record/model/repository/notification_entity.dart';
 
 import '../_helpers/test_database_factory.dart';
 

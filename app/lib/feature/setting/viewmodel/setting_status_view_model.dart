@@ -1,6 +1,6 @@
 import 'package:iamhere/core/util/app_logger.dart';
-import 'package:iamhere/feature/setting/model/setting_status.dart';
-import 'package:iamhere/feature/setting/service/setting_status_service_interface.dart';
+import 'package:iamhere/feature/setting/model/type/setting_status.dart';
+import 'package:iamhere/feature/setting/model/service/setting_status_service_interface.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'setting_status_view_model.g.dart';

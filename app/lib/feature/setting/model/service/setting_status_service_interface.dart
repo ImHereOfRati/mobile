@@ -1,4 +1,4 @@
-import 'package:iamhere/feature/setting/model/setting_status.dart';
+import 'package:iamhere/feature/setting/model/type/setting_status.dart';
 
 abstract class SettingStatusServiceInterface {
   Future<SettingStatus> load();

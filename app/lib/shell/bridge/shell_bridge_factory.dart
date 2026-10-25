@@ -6,13 +6,13 @@ import 'package:iamhere/feature/auth/model/service/account/auth_fcm_registration
 import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
 import 'package:iamhere/feature/auth/model/type/login_result.dart';
 import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
-import 'package:iamhere/feature/friend/repository/contact_local_repository.dart';
+import 'package:iamhere/feature/friend/model/repository/contact_local_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
-import 'package:iamhere/feature/record/repository/geofence_record_local_repository.dart';
-import 'package:iamhere/feature/record/repository/notification_local_repository.dart';
+import 'package:iamhere/feature/record/model/repository/geofence_record_local_repository.dart';
+import 'package:iamhere/feature/record/model/repository/notification_local_repository.dart';
 import 'package:iamhere/feature/user_permission/service/locate_permission_service.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:iamhere/core/di/di_setup.dart';

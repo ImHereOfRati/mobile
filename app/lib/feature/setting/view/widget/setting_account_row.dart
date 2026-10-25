@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/components/components.dart';
-import 'package:iamhere/feature/setting/model/user_me_response_dto.dart';
+import 'package:iamhere/feature/setting/model/dto/user_me_response_dto.dart';
 
 class SettingAccountRow extends StatelessWidget {
   final AsyncValue<UserMeResponseDto> account;

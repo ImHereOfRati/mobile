@@ -1,7 +1,7 @@
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/model/exception/invalid_auth_state_exception.dart';
 import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
-import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
+import 'package:iamhere/feature/setting/model/service/user_me_service_interface.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable

@@ -1,4 +1,4 @@
-import 'package:iamhere/feature/record/model/activity_record_status.dart';
+import 'package:iamhere/feature/record/model/type/activity_record_status.dart';
 
 class GeofenceRecordEntity {
   final int? id;

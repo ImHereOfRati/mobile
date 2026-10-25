@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:iamhere/core/api_response/api_response_parser.dart';
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/model/exception/invalid_auth_state_exception.dart';
-import 'package:iamhere/feature/setting/model/user_me_response_dto.dart';
-import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
+import 'package:iamhere/feature/setting/model/dto/user_me_response_dto.dart';
+import 'package:iamhere/feature/setting/model/service/user_me_service_interface.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable(as: UserMeServiceInterface)

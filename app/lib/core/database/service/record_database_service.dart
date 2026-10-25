@@ -1,5 +1,5 @@
 import 'package:iamhere/core/database/local_database_properties.dart';
-import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
+import 'package:iamhere/feature/record/model/repository/geofence_record_entity.dart';
 import 'package:injectable/injectable.dart';
 
 import 'abstract_local_database_engine.dart';

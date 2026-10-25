@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/friend/repository/contact_entity.dart';
-import 'package:iamhere/feature/friend/repository/contact_repository.dart';
+import 'package:iamhere/feature/friend/model/repository/contact_entity.dart';
+import 'package:iamhere/feature/friend/model/repository/contact_repository.dart';
 import 'package:iamhere/shell/bridge/device_contact_reader.dart';
 import 'package:iamhere/shell/bridge/device_contact_sync_service.dart';
 

@@ -1,5 +1,5 @@
 import 'package:iamhere/core/database/service/contact_database_service.dart';
-import 'package:iamhere/feature/friend/repository/contact_repository.dart';
+import 'package:iamhere/feature/friend/model/repository/contact_repository.dart';
 import 'package:injectable/injectable.dart';
 
 import 'contact_entity.dart';

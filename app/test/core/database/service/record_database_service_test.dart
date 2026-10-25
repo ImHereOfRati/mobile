@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/record/model/activity_record_status.dart';
+import 'package:iamhere/feature/record/model/type/activity_record_status.dart';
 import 'package:iamhere/core/database/service/record_database_service.dart';
-import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
+import 'package:iamhere/feature/record/model/repository/geofence_record_entity.dart';
 
 import '../_helpers/test_database_factory.dart';
 

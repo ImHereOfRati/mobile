@@ -3,10 +3,10 @@ import 'dart:developer';
 
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_ports.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
-import 'package:iamhere/feature/record/model/activity_record_error_normalizer.dart';
-import 'package:iamhere/feature/record/model/activity_record_status.dart';
-import 'package:iamhere/feature/record/repository/geofence_record_entity.dart';
-import 'package:iamhere/feature/record/repository/geofence_record_local_repository.dart';
+import 'package:iamhere/feature/record/model/service/activity_record_error_normalizer.dart';
+import 'package:iamhere/feature/record/model/type/activity_record_status.dart';
+import 'package:iamhere/feature/record/model/repository/geofence_record_entity.dart';
+import 'package:iamhere/feature/record/model/repository/geofence_record_local_repository.dart';
 import 'package:injectable/injectable.dart';
 
 /// Record persistence for geofence entries

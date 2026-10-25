@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:iamhere/feature/friend/repository/contact_entity.dart';
-import 'package:iamhere/feature/friend/repository/contact_local_repository.dart';
+import 'package:iamhere/feature/friend/model/repository/contact_entity.dart';
+import 'package:iamhere/feature/friend/model/repository/contact_local_repository.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_ports.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_entity.dart';

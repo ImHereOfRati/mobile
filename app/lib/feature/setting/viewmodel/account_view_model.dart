@@ -1,8 +1,8 @@
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/feature/auth/viewmodel/auth_invalidation_notifier.dart';
-import 'package:iamhere/feature/setting/model/user_me_response_dto.dart';
-import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
+import 'package:iamhere/feature/setting/model/dto/user_me_response_dto.dart';
+import 'package:iamhere/feature/setting/model/service/user_me_service_interface.dart';
 import 'package:iamhere/feature/terms/viewmodel/terms_acceptance_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/friend/repository/contact_repository.dart';
+import 'package:iamhere/feature/friend/model/repository/contact_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_entity.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_repository.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
-import 'package:iamhere/feature/record/repository/geofence_record_repository.dart';
-import 'package:iamhere/feature/record/repository/notification_repository.dart';
+import 'package:iamhere/feature/record/model/repository/geofence_record_repository.dart';
+import 'package:iamhere/feature/record/model/repository/notification_repository.dart';
 import 'package:iamhere/feature/user_permission/service/locate_permission_service.dart';
 import 'package:iamhere/shell/bridge/geofence_device_bridge_handlers.dart';
 

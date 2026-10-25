@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/setting/service/user_me_service.dart';
+import 'package:iamhere/feature/setting/model/service/user_me_service.dart';
 import 'package:iamhere/feature/auth/model/exception/invalid_auth_state_exception.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';

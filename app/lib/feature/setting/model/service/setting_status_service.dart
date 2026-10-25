@@ -1,7 +1,7 @@
 import 'package:iamhere/core/util/app_logger.dart';
-import 'package:iamhere/feature/record/repository/geofence_record_local_repository.dart';
-import 'package:iamhere/feature/setting/model/setting_status.dart';
-import 'package:iamhere/feature/setting/service/setting_status_service_interface.dart';
+import 'package:iamhere/feature/record/model/repository/geofence_record_local_repository.dart';
+import 'package:iamhere/feature/setting/model/type/setting_status.dart';
+import 'package:iamhere/feature/setting/model/service/setting_status_service_interface.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:injectable/injectable.dart';

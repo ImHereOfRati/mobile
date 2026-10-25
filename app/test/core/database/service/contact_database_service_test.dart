@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/core/database/local_database_exception.dart';
 import 'package:iamhere/core/database/service/contact_database_service.dart';
-import 'package:iamhere/feature/friend/repository/contact_entity.dart';
+import 'package:iamhere/feature/friend/model/repository/contact_entity.dart';
 
 import '../_helpers/test_database_factory.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/setting/model/setting_status.dart';
-import 'package:iamhere/feature/setting/service/setting_status_service_interface.dart';
+import 'package:iamhere/feature/setting/model/type/setting_status.dart';
+import 'package:iamhere/feature/setting/model/service/setting_status_service_interface.dart';
 import 'package:iamhere/feature/setting/viewmodel/setting_status_view_model.dart';
 
 class _FakeStatusService implements SettingStatusServiceInterface {

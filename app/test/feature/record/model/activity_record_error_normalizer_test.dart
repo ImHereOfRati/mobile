@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/record/model/activity_record_error_normalizer.dart';
+import 'package:iamhere/feature/record/model/service/activity_record_error_normalizer.dart';
 
 void main() {
   test('timeout 오류를 사용자 친화 문구로 정규화한다', () {

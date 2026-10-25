@@ -12,7 +12,7 @@ import 'package:iamhere/feature/geofence/repository/geofence_local_repository.da
 import 'package:iamhere/feature/geofence/service/contact_resolution_service.dart';
 import 'package:iamhere/feature/geofence/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
-import 'package:iamhere/feature/record/service/record_service.dart';
+import 'package:iamhere/feature/record/model/service/record_service.dart';
 import 'package:iamhere/feature/geofence/service/sms_notification_service.dart';
 import 'package:iamhere/feature/geofence/model/notification_delivery_state.dart';
 import 'package:mockito/annotations.dart';
