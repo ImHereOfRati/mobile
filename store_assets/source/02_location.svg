@@ -1,0 +1,9 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs><clipPath id="screen"><rect x="32" y="310" width="1016" height="1610" rx="38"/></clipPath></defs>
+  <rect width="1080" height="1920" fill="#F4F6F8"/>
+  <text x="56" y="94" fill="#142233" font-family="Malgun Gothic, Arial, sans-serif" font-size="58" font-weight="700">거제 덕포 해수욕장</text>
+  <text x="56" y="166" fill="#142233" font-family="Malgun Gothic, Arial, sans-serif" font-size="58" font-weight="700">도착 알림을 설정해요</text>
+  <text x="56" y="237" fill="#637386" font-family="Malgun Gothic, Arial, sans-serif" font-size="29">주소와 알림 범위를 확인하세요</text>
+  <image href="captures/02_location.png" x="32" y="216" width="1016" height="2265" preserveAspectRatio="none" clip-path="url(#screen)"/>
+</svg>
+

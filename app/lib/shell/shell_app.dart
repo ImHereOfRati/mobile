@@ -22,8 +22,10 @@ import 'package:iamhere/feature/terms/view/page/terms_page.dart';
 import 'package:iamhere/feature/geofence/model/service/auto_send_status_service.dart';
 import 'package:iamhere/feature/geofence/model/service/geofence_recipient_service.dart';
 import 'package:iamhere/feature/geofence/model/service/geofence_service.dart';
+import 'package:iamhere/feature/geofence/model/service/sms_daily_quota_service.dart';
 import 'package:iamhere/feature/geofence/model/service/map_search_service.dart';
 import 'package:iamhere/feature/geofence/view/page/geofence_form_page.dart';
+import 'package:iamhere/feature/geofence/view/page/geofence_detail_page.dart';
 import 'package:iamhere/feature/geofence/view/page/geofence_page.dart';
 import 'package:iamhere/feature/friend/model/service/device_contact_service.dart';
 import 'package:iamhere/feature/friend/model/service/friend_service.dart';
@@ -109,6 +111,7 @@ class _ShellAppState extends State<ShellApp> {
   final _serverNotifications = getIt<ServerNotificationService>();
   final _geofenceService = getIt<GeofenceService>();
   final _geofenceRecipients = getIt<GeofenceRecipientService>();
+  final _smsQuotaService = SmsDailyQuotaService();
   final _mapSearch = getIt<MapSearchService>();
   late final _autoSendStatus = AutoSendStatusService(_permissionGuideService);
 
@@ -286,6 +289,14 @@ class _ShellAppState extends State<ShellApp> {
     ),
     GoRoute(path: '/geofence/message', builder: (_, __) => _geofenceForm()),
     GoRoute(
+      path: '/geofence/:id',
+      builder: (_, state) => GeofenceDetailPage(
+        geofenceService: _geofenceService,
+        recipientService: _geofenceRecipients,
+        id: int.tryParse(state.pathParameters['id']!) ?? -1,
+      ),
+    ),
+    GoRoute(
       path: '/geofence/:id/edit',
       builder: (_, state) =>
           _geofenceForm(id: int.tryParse(state.pathParameters['id']!)),
@@ -296,6 +307,8 @@ class _ShellAppState extends State<ShellApp> {
     geofenceService: _geofenceService,
     recipientService: _geofenceRecipients,
     mapSearchService: _mapSearch,
+    statusService: _autoSendStatus,
+    smsQuotaService: _smsQuotaService,
     permissionGuide: _permissionGuideService,
     id: id,
   );

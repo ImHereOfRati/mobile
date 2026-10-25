@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/core/view/async_state_view.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
+import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
 import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/type/geofence_repeat.dart';
 import 'package:iamhere/feature/geofence/model/service/auto_send_status_service.dart';
@@ -102,69 +103,75 @@ class _GeofencePageState extends ConsumerState<GeofencePage>
             onTap: () => context.push('/setting/permissions'),
           ),
         Expanded(
-          child: data.items.isEmpty
-              ? Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    metrics.resolve(ImHereSpace.gutter),
-                    metrics.resolve(ImHereSpace.md),
-                    metrics.resolve(ImHereSpace.gutter),
-                    metrics.resolve(ImHereSpace.md),
-                  ),
-                  child: Column(
-                    children: [
-                      _AddPlaceAction(
-                        loading: _openingAddPlace,
-                        onTap: _openAddPlace,
-                      ),
-                      const Expanded(
-                        child: ImHereStatePanel(
-                          glyph: ImHereGlyph.place,
-                          title: '아직 등록한 장소가 없어요',
-                          description: '도착하거나 떠날 때 알릴 장소를 추가해 보세요.',
-                          size: ImHereStateSize.large,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    metrics.resolve(ImHereSpace.gutter),
-                    metrics.resolve(ImHereSpace.md),
-                    metrics.resolve(ImHereSpace.gutter),
-                    metrics.resolve(ImHereSpace.xl),
-                  ),
-                  children: [
-                    _AddPlaceAction(
-                      loading: _openingAddPlace,
-                      onTap: _openAddPlace,
-                    ),
-                    SizedBox(height: metrics.resolve(ImHereSpace.lg)),
-                    if (active.isNotEmpty) ...[
-                      ImHereListHeader(title: '알림 켠 장소 ${active.length}곳'),
-                      for (final item in active) _placeItem(item, metrics),
-                    ],
-                    if (inactive.isNotEmpty) ...[
-                      if (active.isNotEmpty)
-                        SizedBox(height: metrics.resolve(ImHereSpace.md)),
-                      ImHereListHeader(title: '알림 꺼둔 장소 ${inactive.length}곳'),
-                      for (final item in inactive) _placeItem(item, metrics),
-                    ],
-                  ],
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+              metrics.resolve(ImHereSpace.gutter),
+              metrics.resolve(ImHereSpace.md),
+              metrics.resolve(ImHereSpace.gutter),
+              metrics.resolve(ImHereSpace.xl),
+            ),
+            children: [
+              _AddPlaceAction(loading: _openingAddPlace, onTap: _openAddPlace),
+              if (data.items.isEmpty) ...[
+                SizedBox(height: metrics.resolve(ImHereSpace.xl)),
+                const ImHereStatePanel(
+                  glyph: ImHereGlyph.place,
+                  title: '알림 받을 장소를 추가해 보세요',
+                  description: '장소에 도착하거나 떠날 때 선택한 사람에게 알려드려요.',
+                  size: ImHereStateSize.large,
                 ),
+              ] else ...[
+                SizedBox(height: metrics.resolve(ImHereSpace.xl)),
+                if (active.isNotEmpty) ...[
+                  _PlaceSectionHeading(title: '알림 켜짐', count: active.length),
+                  SizedBox(height: metrics.resolve(ImHereSpace.xs)),
+                  _placeGroup(active, metrics),
+                ],
+                if (inactive.isNotEmpty) ...[
+                  if (active.isNotEmpty)
+                    SizedBox(height: metrics.resolve(ImHereSpace.lg)),
+                  _PlaceSectionHeading(title: '알림 꺼짐', count: inactive.length),
+                  SizedBox(height: metrics.resolve(ImHereSpace.xs)),
+                  _placeGroup(inactive, metrics),
+                ],
+              ],
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _placeItem(GeofenceEntity item, ImHereMetrics metrics) => Padding(
-    padding: EdgeInsets.only(bottom: metrics.resolve(ImHereSpace.xs)),
-    child: _GeofenceCard(
-      item: item,
-      onOpen: () => _openActions(item),
-      onToggle: (active) => _toggle(item, active),
-    ),
-  );
+  Widget _placeGroup(List<GeofenceEntity> items, ImHereMetrics metrics) {
+    final colors = ImHereColors.of(context);
+    final radius = BorderRadius.circular(metrics.resolve(ImHereRadius.lg));
+    return Material(
+      color: colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: colors.divider),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (var index = 0; index < items.length; index++) ...[
+            _GeofenceCard(
+              item: items[index],
+              onOpen: () => items[index].isActive
+                  ? context.push('/geofence/${items[index].id}')
+                  : _openActions(items[index]),
+              onToggle: (active) => _toggle(items[index], active),
+            ),
+            if (index < items.length - 1)
+              const ImHereBorder(
+                indent: ImHereSpace.md,
+                tone: ImHereDividerTone.subtle,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
 
   Future<void> _openAddPlace() async {
     if (_openingAddPlace) return;
@@ -253,6 +260,34 @@ class _GeofencePageState extends ConsumerState<GeofencePage>
 
 enum _PlaceAction { edit, delete }
 
+class _PlaceSectionHeading extends StatelessWidget {
+  const _PlaceSectionHeading({required this.title, required this.count});
+
+  final String title;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final metrics = ImHereMetrics.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+          ),
+        ),
+        ImHereBadge(
+          label: '$count곳',
+          tone: ImHereBadgeTone.neutral,
+          size: ImHereBadgeSize.medium,
+        ),
+        SizedBox(width: metrics.resolve(ImHereSpace.xxs)),
+      ],
+    );
+  }
+}
+
 class _ReadinessBanner extends StatelessWidget {
   final AutoSendStatus status;
   final VoidCallback onTap;
@@ -314,58 +349,13 @@ class _AddPlaceAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final metrics = ImHereMetrics.of(context);
-    final colors = ImHereColors.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    return ImHereSurface(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Container(
-            width: metrics.resolve(40),
-            height: metrics.resolve(40),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colors.actionSubtle,
-              shape: BoxShape.circle,
-            ),
-            child: loading
-                ? SizedBox(
-                    width: metrics.resolve(20),
-                    height: metrics.resolve(20),
-                    child: CircularProgressIndicator(
-                      strokeWidth: metrics.resolve(2),
-                      color: colors.action,
-                    ),
-                  )
-                : ImHereIcon(
-                    glyph: ImHereGlyph.add,
-                    size: 22,
-                    color: colors.action,
-                  ),
-          ),
-          SizedBox(width: metrics.resolve(ImHereSpace.sm)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('장소 추가', style: textTheme.titleSmall),
-                SizedBox(height: metrics.resolve(ImHereSpace.xxs)),
-                Text(
-                  '도착하거나 떠날 때 알리기',
-                  style: textTheme.bodySmall?.copyWith(color: colors.textMuted),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: metrics.resolve(ImHereSpace.xs)),
-          ImHereIcon(
-            glyph: ImHereGlyph.chevron,
-            size: 20,
-            color: colors.textMuted,
-          ),
-        ],
-      ),
+    return ImHereButton(
+      label: '장소 추가',
+      icon: ImHereGlyph.add,
+      tone: ImHereButtonTone.secondary,
+      loading: loading,
+      expand: true,
+      onPressed: loading ? null : onTap,
     );
   }
 }
@@ -384,28 +374,112 @@ class _GeofenceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metrics = ImHereMetrics.of(context);
-    return ImHereSurface(
+    final colors = ImHereColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final eventType = EventType.fromName(item.eventType);
+    final eventLabel = switch (eventType) {
+      EventType.arrival => '도착 알림',
+      EventType.departure => '출발 알림',
+      EventType.both => '도착·출발 알림',
+    };
+    final repeat = GeofenceRepeat.fromName(item.repeatType);
+
+    return Padding(
+      padding: EdgeInsets.all(metrics.resolve(ImHereSpace.md)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ImHereListRow(
-            title: item.name,
-            description: [
-              if (item.address.isNotEmpty) item.address,
-              if (item.awaitingDeparture) '출발 대기',
-              formatGeofenceCondition(item),
-              if (GeofenceRepeat.fromName(item.repeatType) case final repeat
-                  when repeat != GeofenceRepeat.none)
-                repeat.label,
-            ].join(' · '),
-            leading: const ImHereIcon(glyph: ImHereGlyph.place),
-            alignTop: true,
-            onTap: onOpen,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onOpen,
+              borderRadius: BorderRadius.circular(
+                metrics.resolve(ImHereRadius.md),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: metrics.resolve(ImHereSpace.xxs),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: metrics.resolve(40),
+                      height: metrics.resolve(40),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: colors.actionSubtle,
+                        borderRadius: BorderRadius.circular(
+                          metrics.resolve(ImHereRadius.md),
+                        ),
+                      ),
+                      child: ImHereIcon(
+                        glyph: ImHereGlyph.place,
+                        size: 22,
+                        color: colors.action,
+                      ),
+                    ),
+                    SizedBox(width: metrics.resolve(ImHereSpace.sm)),
+                    Expanded(
+                      child: Text(item.name, style: textTheme.titleSmall),
+                    ),
+                    ImHereIcon(
+                      glyph: ImHereGlyph.chevron,
+                      size: 20,
+                      color: colors.textMuted,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          const ImHereBorder(tone: ImHereDividerTone.subtle),
+          if (item.address.isNotEmpty) ...[
+            SizedBox(height: metrics.resolve(ImHereSpace.sm)),
+            Text(
+              item.address,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(color: colors.textMuted),
+            ),
+          ],
           SizedBox(height: metrics.resolve(ImHereSpace.xs)),
+          if (eventType == EventType.arrival)
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    formatGeofenceCondition(item),
+                    style: textTheme.bodyMedium?.copyWith(color: colors.text),
+                  ),
+                ),
+                SizedBox(width: metrics.resolve(ImHereSpace.xs)),
+                ImHereBadge(label: eventLabel),
+              ],
+            )
+          else
+            Text(
+              formatGeofenceCondition(item),
+              style: textTheme.bodyMedium?.copyWith(color: colors.text),
+            ),
+          SizedBox(height: metrics.resolve(ImHereSpace.sm)),
+          Wrap(
+            spacing: metrics.resolve(ImHereSpace.xs),
+            runSpacing: metrics.resolve(ImHereSpace.xs),
+            children: [
+              if (eventType != EventType.arrival)
+                ImHereBadge(label: eventLabel),
+              if (repeat != GeofenceRepeat.none)
+                ImHereBadge(label: repeat.label, tone: ImHereBadgeTone.neutral),
+              if (item.awaitingDeparture)
+                const ImHereBadge(
+                  label: '출발 대기',
+                  tone: ImHereBadgeTone.warning,
+                ),
+            ],
+          ),
+          SizedBox(height: metrics.resolve(ImHereSpace.xs)),
+          const ImHereBorder(tone: ImHereDividerTone.subtle),
           ImHereSwitch(
-            label: '${item.name} 알림',
+            label: '알림 사용',
             value: item.isActive,
             onChanged: onToggle,
           ),
@@ -413,16 +487,4 @@ class _GeofenceCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// 알림 조건을 한 줄로 풀어 쓴다.
-String formatGeofenceCondition(GeofenceEntity item) {
-  final radius = item.radius.round() == 1000
-      ? '1km'
-      : '${item.radius.round()}m';
-  return switch (EventType.fromName(item.eventType)) {
-    EventType.arrival => '$radius 안에 들어오면',
-    EventType.departure => '$radius 밖으로 나가면',
-    EventType.both => '$radius 안에 들어오거나 밖으로 나가면',
-  };
 }

@@ -48,10 +48,13 @@ class ImHereStatePanel extends StatelessWidget {
             color: colors.textMuted,
           ),
           SizedBox(height: metrics.resolve(ImHereSpace.md)),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: large ? textTheme.titleLarge : textTheme.titleMedium,
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: large ? textTheme.titleLarge : textTheme.titleMedium,
+            ),
           ),
           if (description != null) ...[
             SizedBox(height: metrics.resolve(ImHereSpace.xs)),

@@ -74,6 +74,7 @@ class NativeShellPage {
     if (path == '/battery-optimization-guide') return '배터리 설정 안내';
 
     if (path == '/geofence/message') return '장소 추가';
+    if (RegExp(r'^/geofence/\d+$').hasMatch(path)) return '장소 상세';
     if (RegExp(r'^/geofence/[^/]+/edit$').hasMatch(path)) return '장소 수정';
     if (path.startsWith('/geofence')) return '장소';
     if (path == '/friend/add') return '친구 추가';

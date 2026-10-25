@@ -5,9 +5,11 @@ import 'package:iamhere/components/components.dart';
 import 'package:iamhere/core/view/async_state_view.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/location_label_formatter.dart';
+import 'package:iamhere/feature/geofence/model/service/auto_send_status_service.dart';
 import 'package:iamhere/feature/geofence/model/service/geofence_recipient_service.dart';
 import 'package:iamhere/feature/geofence/model/service/geofence_service.dart';
 import 'package:iamhere/feature/geofence/model/service/map_search_service.dart';
+import 'package:iamhere/feature/geofence/model/service/sms_daily_quota_service.dart';
 import 'package:iamhere/feature/geofence/model/type/geofence_draft.dart';
 import 'package:iamhere/feature/geofence/model/type/geofence_radius.dart';
 import 'package:iamhere/feature/geofence/model/type/geofence_repeat.dart';
@@ -15,6 +17,7 @@ import 'package:iamhere/feature/geofence/model/type/recipient_option.dart';
 import 'package:iamhere/feature/geofence/view/widget/geofence_map_picker.dart';
 import 'package:iamhere/feature/geofence/view/widget/place_search_box.dart';
 import 'package:iamhere/feature/geofence/viewmodel/geofence_form_view_model.dart';
+import 'package:iamhere/feature/geofence/viewmodel/geofence_list_view_model.dart';
 import 'package:iamhere/feature/user_permission/model/app_permission.dart';
 import 'package:iamhere/feature/user_permission/service/permission_guide_service.dart';
 
@@ -23,7 +26,9 @@ class GeofenceFormPage extends ConsumerStatefulWidget {
   final GeofenceService geofenceService;
   final GeofenceRecipientService recipientService;
   final MapSearchService mapSearchService;
+  final AutoSendStatusService statusService;
   final PermissionGuideService permissionGuide;
+  final SmsDailyQuotaService smsQuotaService;
   final int? id;
 
   const GeofenceFormPage({
@@ -31,7 +36,9 @@ class GeofenceFormPage extends ConsumerStatefulWidget {
     required this.geofenceService,
     required this.recipientService,
     required this.mapSearchService,
+    required this.statusService,
     required this.permissionGuide,
+    required this.smsQuotaService,
     this.id,
   });
 
@@ -43,6 +50,7 @@ class _GeofenceFormPageState extends ConsumerState<GeofenceFormPage> {
   final _name = TextEditingController();
   final _message = TextEditingController();
   final _address = TextEditingController();
+  SmsDailyQuota? _smsQuota;
 
   GeofenceFormViewModelProvider get _provider => geofenceFormViewModelProvider(
     widget.geofenceService,
@@ -54,9 +62,21 @@ class _GeofenceFormPageState extends ConsumerState<GeofenceFormPage> {
   @override
   void initState() {
     super.initState();
+    _loadSmsQuota();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _requireAlwaysLocation(),
     );
+  }
+
+  Future<void> _loadSmsQuota() async {
+    try {
+      final quota = await widget.smsQuotaService.load();
+      if (mounted) setState(() => _smsQuota = quota);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _smsQuota = const SmsDailyQuota(maximum: null, used: 0));
+      }
+    }
   }
 
   @override
@@ -276,6 +296,17 @@ class _GeofenceFormPageState extends ConsumerState<GeofenceFormPage> {
                 'ImHere 친구와 기기 연락처를 함께 고를 수 있어요',
                 style: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
               ),
+              if (_smsQuota case final quota? when quota.maximum != null) ...[
+                gap,
+                ImHereCallout(
+                  tone: quota.remaining == 0
+                      ? ImHereCalloutTone.warning
+                      : ImHereCalloutTone.neutral,
+                  text: quota.remaining == 0
+                      ? '오늘 기기 연락처 SMS 한도(${quota.maximum}건)를 모두 사용했어요. 내일부터 다시 보낼 수 있어요.'
+                      : '오늘 SMS ${quota.used}/${quota.maximum}건 사용 · 남은 ${quota.remaining}건',
+                ),
+              ],
               gap,
               for (final option in state.recipients)
                 ImHereCheckbox(
@@ -288,7 +319,15 @@ class _GeofenceFormPageState extends ConsumerState<GeofenceFormPage> {
                   value: option.source == RecipientSource.device
                       ? draft.deviceContactIds.contains(option.key)
                       : draft.serverRecipientKeys.contains(option.key),
-                  onChanged: (_) => viewModel.toggleRecipient(option),
+                  onChanged:
+                      option.source == RecipientSource.device &&
+                          !draft.deviceContactIds.contains(option.key) &&
+                          (_smsQuota == null ||
+                              !_smsQuota!.allows(
+                                draft.deviceContactIds.length + 1,
+                              ))
+                      ? null
+                      : (_) => _toggleRecipient(viewModel, option),
                 ),
               if (state.recipients.isEmpty)
                 const ImHereStatePanel(
@@ -343,9 +382,63 @@ class _GeofenceFormPageState extends ConsumerState<GeofenceFormPage> {
   }
 
   Future<void> _submit() async {
+    SmsDailyQuota quota;
+    try {
+      quota = await widget.smsQuotaService.load();
+    } catch (_) {
+      quota = const SmsDailyQuota(maximum: null, used: 0);
+    }
+    final state = ref.read(_provider).value;
+    if (state != null && !quota.allows(state.draft.deviceContactIds.length)) {
+      if (mounted) {
+        setState(() => _smsQuota = quota);
+        showImHereSnackbar(
+          context,
+          '오늘 남은 SMS는 ${quota.remaining}건이에요. 기기 연락처를 줄여 주세요.',
+        );
+      }
+      return;
+    }
     final saved = await ref.read(_provider.notifier).submit();
     if (!saved || !mounted) return;
     showImHereSnackbar(context, '알림 장소를 저장했어요');
+    ref.invalidate(
+      geofenceListViewModelProvider(
+        widget.geofenceService,
+        widget.mapSearchService,
+        widget.statusService,
+      ),
+    );
     context.go('/geofence');
+  }
+
+  Future<void> _toggleRecipient(
+    GeofenceFormViewModel viewModel,
+    RecipientOption option,
+  ) async {
+    if (option.source == RecipientSource.device) {
+      final state = ref.read(_provider).value;
+      final selected = state?.draft.deviceContactIds ?? const <String>{};
+      if (!selected.contains(option.key)) {
+        SmsDailyQuota quota;
+        try {
+          quota = await widget.smsQuotaService.load();
+        } catch (_) {
+          quota = const SmsDailyQuota(maximum: null, used: 0);
+        }
+        if (!mounted) return;
+        setState(() => _smsQuota = quota);
+        if (!quota.allows(selected.length + 1)) {
+          showImHereSnackbar(
+            context,
+            quota.remaining == 0
+                ? '오늘 기기 연락처 SMS 한도를 모두 사용했어요.'
+                : '오늘 남은 SMS는 ${quota.remaining}건이에요.',
+          );
+          return;
+        }
+      }
+    }
+    viewModel.toggleRecipient(option);
   }
 }

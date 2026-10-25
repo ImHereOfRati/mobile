@@ -142,7 +142,10 @@ class GeofenceDeliveryPipeline {
       final dispatchResult = await _dispatcher.send(snapshot, body: body);
       if (_successPolicy.shouldComplete(
         snapshot: snapshot,
-        anyChannelSucceeded: dispatchResult.anyChannelSucceeded,
+        anyChannelSucceeded:
+            dispatchResult.anyChannelSucceeded ||
+            (dispatchResult.smsSkippedForQuota &&
+                snapshot.serverUserIds.isEmpty),
       )) {
         // The notification API returns 202 when the server accepts the
         // message into its delivery queue. There is no client-accessible

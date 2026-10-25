@@ -1,0 +1,14 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs><clipPath id="screen"><rect x="32" y="310" width="1016" height="1610" rx="38"/></clipPath></defs>
+  <rect width="1080" height="1920" fill="#F4F6F8"/>
+  <text x="56" y="94" fill="#142233" font-family="Malgun Gothic, Arial, sans-serif" font-size="58" font-weight="700">도착 소식을 받을 사람을</text>
+  <text x="56" y="166" fill="#142233" font-family="Malgun Gothic, Arial, sans-serif" font-size="58" font-weight="700">직접 선택해요</text>
+  <text x="56" y="237" fill="#637386" font-family="Malgun Gothic, Arial, sans-serif" font-size="29">필요한 사람에게만 알림을 보내요</text>
+  <image href="captures/04_recipients.png" x="32" y="80" width="1016" height="2265" preserveAspectRatio="none" clip-path="url(#screen)"/>
+</svg>
+
+
+
+
+
+

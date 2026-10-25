@@ -1,6 +1,18 @@
 import 'event_type.dart';
+import 'repository/geofence_entity.dart';
 
 const int smsBodyMaxLength = 45;
+
+String formatGeofenceCondition(GeofenceEntity item) {
+  final radius = item.radius.round() == 1000
+      ? '1km'
+      : '${item.radius.round()}m';
+  return switch (EventType.fromName(item.eventType)) {
+    EventType.arrival => '$radius 안에 들어오면',
+    EventType.departure => '$radius 밖으로 나가면',
+    EventType.both => '$radius 안에 들어오거나 밖으로 나가면',
+  };
+}
 
 String fallbackCoordinates(double latitude, double longitude) =>
     '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';

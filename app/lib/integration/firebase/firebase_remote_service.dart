@@ -8,6 +8,7 @@ class FirebaseRemoteService {
   static const String minimumAppVersion = 'minimum_app_version';
   static const String androidStoreUrl = 'android_store_url';
   static const String iosStoreUrl = 'ios_store_url';
+  static const String maxSmsPerDays = 'max_sms_per_days';
 
   /// How stale a cached config may be before a fetch is allowed.
   ///
@@ -53,6 +54,11 @@ class FirebaseRemoteService {
   String? get androidStoreUrlOrNull => _stringOrNull(androidStoreUrl);
 
   String? get iosStoreUrlOrNull => _stringOrNull(iosStoreUrl);
+
+  int? get maxSmsPerDaysOrNull {
+    final value = _remoteConfig.getInt(maxSmsPerDays);
+    return value > 0 ? value : null;
+  }
 
   String? _stringOrNull(String key) {
     final value = _remoteConfig.getString(key).trim();
