@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/model/service/account/auth_account_sync_service.dart';
@@ -51,6 +52,7 @@ import 'package:iamhere/feature/user_permission/service/permission_service_inter
 import 'package:iamhere/feature/user_permission/view/page/permission_guide_page.dart';
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
+import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:iamhere/shell/theme_preference_service.dart';
 import 'package:iamhere/shell/view/native_app_shell.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
@@ -117,6 +119,7 @@ class _ShellAppState extends State<ShellApp> {
 
   late final GoRouter _router;
   late final AppLifecycleListener _lifecycleListener;
+  String? _lastAnalyticsScreenName;
   Timer? _deliveryRetryTimer;
   late final ProviderSubscription<int> _authInvalidationSubscription;
 
@@ -124,6 +127,8 @@ class _ShellAppState extends State<ShellApp> {
   void initState() {
     super.initState();
     _router = _createRouter();
+    _router.routeInformationProvider.addListener(_trackCurrentScreen);
+    _trackCurrentScreen();
     _authInvalidationSubscription = getIt<ProviderContainer>().listen(
       authInvalidationProvider,
       (previous, next) {
@@ -146,6 +151,7 @@ class _ShellAppState extends State<ShellApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_syncNativeGeofences());
       unawaited(_syncAuthAccount());
+      unawaited(_syncAnalyticsConsent());
     });
   }
 
@@ -155,6 +161,7 @@ class _ShellAppState extends State<ShellApp> {
     _stopDeliveryRetryTimer();
     _authInvalidationSubscription.close();
     _lifecycleListener.dispose();
+    _router.routeInformationProvider.removeListener(_trackCurrentScreen);
     _router.dispose();
     super.dispose();
   }
@@ -168,6 +175,49 @@ class _ShellAppState extends State<ShellApp> {
   void _stopDeliveryRetryTimer() {
     _deliveryRetryTimer?.cancel();
     _deliveryRetryTimer = null;
+  }
+
+  void _trackCurrentScreen() {
+    final path = _router.routeInformationProvider.value.uri.path;
+    final screenName = switch (path) {
+      '/' => 'Splash',
+      '/auth' => 'Authentication',
+      '/terms' => 'Terms',
+      '/permissions' => 'Permissions',
+      '/geofence' => 'GeofenceList',
+      '/geofence/message' => 'GeofenceCreate',
+      '/friend' => 'Friends',
+      '/friend/add' => 'FriendSearch',
+      '/friend/requests' => 'FriendRequests',
+      '/friend/restrictions' => 'FriendRestrictions',
+      '/record' => 'ActivityRecords',
+      '/record/notifications' => 'Notifications',
+      '/record/send-history' => 'SendHistory',
+      '/setting' => 'Settings',
+      '/setting/permissions' => 'PermissionSettings',
+      '/setting/agreements' => 'AgreementSettings',
+      _ when path.startsWith('/geofence/') && path.endsWith('/edit') =>
+        'GeofenceEdit',
+      _ when path.startsWith('/geofence/') => 'GeofenceDetail',
+      _ when path.startsWith('/friend/device-contact/') => 'DeviceContactEdit',
+      _ when path.startsWith('/record/notifications/') => 'NotificationDetail',
+      _ when path.startsWith('/record/send-history/') => 'SendHistoryDetail',
+      _ => null,
+    };
+    if (screenName == null || screenName == _lastAnalyticsScreenName) return;
+    _lastAnalyticsScreenName = screenName;
+    unawaited(_logAnalyticsScreen(screenName));
+  }
+
+  Future<void> _logAnalyticsScreen(String screenName) async {
+    try {
+      await FirebaseAnalytics.instance.logScreenView(
+        screenName: screenName,
+        screenClass: screenName,
+      );
+    } catch (error, stack) {
+      AppLogger.error('Analytics screen tracking failed', error, stack);
+    }
   }
 
   Future<void> _drainDeliveryQueue() async {
@@ -188,6 +238,33 @@ class _ShellAppState extends State<ShellApp> {
       await getIt<AuthAccountSyncService>().syncIfSignedIn();
     } catch (error, stack) {
       AppLogger.error('Auth account sync failed', error, stack);
+    }
+  }
+
+  Future<void> _syncAnalyticsConsent() async {
+    if (!widget.enablePush) return;
+    try {
+      final token = await _tokenStorage.getAccessToken();
+      final status = (await _tokenStorage.getUserStatus())?.toUpperCase();
+      final isActive = await _tokenStorage.getIsActive();
+      if (token == null ||
+          token.isEmpty ||
+          status != 'ACTIVE' ||
+          isActive == false) {
+        await FirebaseAnalyticsReporter().setConsent(false);
+        return;
+      }
+
+      final agreements = await _termsService.loadAgreements();
+      final analyticsConsentGranted = agreements.any(
+        (agreement) =>
+            agreement.term.isMarketing &&
+            agreement.isAgreed &&
+            !agreement.needsRenewal,
+      );
+      await FirebaseAnalyticsReporter().setConsent(analyticsConsentGranted);
+    } catch (error, stack) {
+      AppLogger.error('Analytics consent synchronization failed', error, stack);
     }
   }
 
@@ -478,6 +555,7 @@ class _ShellAppState extends State<ShellApp> {
 
   void _handleAuthenticated() {
     _router.refresh();
+    unawaited(_syncAnalyticsConsent());
   }
 
   Future<_Access> _readAccess() async {

@@ -45,6 +45,14 @@ class TermsAcceptanceViewModel extends _$TermsAcceptanceViewModel {
             )
             .toList(growable: false),
       );
+      final analyticsConsentGranted = terms.any(
+        (term) => term.isMarketing && agreedIds.contains(term.id),
+      );
+      try {
+        await _analytics.setConsent(analyticsConsentGranted);
+      } catch (error, stack) {
+        AppLogger.error('Analytics consent update failed', error, stack);
+      }
       final requiredCount = terms.where((term) => term.isRequired).length;
       final optionalCount = terms.length - requiredCount;
       try {

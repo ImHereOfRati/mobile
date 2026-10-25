@@ -3,6 +3,7 @@ import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/friend/model/dto/friend_request_dto.dart';
 import 'package:iamhere/feature/friend/model/service/friend_service.dart';
 import 'package:iamhere/feature/friend/model/type/friend_request_view_type.dart';
+import 'package:iamhere/feature/terms/viewmodel/terms_acceptance_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'friend_requests_view_model.g.dart';
@@ -46,6 +47,10 @@ class FriendRequestsViewModel extends _$FriendRequestsViewModel {
           ? _friends.accept(request.id)
           : _friends.reject(request.id));
       _drop(request);
+      await _log('friend_request_responded', {
+        'response': accept ? 'accepted' : 'rejected',
+        'request_type': _type.name,
+      });
       return accept ? '친구 요청을 수락했어요' : '친구 요청을 거절했어요';
     } catch (error, stack) {
       AppLogger.error('Friend request response failed', error, stack);
@@ -81,5 +86,15 @@ class FriendRequestsViewModel extends _$FriendRequestsViewModel {
     final current = state.value;
     if (current == null || !ref.mounted) return;
     state = AsyncData(current.removeWhere((item) => item.id == request.id));
+  }
+
+  Future<void> _log(String name, Map<String, Object> parameters) async {
+    try {
+      await ref
+          .read(authAnalyticsReporterProvider)
+          .logEvent(name, parameters: parameters);
+    } catch (error, stack) {
+      AppLogger.error('Friend request analytics failed', error, stack);
+    }
   }
 }

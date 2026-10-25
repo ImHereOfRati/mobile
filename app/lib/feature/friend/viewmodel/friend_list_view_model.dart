@@ -4,6 +4,7 @@ import 'package:iamhere/feature/friend/model/dto/friendship_dto.dart';
 import 'package:iamhere/feature/friend/model/repository/contact_entity.dart';
 import 'package:iamhere/feature/friend/model/service/device_contact_service.dart';
 import 'package:iamhere/feature/friend/model/service/friend_service.dart';
+import 'package:iamhere/feature/terms/viewmodel/terms_acceptance_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'friend_list_view_model.g.dart';
@@ -52,6 +53,7 @@ class FriendListViewModel extends _$FriendListViewModel {
       final contact = await _contacts.pick();
       if (contact == null) return '연락처를 추가하지 않았어요';
       await reloadContacts();
+      await _log('device_contact_added', const {'source': 'device_picker'});
       return '${contact.name} 연락처를 추가했어요';
     } catch (error, stack) {
       AppLogger.error('Contact import failed', error, stack);
@@ -116,10 +118,10 @@ class FriendListViewModel extends _$FriendListViewModel {
   }
 
   /// 성공하면 null, 실패하면 사용자에게 보여줄 메시지를 돌려준다.
-  Future<String?> notifyArrival(FriendshipDto friendship) => _run(
-    () => _friends.notifyArrival(friendship.friend.id),
-    '도착 알림을 보내지 못했어요',
-  );
+  Future<String?> notifyArrival(FriendshipDto friendship) => _run(() async {
+    await _friends.notifyArrival(friendship.friend.id);
+    await _log('friend_arrival_notification_sent');
+  }, '도착 알림을 보내지 못했어요');
 
   Future<String?> rename(FriendshipDto friendship, String alias) async {
     final trimmed = alias.trim();
@@ -198,6 +200,19 @@ class FriendListViewModel extends _$FriendListViewModel {
     } catch (error, stack) {
       AppLogger.error(failureMessage, error, stack);
       return failureMessage;
+    }
+  }
+
+  Future<void> _log(
+    String name, [
+    Map<String, Object> parameters = const {},
+  ]) async {
+    try {
+      await ref
+          .read(authAnalyticsReporterProvider)
+          .logEvent(name, parameters: parameters);
+    } catch (error, stack) {
+      AppLogger.error('Friend analytics failed', error, stack);
     }
   }
 }

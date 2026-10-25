@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/geofence/model/dto/place_search_result_dto.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
@@ -179,6 +181,9 @@ class GeofenceFormViewModel extends _$GeofenceFormViewModel {
   void toggleRecipient(RecipientOption option) {
     final current = state.value;
     if (current == null) return;
+    final currentlySelected = option.source == RecipientSource.device
+        ? current.draft.deviceContactIds.contains(option.key)
+        : current.draft.serverRecipientKeys.contains(option.key);
     Set<String> toggle(Set<String> keys) => keys.contains(option.key)
         ? ({...keys}..remove(option.key))
         : {...keys, option.key};
@@ -194,6 +199,12 @@ class GeofenceFormViewModel extends _$GeofenceFormViewModel {
         draft: draft,
         errors: _without(current.errors, GeofenceField.recipients),
       ),
+    );
+    unawaited(
+      _log('geofence_recipient_toggled', {
+        'recipient_source': option.source.name,
+        'selected': !currentlySelected ? 1 : 0,
+      }),
     );
   }
 
@@ -314,16 +325,17 @@ class GeofenceFormViewModel extends _$GeofenceFormViewModel {
   }
 
   Future<void> _logSaved(GeofenceDraft draft) async {
+    await _log('geofence_saved', {
+      'event_type': draft.eventType.name,
+      'mode': draft.id == null ? 'create' : 'edit',
+    });
+  }
+
+  Future<void> _log(String name, Map<String, Object> parameters) async {
     try {
       await ref
           .read(authAnalyticsReporterProvider)
-          .logEvent(
-            'geofence_saved',
-            parameters: {
-              'event_type': draft.eventType.name,
-              'mode': draft.id == null ? 'create' : 'edit',
-            },
-          );
+          .logEvent(name, parameters: parameters);
     } catch (error, stack) {
       AppLogger.error('Geofence analytics failed', error, stack);
     }
