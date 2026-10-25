@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/auth/viewmodel/sign_in_controller.dart';
+import 'package:iamhere/feature/auth/viewmodel/sign_in_view_model.dart';
 import 'package:iamhere/feature/auth/view/page/auth_page.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
@@ -24,9 +24,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          signInControllerProvider(
+          signInViewModelProvider(
             coordinator,
-          ).overrideWith(SignInController.new),
+          ).overrideWith(SignInViewModel.new),
         ],
         child: MaterialApp(
           theme: ImHereAppTheme.light,

@@ -1,10 +1,10 @@
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
-import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
+import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'terms_acceptance_controller.g.dart';
+part 'terms_acceptance_view_model.g.dart';
 
 @Riverpod(keepAlive: true)
 AnalyticsReporter authAnalyticsReporter(Ref ref) => FirebaseAnalyticsReporter();
@@ -21,7 +21,7 @@ class TermsAcceptanceState {
 }
 
 @riverpod
-class TermsAcceptanceController extends _$TermsAcceptanceController {
+class TermsAcceptanceViewModel extends _$TermsAcceptanceViewModel {
   late AuthService _authService;
   late AnalyticsReporter _analytics;
 

@@ -183,24 +183,3 @@ button.setting-item {
   font-weight: 400;
   text-align: left;
 }
-
-.setting-term-detail {
-  display: grid;
-  gap: var(--space-3);
-}
-
-.setting-term-detail h1 {
-  margin: 0;
-  font-size: var(--text-headline-large);
-}
-
-.setting-term-detail__meta {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--text-body-small);
-}
-
-.setting-term-detail__content {
-  white-space: pre-wrap;
-  line-height: var(--line-body-large);
-}

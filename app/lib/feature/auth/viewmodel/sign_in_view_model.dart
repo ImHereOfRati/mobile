@@ -4,7 +4,7 @@ import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'sign_in_controller.g.dart';
+part 'sign_in_view_model.g.dart';
 
 enum SignInStatus { idle, loading, authenticated, pending, failure }
 
@@ -18,7 +18,7 @@ class SignInState {
 }
 
 @riverpod
-class SignInController extends _$SignInController {
+class SignInViewModel extends _$SignInViewModel {
   late SocialLoginService _coordinator;
 
   @override

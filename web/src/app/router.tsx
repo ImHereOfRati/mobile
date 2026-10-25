@@ -14,8 +14,6 @@ const GeofencePage = lazy(() => import("@/pages/geofence/GeofencePage"));
 const FriendPage = lazy(() => import("@/pages/friend/FriendPage"));
 const RecordPage = lazy(() => import("@/pages/record/RecordPage"));
 const SettingPage = lazy(() => import("@/pages/setting/SettingPage"));
-const AgreementPage = lazy(() => import("@/pages/setting/AgreementPage"));
-const TermDetailPage = lazy(() => import("@/pages/setting/TermDetailPage"));
 const AutoSendReadinessPage = lazy(
   () => import("@/pages/setting/AutoSendReadinessPage"),
 );
@@ -95,14 +93,6 @@ export const appRoutes: RouteObject[] = [
           {
             path: "setting",
             element: <SettingPage />,
-          },
-          {
-            path: "setting/agreements",
-            element: <AgreementPage />,
-          },
-          {
-            path: "terms-detail/:termId",
-            element: <TermDetailPage />,
           },
           {
             path: "auto-send-readiness",

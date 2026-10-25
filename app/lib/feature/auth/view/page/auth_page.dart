@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
-import 'package:iamhere/feature/auth/viewmodel/sign_in_controller.dart';
+import 'package:iamhere/feature/auth/viewmodel/sign_in_view_model.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/feature/auth/view/widget/auth_story.dart';
 import 'package:iamhere/feature/auth/view/widget/oauth_button.dart';
@@ -60,7 +60,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(
-      signInControllerProvider(widget.authLoginCoordinator),
+      signInViewModelProvider(widget.authLoginCoordinator),
     );
     final busy = state.status == SignInStatus.loading;
     final error = state.status == SignInStatus.failure
@@ -108,9 +108,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
           }
         }
         final next = await ref
-            .read(
-              signInControllerProvider(widget.authLoginCoordinator).notifier,
-            )
+            .read(signInViewModelProvider(widget.authLoginCoordinator).notifier)
             .signIn(provider);
         if (!context.mounted) return;
         if (next == SignInStatus.pending) context.go('/terms');

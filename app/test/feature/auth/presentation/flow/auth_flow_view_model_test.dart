@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/core/result/result.dart';
 import 'package:iamhere/feature/auth/model/type/login_result.dart';
 import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
-import 'package:iamhere/feature/auth/viewmodel/sign_in_controller.dart';
-import 'package:iamhere/feature/auth/viewmodel/terms_acceptance_controller.dart';
+import 'package:iamhere/feature/auth/viewmodel/sign_in_view_model.dart';
+import 'package:iamhere/feature/terms/viewmodel/terms_acceptance_view_model.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
-import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
+import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 
 class _CoordinatorFake extends Fake implements SocialLoginService {
@@ -54,6 +54,8 @@ void main() {
       content: '내용',
       type: 'SERVICE',
       isRequired: true,
+      version: 1,
+      effectiveDate: '2026-01-01',
     ),
     const Term(
       id: 2,
@@ -61,6 +63,8 @@ void main() {
       content: '내용',
       type: 'MARKETING',
       isRequired: false,
+      version: 1,
+      effectiveDate: '2026-01-01',
     ),
   ];
 
@@ -72,15 +76,15 @@ void main() {
       );
       final container = ProviderContainer();
       addTearDown(container.dispose);
-      final controller = container.read(
-        signInControllerProvider(coordinator).notifier,
+      final viewModel = container.read(
+        signInViewModelProvider(coordinator).notifier,
       );
 
-      final result = await controller.signIn(OauthProvider.kakao);
+      final result = await viewModel.signIn(OauthProvider.kakao);
 
       expect(result, SignInStatus.failure);
-      expect(controller.state.status, SignInStatus.failure);
-      expect(controller.state.errorMessage, contains('다시 시도'));
+      expect(viewModel.state.status, SignInStatus.failure);
+      expect(viewModel.state.errorMessage, contains('다시 시도'));
     },
   );
 
@@ -97,14 +101,14 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    final controller = container.read(
-      termsAcceptanceControllerProvider(authService).notifier,
+    final viewModel = container.read(
+      termsAcceptanceViewModelProvider(authService).notifier,
     );
 
-    final result = await controller.accept(terms, {1});
+    final result = await viewModel.accept(terms, {1});
 
     expect(result, isTrue);
-    expect(controller.state.status, TermsAcceptanceStatus.completed);
+    expect(viewModel.state.status, TermsAcceptanceStatus.completed);
     expect(submitted, [
       {'id': 1, 'agreed': true},
       {'id': 2, 'agreed': false},
@@ -119,15 +123,15 @@ void main() {
       );
       final container = ProviderContainer();
       addTearDown(container.dispose);
-      final controller = container.read(
-        termsAcceptanceControllerProvider(authService).notifier,
+      final viewModel = container.read(
+        termsAcceptanceViewModelProvider(authService).notifier,
       );
 
-      final result = await controller.accept(terms, {1});
+      final result = await viewModel.accept(terms, {1});
 
       expect(result, isFalse);
-      expect(controller.state.status, TermsAcceptanceStatus.failure);
-      expect(controller.state.errorMessage, contains('다시 시도'));
+      expect(viewModel.state.status, TermsAcceptanceStatus.failure);
+      expect(viewModel.state.errorMessage, contains('다시 시도'));
     },
   );
 }

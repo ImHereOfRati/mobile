@@ -16,7 +16,6 @@ import {
   TextField,
   useTheme,
 } from "@/design-system";
-import { loadTerms, type Term } from "./terms-service";
 import { formatActivityTime } from "@/pages/record/record-model";
 
 import { settingService, SUPPORT_URL, type UserMe } from "./setting-service";
@@ -36,7 +35,6 @@ export default function SettingPage() {
   const [appInfo, setAppInfo] = useState<AppInfo>();
   const [readiness, setReadiness] = useState<Readiness>();
   const [lastRecord, setLastRecord] = useState<Record>();
-  const [terms, setTerms] = useState<Term[]>([]);
   const [contactAccess, setContactAccess] = useState(false);
   const [status, setStatus] = useState("설정 정보를 불러오는 중입니다.");
   const [confirmation, setConfirmation] = useState<
@@ -71,7 +69,6 @@ export default function SettingPage() {
   useEffect(() => {
     void Promise.allSettled([
       settingService.me(api).then(setMe),
-      loadTerms(api).then(setTerms),
       Promise.resolve().then(refreshNative),
     ]).then((results) => {
       setStatus(
@@ -245,26 +242,6 @@ export default function SettingPage() {
           일부 기기의 제조사 절전 설정은 자동 전송을 막을 수 있습니다. 전송이
           누락되면 절전 설정에서 ImHere를 제외해 주세요.
         </p>
-      </SettingsGroup>
-
-      <SettingsGroup title="서비스 약관">
-        <SettingsRow
-          label="약관 동의 관리"
-          detail="동의 내역 보기"
-          onClick={() => navigate("/setting/agreements")}
-        />
-        {terms.length === 0 ? (
-          <SettingsRow label="표시할 약관이 없습니다." />
-        ) : (
-          terms.map((term) => (
-            <SettingsRow
-              key={term.id}
-              label={term.title}
-              detail="보기"
-              onClick={() => navigate(`/terms-detail/${term.id}`)}
-            />
-          ))
-        )}
       </SettingsGroup>
 
       <SettingsGroup title="고객 지원">

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/components/components.dart';
-import 'package:iamhere/feature/auth/viewmodel/active_terms_provider.dart';
-import 'package:iamhere/feature/auth/viewmodel/terms_acceptance_controller.dart';
-import 'package:iamhere/feature/auth/view/page/terms_page.dart';
+import 'package:iamhere/feature/terms/viewmodel/active_terms_provider.dart';
+import 'package:iamhere/feature/terms/viewmodel/terms_acceptance_view_model.dart';
+import 'package:iamhere/feature/terms/view/page/terms_page.dart';
 import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
-import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
+import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
 
@@ -37,6 +37,8 @@ void main() {
       content: '필수 약관 내용',
       type: 'SERVICE',
       isRequired: true,
+      version: 1,
+      effectiveDate: '2026-01-01',
     ),
     Term(
       id: 2,
@@ -44,6 +46,8 @@ void main() {
       content: '선택 약관 내용',
       type: 'MARKETING',
       isRequired: false,
+      version: 1,
+      effectiveDate: '2026-01-01',
     ),
   ];
 
@@ -58,9 +62,9 @@ void main() {
       ProviderScope(
         overrides: [
           activeTermsProvider(termsService).overrideWith((ref) => loadTerms()),
-          termsAcceptanceControllerProvider(
+          termsAcceptanceViewModelProvider(
             authService,
-          ).overrideWith(TermsAcceptanceController.new),
+          ).overrideWith(TermsAcceptanceViewModel.new),
           authAnalyticsReporterProvider.overrideWith((ref) => _AnalyticsFake()),
         ],
         child: MaterialApp(

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/feature/auth/view/page/auth_page.dart';
-import 'package:iamhere/feature/auth/view/page/terms_page.dart';
+import 'package:iamhere/feature/terms/view/page/terms_page.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
-import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
+import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
 
 class AuthFlowApp extends StatefulWidget {

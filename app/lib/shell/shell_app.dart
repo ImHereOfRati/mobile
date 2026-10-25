@@ -9,7 +9,7 @@ import 'package:iamhere/feature/auth/viewmodel/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
-import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
+import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/feature/auth/view/auth_flow_app.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
