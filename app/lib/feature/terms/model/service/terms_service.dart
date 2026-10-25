@@ -51,14 +51,6 @@ class TermsService {
     ];
   }
 
-  Future<Term?> findTerm(int termId) async {
-    final terms = await _repository.fetchActiveTerms();
-    for (final term in terms) {
-      if (term.id == termId) return term;
-    }
-    return null;
-  }
-
   Future<void> consent(Term term) => _repository.consent(term.id);
 
   Future<void> consentToRenewal(Term term) =>

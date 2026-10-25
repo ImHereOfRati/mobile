@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/feature/setting/view/widget/term_requirement_badge.dart';
+import 'package:iamhere/feature/terms/view/widget/term_content_sheet.dart';
 import 'package:iamhere/feature/setting/viewmodel/agreements_view_model.dart';
 
 class AgreementsPage extends ConsumerWidget {
@@ -150,8 +150,8 @@ class _AgreementCard extends StatelessWidget {
               ImHereButton(
                 label: '약관 보기',
                 tone: ImHereButtonTone.ghost,
-                size: ImHereButtonSize.sm,
-                onPressed: () => context.push('/setting/agreements/${term.id}'),
+                size: ImHereButtonSize.xs,
+                onPressed: () => _viewTerm(context),
               ),
               const Spacer(),
               ?_action(),
@@ -167,6 +167,17 @@ class _AgreementCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// 약관 전문은 화면을 옮기지 않고 팝업으로 보여 준다.
+  /// 아직 동의하지 않은 약관은 팝업에서 바로 동의할 수 있다.
+  Future<void> _viewTerm(BuildContext context) async {
+    final agreed = await showTermContentSheet(
+      context,
+      item.term,
+      agreed: item.isAgreed,
+    );
+    if (agreed == true) onChange(_AgreementAction.agree);
   }
 
   Widget _statusBadge() {
@@ -196,14 +207,14 @@ class _AgreementCard extends StatelessWidget {
     if (item.needsRenewal) {
       return ImHereButton(
         label: '개정 약관 재동의',
-        size: ImHereButtonSize.sm,
+        size: ImHereButtonSize.xs,
         onPressed: () => onChange(_AgreementAction.renew),
       );
     }
     if (!item.isAgreed) {
       return ImHereButton(
         label: '동의하기',
-        size: ImHereButtonSize.sm,
+        size: ImHereButtonSize.xs,
         onPressed: () => onChange(_AgreementAction.agree),
       );
     }
@@ -211,7 +222,7 @@ class _AgreementCard extends StatelessWidget {
       return ImHereButton(
         label: '동의 철회',
         tone: ImHereButtonTone.quiet,
-        size: ImHereButtonSize.sm,
+        size: ImHereButtonSize.xs,
         onPressed: () => onChange(_AgreementAction.withdraw),
       );
     }
