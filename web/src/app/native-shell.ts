@@ -26,7 +26,6 @@ export function getNativePageTitle(path: string) {
   if (/^\/record\/send-history\/[^/]+$/.test(path)) return "전송 기록 상세";
   if (path === "/record/send-history") return "전송 기록";
   if (path.startsWith("/record")) return "기록";
-  if (path === "/setting") return "설정";
   return "ImHere";
 }
 

@@ -13,7 +13,6 @@ import { RouteErrorFallback } from "@/app/RouteErrorFallback";
 const GeofencePage = lazy(() => import("@/pages/geofence/GeofencePage"));
 const FriendPage = lazy(() => import("@/pages/friend/FriendPage"));
 const RecordPage = lazy(() => import("@/pages/record/RecordPage"));
-const SettingPage = lazy(() => import("@/pages/setting/SettingPage"));
 const AutoSendReadinessPage = lazy(
   () => import("@/pages/setting/AutoSendReadinessPage"),
 );
@@ -89,10 +88,6 @@ export const appRoutes: RouteObject[] = [
           {
             path: "record/send-history/:recordId",
             element: <RecordPage screen="sendHistoryDetail" />,
-          },
-          {
-            path: "setting",
-            element: <SettingPage />,
           },
           {
             path: "auto-send-readiness",

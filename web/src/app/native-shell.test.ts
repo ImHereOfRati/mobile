@@ -8,7 +8,6 @@ describe("native shell metadata", () => {
     ["/geofence/message", "장소 추가"],
     ["/friend/requests", "친구 요청"],
     ["/record/notifications/7", "받은 알림 상세"],
-    ["/setting", "설정"],
   ])("maps %s to %s", (path, title) => {
     expect(getNativePageTitle(path)).toBe(title);
   });
