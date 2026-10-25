@@ -74,8 +74,12 @@ class _Labeled extends StatelessWidget {
     required this.onTap,
     required this.semantics,
     required this.control,
+    this.action,
+    this.prefix,
   });
   final String label;
+  final Widget? action;
+  final Widget? prefix;
   final VoidCallback? onTap;
   final Semantics Function(Widget child) semantics;
   final Widget control;
@@ -91,12 +95,20 @@ class _Labeled extends StatelessWidget {
           constraints: BoxConstraints(minHeight: metrics.touchTarget),
           child: Row(
             children: [
+              if (prefix != null) ...[
+                prefix!,
+                SizedBox(width: metrics.resolve(ImHereSpace.xs)),
+              ],
               Expanded(
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
+              if (action != null) ...[
+                SizedBox(width: metrics.resolve(ImHereSpace.xs)),
+                action!,
+              ],
               SizedBox(width: metrics.resolve(ImHereSpace.md)),
               control,
             ],
@@ -171,10 +183,19 @@ class ImHereCheckbox extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onChanged,
+    this.action,
+    this.prefix,
   });
   final String label;
   final bool value;
   final ValueChanged<bool>? onChanged;
+
+  /// Secondary control shown beside the label (e.g. a "view" link). Taps on it
+  /// do not toggle the checkbox.
+  final Widget? action;
+
+  /// Short marker shown before the label (e.g. a required/optional tag).
+  final Widget? prefix;
 
   @override
   Widget build(BuildContext context) {
@@ -183,6 +204,8 @@ class ImHereCheckbox extends StatelessWidget {
     final enabled = onChanged != null;
     return _Labeled(
       label: label,
+      action: action,
+      prefix: prefix,
       onTap: enabled ? () => onChanged!(!value) : null,
       semantics: (child) => Semantics(
         checked: value,

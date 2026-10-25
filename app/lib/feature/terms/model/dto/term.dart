@@ -19,6 +19,11 @@ class Term {
 
   bool get isMarketing => type == 'MARKETING';
 
+  /// 시행일을 일 단위(yyyy-MM-dd)까지만 보여 준다. 비교에는 [effectiveDate] 원본을 쓴다.
+  String get effectiveDay => effectiveDate.length >= 10
+      ? effectiveDate.substring(0, 10)
+      : effectiveDate;
+
   factory Term.fromJson(Map<String, dynamic> json) => Term(
     id: (json['id'] as num).toInt(),
     title: json['title'] as String? ?? '',

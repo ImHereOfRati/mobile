@@ -94,9 +94,9 @@ void main() {
 
       final submit = find.widgetWithText(ImHereButton, '동의하고 계속하기');
       expect(tester.widget<ImHereButton>(submit).onPressed, isNull);
-      expect(find.text('동의하지 않아도 서비스를 이용할 수 있어요.'), findsOneWidget);
+      expect(find.text('전체 동의 (선택 포함)'), findsOneWidget);
 
-      await tester.tap(find.text('필수 약관 모두 동의'));
+      await tester.tap(find.text('이용약관'));
       await tester.pump();
       expect(tester.widget<ImHereButton>(submit).onPressed, isNotNull);
 
@@ -111,6 +111,48 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('agree to all submits optional terms as agreed', (tester) async {
+    final authService = _AuthServiceFake();
+    await pumpTermsPage(
+      tester,
+      authService: authService,
+      loadTerms: () async => terms,
+      onDone: () {},
+    );
+
+    await tester.tap(find.text('전체 동의 (선택 포함)'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(ImHereButton, '동의하고 계속하기'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(authService.submitted, [
+      {'id': 1, 'agreed': true},
+      {'id': 2, 'agreed': true},
+    ]);
+  });
+
+  testWidgets('a term is agreed only after confirming in its sheet', (
+    tester,
+  ) async {
+    await pumpTermsPage(
+      tester,
+      authService: _AuthServiceFake(),
+      loadTerms: () async => terms,
+      onDone: () {},
+    );
+
+    await tester.tap(find.byTooltip('이용약관 보기'));
+    await tester.pumpAndSettle();
+    expect(find.text('필수 약관 내용'), findsOneWidget);
+    final submit = find.widgetWithText(ImHereButton, '동의하고 계속하기');
+    expect(tester.widget<ImHereButton>(submit).onPressed, isNull);
+
+    await tester.tap(find.widgetWithText(ImHereButton, '동의하기'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<ImHereButton>(submit).onPressed, isNotNull);
+  });
 
   testWidgets('load error offers retry without exposing the exception', (
     tester,
@@ -131,7 +173,7 @@ void main() {
     await tester.tap(find.text('다시 시도'));
     await tester.pump();
     await tester.pump();
-    expect(find.text('약관을 확인해 주세요'), findsOneWidget);
+    expect(find.textContaining('약관에 동의해 주세요'), findsOneWidget);
     expect(attempts, 2);
     expect(tester.takeException(), isNull);
   });

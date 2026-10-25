@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/feature/terms/view/page/term_detail_page.dart';
+import 'package:iamhere/feature/terms/view/widget/term_requirement_badge.dart';
 import 'package:iamhere/feature/terms/viewmodel/agreements_view_model.dart';
 
 class AgreementsPage extends ConsumerWidget {
@@ -67,16 +68,18 @@ class _AgreementList extends ConsumerWidget {
     return ListView(
       padding: EdgeInsets.fromLTRB(
         metrics.resolve(ImHereSpace.gutter),
-        metrics.resolve(ImHereSpace.md),
+        metrics.resolve(ImHereSpace.lg),
         metrics.resolve(ImHereSpace.gutter),
         metrics.resolve(ImHereSpace.xl),
       ),
       children: [
+        Text('동의 내역', style: textTheme.titleLarge),
+        SizedBox(height: metrics.resolve(ImHereSpace.xs)),
         Text(
-          '동의한 약관을 확인하고 선택 약관의 동의를 변경할 수 있어요.',
+          '동의한 약관을 확인하고 선택 약관의 동의를 바꿀 수 있어요.',
           style: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
         ),
-        SizedBox(height: metrics.resolve(ImHereSpace.md)),
+        SizedBox(height: metrics.resolve(ImHereSpace.lg)),
         for (final item in items) ...[
           _AgreementCard(
             item: item,
@@ -138,10 +141,6 @@ class _AgreementCard extends StatelessWidget {
     final metrics = ImHereMetrics.of(context);
     final textTheme = Theme.of(context).textTheme;
     final colors = ImHereColors.of(context);
-    final agreedDate = item.latest?.occurredAt;
-    final status = item.isAgreed
-        ? '${agreedDate != null && agreedDate.length >= 10 ? agreedDate.substring(0, 10) : ''} 동의'
-        : '동의하지 않음';
 
     return ImHereSurface(
       child: Column(
@@ -150,27 +149,23 @@ class _AgreementCard extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text(term.title, style: textTheme.titleSmall)),
-              ImHereBadge(
-                label: term.isRequired ? '필수' : '선택',
-                tone: term.isRequired
-                    ? ImHereBadgeTone.action
-                    : ImHereBadgeTone.neutral,
-              ),
+              SizedBox(width: metrics.resolve(ImHereSpace.xs)),
+              TermRequirementBadge(isRequired: term.isRequired),
+              SizedBox(width: metrics.resolve(ImHereSpace.xxs)),
+              _statusBadge(),
             ],
           ),
           SizedBox(height: metrics.resolve(ImHereSpace.xxs)),
           Text(
-            '$status · v${term.version}',
-            style: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
+            _description(),
+            style: textTheme.bodySmall?.copyWith(color: colors.textMuted),
           ),
           SizedBox(height: metrics.resolve(ImHereSpace.sm)),
-          Wrap(
-            spacing: metrics.resolve(ImHereSpace.xs),
-            runSpacing: metrics.resolve(ImHereSpace.xs),
+          Row(
             children: [
               ImHereButton(
                 label: '약관 보기',
-                tone: ImHereButtonTone.weak,
+                tone: ImHereButtonTone.ghost,
                 size: ImHereButtonSize.sm,
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
@@ -181,29 +176,12 @@ class _AgreementCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (item.needsRenewal)
-                ImHereButton(
-                  label: '개정 약관 재동의',
-                  size: ImHereButtonSize.sm,
-                  onPressed: () => onChange(_AgreementAction.renew),
-                ),
-              if (!item.isAgreed)
-                ImHereButton(
-                  label: '동의하기',
-                  size: ImHereButtonSize.sm,
-                  onPressed: () => onChange(_AgreementAction.agree),
-                ),
-              if (item.isAgreed && !term.isRequired)
-                ImHereButton(
-                  label: '동의 철회',
-                  tone: ImHereButtonTone.danger,
-                  size: ImHereButtonSize.sm,
-                  onPressed: () => onChange(_AgreementAction.withdraw),
-                ),
+              const Spacer(),
+              ?_action(),
             ],
           ),
           if (item.isAgreed && term.isRequired) ...[
-            SizedBox(height: metrics.resolve(ImHereSpace.sm)),
+            SizedBox(height: metrics.resolve(ImHereSpace.xs)),
             Text(
               '필수 약관은 서비스 이용에 필요해 철회할 수 없어요. 회원 탈퇴로만 동의를 거둘 수 있어요.',
               style: textTheme.bodySmall?.copyWith(color: colors.textMuted),
@@ -212,5 +190,54 @@ class _AgreementCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _statusBadge() {
+    if (item.needsRenewal) {
+      return const ImHereBadge(
+        label: '재동의 필요',
+        tone: ImHereBadgeTone.warning,
+        size: ImHereBadgeSize.medium,
+      );
+    }
+    return ImHereBadge(
+      label: item.isAgreed ? '동의함' : '동의 안 함',
+      tone: item.isAgreed ? ImHereBadgeTone.success : ImHereBadgeTone.neutral,
+      size: ImHereBadgeSize.medium,
+    );
+  }
+
+  String _description() {
+    final at = item.latest?.occurredAt;
+    final date = at != null && at.length >= 10 ? at.substring(0, 10) : null;
+    final version = 'v${item.term.version}';
+    return item.isAgreed && date != null ? '$date 동의 · $version' : version;
+  }
+
+  /// 카드마다 강조 버튼은 하나만 둔다.
+  Widget? _action() {
+    if (item.needsRenewal) {
+      return ImHereButton(
+        label: '개정 약관 재동의',
+        size: ImHereButtonSize.sm,
+        onPressed: () => onChange(_AgreementAction.renew),
+      );
+    }
+    if (!item.isAgreed) {
+      return ImHereButton(
+        label: '동의하기',
+        size: ImHereButtonSize.sm,
+        onPressed: () => onChange(_AgreementAction.agree),
+      );
+    }
+    if (!item.term.isRequired) {
+      return ImHereButton(
+        label: '동의 철회',
+        tone: ImHereButtonTone.quiet,
+        size: ImHereButtonSize.sm,
+        onPressed: () => onChange(_AgreementAction.withdraw),
+      );
+    }
+    return null;
   }
 }
