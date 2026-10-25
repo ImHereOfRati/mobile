@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/core/util/app_logger.dart';
@@ -11,13 +12,24 @@ import 'package:iamhere/feature/auth/viewmodel/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
-import 'package:iamhere/feature/setting/service/setting_status_service_interface.dart';
-import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
+import 'package:iamhere/feature/setting/model/service/setting_status_service_interface.dart';
+import 'package:iamhere/feature/setting/model/service/user_me_service_interface.dart';
 import 'package:iamhere/feature/setting/view/page/setting_page.dart';
 import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/feature/setting/view/page/agreements_page.dart';
-import 'package:iamhere/feature/setting/view/page/term_detail_page.dart';
 import 'package:iamhere/feature/terms/view/page/terms_page.dart';
+import 'package:iamhere/feature/friend/model/service/device_contact_service.dart';
+import 'package:iamhere/feature/friend/model/service/friend_service.dart';
+import 'package:iamhere/feature/friend/view/page/device_contact_edit_page.dart';
+import 'package:iamhere/feature/friend/view/page/friend_page.dart';
+import 'package:iamhere/feature/friend/view/page/friend_requests_page.dart';
+import 'package:iamhere/feature/friend/view/page/friend_restrictions_page.dart';
+import 'package:iamhere/feature/record/model/service/activity_log_service.dart';
+import 'package:iamhere/feature/record/model/service/server_notification_service.dart';
+import 'package:iamhere/feature/record/view/page/record_detail_pages.dart';
+import 'package:iamhere/feature/record/view/page/record_page.dart';
+import 'package:iamhere/feature/record/view/page/send_history_page.dart';
+import 'package:iamhere/feature/record/view/page/server_notifications_page.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
@@ -25,6 +37,7 @@ import 'package:iamhere/feature/geofence/model/missing_background_location_excep
 import 'package:iamhere/feature/geofence/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/user_permission/service/locate_permission_service.dart';
 import 'package:iamhere/feature/user_permission/service/permission_guide_service.dart';
+import 'package:iamhere/feature/user_permission/service/permission_onboarding_service.dart';
 import 'package:iamhere/feature/user_permission/service/permission_service_interface.dart';
 import 'package:iamhere/feature/user_permission/view/page/permission_guide_page.dart';
 import 'package:iamhere/core/di/di_setup.dart';
@@ -83,10 +96,19 @@ class _ShellAppState extends State<ShellApp> {
       instanceName: 'batteryOptimization',
     ),
     contacts: getIt<PermissionServiceInterface>(instanceName: 'friend'),
+    notificationAvailable: widget.enablePush,
   );
+  final _onboarding = PermissionOnboardingService(
+    getIt<FlutterSecureStorage>(),
+  );
+  bool _onboardingDone = false;
   final _loginCoordinator = getIt<SocialLoginService>();
   final _userMeService = getIt<UserMeServiceInterface>();
   final _statusService = getIt<SettingStatusServiceInterface>();
+  final _friendService = getIt<FriendService>();
+  final _contactService = getIt<DeviceContactService>();
+  final _activityLog = getIt<ActivityLogService>();
+  final _serverNotifications = getIt<ServerNotificationService>();
 
   final StreamController<String> _webPaths =
       StreamController<String>.broadcast();
@@ -199,18 +221,6 @@ class _ShellAppState extends State<ShellApp> {
           builder: (_, __) => AuthPage(
             authLoginCoordinator: _loginCoordinator,
             onAuthenticated: _handleAuthenticated,
-            requestLocationPermission: () async {
-              await getIt<PermissionServiceInterface>(
-                instanceName: 'location',
-              ).requestPermission();
-            },
-            requestNotificationPermission: widget.enablePush
-                ? () async {
-                    await getIt<PermissionServiceInterface>(
-                      instanceName: 'fcmAlert',
-                    ).requestPermission();
-                  }
-                : null,
           ),
         ),
         GoRoute(
@@ -218,14 +228,14 @@ class _ShellAppState extends State<ShellApp> {
           builder: (_, __) => TermsPage(
             authService: _authService,
             termsService: _termsService,
-            onDone: _handleTermsAccepted,
+            onDone: _handleAuthenticated,
           ),
         ),
         GoRoute(
           path: '/permissions',
           builder: (_, __) => PermissionGuidePage(
             service: _permissionGuideService,
-            onDone: () => _router.go(_webPath),
+            onDone: _completeOnboarding,
           ),
         ),
         ShellRoute(
@@ -253,24 +263,96 @@ class _ShellAppState extends State<ShellApp> {
                   path: 'agreements',
                   builder: (_, __) =>
                       AgreementsPage(termsService: _termsService),
-                  routes: [
-                    GoRoute(
-                      path: ':termId',
-                      builder: (_, state) => TermDetailPage(
-                        termsService: _termsService,
-                        termId:
-                            int.tryParse(state.pathParameters['termId']!) ?? -1,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
+            ..._friendRoutes(),
+            ..._recordRoutes(),
           ],
         ),
       ],
     );
   }
+
+  // 하위 화면은 위로 쌓지 않고 같은 단계의 형제 라우트로 둔다. 어느 화면에서
+  // 들어와도 아래에 엉뚱한 목록 화면이 깔리지 않게 하기 위해서다. 뒤로 가기는
+  // _backFromNative가 부모 경로로 돌려보낸다.
+  List<RouteBase> _friendRoutes() => [
+    GoRoute(
+      path: '/friend',
+      pageBuilder: (_, __) => NoTransitionPage(child: _friendPage()),
+    ),
+    GoRoute(
+      path: '/friend/add',
+      builder: (_, __) => _friendPage(finderInitiallyOpen: true),
+    ),
+    GoRoute(
+      path: '/friend/requests',
+      builder: (_, __) => FriendRequestsPage(friendService: _friendService),
+    ),
+    GoRoute(
+      path: '/friend/restrictions',
+      builder: (_, __) => FriendRestrictionsPage(friendService: _friendService),
+    ),
+    GoRoute(
+      path: '/friend/device-contact/:contactId/edit',
+      builder: (_, state) => DeviceContactEditPage(
+        friendService: _friendService,
+        contactService: _contactService,
+        contactId: int.tryParse(state.pathParameters['contactId']!) ?? -1,
+      ),
+    ),
+  ];
+
+  List<RouteBase> _recordRoutes() => [
+    GoRoute(
+      path: '/record',
+      pageBuilder: (_, __) => NoTransitionPage(
+        child: RecordPage(
+          activityLog: _activityLog,
+          friendService: _friendService,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/record/notifications',
+      builder: (_, __) =>
+          ServerNotificationsPage(service: _serverNotifications),
+    ),
+    GoRoute(
+      path: '/record/notifications/:id',
+      builder: (_, state) => NotificationDetailPage(
+        activityLog: _activityLog,
+        notificationId: int.tryParse(state.pathParameters['id']!) ?? -1,
+      ),
+    ),
+    GoRoute(
+      path: '/record/send-history',
+      builder: (_, __) => SendHistoryPage(activityLog: _activityLog),
+    ),
+    GoRoute(
+      path: '/record/send-history/:id',
+      builder: (_, state) => SendHistoryDetailPage(
+        activityLog: _activityLog,
+        recordId: int.tryParse(state.pathParameters['id']!) ?? -1,
+      ),
+    ),
+    // 예전 웹 경로. 푸시 알림에 남아 있을 수 있어 새 경로로 돌려보낸다.
+    GoRoute(
+      path: '/record/friend-requests',
+      redirect: (_, __) => '/friend/requests',
+    ),
+    GoRoute(
+      path: '/record/server-notifications',
+      redirect: (_, __) => '/record/notifications',
+    ),
+  ];
+
+  Widget _friendPage({bool finderInitiallyOpen = false}) => FriendPage(
+    friendService: _friendService,
+    contactService: _contactService,
+    finderInitiallyOpen: finderInitiallyOpen,
+  );
 
   Widget _settingPage() => SettingPage(
     userMeService: _userMeService,
@@ -278,7 +360,7 @@ class _ShellAppState extends State<ShellApp> {
     statusService: _statusService,
     themeMode: widget.themeMode,
     saveTheme: widget.saveTheme ?? ThemePreferenceService().save,
-    onOpenSendHistory: () => _openWeb('/record/send-history'),
+    onOpenSendHistory: () => _router.push('/record/send-history'),
     onOpenAgreements: () => _router.push('/setting/agreements'),
     onOpenPermissionGuide: () => _router.push('/setting/permissions'),
   );
@@ -313,9 +395,10 @@ class _ShellAppState extends State<ShellApp> {
   void _backFromNative() {
     if (_router.canPop()) {
       _router.pop();
-    } else {
-      _router.go(_settingPath);
+      return;
     }
+    final current = _router.routeInformationProvider.value.uri.path;
+    _router.go(NativeShellPage.parentOf(current) ?? _settingPath);
   }
 
   /// 푸시 알림이나 설정 화면에서 온 경로를 앱 화면과 웹 화면으로 나눠 연다.
@@ -333,10 +416,38 @@ class _ShellAppState extends State<ShellApp> {
     _webPaths.add(path);
   }
 
-  /// 약관에 동의한 신규 회원은 웹으로 들어가기 전에 권한 안내를 거친다.
-  void _handleTermsAccepted() {
-    _webUrl = widget.webUrlResolver.resolve();
-    _router.go('/permissions');
+  /// 권한 안내를 마치거나 건너뛰면 다시 띄우지 않고 앱으로 들어간다.
+  Future<void> _completeOnboarding() async {
+    try {
+      await _onboarding.markCompleted();
+    } catch (error, stack) {
+      AppLogger.error('Permission onboarding flag write failed', error, stack);
+    }
+    _onboardingDone = true;
+    _router.go('/');
+  }
+
+  /// 권한 안내를 더 보여 주지 않아도 되는지 확인한다.
+  ///
+  /// 이 기기에서 이미 안내를 마쳤거나, 안내할 권한이 모두 허용돼 있으면
+  /// 안내 화면을 건너뛴다.
+  Future<bool> _isOnboardingDone() async {
+    if (_onboardingDone) return true;
+    var done = await _onboarding.isCompleted();
+    if (!done && await _allPermissionsGranted()) {
+      await _onboarding.markCompleted();
+      done = true;
+    }
+    return _onboardingDone = done;
+  }
+
+  Future<bool> _allPermissionsGranted() async {
+    try {
+      return await _permissionGuideService.areAllGranted();
+    } catch (error, stack) {
+      AppLogger.error('Permission status check failed', error, stack);
+      return false;
+    }
   }
 
   void _handleAuthenticated() {
@@ -355,6 +466,15 @@ class _ShellAppState extends State<ShellApp> {
     return _Access.active;
   }
 
+  /// 로그인을 마친 사용자는 권한 안내가 필요하면 먼저 거치고, 그 뒤에 앱으로 들어간다.
+  Future<String?> _activeRedirect(String location) async {
+    if (!await _isOnboardingDone()) {
+      return location == '/permissions' ? null : '/permissions';
+    }
+    const entryPaths = {'/', '/auth', '/terms', '/permissions'};
+    return entryPaths.contains(location) ? _webPath : null;
+  }
+
   Future<String?> _redirect(BuildContext context, GoRouterState state) async {
     final location = state.matchedLocation;
     if (location == '/error') return null;
@@ -363,10 +483,7 @@ class _ShellAppState extends State<ShellApp> {
         _Access.signedOut => location == '/auth' ? null : '/auth',
         _Access.pendingTerms =>
           location == '/auth' || location == '/terms' ? null : '/terms',
-        _Access.active =>
-          location == '/' || location == '/auth' || location == '/terms'
-              ? _webPath
-              : null,
+        _Access.active => await _activeRedirect(location),
       };
     } catch (error, stack) {
       AppLogger.error('Auth state resolution failed', error, stack);

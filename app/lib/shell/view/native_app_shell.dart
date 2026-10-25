@@ -23,7 +23,7 @@ class NativeShellPage {
       final value when value.startsWith('/geofence') => NativeShellTab.geofence,
       final value when value.startsWith('/friend') => NativeShellTab.friend,
       final value when value.startsWith('/record') => NativeShellTab.record,
-      final value when isNativePath(value) => NativeShellTab.setting,
+      final value when value.startsWith('/setting') => NativeShellTab.setting,
       _ => null,
     };
 
@@ -38,13 +38,27 @@ class NativeShellPage {
 
   static const _mainPaths = {'/geofence', '/friend', '/record', '/setting'};
 
-  /// 하위 화면이면 제목 바를 그리지만, 앱이 직접 그리는 화면은 자체 제목 바를
-  /// 가지므로 셸은 로고 헤더를 유지한다.
-  bool get showAppHeader => !showBackButton || isNativePath(path);
+  /// 탭의 첫 화면은 로고 헤더를, 하위 화면은 제목과 뒤로 가기가 있는 제목 바를
+  /// 그린다. 설정의 하위 화면은 로고 헤더를 그대로 유지한다.
+  bool get showAppHeader => !showBackButton || path.startsWith('/setting');
 
-  /// 웹이 아니라 앱이 직접 그리는 경로.
+  static const _nativeRoots = ['/setting', '/friend', '/record'];
+
+  /// 웹이 아니라 앱이 직접 그리는 경로. 웹에는 장소(/geofence)만 남아 있다.
   static bool isNativePath(String path) =>
-      path == '/setting' || path.startsWith('/setting/');
+      _nativeRoots.any((root) => path == root || path.startsWith('$root/'));
+
+  /// 뒤로 갈 때 돌아갈 상위 경로. 최상위 탭이면 null.
+  static String? parentOf(String path) {
+    final normalized = _normalizePath(path);
+    if (_mainPaths.contains(normalized)) return null;
+    if (RegExp(r'^/friend/device-contact/[^/]+/edit$').hasMatch(normalized)) {
+      return '/friend';
+    }
+    final segments = normalized.split('/')..removeWhere((part) => part.isEmpty);
+    if (segments.length <= 1) return null;
+    return '/${segments.take(segments.length - 1).join('/')}';
+  }
 
   static String _normalizePath(String location) {
     final parsed = Uri.tryParse(location);
@@ -69,12 +83,14 @@ class NativeShellPage {
     if (path == '/friend/add') return '친구 추가';
     if (path == '/friend/requests') return '친구 요청';
     if (path == '/friend/restrictions') return '차단·거절 관리';
+    if (RegExp(r'^/friend/device-contact/[^/]+/edit$').hasMatch(path)) {
+      return '연락처 수정';
+    }
     if (path.startsWith('/friend')) return '친구';
     if (RegExp(r'^/record/notifications/[^/]+$').hasMatch(path)) {
       return '받은 알림 상세';
     }
     if (path == '/record/notifications') return '받은 알림';
-    if (path == '/record/friend-requests') return '친구 요청 기록';
     if (RegExp(r'^/record/send-history/[^/]+$').hasMatch(path)) {
       return '전송 기록 상세';
     }
@@ -82,7 +98,6 @@ class NativeShellPage {
     if (path.startsWith('/record')) return '기록';
     if (path == '/setting') return '설정';
     if (path == '/setting/agreements') return '약관 동의 관리';
-    if (RegExp(r'^/setting/agreements/[^/]+$').hasMatch(path)) return '약관 상세';
     return 'ImHere';
   }
 }
