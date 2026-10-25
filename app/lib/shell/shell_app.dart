@@ -19,7 +19,7 @@ import 'package:iamhere/feature/user_permission/service/permission_service_inter
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
 import 'package:iamhere/shell/bridge/bridge_rpc_server.dart';
-import 'package:iamhere/shell/shell_theme.dart';
+import 'package:iamhere/theme/imhere_theme.dart';
 import 'package:iamhere/shell/view/shell_status_view.dart';
 import 'package:iamhere/shell/web_url_resolver.dart';
 import 'package:iamhere/shell/webview_host.dart';
@@ -188,8 +188,8 @@ class _ShellAppState extends State<ShellApp> {
       builder: (context, themeMode, _) => MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'ImHere',
-        theme: ShellTheme.light,
-        darkTheme: ShellTheme.dark,
+        theme: ImHereAppTheme.light,
+        darkTheme: ImHereAppTheme.dark,
         themeMode: themeMode,
         locale: const Locale('ko', 'KR'),
         supportedLocales: const [Locale('ko', 'KR')],

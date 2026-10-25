@@ -6,7 +6,7 @@ import 'package:iamhere/feature/auth/presentation/terms_page.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/terms/service/terms_service.dart';
-import 'package:iamhere/shell/shell_theme.dart';
+import 'package:iamhere/theme/imhere_theme.dart';
 
 class AuthFlowApp extends StatefulWidget {
   final VoidCallback onAuthenticated;
@@ -69,8 +69,8 @@ class _AuthFlowAppState extends State<AuthFlowApp> {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'ImHere',
-      theme: ShellTheme.light,
-      darkTheme: ShellTheme.dark,
+      theme: ImHereAppTheme.light,
+      darkTheme: ImHereAppTheme.dark,
       themeMode: ThemeMode.system,
       routerConfig: _router,
     );

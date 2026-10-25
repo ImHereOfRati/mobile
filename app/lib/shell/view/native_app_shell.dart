@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:iamhere/shell/shell_theme.dart';
+import 'package:iamhere/components/foundation.dart';
 
 enum NativeShellTab { geofence, friend, record, setting }
 
@@ -96,14 +96,14 @@ class NativeAppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = ImHereColors.of(context);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: isDark ? Colors.black : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black,
+        backgroundColor: colors.surface,
+        foregroundColor: colors.text,
         elevation: 0,
         scrolledUnderElevation: 0,
         titleSpacing: 20,
@@ -128,11 +128,7 @@ class NativeAppShell extends StatelessWidget {
             : null,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: Theme.of(context).dividerColor,
-          ),
+          child: Divider(height: 1, thickness: 1, color: colors.divider),
         ),
       ),
       body: child,
@@ -194,17 +190,17 @@ class _NativeBottomNavigation extends StatelessWidget {
                       onNavigate('/geofence/message');
                     },
                     radius: 28,
-                    child: const Center(
+                    child: Center(
                       child: SizedBox.square(
                         dimension: 48,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: ShellTheme.primaryBlue,
+                            color: ImHereColors.of(context).action,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.add_rounded,
-                            color: Colors.white,
+                            color: ImHereColors.of(context).onAction,
                             size: 28,
                           ),
                         ),
@@ -245,10 +241,8 @@ class _NativeBottomNavigation extends StatelessWidget {
     required IconData selectedIcon,
   }) {
     final selected = tab == selectedTab;
-    final mutedColor = Theme.of(
-      context,
-    ).colorScheme.onSurface.withValues(alpha: 0.56);
-    final color = selected ? ShellTheme.primaryBlue : mutedColor;
+    final colors = ImHereColors.of(context);
+    final color = selected ? colors.action : colors.textMuted;
 
     return Expanded(
       child: Semantics(
