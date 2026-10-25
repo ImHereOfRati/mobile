@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
+import 'package:injectable/injectable.dart';
 
+@lazySingleton
 class DeviceContactReader {
   static const _channel = MethodChannel('com.iamhere.app/contacts');
 
