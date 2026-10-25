@@ -142,20 +142,20 @@ describe("bridge RPC runtime", () => {
     const runtime = new BridgeRpcRuntime(new FakeTransport(), {
       idFactory: () => "request-error",
     });
-    const promise = runtime.call("signOut");
+    const promise = runtime.call("openAppSettings");
 
     runtime.receive({
       kind: "response",
       id: "request-error",
       error: {
-        code: "AUTH_FAILED",
-        message: "로그아웃에 실패했습니다.",
+        code: "SETTINGS_UNAVAILABLE",
+        message: "설정을 열지 못했습니다.",
       },
     });
 
     await expect(promise).rejects.toMatchObject({
-      code: "AUTH_FAILED",
-      message: "로그아웃에 실패했습니다.",
+      code: "SETTINGS_UNAVAILABLE",
+      message: "설정을 열지 못했습니다.",
     });
   });
 

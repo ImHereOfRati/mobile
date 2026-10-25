@@ -264,10 +264,6 @@ export const AppInfo = s.object("AppInfo", {
   theme: AppTheme,
 });
 
-export const ExternalUrlRequest = s.object("ExternalUrlRequest", {
-  url: s.string,
-});
-
 export const ShareRequest = s.object("ShareRequest", {
   text: s.string,
   title: s.optional(s.string),
@@ -329,7 +325,6 @@ export const bridgeContract = {
     signInWithKakao: method(null, AuthSession),
     signInWithGoogle: method(null, AuthSession),
     activateWithTerms: method(TermsActivationRequest, AuthSession),
-    signOut: method(null, null),
     getPermissionStatus: method(PermissionRequest, PermissionResult),
     requestPermission: method(PermissionRequest, PermissionResult),
     openAppSettings: method(null, null),
@@ -353,7 +348,6 @@ export const bridgeContract = {
     getCurrentPosition: method(null, Position),
     getLocationServiceStatus: method(null, LocationServiceStatus),
     getAppInfo: method(null, AppInfo),
-    openExternalUrl: method(ExternalUrlRequest, null),
     share: method(ShareRequest, null),
     haptic: method(HapticRequest, null),
     setStatusBarStyle: method(StatusBarRequest, null),

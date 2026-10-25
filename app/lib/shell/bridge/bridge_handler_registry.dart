@@ -96,7 +96,6 @@ const authBridgeMethodNames = <String>{
   'signInWithKakao',
   'signInWithGoogle',
   'activateWithTerms',
-  'signOut',
 };
 
 const permissionAndAppBridgeMethodNames = <String>{
@@ -105,7 +104,6 @@ const permissionAndAppBridgeMethodNames = <String>{
   'openAppSettings',
   'getAutoSendReadiness',
   'getAppInfo',
-  'openExternalUrl',
   'share',
   'haptic',
   'setStatusBarStyle',

@@ -1,7 +1,6 @@
 import 'package:iamhere/shell/bridge/bridge_handler_registry.dart';
 
 typedef AuthLogin = Future<String> Function();
-typedef AuthVoidAction = Future<void> Function();
 typedef TermsActivation =
     Future<void> Function(List<Map<String, Object?>> consents);
 typedef TokenRefresh = Future<String?> Function();
@@ -15,7 +14,6 @@ class AuthBridgeHandlers {
   final AuthLogin _signInWithKakao;
   final AuthLogin _signInWithGoogle;
   final TermsActivation _activateWithTerms;
-  final AuthVoidAction _signOut;
 
   AuthBridgeHandlers({
     required Future<String?> Function() readAccessToken,
@@ -26,7 +24,6 @@ class AuthBridgeHandlers {
     required AuthLogin signInWithKakao,
     required AuthLogin signInWithGoogle,
     required TermsActivation activateWithTerms,
-    required AuthVoidAction signOut,
   }) : _readAccessToken = readAccessToken,
        _readUserStatus = readUserStatus,
        _readIsActive = readIsActive,
@@ -34,8 +31,7 @@ class AuthBridgeHandlers {
        _refresh = refresh,
        _signInWithKakao = signInWithKakao,
        _signInWithGoogle = signInWithGoogle,
-       _activateWithTerms = activateWithTerms,
-       _signOut = signOut;
+       _activateWithTerms = activateWithTerms;
 
   Map<String, BridgeMethodHandler> build() => {
     'getAuthState': (_) => _authState(),
@@ -44,7 +40,6 @@ class AuthBridgeHandlers {
     'signInWithKakao': (_) => _signIn(_signInWithKakao),
     'signInWithGoogle': (_) => _signIn(_signInWithGoogle),
     'activateWithTerms': _activate,
-    'signOut': (_) => _signOut(),
   };
 
   Future<Map<String, Object?>> _authState() async {

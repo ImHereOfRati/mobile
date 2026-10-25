@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/core/result/result.dart';
-import 'package:iamhere/feature/auth/viewmodel/auth_invalidation_notifier.dart';
 import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/feature/auth/model/service/account/auth_fcm_registration_service.dart';
 import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
@@ -38,7 +36,6 @@ class ShellBridgeFactory {
     final tokenStorage = getIt<TokenStorageService>();
     final authCoordinator = getIt<SocialLoginService>();
     final authFcmRegistrationService = getIt<AuthFcmRegistrationService>();
-    final providerContainer = getIt<ProviderContainer>();
     final auth = AuthBridgeHandlers(
       readAccessToken: tokenStorage.getAccessToken,
       readUserStatus: tokenStorage.getUserStatus,
@@ -58,12 +55,6 @@ class ShellBridgeFactory {
         authCoordinator.handleGoogleLogin,
       ),
       activateWithTerms: getIt<AuthService>().activateWithTerms,
-      signOut: () async {
-        await tokenStorage.deleteAllTokens();
-        providerContainer
-            .read(authInvalidationProvider.notifier)
-            .requestInvalidation();
-      },
     );
     final permissions = PermissionBridgeHandlers(
       location: getIt<PermissionServiceInterface>(instanceName: 'location'),

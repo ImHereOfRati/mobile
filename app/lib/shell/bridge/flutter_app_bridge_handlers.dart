@@ -7,7 +7,6 @@ import 'package:iamhere/shell/bridge/bridge_handler_registry.dart';
 import 'package:iamhere/shell/bridge/generated/bridge_contract.generated.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class FlutterAppBridgeHandlers {
   final Future<void> Function()? onExit;
@@ -26,7 +25,6 @@ class FlutterAppBridgeHandlers {
     return <String, BridgeMethodHandler>{
       'getCapabilities': (_) => _getCapabilities(),
       'getAppInfo': (_) => _getAppInfo(),
-      'openExternalUrl': _openExternalUrl,
       'share': _share,
       'haptic': _haptic,
       'setStatusBarStyle': _setStatusBarStyle,
@@ -60,15 +58,6 @@ class FlutterAppBridgeHandlers {
       'locale': platformDispatcher.locale.toLanguageTag(),
       'theme': _themeName(),
     };
-  }
-
-  Future<void> _openExternalUrl(Object? params) async {
-    final url = _requiredString(params, 'url');
-    final uri = Uri.tryParse(url);
-    if (uri == null ||
-        !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw StateError('Unable to open external URL.');
-    }
   }
 
   Future<void> _share(Object? params) async {

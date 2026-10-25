@@ -75,8 +75,8 @@ void main() {
   test('rejects duplicate handler ownership', () {
     expect(
       () => BridgeHandlerRegistry([
-        {'signOut': (_) => null},
-        {'signOut': (_) => null},
+        {'getAuthState': (_) => null},
+        {'getAuthState': (_) => null},
       ]),
       throwsArgumentError,
     );

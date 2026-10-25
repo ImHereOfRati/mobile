@@ -15,7 +15,6 @@ void main() {
         signInWithKakao: () async => 'active',
         signInWithGoogle: () async => 'active',
         activateWithTerms: (_) async {},
-        signOut: () async => accessToken = '',
       ).build();
 
       expect(await handlers['getAuthState']!(null), {
@@ -45,7 +44,6 @@ void main() {
       },
       signInWithGoogle: () async => 'active',
       activateWithTerms: (_) async {},
-      signOut: () async {},
     ).build();
 
     expect(await handlers['signInWithKakao']!(null), {
@@ -71,7 +69,6 @@ void main() {
         token = 'active-access';
         status = 'ACTIVE';
       },
-      signOut: () async {},
     ).build();
 
     expect(

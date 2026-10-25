@@ -14,7 +14,6 @@ const bridgeMethodNames = <String>[
   'signInWithKakao',
   'signInWithGoogle',
   'activateWithTerms',
-  'signOut',
   'getPermissionStatus',
   'requestPermission',
   'openAppSettings',
@@ -38,7 +37,6 @@ const bridgeMethodNames = <String>[
   'getCurrentPosition',
   'getLocationServiceStatus',
   'getAppInfo',
-  'openExternalUrl',
   'share',
   'haptic',
   'setStatusBarStyle',
@@ -932,20 +930,6 @@ class AppInfo {
 }
 
 enum BridgeTheme { light, dark, system }
-
-class ExternalUrlRequest {
-  const ExternalUrlRequest({required this.url});
-
-  final String url;
-
-  factory ExternalUrlRequest.fromJson(Map<String, Object?> json) {
-    return ExternalUrlRequest(url: json['url'] as String);
-  }
-
-  Map<String, Object?> toJson() {
-    return <String, Object?>{'url': url};
-  }
-}
 
 class ShareRequest {
   const ShareRequest({required this.text, this.title});
