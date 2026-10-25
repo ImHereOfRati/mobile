@@ -121,7 +121,10 @@ class HeroScene extends StatelessWidget {
           child: Center(
             child: PhoneFrame(
               height: phoneHeight,
-              child: DetectScreen(t: span(progress, 0.4, 1)),
+              child: PhoneScreen(
+                kind: PhoneScreenKind.detect,
+                t: span(progress, 0.4, 1),
+              ),
             ),
           ),
         ),

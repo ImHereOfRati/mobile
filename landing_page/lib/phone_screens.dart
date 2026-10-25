@@ -160,74 +160,56 @@ class PlaceScreen extends StatefulWidget {
 
 class _PlaceScreenState extends State<PlaceScreen> {
   static const _places = [
-    ('우리 집', '서울 성동구 왕십리로 83', ImHereGlyph.home),
-    ('회사', '서울 강남구 테헤란로 152', ImHereGlyph.place),
-    ('터미널', '서울 서초구 신반포로 194', ImHereGlyph.place),
+    ('우리 집', '서울 성동구 왕십리로 83', '도착 알림 · 반경 300m'),
+    ('회사', '서울 강남구 테헤란로 152', '도착·출발 알림 · 반경 200m'),
   ];
-  static const _radii = ['100m', '300m', '500m'];
-
-  String place = '우리 집';
-  String radius = '300m';
-  bool enabled = true;
+  bool homeEnabled = true;
+  bool workEnabled = false;
 
   @override
   Widget build(BuildContext context) {
-    final colors = ImHereColors.of(context);
     return Column(
       children: [
         Expanded(
           child: ListView(
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: ImHereSpace.gutter),
+            padding: const EdgeInsets.fromLTRB(
+              ImHereSpace.gutter,
+              ImHereSpace.md,
+              ImHereSpace.gutter,
+              ImHereSpace.xl,
+            ),
             children: [
-              const ImHereListHeader(title: '도착을 알릴 장소'),
-              for (final p in _places)
-                ImHereListRow(
-                  key: ValueKey('phone-place-${p.$1}'),
-                  title: p.$1,
-                  description: p.$2,
-                  leading: ImHereAsset(glyph: p.$3, label: p.$1, size: 40),
-                  trailing: place == p.$1
-                      ? const ImHereBadge(
-                          label: '선택됨',
-                          size: ImHereBadgeSize.medium,
-                        )
-                      : null,
-                  onTap: () => setState(() => place = p.$1),
-                ),
-              const SizedBox(height: ImHereSpace.md),
-              const ImHereListHeader(title: '알림 반경'),
-              Wrap(
-                spacing: 8,
-                children: [
-                  for (final r in _radii)
-                    ImHereChip(
-                      key: ValueKey('phone-radius-$r'),
-                      label: r,
-                      selected: radius == r,
-                      onChanged: (_) => setState(() => radius = r),
-                    ),
-                ],
-              ),
-              const SizedBox(height: ImHereSpace.md),
-              ImHereSwitch(
-                label: '한 번만 알리고 끄기',
-                value: enabled,
-                onChanged: (v) => setState(() => enabled = v),
-              ),
-              const SizedBox(height: ImHereSpace.sm),
-              Text(
-                '$place에서 $radius 안에 들어오면 알려요.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-              ),
-              const SizedBox(height: ImHereSpace.md),
               ImHereButton(
-                label: '알림 만들기',
-                size: ImHereButtonSize.lg,
+                label: '장소 추가',
+                icon: ImHereGlyph.add,
+                tone: ImHereButtonTone.secondary,
                 expand: true,
                 onPressed: () {},
+              ),
+              const SizedBox(height: ImHereSpace.xl),
+              const ImHereListHeader(title: '알림 켜짐'),
+              ImHereSurface(
+                padding: 0,
+                child: _PlacePreviewRow(
+                  name: _places[0].$1,
+                  address: _places[0].$2,
+                  condition: _places[0].$3,
+                  enabled: homeEnabled,
+                  onChanged: (value) => setState(() => homeEnabled = value),
+                ),
+              ),
+              const SizedBox(height: ImHereSpace.lg),
+              const ImHereListHeader(title: '알림 꺼짐'),
+              ImHereSurface(
+                padding: 0,
+                child: _PlacePreviewRow(
+                  name: _places[1].$1,
+                  address: _places[1].$2,
+                  condition: _places[1].$3,
+                  enabled: workEnabled,
+                  onChanged: (value) => setState(() => workEnabled = value),
+                ),
               ),
             ],
           ),
@@ -235,6 +217,51 @@ class _PlaceScreenState extends State<PlaceScreen> {
       ],
     );
   }
+}
+
+class _PlacePreviewRow extends StatelessWidget {
+  const _PlacePreviewRow({
+    required this.name,
+    required this.address,
+    required this.condition,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final String name;
+  final String address;
+  final String condition;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(ImHereSpace.md),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            ImHereAsset(glyph: ImHereGlyph.place, label: name, size: 40),
+            const SizedBox(width: ImHereSpace.sm),
+            Expanded(
+              child: Text(name, style: Theme.of(context).textTheme.titleSmall),
+            ),
+            const ImHereIcon(glyph: ImHereGlyph.chevron, size: 20),
+          ],
+        ),
+        const SizedBox(height: ImHereSpace.sm),
+        Text(address, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: ImHereSpace.xs),
+        Text(condition, style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: ImHereSpace.xs),
+        const ImHereBadge(label: '매일', tone: ImHereBadgeTone.neutral),
+        const SizedBox(height: ImHereSpace.xs),
+        const ImHereBorder(tone: ImHereDividerTone.subtle),
+        ImHereSwitch(label: '알림 사용', value: enabled, onChanged: onChanged),
+      ],
+    ),
+  );
 }
 
 class ContactScreen extends StatelessWidget {
@@ -248,46 +275,93 @@ class ContactScreen extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: ImHereSpace.gutter),
           children: const [
-            ImHereListHeader(title: '친구'),
+            Row(
+              children: [
+                Expanded(
+                  child: _FriendActionPreview(
+                    glyph: ImHereGlyph.add,
+                    title: '친구 찾기',
+                    subtitle: '닉네임·이메일로 요청',
+                  ),
+                ),
+                SizedBox(width: ImHereSpace.sm),
+                Expanded(
+                  child: _FriendActionPreview(
+                    glyph: ImHereGlyph.person,
+                    title: '연락처 추가',
+                    subtitle: '기기에서 바로 선택',
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: ImHereSpace.sm),
+            ImHereListRow(
+              title: '받은 요청',
+              leading: ImHereIcon(glyph: ImHereGlyph.bell, size: 22),
+            ),
+            ImHereBorder(tone: ImHereDividerTone.subtle),
+            SizedBox(height: ImHereSpace.sm),
+            ImHereListHeader(title: '친구 2명'),
+            ImHereListHeader(title: '가나다'),
             ImHereListRow(
               title: '지민',
-              description: 'ImHere 사용 중',
+              description: 'ImHere 친구',
               leading: ImHereAvatar(name: '지민'),
-              trailing: ImHereBadge(
-                label: '앱 푸시',
-                size: ImHereBadgeSize.medium,
-              ),
             ),
             ImHereListRow(
               title: '민수',
-              description: 'ImHere 사용 중',
+              description: 'ImHere 친구',
               leading: ImHereAvatar(name: '민수'),
-              trailing: ImHereBadge(
-                label: '앱 푸시',
-                size: ImHereBadgeSize.medium,
-              ),
             ),
-            SizedBox(height: ImHereSpace.md),
-            ImHereListHeader(title: '연락처'),
             ImHereListRow(
               title: '엄마',
               description: '010-****-1234',
               leading: ImHereAvatar(name: '엄마'),
               trailing: ImHereBadge(
-                label: '문자',
-                tone: ImHereBadgeTone.success,
+                label: '연락처',
+                tone: ImHereBadgeTone.neutral,
                 size: ImHereBadgeSize.medium,
               ),
-            ),
-            SizedBox(height: ImHereSpace.md),
-            ImHereCallout(
-              title: '앱이 없어도 괜찮아요',
-              text: '설치하지 않은 분께는 도착하는 순간 문자로 전해요.',
             ),
           ],
         ),
       ),
     ],
+  );
+}
+
+class _FriendActionPreview extends StatelessWidget {
+  const _FriendActionPreview({
+    required this.glyph,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final ImHereGlyph glyph;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) => ImHereSurface(
+    padding: ImHereSpace.sm,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ImHereIcon(
+          glyph: glyph,
+          size: 20,
+          color: ImHereColors.of(context).action,
+        ),
+        const SizedBox(height: ImHereSpace.xs),
+        Text(title, style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          subtitle,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: ImHereColors.of(context).textMuted,
+          ),
+        ),
+      ],
+    ),
   );
 }
 
@@ -362,34 +436,101 @@ class DetectScreen extends StatelessWidget {
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
-  static const _rows = [
-    ('엄마', '우리 집 도착', '오늘 18:42', '문자'),
-    ('지민', '회사 출발', '오늘 08:15', '푸시'),
-    ('민수', '터미널 도착', '어제 21:03', '푸시'),
-    ('엄마', '우리 집 도착', '어제 18:37', '문자'),
-  ];
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      ImHereSpace.gutter,
+      ImHereSpace.xs,
+      ImHereSpace.gutter,
+      ImHereSpace.md,
+    ),
+    child: Column(
+      children: const [
+        Expanded(
+          child: _ActivityPreviewSection(
+            title: '받은 알림',
+            titleText: '엄마가 도착했어요',
+            body: '우리 집 · 방금 전',
+          ),
+        ),
+        SizedBox(height: ImHereSpace.sm),
+        Expanded(
+          child: _ActivityPreviewSection(
+            title: '친구 요청',
+            titleText: '수진',
+            body: '친구 요청을 보냈어요 · 오늘 09:12',
+          ),
+        ),
+        SizedBox(height: ImHereSpace.sm),
+        Expanded(
+          child: _ActivityPreviewSection(
+            title: '전송 기록',
+            titleText: '회사에서 출발했어요',
+            body: '엄마에게 문자 전송 완료 · 오늘 08:15',
+            badge: '완료',
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _ActivityPreviewSection extends StatelessWidget {
+  const _ActivityPreviewSection({
+    required this.title,
+    required this.titleText,
+    required this.body,
+    this.badge,
+  });
+
+  final String title;
+  final String titleText;
+  final String body;
+  final String? badge;
 
   @override
   Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      ImHereListHeader(title: title, actionLabel: '전체 보기', onAction: () {}),
       Expanded(
-        child: ListView(
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: ImHereSpace.gutter),
-          children: [
-            const ImHereListHeader(title: '최근 알림'),
-            for (final r in _rows)
-              ImHereListRow(
-                title: '${r.$1}에게 · ${r.$2}',
-                description: r.$3,
-                leading: ImHereAvatar(name: r.$1),
-                trailing: ImHereBadge(
-                  label: '${r.$4} 전달됨',
-                  tone: ImHereBadgeTone.success,
-                  size: ImHereBadgeSize.medium,
+        child: ImHereSurface(
+          padding: ImHereSpace.sm,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      titleText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  if (badge != null) ...[
+                    const SizedBox(width: ImHereSpace.xs),
+                    ImHereBadge(
+                      label: badge!,
+                      tone: ImHereBadgeTone.success,
+                      size: ImHereBadgeSize.medium,
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: ImHereSpace.xxs),
+              Text(
+                body,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: ImHereColors.of(context).textMuted,
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     ],

@@ -99,13 +99,17 @@ class _LandingPageState extends State<LandingPage> {
   );
 
   Widget _scenes(ImHereColors colors, double vp) {
+    final compact = MediaQuery.sizeOf(context).width < 900;
     return CustomScrollView(
       key: const Key('landing-scroll-view'),
       controller: _scrollController,
+      physics: compact
+          ? const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics())
+          : const ClampingScrollPhysics(),
       slivers: [
         SceneSliver(
           viewportHeight: vp,
-          scrollExtent: vp * 0.9,
+          scrollExtent: vp * (compact ? 0.62 : 0.9),
           background: colors.background,
           builder: (context, p) => HeroScene(
             progress: p,
@@ -115,13 +119,13 @@ class _LandingPageState extends State<LandingPage> {
         ),
         SceneSliver(
           viewportHeight: vp,
-          scrollExtent: vp * 1.6,
+          scrollExtent: vp * (compact ? 0.95 : 1.6),
           background: colors.surfaceSubtle,
           builder: (context, p) => StatementScene(progress: p),
         ),
         SceneSliver(
           viewportHeight: vp,
-          scrollExtent: vp * 3.6,
+          scrollExtent: vp * (compact ? 2.4 : 3.6),
           background: colors.background,
           builder: (context, p) =>
               FeatureScene(progress: p, viewportHeight: vp),

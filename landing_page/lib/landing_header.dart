@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iamhere/components/components.dart';
 
 import 'download_modal.dart';
 import 'legal_document_page.dart';
-
-const kLandingCanonicalUrl = 'https://imhere.ratiko.co.kr/';
 
 class LandingHeader extends StatelessWidget implements PreferredSizeWidget {
   const LandingHeader({
@@ -25,19 +22,11 @@ class LandingHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(68);
 
-  Future<void> _shareLanding(BuildContext context) async {
-    await Clipboard.setData(const ClipboardData(text: kLandingCanonicalUrl));
-    if (!context.mounted) return;
-    showImHereSnackbar(context, '링크를 복사했어요.');
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = ImHereColors.of(context);
     final width = MediaQuery.sizeOf(context).width;
     final compact = width < 760;
-    final ultraCompact = width < 480;
-
     return Material(
       color: colors.background,
       child: SafeArea(
@@ -123,8 +112,6 @@ class LandingHeader extends StatelessWidget implements PreferredSizeWidget {
                                     onDocumentTap(LegalDocumentType.privacy);
                                   } else if (value == 'terms') {
                                     onDocumentTap(LegalDocumentType.terms);
-                                  } else if (value == 'share') {
-                                    _shareLanding(context);
                                   }
                                 },
                                 itemBuilder: (context) => [
@@ -136,11 +123,6 @@ class LandingHeader extends StatelessWidget implements PreferredSizeWidget {
                                     value: 'terms',
                                     child: Text('서비스 약관'),
                                   ),
-                                  if (ultraCompact)
-                                    const PopupMenuItem(
-                                      value: 'share',
-                                      child: Text('공유하기'),
-                                    ),
                                 ],
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -160,16 +142,6 @@ class LandingHeader extends StatelessWidget implements PreferredSizeWidget {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                            ],
-                            if (!ultraCompact) ...[
-                              ImHereButton(
-                                key: const Key('header-share-button'),
-                                label: '공유하기',
-                                tone: ImHereButtonTone.weak,
-                                size: ImHereButtonSize.sm,
-                                onPressed: () => _shareLanding(context),
-                              ),
-                              const SizedBox(width: 8),
                             ],
                             ImHereButton(
                               key: const Key('header-download-button'),

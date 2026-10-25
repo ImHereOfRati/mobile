@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import 'callout.dart';
@@ -20,8 +18,8 @@ class ImHereNavItem {
   final bool hasUpdate;
 }
 
-/// Bottom navigation bar in an Apple-style glass look: a blurred translucent
-/// bar holding a floating capsule. The capsule has a hairline edge and a soft
+/// Bottom navigation bar in an Apple-style glass look: a floating capsule. The
+/// capsule has a hairline edge and a soft
 /// shadow so its boundary stays visible on any page color, and the selected
 /// destination is marked by a brand-tinted pill.
 class ImHereNavigation extends StatelessWidget {
@@ -47,48 +45,38 @@ class ImHereNavigation extends StatelessWidget {
         : const Duration(milliseconds: 220);
 
     return MediaQuery.withNoTextScaling(
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: metrics.resolve(ImHereSpace.md),
+            vertical: metrics.resolve(ImHereSpace.xs),
+          ),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: colors.surface.withValues(alpha: 0.78),
+              color: colors.surfaceSubtle,
+              border: Border.all(
+                color: colors.border.withValues(alpha: 0.7),
+                width: 0.5,
+              ),
+              borderRadius: BorderRadius.circular(
+                metrics.resolve(ImHereRadius.pill),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.10),
+                  blurRadius: metrics.resolve(18),
+                  offset: Offset(0, metrics.resolve(4)),
+                ),
+              ],
             ),
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: metrics.resolve(ImHereSpace.md),
-                  vertical: metrics.resolve(ImHereSpace.xs),
-                ),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: colors.surfaceSubtle,
-                    border: Border.all(
-                      color: colors.border.withValues(alpha: 0.7),
-                      width: 0.5,
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      metrics.resolve(ImHereRadius.pill),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.10),
-                        blurRadius: metrics.resolve(18),
-                        offset: Offset(0, metrics.resolve(4)),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(metrics.resolve(3.5)),
-                    child: Row(
-                      children: [
-                        for (var i = 0; i < items.length; i++)
-                          _destination(context, i, duration),
-                      ],
-                    ),
-                  ),
-                ),
+            child: Padding(
+              padding: EdgeInsets.all(metrics.resolve(3.5)),
+              child: Row(
+                children: [
+                  for (var i = 0; i < items.length; i++)
+                    _destination(context, i, duration),
+                ],
               ),
             ),
           ),
