@@ -45,6 +45,7 @@ Future<void> main() async {
             saveTheme: themePreferences.save,
           ),
           themeMode: themeMode,
+          saveTheme: themePreferences.save,
           isOnline: hasNetworkConnection,
           enablePush: bootstrap.firebaseReady,
           forceUpdate: bootstrap.forceUpdate,

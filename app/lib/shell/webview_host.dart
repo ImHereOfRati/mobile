@@ -24,6 +24,14 @@ class WebViewHost extends StatefulWidget {
   final VoidCallback? onUpdate;
   final VoidCallback? onExit;
 
+  /// 앱이 직접 그리는 화면(`/setting*`). 지정하면 WebView는 지우지 않고 숨긴
+  /// 채 [nativeChild]를 위에 보여 준다.
+  final String? nativeLocation;
+  final Widget? nativeChild;
+  final ValueChanged<String>? onOpenNative;
+  final VoidCallback? onCloseNative;
+  final VoidCallback? onNativeBack;
+
   const WebViewHost({
     super.key,
     required this.initialUrl,
@@ -34,6 +42,11 @@ class WebViewHost extends StatefulWidget {
     this.pushPaths,
     this.onUpdate,
     this.onExit,
+    this.nativeLocation,
+    this.nativeChild,
+    this.onOpenNative,
+    this.onCloseNative,
+    this.onNativeBack,
   });
 
   @override
@@ -211,6 +224,11 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
   }
 
   Future<void> _navigate(String path) async {
+    if (NativeShellPage.isNativePath(path)) {
+      widget.onOpenNative?.call(path);
+      return;
+    }
+    if (widget.nativeLocation != null) widget.onCloseNative?.call();
     _updatePage(path);
     final fallbackUrl = widget.initialUrl.resolve(
       path.startsWith('/') ? path.substring(1) : path,
@@ -229,6 +247,16 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
   }
 
   Future<void> _handleBack() async {
+    final nativeLocation = widget.nativeLocation;
+    if (nativeLocation != null) {
+      // 하위 화면은 한 단계 위로, 설정 탭 자체에서는 웹 화면으로 돌아간다.
+      if (NativeShellPage.fromLocation(nativeLocation).showBackButton) {
+        widget.onNativeBack?.call();
+      } else {
+        widget.onCloseNative?.call();
+      }
+      return;
+    }
     if (await _controller.canGoBack()) {
       await _controller.goBack();
       return;
@@ -251,10 +279,23 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
       child: switch (_state) {
         WebViewHostState.loading => const ShellStatusView.splash(),
         WebViewHostState.ready => NativeAppShell(
-          page: _page,
+          page: widget.nativeLocation == null
+              ? _page
+              : NativeShellPage.fromLocation(widget.nativeLocation!),
           onNavigate: (path) => unawaited(_navigate(path)),
           onBack: () => unawaited(_handleBack()),
-          child: WebViewWidget(controller: _controller),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Offstage(
+                  offstage: widget.nativeChild != null,
+                  child: WebViewWidget(controller: _controller),
+                ),
+              ),
+              if (widget.nativeChild != null)
+                Positioned.fill(child: widget.nativeChild!),
+            ],
+          ),
         ),
         WebViewHostState.offline => ShellStatusView.offline(onRetry: _load),
         WebViewHostState.forceUpdate => ShellStatusView.forceUpdate(

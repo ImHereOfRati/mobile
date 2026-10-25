@@ -23,7 +23,7 @@ class NativeShellPage {
       final value when value.startsWith('/geofence') => NativeShellTab.geofence,
       final value when value.startsWith('/friend') => NativeShellTab.friend,
       final value when value.startsWith('/record') => NativeShellTab.record,
-      '/setting' => NativeShellTab.setting,
+      final value when isNativePath(value) => NativeShellTab.setting,
       _ => null,
     };
 
@@ -37,6 +37,14 @@ class NativeShellPage {
   }
 
   static const _mainPaths = {'/geofence', '/friend', '/record', '/setting'};
+
+  /// 하위 화면이면 제목 바를 그리지만, 앱이 직접 그리는 화면은 자체 제목 바를
+  /// 가지므로 셸은 로고 헤더를 유지한다.
+  bool get showAppHeader => !showBackButton || isNativePath(path);
+
+  /// 웹이 아니라 앱이 직접 그리는 경로.
+  static bool isNativePath(String path) =>
+      path == '/setting' || path.startsWith('/setting/');
 
   static String _normalizePath(String location) {
     final parsed = Uri.tryParse(location);
@@ -73,6 +81,8 @@ class NativeShellPage {
     if (path == '/record/send-history') return '전송 기록';
     if (path.startsWith('/record')) return '기록';
     if (path == '/setting') return '설정';
+    if (path == '/setting/agreements') return '약관 동의 관리';
+    if (RegExp(r'^/setting/agreements/[^/]+$').hasMatch(path)) return '약관 상세';
     return 'ImHere';
   }
 }
@@ -115,11 +125,11 @@ class NativeAppShell extends StatelessWidget {
       backgroundColor: ImHereColors.of(context).background,
       body: Column(
         children: [
-          page.showBackButton
-              ? ImHereTopBar(title: page.title, onBack: onBack)
-              : ImHereAppHeader(
+          page.showAppHeader
+              ? ImHereAppHeader(
                   onNotificationTap: () => onNavigate('/record/notifications'),
-                ),
+                )
+              : ImHereTopBar(title: page.title, onBack: onBack),
           Expanded(child: child),
         ],
       ),
