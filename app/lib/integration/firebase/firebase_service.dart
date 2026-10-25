@@ -29,9 +29,8 @@ class FirebaseService {
     remoteConfig = FirebaseRemoteService();
 
     await crashlyticsService.initialize();
-    // Neither notification permission nor remote config should block the
-    // first Flutter frame. Both have safe local fallbacks and finish in the
-    // background after Firebase itself is ready.
+    // Messaging listeners and remote config do not block the first frame.
+    // Notification permission is requested after its in-app disclosure.
     unawaited(_initializeFcmInBackground());
     unawaited(_initializeRemoteConfigInBackground());
   }

@@ -9,7 +9,7 @@ import 'package:iamhere/feature/auth/service/token_storage_service.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/terms/service/terms_service.dart';
-import 'package:iamhere/feature/auth/presentation/auth_flow_app.dart';
+import 'package:iamhere/feature/auth/presentation/flow/auth_flow_app.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
@@ -211,6 +211,7 @@ class _ShellAppState extends State<ShellApp> {
             if (url == null) {
               return AuthFlowApp(
                 key: ValueKey(_authInitialLocation),
+                themeMode: themeMode,
                 initialLocation: _authInitialLocation,
                 authLoginCoordinator: getIt<AuthLoginCoordinator>(),
                 authService: getIt<AuthService>(),
@@ -220,6 +221,13 @@ class _ShellAppState extends State<ShellApp> {
                     instanceName: 'location',
                   ).requestPermission();
                 },
+                requestNotificationPermission: widget.enablePush
+                    ? () async {
+                        await getIt<PermissionServiceInterface>(
+                          instanceName: 'fcmAlert',
+                        ).requestPermission();
+                      }
+                    : null,
                 onAuthenticated: _reloadInitialUrl,
               );
             }

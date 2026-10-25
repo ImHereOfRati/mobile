@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/auth/model/login_result.dart';
 import 'package:iamhere/feature/auth/model/oauth_provider.dart';
@@ -54,22 +55,34 @@ class AuthFlowController extends StateNotifier<AuthFlowState> {
 
   Future<AuthFlowStatus> signIn(OauthProvider provider) async {
     state = const AuthFlowState(AuthFlowStatus.loading);
-    final result = provider == OauthProvider.kakao
-        ? await _coordinator.handleKakaoLogin()
-        : await _coordinator.handleGoogleLogin();
-    return result.when(
-      success: (memberState) {
-        final next = memberState == MemberState.existingUser
-            ? AuthFlowStatus.authenticated
-            : AuthFlowStatus.pending;
-        state = AuthFlowState(next);
-        return next;
-      },
-      failure: (message) {
-        state = AuthFlowState(AuthFlowStatus.failure, errorMessage: message);
-        return AuthFlowStatus.failure;
-      },
-    );
+    try {
+      final result = provider == OauthProvider.kakao
+          ? await _coordinator.handleKakaoLogin()
+          : await _coordinator.handleGoogleLogin();
+      if (!mounted) return AuthFlowStatus.failure;
+      return result.when(
+        success: (memberState) {
+          final next = memberState == MemberState.existingUser
+              ? AuthFlowStatus.authenticated
+              : AuthFlowStatus.pending;
+          state = AuthFlowState(next);
+          return next;
+        },
+        failure: (message) {
+          state = AuthFlowState(AuthFlowStatus.failure, errorMessage: message);
+          return AuthFlowStatus.failure;
+        },
+      );
+    } catch (error, stack) {
+      AppLogger.error('Login failed unexpectedly', error, stack);
+      if (mounted) {
+        state = const AuthFlowState(
+          AuthFlowStatus.failure,
+          errorMessage: '로그인 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.',
+        );
+      }
+      return AuthFlowStatus.failure;
+    }
   }
 
   Future<bool> acceptTerms(Iterable<Term> terms, Set<int> agreedIds) async {
@@ -87,20 +100,28 @@ class AuthFlowController extends StateNotifier<AuthFlowState> {
       );
       final requiredCount = terms.where((term) => term.isRequired).length;
       final optionalCount = terms.length - requiredCount;
-      await _analytics.logEvent(
-        'terms_accepted',
-        parameters: {
-          'required_count': requiredCount,
-          'optional_count': optionalCount,
-        },
-      );
+      try {
+        await _analytics.logEvent(
+          'terms_accepted',
+          parameters: {
+            'required_count': requiredCount,
+            'optional_count': optionalCount,
+          },
+        );
+      } catch (error, stack) {
+        AppLogger.error('Terms analytics failed', error, stack);
+      }
+      if (!mounted) return false;
       state = const AuthFlowState(AuthFlowStatus.authenticated);
       return true;
-    } catch (error) {
-      state = AuthFlowState(
-        AuthFlowStatus.failure,
-        errorMessage: error.toString(),
-      );
+    } catch (error, stack) {
+      AppLogger.error('Terms activation failed', error, stack);
+      if (mounted) {
+        state = const AuthFlowState(
+          AuthFlowStatus.failure,
+          errorMessage: '약관 동의를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.',
+        );
+      }
       return false;
     }
   }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/feature/auth/presentation/auth_flow_controller.dart';
-import 'package:iamhere/feature/auth/presentation/auth_page.dart';
-import 'package:iamhere/feature/auth/presentation/terms_page.dart';
+import 'package:iamhere/feature/auth/presentation/flow/auth_flow_controller.dart';
+import 'package:iamhere/feature/auth/presentation/page/auth_page.dart';
+import 'package:iamhere/feature/auth/presentation/page/terms_page.dart';
 import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
 import 'package:iamhere/feature/auth/service/auth_service.dart';
 import 'package:iamhere/feature/terms/service/terms_service.dart';
@@ -15,6 +16,8 @@ class AuthFlowApp extends StatefulWidget {
   final AuthService authService;
   final TermsService termsService;
   final Future<void> Function() requestLocationPermission;
+  final Future<void> Function()? requestNotificationPermission;
+  final ThemeMode themeMode;
 
   const AuthFlowApp({
     super.key,
@@ -23,6 +26,8 @@ class AuthFlowApp extends StatefulWidget {
     required this.authService,
     required this.termsService,
     required this.requestLocationPermission,
+    this.requestNotificationPermission,
+    this.themeMode = ThemeMode.system,
     this.initialLocation = '/auth',
   });
 
@@ -45,6 +50,7 @@ class _AuthFlowAppState extends State<AuthFlowApp> {
           dependencies: _authDependencies,
           onAuthenticated: widget.onAuthenticated,
           requestLocationPermission: widget.requestLocationPermission,
+          requestNotificationPermission: widget.requestNotificationPermission,
         ),
       ),
       GoRoute(
@@ -71,7 +77,14 @@ class _AuthFlowAppState extends State<AuthFlowApp> {
       title: 'ImHere',
       theme: ImHereAppTheme.light,
       darkTheme: ImHereAppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: widget.themeMode,
+      locale: const Locale('ko', 'KR'),
+      supportedLocales: const [Locale('ko', 'KR')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       routerConfig: _router,
     );
   }
