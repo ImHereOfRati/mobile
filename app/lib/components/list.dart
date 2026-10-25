@@ -22,8 +22,14 @@ class ImHereListRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = ImHereColors.of(context);
     final metrics = ImHereMetrics.of(context);
+    final textTheme = Theme.of(context).textTheme;
     return ListTile(
       onTap: onTap,
+      // 행은 강조가 아니라 내용이다. 굵기를 더하지 않고 본문 서체를 쓴다.
+      titleTextStyle: textTheme.bodyLarge,
+      subtitleTextStyle: textTheme.bodyMedium?.copyWith(
+        color: colors.textMuted,
+      ),
       contentPadding: EdgeInsets.symmetric(
         vertical: metrics.resolve(ImHereSpace.xs),
       ),
