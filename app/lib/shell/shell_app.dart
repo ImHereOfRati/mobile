@@ -278,6 +278,7 @@ class _ShellAppState extends State<ShellApp> {
       pageBuilder: (_, __) => NoTransitionPage(
         child: GeofencePage(
           geofenceService: _geofenceService,
+          recipientService: _geofenceRecipients,
           mapSearchService: _mapSearch,
           statusService: _autoSendStatus,
         ),
@@ -286,9 +287,8 @@ class _ShellAppState extends State<ShellApp> {
     GoRoute(path: '/geofence/message', builder: (_, __) => _geofenceForm()),
     GoRoute(
       path: '/geofence/:id/edit',
-      builder: (_, state) => _geofenceForm(
-        id: int.tryParse(state.pathParameters['id']!),
-      ),
+      builder: (_, state) =>
+          _geofenceForm(id: int.tryParse(state.pathParameters['id']!)),
     ),
   ];
 
@@ -391,9 +391,7 @@ class _ShellAppState extends State<ShellApp> {
   Widget _buildShell(BuildContext context, GoRouterState state, Widget child) {
     // 필수 업데이트가 있으면 어떤 화면도 보여 주지 않고 업데이트만 안내한다.
     if (widget.forceUpdate) {
-      return ShellStatusView.forceUpdate(
-        onUpdate: widget.onUpdate ?? () {},
-      );
+      return ShellStatusView.forceUpdate(onUpdate: widget.onUpdate ?? () {});
     }
     return PopScope<Object?>(
       canPop: false,

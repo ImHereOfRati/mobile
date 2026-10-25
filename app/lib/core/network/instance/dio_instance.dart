@@ -40,7 +40,12 @@ abstract class DioInstance {
     defaultDio.interceptors.addAll([
       DioHeaderCleanupInterceptor(),
       DioAuthInterceptor(tokenStorage, coordinator),
-      LogInterceptor(requestBody: true, responseBody: true),
+      LogInterceptor(
+        requestHeader: false,
+        requestBody: false,
+        responseHeader: false,
+        responseBody: false,
+      ),
     ]);
 
     return defaultDio;

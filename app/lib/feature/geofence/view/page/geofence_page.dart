@@ -10,12 +10,14 @@ import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/type/geofence_repeat.dart';
 import 'package:iamhere/feature/geofence/model/service/auto_send_status_service.dart';
 import 'package:iamhere/feature/geofence/model/service/geofence_service.dart';
+import 'package:iamhere/feature/geofence/model/service/geofence_recipient_service.dart';
 import 'package:iamhere/feature/geofence/model/service/map_search_service.dart';
 import 'package:iamhere/feature/geofence/viewmodel/geofence_list_view_model.dart';
 
 /// 장소 탭의 첫 화면. 등록한 알림 장소와 자동 전송 준비 상태를 보여 준다.
 class GeofencePage extends ConsumerStatefulWidget {
   final GeofenceService geofenceService;
+  final GeofenceRecipientService recipientService;
   final MapSearchService mapSearchService;
   final AutoSendStatusService statusService;
 
@@ -26,6 +28,7 @@ class GeofencePage extends ConsumerStatefulWidget {
   const GeofencePage({
     super.key,
     required this.geofenceService,
+    required this.recipientService,
     required this.mapSearchService,
     required this.statusService,
     this.pollInterval = const Duration(seconds: 5),
@@ -38,6 +41,7 @@ class GeofencePage extends ConsumerStatefulWidget {
 class _GeofencePageState extends ConsumerState<GeofencePage>
     with WidgetsBindingObserver {
   Timer? _poll;
+  bool _openingAddPlace = false;
 
   GeofenceListViewModelProvider get _provider => geofenceListViewModelProvider(
     widget.geofenceService,
@@ -109,7 +113,8 @@ class _GeofencePageState extends ConsumerState<GeofencePage>
                   child: Column(
                     children: [
                       _AddPlaceAction(
-                        onTap: () => context.push('/geofence/message'),
+                        loading: _openingAddPlace,
+                        onTap: _openAddPlace,
                       ),
                       const Expanded(
                         child: ImHereStatePanel(
@@ -131,7 +136,8 @@ class _GeofencePageState extends ConsumerState<GeofencePage>
                   ),
                   children: [
                     _AddPlaceAction(
-                      onTap: () => context.push('/geofence/message'),
+                      loading: _openingAddPlace,
+                      onTap: _openAddPlace,
                     ),
                     SizedBox(height: metrics.resolve(ImHereSpace.lg)),
                     if (active.isNotEmpty) ...[
@@ -159,6 +165,32 @@ class _GeofencePageState extends ConsumerState<GeofencePage>
       onToggle: (active) => _toggle(item, active),
     ),
   );
+
+  Future<void> _openAddPlace() async {
+    if (_openingAddPlace) return;
+    setState(() => _openingAddPlace = true);
+    try {
+      final recipients = await widget.recipientService.load();
+      if (!mounted) return;
+      if (recipients.isNotEmpty) {
+        context.push('/geofence/message');
+        return;
+      }
+
+      final addFriend = await showImHereDialog(
+        context,
+        title: '알림을 받을 사람이 없어요',
+        description: 'ImHere 친구를 추가하거나 기기 연락처를 등록해 주세요.',
+        confirmLabel: '친구 추가',
+        cancelLabel: '나중에',
+      );
+      if (addFriend == true && mounted) context.push('/friend/add');
+    } catch (_) {
+      if (mounted) showImHereSnackbar(context, '받는 사람을 확인하지 못했어요');
+    } finally {
+      if (mounted) setState(() => _openingAddPlace = false);
+    }
+  }
 
   Future<void> _toggle(GeofenceEntity item, bool active) async {
     final failure = await ref.read(_provider.notifier).toggle(item, active);
@@ -276,8 +308,9 @@ class _ReadinessBanner extends StatelessWidget {
 
 class _AddPlaceAction extends StatelessWidget {
   final VoidCallback onTap;
+  final bool loading;
 
-  const _AddPlaceAction({required this.onTap});
+  const _AddPlaceAction({required this.onTap, required this.loading});
 
   @override
   Widget build(BuildContext context) {
@@ -296,11 +329,20 @@ class _AddPlaceAction extends StatelessWidget {
               color: colors.actionSubtle,
               shape: BoxShape.circle,
             ),
-            child: ImHereIcon(
-              glyph: ImHereGlyph.add,
-              size: 22,
-              color: colors.action,
-            ),
+            child: loading
+                ? SizedBox(
+                    width: metrics.resolve(20),
+                    height: metrics.resolve(20),
+                    child: CircularProgressIndicator(
+                      strokeWidth: metrics.resolve(2),
+                      color: colors.action,
+                    ),
+                  )
+                : ImHereIcon(
+                    glyph: ImHereGlyph.add,
+                    size: 22,
+                    color: colors.action,
+                  ),
           ),
           SizedBox(width: metrics.resolve(ImHereSpace.sm)),
           Expanded(
