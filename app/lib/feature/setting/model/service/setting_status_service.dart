@@ -93,7 +93,7 @@ class SettingStatusService implements SettingStatusServiceInterface {
   Future<String?> _appVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
-      return '${info.version} (${info.buildNumber})';
+      return info.version;
     } catch (error, stack) {
       AppLogger.error('Failed to load app info', error, stack);
       return null;
