@@ -5,7 +5,6 @@ import 'package:iamhere/core/util/app_logger.dart';
 
 class FirebaseRemoteService {
   static final String baseUrl = 'base_url';
-  static const String webAppUrl = 'web_app_url';
   static const String minimumAppVersion = 'minimum_app_version';
   static const String androidStoreUrl = 'android_store_url';
   static const String iosStoreUrl = 'ios_store_url';
@@ -47,11 +46,6 @@ class FirebaseRemoteService {
       return null;
     }
     return value;
-  }
-
-  String? get webAppUrlOrNull {
-    final value = _remoteConfig.getString(webAppUrl).trim();
-    return value.isEmpty ? null : value;
   }
 
   String? get minimumAppVersionOrNull => _stringOrNull(minimumAppVersion);

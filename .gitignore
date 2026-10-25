@@ -78,14 +78,6 @@ build_error.log
 
 firebase.json
 
-# React web workspace
-/web/node_modules/
-/web/**/node_modules/
-/web/dist/
-/web/coverage/
-/web/test-results/
-/web/**/*.tsbuildinfo
-
 # Per-session tool state; regenerated locally and not shared.
 .omc/sessions/
 .omc/state/

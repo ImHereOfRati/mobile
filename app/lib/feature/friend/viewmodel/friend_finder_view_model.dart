@@ -1,6 +1,4 @@
 import 'package:iamhere/core/util/app_logger.dart';
-import 'package:iamhere/feature/friend/model/repository/contact_entity.dart';
-import 'package:iamhere/feature/friend/model/service/device_contact_service.dart';
 import 'package:iamhere/feature/friend/model/service/friend_service.dart';
 import 'package:iamhere/feature/terms/viewmodel/terms_acceptance_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,15 +38,10 @@ class FriendFinderState {
 @riverpod
 class FriendFinderViewModel extends _$FriendFinderViewModel {
   late FriendService _friends;
-  late DeviceContactService _contacts;
 
   @override
-  FriendFinderState build(
-    FriendService friendService,
-    DeviceContactService contactService,
-  ) {
+  FriendFinderState build(FriendService friendService) {
     _friends = friendService;
-    _contacts = contactService;
     return const FriendFinderState();
   }
 
@@ -98,32 +91,6 @@ class FriendFinderViewModel extends _$FriendFinderViewModel {
       if (ref.mounted) {
         state = state.copyWith(busy: false, status: '친구 요청을 보내지 못했어요');
       }
-    }
-  }
-
-  /// 기기 연락처 선택기를 띄워 고른 연락처를 친구 목록에 추가한다.
-  Future<ContactEntity?> importContact() async {
-    if (state.busy) return null;
-    state = state.copyWith(busy: true, status: '');
-    try {
-      final contact = await _contacts.pick();
-      if (!ref.mounted) return contact;
-      state = state.copyWith(
-        busy: false,
-        status: contact == null
-            ? '연락처 선택을 취소했어요'
-            : '${contact.name} 연락처를 추가했어요',
-      );
-      return contact;
-    } catch (error, stack) {
-      AppLogger.error('Contact import failed', error, stack);
-      if (ref.mounted) {
-        state = state.copyWith(
-          busy: false,
-          status: '연락처를 가져오지 못했어요. 권한을 확인해 주세요',
-        );
-      }
-      return null;
     }
   }
 

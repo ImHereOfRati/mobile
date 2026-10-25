@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -18,6 +19,12 @@ import 'package:iamhere/feature/setting/view/page/setting_page.dart';
 import 'package:iamhere/feature/terms/model/service/terms_service.dart';
 import 'package:iamhere/feature/setting/view/page/agreements_page.dart';
 import 'package:iamhere/feature/terms/view/page/terms_page.dart';
+import 'package:iamhere/feature/geofence/model/service/auto_send_status_service.dart';
+import 'package:iamhere/feature/geofence/model/service/geofence_recipient_service.dart';
+import 'package:iamhere/feature/geofence/model/service/geofence_service.dart';
+import 'package:iamhere/feature/geofence/model/service/map_search_service.dart';
+import 'package:iamhere/feature/geofence/view/page/geofence_form_page.dart';
+import 'package:iamhere/feature/geofence/view/page/geofence_page.dart';
 import 'package:iamhere/feature/friend/model/service/device_contact_service.dart';
 import 'package:iamhere/feature/friend/model/service/friend_service.dart';
 import 'package:iamhere/feature/friend/view/page/device_contact_edit_page.dart';
@@ -42,33 +49,24 @@ import 'package:iamhere/feature/user_permission/service/permission_service_inter
 import 'package:iamhere/feature/user_permission/view/page/permission_guide_page.dart';
 import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/integration/fcm/fcm_message_handler.dart';
-import 'package:iamhere/shell/bridge/bridge_rpc_server.dart';
 import 'package:iamhere/shell/theme_preference_service.dart';
 import 'package:iamhere/shell/view/native_app_shell.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
 import 'package:iamhere/shell/view/shell_status_view.dart';
-import 'package:iamhere/shell/web_url_resolver.dart';
-import 'package:iamhere/shell/webview_host.dart';
 
 /// 로그인 상태가 허용하는 화면 범위.
 enum _Access { signedOut, pendingTerms, active }
 
 class ShellApp extends StatefulWidget {
-  final WebUrlResolver webUrlResolver;
-  final BridgeRpcServer rpcServer;
   final ValueNotifier<ThemeMode> themeMode;
   final Future<void> Function(ThemeMode)? saveTheme;
-  final ConnectivityProbe isOnline;
   final bool enablePush;
   final bool forceUpdate;
   final VoidCallback? onUpdate;
 
   const ShellApp({
     super.key,
-    required this.webUrlResolver,
-    required this.rpcServer,
     required this.themeMode,
-    required this.isOnline,
     this.saveTheme,
     this.enablePush = true,
     this.forceUpdate = false,
@@ -81,7 +79,7 @@ class ShellApp extends StatefulWidget {
 
 class _ShellAppState extends State<ShellApp> {
   static const _deliveryQueuePollInterval = Duration(seconds: 30);
-  static const _webPath = '/web';
+  static const _homePath = '/geofence';
   static const _settingPath = '/setting';
 
   // Riverpod family 인자로 쓰이므로 화면이 다시 그려져도 같은 인스턴스여야
@@ -109,10 +107,11 @@ class _ShellAppState extends State<ShellApp> {
   final _contactService = getIt<DeviceContactService>();
   final _activityLog = getIt<ActivityLogService>();
   final _serverNotifications = getIt<ServerNotificationService>();
+  final _geofenceService = getIt<GeofenceService>();
+  final _geofenceRecipients = getIt<GeofenceRecipientService>();
+  final _mapSearch = getIt<MapSearchService>();
+  late final _autoSendStatus = AutoSendStatusService(_permissionGuideService);
 
-  final StreamController<String> _webPaths =
-      StreamController<String>.broadcast();
-  late Future<Uri> _webUrl;
   late final GoRouter _router;
   late final AppLifecycleListener _lifecycleListener;
   Timer? _deliveryRetryTimer;
@@ -121,7 +120,6 @@ class _ShellAppState extends State<ShellApp> {
   @override
   void initState() {
     super.initState();
-    _webUrl = widget.webUrlResolver.resolve();
     _router = _createRouter();
     _authInvalidationSubscription = getIt<ProviderContainer>().listen(
       authInvalidationProvider,
@@ -130,7 +128,7 @@ class _ShellAppState extends State<ShellApp> {
       },
     );
     if (widget.enablePush) {
-      setupShellMessageTapHandler(_handlePushPath);
+      setupNativeNotificationNavigation(_handlePushPath);
     }
     _startDeliveryRetryTimer();
     _lifecycleListener = AppLifecycleListener(
@@ -155,7 +153,6 @@ class _ShellAppState extends State<ShellApp> {
     _authInvalidationSubscription.close();
     _lifecycleListener.dispose();
     _router.dispose();
-    unawaited(_webPaths.close());
     super.dispose();
   }
 
@@ -209,6 +206,9 @@ class _ShellAppState extends State<ShellApp> {
     return GoRouter(
       initialLocation: '/',
       redirect: _redirect,
+      // 알 수 없는 경로(오래된 푸시 알림 등)는 막다른 화면 대신 처음으로 보낸다.
+      errorBuilder: (_, __) =>
+          ShellStatusView.fatalError(onRetry: () => _router.go('/')),
       routes: [
         GoRoute(path: '/', builder: (_, __) => const ShellStatusView.splash()),
         GoRoute(
@@ -241,12 +241,7 @@ class _ShellAppState extends State<ShellApp> {
         ShellRoute(
           builder: _buildShell,
           routes: [
-            // 웹이 그리는 모든 화면. 실제 경로는 웹 라우터가 따로 관리한다.
-            GoRoute(
-              path: _webPath,
-              pageBuilder: (_, __) =>
-                  const NoTransitionPage(child: SizedBox.shrink()),
-            ),
+            ..._geofenceRoutes(),
             GoRoute(
               path: _settingPath,
               pageBuilder: (_, __) => NoTransitionPage(child: _settingPage()),
@@ -256,7 +251,7 @@ class _ShellAppState extends State<ShellApp> {
                   builder: (_, __) => PermissionGuidePage(
                     service: _permissionGuideService,
                     showHeader: false,
-                    onDone: _backFromNative,
+                    onDone: _goBack,
                   ),
                 ),
                 GoRoute(
@@ -276,7 +271,35 @@ class _ShellAppState extends State<ShellApp> {
 
   // 하위 화면은 위로 쌓지 않고 같은 단계의 형제 라우트로 둔다. 어느 화면에서
   // 들어와도 아래에 엉뚱한 목록 화면이 깔리지 않게 하기 위해서다. 뒤로 가기는
-  // _backFromNative가 부모 경로로 돌려보낸다.
+  // _goBack이 부모 경로로 돌려보낸다.
+  List<RouteBase> _geofenceRoutes() => [
+    GoRoute(
+      path: '/geofence',
+      pageBuilder: (_, __) => NoTransitionPage(
+        child: GeofencePage(
+          geofenceService: _geofenceService,
+          mapSearchService: _mapSearch,
+          statusService: _autoSendStatus,
+        ),
+      ),
+    ),
+    GoRoute(path: '/geofence/message', builder: (_, __) => _geofenceForm()),
+    GoRoute(
+      path: '/geofence/:id/edit',
+      builder: (_, state) => _geofenceForm(
+        id: int.tryParse(state.pathParameters['id']!),
+      ),
+    ),
+  ];
+
+  Widget _geofenceForm({int? id}) => GeofenceFormPage(
+    geofenceService: _geofenceService,
+    recipientService: _geofenceRecipients,
+    mapSearchService: _mapSearch,
+    permissionGuide: _permissionGuideService,
+    id: id,
+  );
+
   List<RouteBase> _friendRoutes() => [
     GoRoute(
       path: '/friend',
@@ -366,54 +389,46 @@ class _ShellAppState extends State<ShellApp> {
   );
 
   Widget _buildShell(BuildContext context, GoRouterState state, Widget child) {
-    final path = state.uri.path;
-    final native = NativeShellPage.isNativePath(path);
-    return FutureBuilder<Uri>(
-      future: _webUrl,
-      builder: (context, snapshot) {
-        final url = snapshot.data;
-        if (url == null) return const ShellStatusView.splash();
-        return WebViewHost(
-          key: const ValueKey('web-host'),
-          initialUrl: url,
-          rpcServer: widget.rpcServer,
-          themeMode: widget.themeMode,
-          isOnline: widget.isOnline,
-          pushPaths: _webPaths.stream,
-          forceUpdate: widget.forceUpdate,
-          onUpdate: widget.onUpdate,
-          nativeLocation: native ? path : null,
-          nativeChild: native ? child : null,
-          onOpenNative: _router.go,
-          onCloseNative: () => _router.go(_webPath),
-          onNativeBack: _backFromNative,
-        );
+    // 필수 업데이트가 있으면 어떤 화면도 보여 주지 않고 업데이트만 안내한다.
+    if (widget.forceUpdate) {
+      return ShellStatusView.forceUpdate(
+        onUpdate: widget.onUpdate ?? () {},
+      );
+    }
+    return PopScope<Object?>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _goBack();
       },
+      child: NativeAppShell(
+        page: NativeShellPage.fromLocation(state.uri.path),
+        onNavigate: _router.go,
+        child: child,
+      ),
     );
   }
 
-  void _backFromNative() {
+  /// 시스템 뒤로 가기. 쌓인 화면이 있으면 닫고, 하위 화면이면 부모로, 장소가 아닌
+  /// 탭이면 장소로 돌아간다. 장소 탭에서 한 번 더 누르면 앱을 나간다.
+  void _goBack() {
     if (_router.canPop()) {
       _router.pop();
       return;
     }
     final current = _router.routeInformationProvider.value.uri.path;
-    _router.go(NativeShellPage.parentOf(current) ?? _settingPath);
-  }
-
-  /// 푸시 알림이나 설정 화면에서 온 경로를 앱 화면과 웹 화면으로 나눠 연다.
-  void _handlePushPath(String path) {
-    if (!mounted) return;
-    if (NativeShellPage.isNativePath(path)) {
-      _router.go(path);
+    final parent = NativeShellPage.parentOf(current);
+    if (parent != null) {
+      _router.go(parent);
+    } else if (current != _homePath) {
+      _router.go(_homePath);
     } else {
-      _openWeb(path);
+      SystemNavigator.pop();
     }
   }
 
-  void _openWeb(String path) {
-    _router.go(_webPath);
-    _webPaths.add(path);
+  /// 푸시 알림에서 온 경로를 연다.
+  void _handlePushPath(String path) {
+    if (mounted) _router.go(path);
   }
 
   /// 권한 안내를 마치거나 건너뛰면 다시 띄우지 않고 앱으로 들어간다.
@@ -451,7 +466,6 @@ class _ShellAppState extends State<ShellApp> {
   }
 
   void _handleAuthenticated() {
-    _webUrl = widget.webUrlResolver.resolve();
     _router.refresh();
   }
 
@@ -472,7 +486,7 @@ class _ShellAppState extends State<ShellApp> {
       return location == '/permissions' ? null : '/permissions';
     }
     const entryPaths = {'/', '/auth', '/terms', '/permissions'};
-    return entryPaths.contains(location) ? _webPath : null;
+    return entryPaths.contains(location) ? _homePath : null;
   }
 
   Future<String?> _redirect(BuildContext context, GoRouterState state) async {

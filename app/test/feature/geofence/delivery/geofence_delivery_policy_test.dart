@@ -10,6 +10,7 @@ void main() {
     List<String> serverUserIds = const [],
     int? geofenceId = 42,
     String geofenceEventType = 'arrival',
+    String repeatType = 'none',
     String deliveryEventType = 'arrival',
   }) {
     return GeofenceDeliverySnapshot(
@@ -23,6 +24,7 @@ void main() {
         message: '',
         contactIds: '[]',
         eventType: geofenceEventType,
+        repeatType: repeatType,
       ),
       recipientNames: const [],
       smsPhoneNumbers: smsPhoneNumbers,
@@ -126,6 +128,26 @@ void main() {
       expect(
         policy.afterSuccessfulDelivery(snapshot(geofenceEventType: 'arrival')),
         GeofenceLifecycleAction.deactivate,
+      );
+    });
+
+    test('반복 알림 성공은 장소를 유지한다', () {
+      expect(
+        policy.afterSuccessfulDelivery(snapshot(repeatType: 'daily')),
+        GeofenceLifecycleAction.none,
+      );
+    });
+
+    test('both 반복의 출발 성공은 다음 도착을 위해 대기를 해제한다', () {
+      expect(
+        policy.afterSuccessfulDelivery(
+          snapshot(
+            geofenceEventType: 'both',
+            deliveryEventType: 'departure',
+            repeatType: 'daily',
+          ),
+        ),
+        GeofenceLifecycleAction.clearAwaitingDeparture,
       );
     });
 

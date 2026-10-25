@@ -13,12 +13,10 @@ import 'package:iamhere/core/di/di_setup.dart';
 import 'package:iamhere/integration/firebase/firebase_remote_service.dart';
 import 'package:iamhere/integration/firebase/firebase_service.dart';
 import 'package:iamhere/integration/fcm/service/fcm_token_service.dart';
-import 'package:iamhere/shell/bridge/shell_bridge_factory.dart';
 import 'package:iamhere/shell/app_version_policy.dart';
 import 'package:iamhere/shell/shell_app.dart';
 import 'package:iamhere/shell/theme_preference_service.dart';
 import 'package:iamhere/shell/view/shell_status_view.dart';
-import 'package:iamhere/shell/web_url_resolver.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -37,16 +35,8 @@ Future<void> main() async {
       UncontrolledProviderScope(
         container: getIt<ProviderContainer>(),
         child: ShellApp(
-          webUrlResolver: WebUrlResolver(
-            loadRemoteUrl: () async => bootstrap.remoteConfig?.webAppUrlOrNull,
-          ),
-          rpcServer: ShellBridgeFactory.create(
-            themeMode: themeMode,
-            saveTheme: themePreferences.save,
-          ),
           themeMode: themeMode,
           saveTheme: themePreferences.save,
-          isOnline: hasNetworkConnection,
           enablePush: bootstrap.firebaseReady,
           forceUpdate: bootstrap.forceUpdate,
           onUpdate: bootstrap.storeUrl == null
@@ -61,19 +51,6 @@ Future<void> main() async {
   } catch (error, stack) {
     AppLogger.error('Application bootstrap failed', error, stack);
     runApp(const _BootstrapFailureApp());
-  }
-}
-
-Future<bool> hasNetworkConnection() async {
-  try {
-    final addresses = await InternetAddress.lookup(
-      AppOrigin.host,
-    ).timeout(const Duration(seconds: 3));
-    return addresses.isNotEmpty;
-  } on TimeoutException {
-    return false;
-  } on SocketException {
-    return false;
   }
 }
 

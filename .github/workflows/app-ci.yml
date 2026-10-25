@@ -12,7 +12,6 @@ on:
       - "app/pubspec.yaml"
       - "app/pubspec.lock"
       - "app/analysis_options.yaml"
-      - "web/packages/bridge-contract/**"
       - ".github/workflows/app-ci.yml"
   pull_request:
     paths:
@@ -23,7 +22,6 @@ on:
       - "app/pubspec.yaml"
       - "app/pubspec.lock"
       - "app/analysis_options.yaml"
-      - "web/packages/bridge-contract/**"
       - ".github/workflows/app-ci.yml"
   workflow_dispatch:
 

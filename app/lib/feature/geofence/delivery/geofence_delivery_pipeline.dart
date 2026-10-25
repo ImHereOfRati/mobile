@@ -243,9 +243,13 @@ class GeofenceDeliveryPipeline {
     switch (_lifecyclePolicy.afterSuccessfulDelivery(snapshot)) {
       case GeofenceLifecycleAction.markAwaitingDeparture:
         await _geofenceLifecycleStore.updateAwaitingDeparture(geofenceId, true);
+      case GeofenceLifecycleAction.clearAwaitingDeparture:
+        await _geofenceLifecycleStore.updateAwaitingDeparture(
+          geofenceId,
+          false,
+        );
       case GeofenceLifecycleAction.deactivate:
         await _deactivateGeofence(geofenceId);
-      case GeofenceLifecycleAction.clearAwaitingDeparture:
       case GeofenceLifecycleAction.restoreActive:
       case GeofenceLifecycleAction.none:
         return;

@@ -5,6 +5,6 @@ class FirebaseCloudMessageService {
   Future<void> initialize() async {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     setupForegroundMessageListener();
-    // 알림 탭 경로는 ShellApp이 WebView 이벤트 브릿지에 연결한다.
+    // Notification taps are routed directly by the native ShellApp.
   }
 }

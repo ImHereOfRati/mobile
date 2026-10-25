@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
   ImHere static hosting. One private S3 bucket behind one CloudFront
-  distribution serving the landing page, the React web app and the design site.
+  distribution serving the landing page and the design site.
   Deploy this stack in us-east-1 (CloudFront certificates must live there).
 
 Parameters:
@@ -14,7 +14,7 @@ Parameters:
   LandingDomain:
     Type: String
     Default: imhere.ratiko.co.kr
-    Description: Serves landing/ at / and the web app at /app/.
+    Description: Serves landing_page at /.
   DesignDomain:
     Type: String
     Default: imhere-design.ratiko.co.kr
@@ -65,10 +65,8 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
-  # Maps host + path onto the bucket prefixes and gives the React app its SPA
-  # fallback:
+  # Maps hosts and paths onto the bucket prefixes:
   #   imhere-design.<domain>/*  -> design/*
-  #   imhere.<domain>/app/*     -> app/*   (unknown paths -> app/index.html)
   # /api/*, /swagger-ui/*, /docs/* never reach this function (API behaviors).
   #   imhere.<domain>/*         -> landing/*
   RoutingFunction:
@@ -85,14 +83,6 @@ Resources:
           var host = request.headers.host ? request.headers.host.value : "";
           var uri = request.uri;
           var isDesign = host === "${DesignDomain}";
-          var isApp = !isDesign && (uri === "/app" || uri.indexOf("/app/") === 0);
-
-          if (isApp) {
-            var last = uri.substring(uri.lastIndexOf("/") + 1);
-            request.uri = last.indexOf(".") === -1 ? "/app/index.html" : uri;
-            return request;
-          }
-
           var prefix = isDesign ? "/design" : "/landing";
           if (uri.charAt(uri.length - 1) === "/") uri += "index.html";
           request.uri = prefix + uri;

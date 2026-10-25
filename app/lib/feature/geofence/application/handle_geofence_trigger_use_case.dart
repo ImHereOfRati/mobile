@@ -4,6 +4,7 @@ import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/repository/geofence_local_repository.dart';
+import 'package:iamhere/feature/geofence/model/type/geofence_repeat.dart';
 
 enum GeofenceTriggerStatus { queued, notFound, inactive, ignored, rejected }
 
@@ -32,12 +33,15 @@ class GeofenceTriggerResult {
 class HandleGeofenceTriggerUseCase {
   final GeofenceLocalRepository _repo;
   final GeofenceDeliveryPipeline _pipeline;
+  final DateTime Function() _nowLocal;
 
-  const HandleGeofenceTriggerUseCase({
+  HandleGeofenceTriggerUseCase({
     required GeofenceLocalRepository repo,
     required GeofenceDeliveryPipeline pipeline,
+    DateTime Function()? nowLocal,
   }) : _repo = repo,
-       _pipeline = pipeline;
+       _pipeline = pipeline,
+       _nowLocal = nowLocal ?? DateTime.now;
 
   Future<GeofenceTriggerResult> execute({
     required int geofenceId,
@@ -56,6 +60,16 @@ class HandleGeofenceTriggerUseCase {
 
     final eventType = EventType.fromName(geofence.eventType);
     if (!GeofenceEventFilter.shouldHandle(geofence, eventType, deliveryEvent)) {
+      return GeofenceTriggerResult.ignored(geofence);
+    }
+
+    final repeat = GeofenceRepeat.fromName(geofence.repeatType);
+    final completesBothCycle =
+        eventType == EventType.both &&
+        deliveryEvent == DeliveryEvent.departure &&
+        geofence.awaitingDeparture;
+    if (!completesBothCycle &&
+        !repeat.allows(_nowLocal(), geofence.customDaysBitmask ?? 0)) {
       return GeofenceTriggerResult.ignored(geofence);
     }
 
@@ -84,6 +98,13 @@ class HandleGeofenceTriggerUseCase {
 
     if (eventType == EventType.both && deliveryEvent == DeliveryEvent.arrival) {
       await _repo.updateAwaitingDeparture(geofence.id!, true);
+      return;
+    }
+
+    if (GeofenceRepeat.fromName(geofence.repeatType) != GeofenceRepeat.none) {
+      if (eventType == EventType.both) {
+        await _repo.updateAwaitingDeparture(geofence.id!, false);
+      }
       return;
     }
 

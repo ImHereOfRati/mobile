@@ -11,12 +11,14 @@ class ImHereListRow extends StatelessWidget {
     this.leading,
     this.trailing,
     this.onTap,
+    this.alignTop = false,
   });
   final String title;
   final String? description;
   final Widget? leading;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final bool alignTop;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,9 @@ class ImHereListRow extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
       onTap: onTap,
+      titleAlignment: alignTop
+          ? ListTileTitleAlignment.top
+          : ListTileTitleAlignment.center,
       // 행은 강조가 아니라 내용이다. 굵기를 더하지 않고 본문 서체를 쓴다.
       titleTextStyle: textTheme.bodyLarge,
       subtitleTextStyle: textTheme.bodyMedium?.copyWith(

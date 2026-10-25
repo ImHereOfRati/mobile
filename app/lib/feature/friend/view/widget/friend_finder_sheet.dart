@@ -1,35 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/components/components.dart';
-import 'package:iamhere/feature/friend/model/service/device_contact_service.dart';
 import 'package:iamhere/feature/friend/model/service/friend_service.dart';
 import 'package:iamhere/feature/friend/viewmodel/friend_finder_view_model.dart';
 
-/// 친구 찾기 시트. 닫힌 뒤 새로 고른 연락처는 호출한 쪽이 다시 읽는다.
+/// 닉네임이나 이메일로 친구를 찾아 요청을 보내는 시트.
 Future<void> showFriendFinderSheet(
   BuildContext context, {
   required FriendService friendService,
-  required DeviceContactService contactService,
 }) {
   return showImHereSheet<void>(
     context,
     title: '친구 찾기',
-    builder: (_) => FriendFinderSheet(
-      friendService: friendService,
-      contactService: contactService,
-    ),
+    builder: (_) => FriendFinderSheet(friendService: friendService),
   );
 }
 
 class FriendFinderSheet extends ConsumerStatefulWidget {
   final FriendService friendService;
-  final DeviceContactService contactService;
 
-  const FriendFinderSheet({
-    super.key,
-    required this.friendService,
-    required this.contactService,
-  });
+  const FriendFinderSheet({super.key, required this.friendService});
 
   @override
   ConsumerState<FriendFinderSheet> createState() => _FriendFinderSheetState();
@@ -39,10 +29,8 @@ class _FriendFinderSheetState extends ConsumerState<FriendFinderSheet> {
   final _keyword = TextEditingController();
   final _message = TextEditingController(text: defaultFriendRequestMessage);
 
-  FriendFinderViewModelProvider get _provider => friendFinderViewModelProvider(
-    widget.friendService,
-    widget.contactService,
-  );
+  FriendFinderViewModelProvider get _provider =>
+      friendFinderViewModelProvider(widget.friendService);
 
   @override
   void dispose() {
@@ -128,13 +116,6 @@ class _FriendFinderSheetState extends ConsumerState<FriendFinderSheet> {
         expand: true,
         loading: state.busy,
         onPressed: state.busy ? null : () => viewModel.search(_keyword.text),
-      ),
-      gap,
-      ImHereButton(
-        label: '연락처로 추가',
-        tone: ImHereButtonTone.weak,
-        expand: true,
-        onPressed: state.busy ? null : viewModel.importContact,
       ),
     ];
   }

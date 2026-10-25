@@ -1,6 +1,7 @@
 import 'package:iamhere/feature/geofence/background/geofence_background_callback.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
 import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
+import 'package:iamhere/feature/geofence/model/type/geofence_repeat.dart';
 import 'package:iamhere/feature/geofence/model/missing_background_location_exception.dart';
 import 'package:iamhere/feature/geofence/model/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/user_permission/model/permission_state.dart';
@@ -71,15 +72,17 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
     await initialize();
 
     final eventType = EventType.fromName(geofence.eventType);
-    final triggers = _toTriggers(eventType);
-    final initialTriggers = _toInitialTriggers(eventType);
+    final repeating =
+        GeofenceRepeat.fromName(geofence.repeatType) != GeofenceRepeat.none;
+    final triggers = _toTriggers(eventType, repeating: repeating);
+    final initialTriggers = _toInitialTriggers(eventType, repeating: repeating);
 
     final zone = Geofence(
       id: geofence.id!.toString(),
       location: Location(latitude: geofence.lat, longitude: geofence.lng),
       radiusMeters: geofence.radius,
       triggers: triggers,
-      iosSettings: IosGeofenceSettings(initialTrigger: true),
+      iosSettings: IosGeofenceSettings(initialTrigger: !repeating),
       androidSettings: AndroidGeofenceSettings(
         initialTriggers: initialTriggers,
         expiration: null,
@@ -209,22 +212,34 @@ class NativeGeofenceRegistrar implements NativeGeofenceRegistrarInterface {
     }
   }
 
-  Set<GeofenceEvent> _toTriggers(EventType eventType) {
+  Set<GeofenceEvent> _toTriggers(
+    EventType eventType, {
+    bool repeating = false,
+  }) {
     switch (eventType) {
       case EventType.arrival:
-        return const {GeofenceEvent.enter, GeofenceEvent.dwell};
+        return repeating
+            ? const {GeofenceEvent.enter}
+            : const {GeofenceEvent.enter, GeofenceEvent.dwell};
       case EventType.departure:
         return const {GeofenceEvent.exit};
       case EventType.both:
-        return const {
-          GeofenceEvent.enter,
-          GeofenceEvent.dwell,
-          GeofenceEvent.exit,
-        };
+        return repeating
+            ? const {GeofenceEvent.enter, GeofenceEvent.exit}
+            : const {
+                GeofenceEvent.enter,
+                GeofenceEvent.dwell,
+                GeofenceEvent.exit,
+              };
     }
   }
 
-  Set<GeofenceEvent> _toInitialTriggers(EventType eventType) {
+  Set<GeofenceEvent> _toInitialTriggers(
+    EventType eventType, {
+    bool repeating = false,
+  }) {
+    // 앱 재시작으로 재등록할 때 현재 위치에서 반복 발송하지 않는다.
+    if (repeating) return const {};
     switch (eventType) {
       case EventType.departure:
         return const {GeofenceEvent.exit};

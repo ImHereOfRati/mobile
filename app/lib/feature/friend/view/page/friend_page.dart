@@ -66,10 +66,12 @@ class _FriendPageState extends ConsumerState<FriendPage> {
 
   Widget _list(FriendListState data) {
     final metrics = ImHereMetrics.of(context);
-    final colors = ImHereColors.of(context);
-    final textTheme = Theme.of(context).textTheme;
     final groups = FriendGrouping.group(
       FriendGrouping.merge(data.friendships.items, data.contacts),
+    );
+    final total = groups.values.fold<int>(
+      0,
+      (sum, entries) => sum + entries.length,
     );
 
     return InfiniteScroll(
@@ -78,56 +80,62 @@ class _FriendPageState extends ConsumerState<FriendPage> {
       child: ListView(
         padding: EdgeInsets.fromLTRB(
           metrics.resolve(ImHereSpace.gutter),
-          metrics.resolve(ImHereSpace.navToTitle),
+          metrics.resolve(ImHereSpace.md),
           metrics.resolve(ImHereSpace.gutter),
           metrics.resolve(ImHereSpace.xl),
         ),
         children: [
-          Text('친구', style: textTheme.titleLarge),
-          SizedBox(height: metrics.resolve(6)),
-          Text(
-            'ImHere 친구와 기기 연락처를 한곳에서 확인하세요',
-            style: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
+          // 친구를 더하는 두 방법은 한 번의 탭으로 바로 시작한다.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _ActionTile(
+                    glyph: ImHereGlyph.add,
+                    title: '친구 찾기',
+                    subtitle: '닉네임·이메일로 요청',
+                    onTap: _openFinder,
+                  ),
+                ),
+                SizedBox(width: metrics.resolve(ImHereSpace.sm)),
+                Expanded(
+                  child: _ActionTile(
+                    glyph: ImHereGlyph.person,
+                    title: '연락처 추가',
+                    subtitle: '기기에서 바로 선택',
+                    onTap: _addContact,
+                  ),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: metrics.resolve(ImHereSpace.md)),
-          Wrap(
-            spacing: metrics.resolve(ImHereSpace.xs),
-            runSpacing: metrics.resolve(ImHereSpace.xs),
-            children: [
-              ImHereButton(
-                label: '친구 추가',
-                size: ImHereButtonSize.sm,
-                onPressed: _openFinder,
-              ),
-              ImHereButton(
-                label: '받은 요청',
-                tone: ImHereButtonTone.weak,
-                size: ImHereButtonSize.sm,
-                onPressed: () => context.push('/friend/requests'),
-              ),
-              ImHereButton(
-                label: '친구 관리',
-                tone: ImHereButtonTone.weak,
-                size: ImHereButtonSize.sm,
-                onPressed: () => context.push('/friend/restrictions'),
-              ),
-            ],
+          SizedBox(height: metrics.resolve(ImHereSpace.sm)),
+          ImHereListRow(
+            title: '받은 요청',
+            leading: const ImHereIcon(glyph: ImHereGlyph.bell, size: 22),
+            onTap: () => context.push('/friend/requests'),
           ),
-          SizedBox(height: metrics.resolve(ImHereSpace.lg)),
+          const ImHereBorder(tone: ImHereDividerTone.subtle),
+          SizedBox(height: metrics.resolve(ImHereSpace.sm)),
           if (groups.isEmpty)
             ImHereStatePanel(
               glyph: ImHereGlyph.friends,
               title: '아직 등록된 친구가 없어요',
-              description: '닉네임이나 이메일로 친구를 찾아 요청을 보내 보세요',
-              actionLabel: '친구 추가',
-              onAction: _openFinder,
+              description: '위에서 친구를 찾거나 연락처를 추가해 보세요',
             )
-          else
+          else ...[
+            ImHereListHeader(
+              title: '친구 $total명',
+              actionLabel: '관리',
+              onAction: () => context.push('/friend/restrictions'),
+            ),
             for (final group in groups.entries) ...[
               ImHereListHeader(title: group.key),
               for (final entry in group.value) _row(entry),
               SizedBox(height: metrics.resolve(ImHereSpace.sm)),
             ],
+          ],
           PagedFooter(loading: data.friendships.loadingMore),
         ],
       ),
@@ -135,17 +143,18 @@ class _FriendPageState extends ConsumerState<FriendPage> {
   }
 
   Widget _row(FriendEntry entry) {
-    final kind = switch (entry) {
-      ServerFriendEntry() => 'ImHere 친구',
-      DeviceFriendEntry() => '기기 연락처',
-    };
-    final description = entry.description.isEmpty
-        ? '전화번호 없음'
-        : entry.description;
     return ImHereListRow(
       title: entry.displayName,
-      description: '$description · $kind',
+      description: entry.description.isEmpty ? '전화번호 없음' : entry.description,
       leading: ImHereAvatar(name: entry.displayName),
+      // 기기 연락처만 표시해 ImHere 친구와 구분한다.
+      trailing: entry is DeviceFriendEntry
+          ? const ImHereBadge(
+              label: '연락처',
+              tone: ImHereBadgeTone.neutral,
+              size: ImHereBadgeSize.medium,
+            )
+          : null,
       onTap: () => switch (entry) {
         ServerFriendEntry(:final friendship) => _openFriend(friendship),
         DeviceFriendEntry(:final contact) => _openContact(contact),
@@ -153,13 +162,14 @@ class _FriendPageState extends ConsumerState<FriendPage> {
     );
   }
 
-  Future<void> _openFinder() async {
-    await showFriendFinderSheet(
-      context,
-      friendService: widget.friendService,
-      contactService: widget.contactService,
-    );
-    if (mounted) await ref.read(_provider.notifier).reloadContacts();
+  Future<void> _openFinder() {
+    return showFriendFinderSheet(context, friendService: widget.friendService);
+  }
+
+  /// 시트를 거치지 않고 기기 연락처 선택기를 바로 연다.
+  Future<void> _addContact() async {
+    final message = await ref.read(_provider.notifier).addContactFromDevice();
+    _toast(message);
   }
 
   Future<void> _openFriend(FriendshipDto friendship) async {
@@ -240,5 +250,58 @@ class _FriendPageState extends ConsumerState<FriendPage> {
 
   void _toast(String message) {
     if (mounted) showImHereSnackbar(context, message);
+  }
+}
+
+/// 친구를 더하는 방법 하나. 눌러서 바로 시작한다.
+class _ActionTile extends StatelessWidget {
+  final ImHereGlyph glyph;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ActionTile({
+    required this.glyph,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ImHereColors.of(context);
+    final metrics = ImHereMetrics.of(context);
+    final textTheme = Theme.of(context).textTheme;
+
+    return Semantics(
+      button: true,
+      label: '$title, $subtitle',
+      excludeSemantics: true,
+      child: ImHereSurface(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: metrics.resolve(36),
+              height: metrics.resolve(36),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.actionSubtle,
+                shape: BoxShape.circle,
+              ),
+              child: ImHereIcon(glyph: glyph, size: 20, color: colors.action),
+            ),
+            SizedBox(height: metrics.resolve(ImHereSpace.sm)),
+            Text(title, style: textTheme.titleSmall),
+            SizedBox(height: metrics.resolve(ImHereSpace.xxs)),
+            Text(
+              subtitle,
+              style: textTheme.bodySmall?.copyWith(color: colors.textMuted),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

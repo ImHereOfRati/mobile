@@ -10,6 +10,8 @@ void main() {
     int id = 1,
     bool isActive = true,
     String eventType = 'arrival',
+    String repeatType = 'none',
+    int? customDaysBitmask,
     bool awaitingDeparture = false,
   }) {
     return GeofenceEntity(
@@ -23,6 +25,8 @@ void main() {
       contactIds: '[]',
       isActive: isActive,
       eventType: eventType,
+      repeatType: repeatType,
+      customDaysBitmask: customDaysBitmask,
       awaitingDeparture: awaitingDeparture,
     );
   }
@@ -66,9 +70,7 @@ void main() {
   });
 
   test('필터에서 무시된 trigger 는 queue 와 상태를 변경하지 않는다', () async {
-    final repo = _FakeGeofenceRepository([
-      geofence(eventType: 'arrival'),
-    ]);
+    final repo = _FakeGeofenceRepository([geofence(eventType: 'arrival')]);
     final pipeline = _FakeDeliveryPipeline(accepted: true);
     final useCase = HandleGeofenceTriggerUseCase(
       repo: repo,
@@ -102,6 +104,64 @@ void main() {
     expect(repo.activeUpdates, isEmpty);
     expect(repo.awaitingUpdates, isEmpty);
   });
+
+  test('반복 알림은 발송 후에도 장소를 활성 상태로 둔다', () async {
+    final repo = _FakeGeofenceRepository([geofence(repeatType: 'daily')]);
+    final pipeline = _FakeDeliveryPipeline(accepted: true);
+    final useCase = HandleGeofenceTriggerUseCase(
+      repo: repo,
+      pipeline: pipeline,
+    );
+
+    final result = await useCase.execute(
+      geofenceId: 1,
+      deliveryEvent: DeliveryEvent.arrival,
+    );
+
+    expect(result.status, GeofenceTriggerStatus.queued);
+    expect(repo.activeUpdates, isEmpty);
+  });
+
+  test('선택하지 않은 요일에는 반복 알림을 보내지 않는다', () async {
+    final repo = _FakeGeofenceRepository([
+      geofence(repeatType: 'custom', customDaysBitmask: 1), // 월요일만
+    ]);
+    final pipeline = _FakeDeliveryPipeline(accepted: true);
+    final useCase = HandleGeofenceTriggerUseCase(
+      repo: repo,
+      pipeline: pipeline,
+      nowLocal: () => DateTime(2026, 10, 25), // 일요일
+    );
+
+    final result = await useCase.execute(
+      geofenceId: 1,
+      deliveryEvent: DeliveryEvent.arrival,
+    );
+
+    expect(result.status, GeofenceTriggerStatus.ignored);
+    expect(pipeline.enqueuedEvents, isEmpty);
+  });
+
+  test('선택한 요일에는 반복 알림을 보낸다', () async {
+    final repo = _FakeGeofenceRepository([
+      geofence(repeatType: 'custom', customDaysBitmask: 1),
+    ]);
+    final pipeline = _FakeDeliveryPipeline(accepted: true);
+    final useCase = HandleGeofenceTriggerUseCase(
+      repo: repo,
+      pipeline: pipeline,
+      nowLocal: () => DateTime(2026, 10, 26), // 월요일
+    );
+
+    final result = await useCase.execute(
+      geofenceId: 1,
+      deliveryEvent: DeliveryEvent.arrival,
+    );
+
+    expect(result.status, GeofenceTriggerStatus.queued);
+    expect(pipeline.enqueuedEvents, [DeliveryEvent.arrival]);
+    expect(repo.activeUpdates, isEmpty);
+  });
 }
 
 class _FakeGeofenceRepository implements GeofenceLocalRepository {
@@ -132,10 +192,7 @@ class _FakeGeofenceRepository implements GeofenceLocalRepository {
   Future<void> updateAddress(int id, String address) async {}
 
   @override
-  Future<void> updateAwaitingDeparture(
-    int id,
-    bool awaitingDeparture,
-  ) async {
+  Future<void> updateAwaitingDeparture(int id, bool awaitingDeparture) async {
     awaitingUpdates[id] = awaitingDeparture;
   }
 }

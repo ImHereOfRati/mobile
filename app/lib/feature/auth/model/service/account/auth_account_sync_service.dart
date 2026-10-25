@@ -18,7 +18,7 @@ class AuthAccountSyncService {
       return false;
     }
 
-    // Newly authenticated users are intentionally PENDING until the WebView
+    // Newly authenticated users are intentionally PENDING until the app
     // collects terms consent. `/api/users/my` is active-user-only, so calling
     // it here would return 403 and incorrectly clear a valid pending account.
     final storedUserStatus = await _tokenStorage.getUserStatus();
@@ -58,7 +58,7 @@ class AuthAccountSyncService {
       return true;
     } on InvalidAuthStateException catch (error) {
       // The account may have been deleted or the stored JWT may be revoked.
-      // Do not let the WebView observe the stale pending account on startup.
+      // Do not expose stale pending account data after startup.
       await _tokenStorage.deleteAllTokens();
       AppLogger.warning(
         'AuthAccountSync: invalid authentication state (${error.statusCode}); local auth cleared',

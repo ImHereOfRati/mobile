@@ -1,6 +1,7 @@
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_snapshot.dart';
 import 'package:iamhere/feature/geofence/model/delivery_event.dart';
 import 'package:iamhere/feature/geofence/model/event_type.dart';
+import 'package:iamhere/feature/geofence/model/type/geofence_repeat.dart';
 
 class GeofenceDeliveryPolicy {
   const GeofenceDeliveryPolicy._();
@@ -87,6 +88,13 @@ class GeofenceLifecyclePolicy {
       return GeofenceLifecycleAction.markAwaitingDeparture;
     }
 
+    if (GeofenceRepeat.fromName(snapshot.geofence.repeatType) !=
+        GeofenceRepeat.none) {
+      return configuredEventType == EventType.both
+          ? GeofenceLifecycleAction.clearAwaitingDeparture
+          : GeofenceLifecycleAction.none;
+    }
+
     return GeofenceLifecycleAction.deactivate;
   }
 
@@ -103,6 +111,11 @@ class GeofenceLifecyclePolicy {
     if (configuredEventType == EventType.both &&
         deliveryEvent == DeliveryEvent.arrival) {
       return GeofenceLifecycleAction.clearAwaitingDeparture;
+    }
+
+    if (GeofenceRepeat.fromName(snapshot.geofence.repeatType) !=
+        GeofenceRepeat.none) {
+      return GeofenceLifecycleAction.none;
     }
 
     return GeofenceLifecycleAction.restoreActive;

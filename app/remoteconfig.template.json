@@ -7,13 +7,6 @@
       "description": "Backend API origin. Endpoints are prefixed with /api, so this must be the origin root without a path.",
       "valueType": "STRING"
     },
-    "web_app_url": {
-      "defaultValue": {
-        "value": "https://imhere.ratiko.co.kr/app"
-      },
-      "description": "Deprecated Web shell URL. The client derives <base_url>/app; keep this parameter only for older app builds.",
-      "valueType": "STRING"
-    },
     "minimum_app_version": {
       "defaultValue": {
         "value": "2.0.0"

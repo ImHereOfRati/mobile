@@ -13,7 +13,7 @@ import 'package:iamhere/integration/fcm/fcm_notification_policy.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-FutureOr<void> Function(String path)? _shellPathHandler;
+FutureOr<void> Function(String path)? _nativePathHandler;
 String? _pendingNotificationPath;
 
 @pragma('vm:entry-point')
@@ -245,8 +245,8 @@ Future<void> _ensureAndroidNotificationChannels() async {
   }
 }
 
-void setupShellMessageTapHandler(FutureOr<void> Function(String path) onPath) {
-  _shellPathHandler = onPath;
+void setupNativeNotificationNavigation(FutureOr<void> Function(String path) onPath) {
+  _nativePathHandler = onPath;
   _drainPendingNotificationPath();
 
   initializeLocalNotifications().then((_) {
@@ -276,7 +276,7 @@ void _handlePayloadNavigation(String? raw) {
   final path = _normalizePath(raw);
   if (path == null) return;
 
-  if (_shellPathHandler != null) {
+  if (_nativePathHandler != null) {
     _dispatchPath(path);
     return;
   }
@@ -287,7 +287,7 @@ void _drainPendingNotificationPath() {
   final pendingPath = _pendingNotificationPath;
   if (pendingPath == null) return;
 
-  if (_shellPathHandler != null) {
+  if (_nativePathHandler != null) {
     _pendingNotificationPath = null;
     _dispatchPath(pendingPath);
     return;
@@ -297,7 +297,7 @@ void _drainPendingNotificationPath() {
 void _dispatchPath(String? raw) {
   final path = _normalizePath(raw);
   if (path == null) return;
-  final handler = _shellPathHandler;
+  final handler = _nativePathHandler;
   if (handler == null) {
     _pendingNotificationPath = path;
     return;

@@ -45,8 +45,21 @@ class FriendListViewModel extends _$FriendListViewModel {
     );
   }
 
-  /// 로딩 화면으로 돌아가지 않고 연락처만 다시 읽는다. 친구 찾기 시트를 닫은 뒤
-  /// 새로 고른 연락처를 반영하는 데 쓴다.
+  /// 기기 연락처 선택기를 바로 띄워 고른 연락처를 친구 목록에 더하고, 사용자에게
+  /// 보여 줄 결과 문구를 돌려준다.
+  Future<String> addContactFromDevice() async {
+    try {
+      final contact = await _contacts.pick();
+      if (contact == null) return '연락처를 추가하지 않았어요';
+      await reloadContacts();
+      return '${contact.name} 연락처를 추가했어요';
+    } catch (error, stack) {
+      AppLogger.error('Contact import failed', error, stack);
+      return '연락처를 가져오지 못했어요. 권한을 확인해 주세요';
+    }
+  }
+
+  /// 로딩 화면으로 돌아가지 않고 연락처만 다시 읽는다.
   Future<void> reloadContacts() async {
     final current = state.value;
     if (current == null) return;

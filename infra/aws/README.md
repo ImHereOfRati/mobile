@@ -1,16 +1,14 @@
 # AWS 정적 호스팅
 
-버킷 하나(비공개) + CloudFront 하나로 세 사이트를 서빙한다.
+비공개 S3 버킷 하나와 CloudFront 하나로 랜딩 페이지와 디자인 사이트를 서빙한다.
 
 | URL | 버킷 prefix | 원본 |
 |---|---|---|
 | `https://imhere.ratiko.co.kr/` | `landing/` | `landing_page` |
-| `https://imhere.ratiko.co.kr/app/` | `app/` | `web` |
 | `https://imhere-design.ratiko.co.kr/` | `design/` | `design_site` |
 
 호스트/경로 → prefix 매핑은 `web-hosting.yml`의 CloudFront Function이 처리한다.
 `/api/*`, `/swagger-ui/*`, `/docs/*`는 백엔드(`ApiOriginDomain`, 기본 `imhere-server.ratiko.co.kr`)로 프록시되며 캐시하지 않는다.
-웹앱은 API를 같은 origin(`/api`)으로 호출한다.
 
 ## 최초 설정 (1회)
 
@@ -42,7 +40,6 @@
    | `AWS_DEPLOY_ROLE_ARN` | 출력 `DeployRoleArn` |
    | `WEB_BUCKET` | 출력 `BucketName` |
    | `CLOUDFRONT_DISTRIBUTION_ID` | 출력 `DistributionId` |
-   | `VITE_GA_MEASUREMENT_ID`, `VITE_CLARITY_PROJECT_ID`, `VITE_NAVER_MAP_CLIENT_ID` | `web` 빌드용 |
 
 ## 전환 이력 및 기존 리소스 정리
 

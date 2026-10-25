@@ -65,74 +65,77 @@ class _RecordPageState extends ConsumerState<RecordPage>
 
   Widget _overview(RecordOverviewState data) {
     final metrics = ImHereMetrics.of(context);
-    final colors = ImHereColors.of(context);
-    final textTheme = Theme.of(context).textTheme;
+    final gap = SizedBox(height: metrics.resolve(ImHereSpace.sm));
 
-    return ListView(
+    return Padding(
       padding: EdgeInsets.fromLTRB(
         metrics.resolve(ImHereSpace.gutter),
-        metrics.resolve(ImHereSpace.navToTitle),
+        metrics.resolve(ImHereSpace.xs),
         metrics.resolve(ImHereSpace.gutter),
-        metrics.resolve(ImHereSpace.xl),
+        metrics.resolve(ImHereSpace.md),
       ),
-      children: [
-        Text('기록', style: textTheme.titleLarge),
-        SizedBox(height: metrics.resolve(6)),
-        Text(
-          '받은 알림, 친구 요청, 자동 전송 결과를 확인하세요',
-          style: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
-        ),
-        SizedBox(height: metrics.resolve(ImHereSpace.lg)),
-        ActivitySection(
-          title: '받은 알림',
-          emptyTitle: '최근 받은 알림이 없어요',
-          onShowAll: () => context.push('/record/notifications'),
-          children: [
-            for (final item in data.notifications)
-              ActivityCard(
-                title: item.title,
-                body: item.body,
-                meta: DateTimeFormatter.dateTime(item.createdAt),
-                onTap: item.id == null
-                    ? null
-                    : () => context.push('/record/notifications/${item.id}'),
-              ),
-          ],
-        ),
-        SizedBox(height: metrics.resolve(ImHereSpace.lg)),
-        ActivitySection(
-          title: '친구 요청',
-          emptyTitle: '대기 중인 친구 요청이 없어요',
-          onShowAll: () => context.push('/friend/requests'),
-          children: [
-            for (final item in data.requests)
-              ActivityCard(
-                title: item.requester.nickname,
-                body: item.message,
-                meta: DateTimeFormatter.dateTimeFromIso(item.createdAt),
-                onTap: () => context.push('/friend/requests'),
-              ),
-          ],
-        ),
-        SizedBox(height: metrics.resolve(ImHereSpace.lg)),
-        ActivitySection(
-          title: '전송 기록',
-          emptyTitle: '자동 전송 기록이 없어요',
-          onShowAll: () => context.push('/record/send-history'),
-          children: [
-            for (final item in data.records)
-              ActivityCard(
-                title: item.geofenceName,
-                body: item.message,
-                meta: DateTimeFormatter.dateTime(item.createdAt),
-                badge: RecordStatusBadge(status: item.status),
-                onTap: item.id == null
-                    ? null
-                    : () => context.push('/record/send-history/${item.id}'),
-              ),
-          ],
-        ),
-      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 화면 전체 높이를 세 묶음이 똑같이 나눠 쓴다.
+          Expanded(
+            child: ActivitySection(
+              title: '받은 알림',
+              emptyTitle: '최근 받은 알림이 없어요',
+              onShowAll: () => context.push('/record/notifications'),
+              children: [
+                for (final item in data.notifications)
+                  ActivityCard(
+                    title: item.title,
+                    body: item.body,
+                    meta: DateTimeFormatter.dateTime(item.createdAt),
+                    onTap: item.id == null
+                        ? null
+                        : () =>
+                              context.push('/record/notifications/${item.id}'),
+                  ),
+              ],
+            ),
+          ),
+          gap,
+          Expanded(
+            child: ActivitySection(
+              title: '친구 요청',
+              emptyTitle: '대기 중인 친구 요청이 없어요',
+              onShowAll: () => context.push('/friend/requests'),
+              children: [
+                for (final item in data.requests)
+                  ActivityCard(
+                    title: item.requester.nickname,
+                    body: item.message,
+                    meta: DateTimeFormatter.dateTimeFromIso(item.createdAt),
+                    onTap: () => context.push('/friend/requests'),
+                  ),
+              ],
+            ),
+          ),
+          gap,
+          Expanded(
+            child: ActivitySection(
+              title: '전송 기록',
+              emptyTitle: '자동 전송 기록이 없어요',
+              onShowAll: () => context.push('/record/send-history'),
+              children: [
+                for (final item in data.records)
+                  ActivityCard(
+                    title: item.geofenceName,
+                    body: item.message,
+                    meta: DateTimeFormatter.dateTime(item.createdAt),
+                    badge: RecordStatusBadge(status: item.status),
+                    onTap: item.id == null
+                        ? null
+                        : () => context.push('/record/send-history/${item.id}'),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

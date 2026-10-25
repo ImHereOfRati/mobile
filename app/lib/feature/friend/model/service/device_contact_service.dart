@@ -1,7 +1,7 @@
 import 'package:iamhere/feature/friend/model/repository/contact_entity.dart';
 import 'package:iamhere/feature/friend/model/repository/contact_local_repository.dart';
 import 'package:iamhere/feature/friend/model/repository/contact_repository.dart';
-import 'package:iamhere/shell/bridge/device_contact_reader.dart';
+import 'package:iamhere/feature/friend/model/service/device_contact_reader.dart';
 import 'package:injectable/injectable.dart';
 
 /// 친구 목록에 보이는 기기 연락처. 기기 주소록 전체가 아니라 사용자가 ImHere에서
