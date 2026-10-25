@@ -11,6 +11,7 @@ import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/model/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/geofence/model/service/sms_notification_service.dart';
+import 'package:iamhere/feature/geofence/model/service/sms_daily_quota_service.dart';
 
 class GeofenceDeliveryPipeline {
   final DeliveryQueueStore _queue;
@@ -42,6 +43,7 @@ class GeofenceDeliveryPipeline {
     Clock clock = const SystemClock(),
     GeofenceLifecyclePolicy lifecyclePolicy = const GeofenceLifecyclePolicy(),
     DeliveryDispatcher? dispatcher,
+    SmsDailyQuotaStore? smsQuotaService,
   }) : _successPolicy = successPolicy,
        _retryPolicy = retryPolicy,
        _dedupePolicy = dedupePolicy,
@@ -49,7 +51,11 @@ class GeofenceDeliveryPipeline {
        _lifecyclePolicy = lifecyclePolicy,
        _dispatcher =
            dispatcher ??
-           DeliveryDispatcher(smsNotificationService, fcmArrivalService);
+           DeliveryDispatcher(
+             smsNotificationService,
+             fcmArrivalService,
+             smsQuotaService: smsQuotaService,
+           );
 
   Future<bool> enqueueTriggeredGeofence({
     required GeofenceEntity geofence,

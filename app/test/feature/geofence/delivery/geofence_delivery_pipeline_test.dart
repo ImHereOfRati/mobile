@@ -14,6 +14,7 @@ import 'package:iamhere/feature/geofence/model/service/fcm_arrival_service.dart'
 import 'package:iamhere/feature/geofence/model/service/native_geofence_registrar_interface.dart';
 import 'package:iamhere/feature/record/model/service/record_service.dart';
 import 'package:iamhere/feature/geofence/model/service/sms_notification_service.dart';
+import 'package:iamhere/feature/geofence/model/service/sms_daily_quota_service.dart';
 import 'package:iamhere/feature/geofence/model/notification_delivery_state.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -62,6 +63,7 @@ void main() {
       mockFcm,
       mockRecord,
       mockScheduler,
+      smsQuotaService: _UnlimitedSmsQuotaStore(),
     );
 
     when(
@@ -308,6 +310,7 @@ void main() {
         mockRecord,
         mockScheduler,
         clock: _FixedClock(fixedNow),
+        smsQuotaService: _UnlimitedSmsQuotaStore(),
       );
       stubEmptyRecipients();
       stubTakeDue([]);
@@ -679,6 +682,15 @@ void main() {
       verify(mockQueue.takeDue(limit: anyNamed('limit'))).called(1);
     });
   });
+}
+
+class _UnlimitedSmsQuotaStore implements SmsDailyQuotaStore {
+  @override
+  Future<SmsDailyQuota> load() async =>
+      const SmsDailyQuota(maximum: null, used: 0);
+
+  @override
+  Future<void> recordAccepted(int smsCount) async {}
 }
 
 class _FixedClock implements Clock {

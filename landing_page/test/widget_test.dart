@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:iamhere/components/components.dart';
 import 'package:imhere_landing_page/legal_document_page.dart';
 import 'package:imhere_landing_page/main.dart';
 
@@ -43,9 +44,7 @@ void main() {
 
     final scroll = find.byKey(const Key('landing-scroll-view'));
     Future<void> scrollTo(double offset) async {
-      final controller = tester
-          .widget<CustomScrollView>(scroll)
-          .controller!;
+      final controller = tester.widget<CustomScrollView>(scroll).controller!;
       controller.jumpTo(offset);
       await tester.pumpAndSettle();
     }
@@ -70,9 +69,11 @@ void main() {
     controller.jumpTo(832.0 * 2.5 + 832.0 * 2 + 100);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('phone-radius-500m')));
+    final homeToggle = find.byKey(const ValueKey('phone-place-toggle-우리 집'));
+    expect(tester.widget<ImHereSwitch>(homeToggle).value, isTrue);
+    await tester.tap(homeToggle);
     await tester.pumpAndSettle();
-    expect(find.text('우리 집에서 500m 안에 들어오면 알려요.'), findsOneWidget);
+    expect(tester.widget<ImHereSwitch>(homeToggle).value, isFalse);
   });
 
   testWidgets('앱 다운로드 버튼을 누르면 Google Play 다운로드 및 iOS 안내 모달이 열린다', (

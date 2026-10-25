@@ -7,6 +7,7 @@ import 'package:iamhere/feature/geofence/model/repository/geofence_entity.dart';
 import 'package:iamhere/feature/geofence/model/service/fcm_arrival_service.dart';
 import 'package:iamhere/feature/geofence/model/service/sms_notification_service.dart';
 import 'package:iamhere/feature/geofence/model/notification_delivery_state.dart';
+import 'package:iamhere/feature/geofence/model/service/sms_daily_quota_service.dart';
 
 void main() {
   GeofenceDeliverySnapshot snapshot({
@@ -35,6 +36,7 @@ void main() {
     final dispatcher = DeliveryDispatcher(
       _FakeSmsNotificationService(Failure('sms failed')),
       _FakeFcmArrivalService(Success(null)),
+      smsQuotaService: _UnlimitedSmsQuotaStore(),
     );
 
     final result = await dispatcher.send(
@@ -53,6 +55,7 @@ void main() {
     final dispatcher = DeliveryDispatcher(
       _FakeSmsNotificationService(Failure('sms failed')),
       _FakeFcmArrivalService(Failure('fcm failed')),
+      smsQuotaService: _UnlimitedSmsQuotaStore(),
     );
 
     final result = await dispatcher.send(
@@ -71,7 +74,11 @@ void main() {
       Success(NotificationDeliveryState.delivered),
     );
     final fcm = _FakeFcmArrivalService(Success(null));
-    final dispatcher = DeliveryDispatcher(sms, fcm);
+    final dispatcher = DeliveryDispatcher(
+      sms,
+      fcm,
+      smsQuotaService: _UnlimitedSmsQuotaStore(),
+    );
     final body = '[ImHere]\n${'가' * 40}';
 
     await dispatcher.send(
@@ -86,6 +93,15 @@ void main() {
     expect(sms.lastBody!.length, smsBodyMaxLength);
     expect(fcm.lastBody, body);
   });
+}
+
+class _UnlimitedSmsQuotaStore implements SmsDailyQuotaStore {
+  @override
+  Future<SmsDailyQuota> load() async =>
+      const SmsDailyQuota(maximum: null, used: 0);
+
+  @override
+  Future<void> recordAccepted(int smsCount) async {}
 }
 
 class _FakeSmsNotificationService implements SmsNotificationService {

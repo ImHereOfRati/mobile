@@ -258,7 +258,12 @@ class _PlacePreviewRow extends StatelessWidget {
         const ImHereBadge(label: '매일', tone: ImHereBadgeTone.neutral),
         const SizedBox(height: ImHereSpace.xs),
         const ImHereBorder(tone: ImHereDividerTone.subtle),
-        ImHereSwitch(label: '알림 사용', value: enabled, onChanged: onChanged),
+        ImHereSwitch(
+          key: ValueKey('phone-place-toggle-$name'),
+          label: '알림 사용',
+          value: enabled,
+          onChanged: onChanged,
+        ),
       ],
     ),
   );

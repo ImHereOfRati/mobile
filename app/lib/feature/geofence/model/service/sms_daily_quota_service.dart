@@ -13,8 +13,14 @@ class SmsDailyQuota {
   bool allows(int count) => remaining == null || count <= remaining!;
 }
 
+abstract interface class SmsDailyQuotaStore {
+  Future<SmsDailyQuota> load();
+
+  Future<void> recordAccepted(int smsCount);
+}
+
 /// Tracks accepted device-contact SMS requests for the current local day.
-class SmsDailyQuotaService {
+class SmsDailyQuotaService implements SmsDailyQuotaStore {
   static const _usageKeyPrefix = 'device_sms_usage_';
 
   final SharedPreferencesAsync _preferences;
@@ -22,6 +28,7 @@ class SmsDailyQuotaService {
   SmsDailyQuotaService({SharedPreferencesAsync? preferences})
     : _preferences = preferences ?? SharedPreferencesAsync();
 
+  @override
   Future<SmsDailyQuota> load() async {
     final today = _todayKey();
     final used = await _preferences.getInt('$_usageKeyPrefix$today') ?? 0;
@@ -34,6 +41,7 @@ class SmsDailyQuotaService {
     return SmsDailyQuota(maximum: maximum, used: used);
   }
 
+  @override
   Future<void> recordAccepted(int smsCount) async {
     if (smsCount <= 0) return;
     final key = '$_usageKeyPrefix${_todayKey()}';

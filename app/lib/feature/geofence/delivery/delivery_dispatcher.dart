@@ -23,12 +23,12 @@ class DeliveryDispatchResult {
 class DeliveryDispatcher {
   final SmsNotificationService _smsNotificationService;
   final FcmArrivalService _fcmArrivalService;
-  final SmsDailyQuotaService _smsQuotaService;
+  final SmsDailyQuotaStore _smsQuotaService;
 
   DeliveryDispatcher(
     this._smsNotificationService,
     this._fcmArrivalService, {
-    SmsDailyQuotaService? smsQuotaService,
+    SmsDailyQuotaStore? smsQuotaService,
   }) : _smsQuotaService = smsQuotaService ?? SmsDailyQuotaService();
 
   Future<DeliveryDispatchResult> send(
