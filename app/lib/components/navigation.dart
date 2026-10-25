@@ -20,8 +20,10 @@ class ImHereNavItem {
   final bool hasUpdate;
 }
 
-/// Bottom navigation bar with translucent glass blur and smooth capsule
-/// selection transitions across four primary destinations.
+/// Bottom navigation bar in an Apple-style glass look: a blurred translucent
+/// bar holding a floating capsule. The capsule has a hairline edge and a soft
+/// shadow so its boundary stays visible on any page color, and the selected
+/// destination is marked by a brand-tinted pill.
 class ImHereNavigation extends StatelessWidget {
   const ImHereNavigation({
     super.key,
@@ -48,21 +50,34 @@ class ImHereNavigation extends StatelessWidget {
       child: ClipRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-          child: ColoredBox(
-            color: colors.surface.withValues(alpha: 0.84),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.surface.withValues(alpha: 0.78),
+            ),
             child: SafeArea(
               top: false,
               child: Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: metrics.resolve(ImHereSpace.sm),
-                  vertical: metrics.resolve(5),
+                  horizontal: metrics.resolve(ImHereSpace.md),
+                  vertical: metrics.resolve(ImHereSpace.xs),
                 ),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: colors.surfaceSubtle.withValues(alpha: 0.72),
+                    color: colors.surfaceSubtle,
+                    border: Border.all(
+                      color: colors.border.withValues(alpha: 0.7),
+                      width: 0.5,
+                    ),
                     borderRadius: BorderRadius.circular(
                       metrics.resolve(ImHereRadius.pill),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.10),
+                        blurRadius: metrics.resolve(18),
+                        offset: Offset(0, metrics.resolve(4)),
+                      ),
+                    ],
                   ),
                   child: Padding(
                     padding: EdgeInsets.all(metrics.resolve(3.5)),
@@ -110,16 +125,12 @@ class ImHereNavigation extends StatelessWidget {
               vertical: metrics.resolve(4),
             ),
             decoration: BoxDecoration(
-              color: selected ? colors.background : Colors.transparent,
+              // 선택된 곳은 브랜드 색 배경으로 구분한다. 테두리를 두지 않아
+              // 선택이 바뀔 때 안쪽 크기가 달라져 흔들리는 일도 없다.
+              color: selected ? colors.actionSubtle : Colors.transparent,
               borderRadius: BorderRadius.circular(
                 metrics.resolve(ImHereRadius.pill),
               ),
-              border: selected
-                  ? Border.all(
-                      color: colors.divider.withValues(alpha: 0.8),
-                      width: 0.5,
-                    )
-                  : null,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -127,7 +138,7 @@ class ImHereNavigation extends StatelessWidget {
               children: [
                 AnimatedScale(
                   duration: duration,
-                  curve: Curves.easeOutBack,
+                  curve: Curves.easeOutCubic,
                   scale: selected ? 1.08 : 1.0,
                   child: item.hasUpdate
                       ? ImHereNotificationBadge(
@@ -150,9 +161,8 @@ class ImHereNavigation extends StatelessWidget {
                             fontSize: metrics.resolve(11),
                             height: 1.1,
                             color: color,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            // 굵기를 바꾸면 글자 폭이 달라져 라벨이 흔들린다.
+                            fontWeight: FontWeight.w500,
                           ),
                   child: Text(
                     item.label,

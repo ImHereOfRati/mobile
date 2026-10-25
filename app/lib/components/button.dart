@@ -21,7 +21,11 @@ enum ImHereButtonTone {
 enum ImHereButtonSize {
   lg(paddingX: 20, paddingY: 16, radius: 14, gap: 8, icon: 24),
   md(paddingX: 18, paddingY: 12, radius: 13, gap: 7, icon: 18),
-  sm(paddingX: 16, paddingY: 8, radius: 12, gap: 6, icon: 16);
+  sm(paddingX: 16, paddingY: 8, radius: 12, gap: 6, icon: 16),
+
+  /// Inline action inside a card or a list row. The face is compact, but the
+  /// tap area stays at the accessible minimum.
+  xs(paddingX: 12, paddingY: 6, radius: 10, gap: 4, icon: 14, compact: true);
 
   const ImHereButtonSize({
     required this.paddingX,
@@ -29,12 +33,16 @@ enum ImHereButtonSize {
     required this.radius,
     required this.gap,
     required this.icon,
+    this.compact = false,
   });
   final double paddingX;
   final double paddingY;
   final double radius;
   final double gap;
   final double icon;
+
+  /// Drops the visual minimum size and uses the smaller label style.
+  final bool compact;
 }
 
 /// Flat, shadow-free button. Colors change over 150ms and the button shrinks
@@ -110,12 +118,18 @@ class ImHereButton extends StatelessWidget {
       style: FilledButton.styleFrom(
         elevation: 0,
         animationDuration: ImHereMotion.colorOf(context),
-        minimumSize: Size(metrics.touchTarget, metrics.touchTarget),
+        minimumSize: size.compact
+            ? Size.zero
+            : Size(metrics.touchTarget, metrics.touchTarget),
+        // 얼굴은 작아도 눌리는 영역은 접근성 최소 크기(48)로 유지한다.
+        tapTargetSize: MaterialTapTargetSize.padded,
         padding: EdgeInsets.symmetric(
           horizontal: metrics.resolve(size.paddingX),
           vertical: metrics.resolve(size.paddingY),
         ),
-        textStyle: Theme.of(context).textTheme.labelLarge,
+        textStyle: size.compact
+            ? Theme.of(context).textTheme.labelMedium
+            : Theme.of(context).textTheme.labelLarge,
         backgroundColor: shownBackground,
         foregroundColor: shownForeground,
         // Loading disables the press but keeps the active face.
