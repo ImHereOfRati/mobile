@@ -283,7 +283,6 @@ class _WebViewHostState extends State<WebViewHost> with WidgetsBindingObserver {
               ? _page
               : NativeShellPage.fromLocation(widget.nativeLocation!),
           onNavigate: (path) => unawaited(_navigate(path)),
-          onBack: () => unawaited(_handleBack()),
           child: Stack(
             children: [
               Positioned.fill(

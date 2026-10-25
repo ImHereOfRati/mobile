@@ -39,7 +39,7 @@ class _TermsPageState extends ConsumerState<TermsPage> {
       backgroundColor: colors.background,
       body: Column(
         children: [
-          ImHereTopBar(title: '약관 동의', onBack: () => context.go('/auth')),
+          const ImHereAppHeader(showNotification: false),
           Expanded(
             child: terms.when(
               loading: () => Center(

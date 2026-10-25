@@ -38,7 +38,6 @@ void main() {
             return NativeAppShell(
               page: NativeShellPage.fromLocation(state.uri.path),
               onNavigate: router.go,
-              onBack: router.pop,
               child: child,
             );
           },
@@ -87,7 +86,6 @@ void main() {
     expect(find.byType(NativeAppShell), findsOneWidget);
     expect(find.byType(ImHereAppHeader), findsOneWidget);
     expect(find.byType(ImHereNavigation), findsOneWidget);
-    expect(find.byType(ImHereTopBar), findsNothing);
     expect(find.text('서비스 이용약관'), findsOneWidget);
 
     // 약관 보기는 화면을 옮기지 않고 팝업으로 연다.

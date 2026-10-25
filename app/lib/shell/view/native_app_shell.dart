@@ -38,10 +38,6 @@ class NativeShellPage {
 
   static const _mainPaths = {'/geofence', '/friend', '/record', '/setting'};
 
-  /// 탭의 첫 화면은 로고 헤더를, 하위 화면은 제목과 뒤로 가기가 있는 제목 바를
-  /// 그린다. 설정의 하위 화면은 로고 헤더를 그대로 유지한다.
-  bool get showAppHeader => !showBackButton || path.startsWith('/setting');
-
   static const _nativeRoots = ['/setting', '/friend', '/record'];
 
   /// 웹이 아니라 앱이 직접 그리는 경로. 웹에는 장소(/geofence)만 남아 있다.
@@ -102,20 +98,18 @@ class NativeShellPage {
   }
 }
 
-/// 웹 화면을 감싸는 앱 공통 껍데기. 헤더와 하단 네비게이션은 ImHere 디자인
-/// 시스템 컴포넌트로 그리고, 웹은 본문만 그린다.
+/// 앱 공통 껍데기. 위쪽은 ImHere 로고 앱바 하나만 쓰고, 아래쪽은 하단
+/// 네비게이션을 그린다. 화면 제목이나 뒤로 가기 버튼은 두지 않는다.
 class NativeAppShell extends StatelessWidget {
   final Widget child;
   final NativeShellPage page;
   final ValueChanged<String> onNavigate;
-  final VoidCallback onBack;
 
   const NativeAppShell({
     super.key,
     required this.child,
     required this.page,
     required this.onNavigate,
-    required this.onBack,
   });
 
   static const _tabs = [
@@ -140,11 +134,9 @@ class NativeAppShell extends StatelessWidget {
       backgroundColor: ImHereColors.of(context).background,
       body: Column(
         children: [
-          page.showAppHeader
-              ? ImHereAppHeader(
-                  onNotificationTap: () => onNavigate('/record/notifications'),
-                )
-              : ImHereTopBar(title: page.title, onBack: onBack),
+          ImHereAppHeader(
+            onNotificationTap: () => onNavigate('/record/notifications'),
+          ),
           Expanded(child: child),
         ],
       ),

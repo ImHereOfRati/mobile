@@ -5,11 +5,18 @@ import 'foundation.dart';
 import 'icon.dart';
 import 'logo.dart';
 
-/// App-level header with the [ImHereLogo], notification icon, and a bottom divider.
+/// The only top bar the app uses: the [ImHereLogo], an optional notification
+/// icon, and a bottom divider. Hide the icon on screens that have no
+/// notifications to open (for example before signing in).
 class ImHereAppHeader extends StatelessWidget {
-  const ImHereAppHeader({super.key, this.onNotificationTap});
+  const ImHereAppHeader({
+    super.key,
+    this.onNotificationTap,
+    this.showNotification = true,
+  });
 
   final VoidCallback? onNotificationTap;
+  final bool showNotification;
 
   @override
   Widget build(BuildContext context) {
@@ -33,15 +40,16 @@ class ImHereAppHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const ImHereLogo(scale: 5 / 7),
-                IconButton(
-                  tooltip: '알림',
-                  onPressed: onNotificationTap,
-                  icon: const ImHereIcon(glyph: ImHereGlyph.bell),
-                  constraints: BoxConstraints(
-                    minWidth: metrics.touchTarget,
-                    minHeight: metrics.touchTarget,
+                if (showNotification)
+                  IconButton(
+                    tooltip: '알림',
+                    onPressed: onNotificationTap,
+                    icon: const ImHereIcon(glyph: ImHereGlyph.bell),
+                    constraints: BoxConstraints(
+                      minWidth: metrics.touchTarget,
+                      minHeight: metrics.touchTarget,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -130,71 +138,6 @@ class ImHereTabBar extends StatelessWidget {
               color: selected ? colors.text : colors.textMuted,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Use [onBack] to step back within a hierarchy and [onClose] to leave a
-/// modal or standalone flow (input may be discarded). Pass only one.
-class ImHereTopBar extends StatelessWidget {
-  const ImHereTopBar({
-    super.key,
-    required this.title,
-    this.onBack,
-    this.onClose,
-    this.action,
-  }) : assert(onBack == null || onClose == null);
-  final String title;
-  final VoidCallback? onBack;
-  final VoidCallback? onClose;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) {
-    final metrics = ImHereMetrics.of(context);
-    final gutter = SizedBox(width: metrics.resolve(ImHereSpace.gutter));
-    Widget iconButton(String tooltip, VoidCallback onPressed, ImHereGlyph g) =>
-        IconButton(
-          tooltip: tooltip,
-          onPressed: onPressed,
-          icon: ImHereIcon(glyph: g),
-          constraints: BoxConstraints(
-            minWidth: metrics.touchTarget,
-            minHeight: metrics.touchTarget,
-          ),
-        );
-    return Material(
-      color: ImHereColors.of(context).background,
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            vertical: metrics.resolve(ImHereSpace.xxs),
-          ),
-          child: Row(
-            children: [
-              if (onBack != null)
-                iconButton('뒤로 가기', onBack!, ImHereGlyph.back)
-              else if (onClose != null)
-                iconButton('닫기', onClose!, ImHereGlyph.close)
-              else
-                gutter,
-              Expanded(
-                child: Semantics(
-                  header: true,
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ),
-              action ?? gutter,
-            ],
           ),
         ),
       ),

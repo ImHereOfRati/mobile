@@ -24,19 +24,15 @@ void main() {
     expect(detail.showBackButton, isTrue);
   });
 
-  Widget shell(
-    String location, {
-    ValueChanged<String>? onNavigate,
-    VoidCallback? onBack,
-  }) => MaterialApp(
-    theme: ImHereAppTheme.light,
-    home: NativeAppShell(
-      page: NativeShellPage.fromLocation(location),
-      onNavigate: onNavigate ?? (_) {},
-      onBack: onBack ?? () {},
-      child: const SizedBox.expand(),
-    ),
-  );
+  Widget shell(String location, {ValueChanged<String>? onNavigate}) =>
+      MaterialApp(
+        theme: ImHereAppTheme.light,
+        home: NativeAppShell(
+          page: NativeShellPage.fromLocation(location),
+          onNavigate: onNavigate ?? (_) {},
+          child: const SizedBox.expand(),
+        ),
+      );
 
   testWidgets('renders the app header and four navigation destinations', (
     tester,
@@ -61,18 +57,12 @@ void main() {
     expect(destination, '/record/notifications');
   });
 
-  testWidgets('shows a title bar with a back action on a nested route', (
-    tester,
-  ) async {
-    var backed = false;
+  testWidgets('keeps only the logo app bar on a nested route', (tester) async {
+    await tester.pumpWidget(shell('/friend/add'));
 
-    await tester.pumpWidget(shell('/friend/add', onBack: () => backed = true));
-
-    expect(find.byType(ImHereTopBar), findsOneWidget);
-    expect(find.text('친구 추가'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('뒤로 가기'));
-    expect(backed, isTrue);
+    expect(find.byType(ImHereAppHeader), findsOneWidget);
+    expect(find.byTooltip('뒤로 가기'), findsNothing);
+    expect(find.byType(ImHereNavigation), findsOneWidget);
   });
 
   testWidgets('hides navigation on routes outside the four tabs', (

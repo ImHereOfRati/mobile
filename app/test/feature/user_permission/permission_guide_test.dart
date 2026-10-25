@@ -233,6 +233,10 @@ void main() {
       WidgetTester tester, {
       required VoidCallback onDone,
     }) async {
+      // 로고 앱바가 화면 위를 차지해도 권한 네 줄이 모두 그려지도록 화면을 키운다.
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(

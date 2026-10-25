@@ -32,16 +32,6 @@ void main() {
     );
   });
 
-  test('keeps the logo header on native pages and uses a title bar on web', () {
-    expect(NativeShellPage.fromLocation('/setting').showAppHeader, isTrue);
-    expect(
-      NativeShellPage.fromLocation('/setting/agreements').showAppHeader,
-      isTrue,
-    );
-    expect(NativeShellPage.fromLocation('/friend').showAppHeader, isTrue);
-    expect(NativeShellPage.fromLocation('/friend/add').showAppHeader, isFalse);
-  });
-
   test('keeps the setting tab selected on nested setting pages', () {
     final main = NativeShellPage.fromLocation('/setting');
     expect(main.selectedTab, NativeShellTab.setting);

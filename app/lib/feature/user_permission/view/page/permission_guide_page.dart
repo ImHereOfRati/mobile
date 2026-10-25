@@ -88,7 +88,7 @@ class _PermissionGuidePageState extends ConsumerState<PermissionGuidePage> {
       backgroundColor: colors.background,
       body: Column(
         children: [
-          if (widget.showHeader) const ImHereTopBar(title: '권한 설정'),
+          if (widget.showHeader) const ImHereAppHeader(showNotification: false),
           Expanded(
             child: ListView(
               padding: EdgeInsets.fromLTRB(
