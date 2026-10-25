@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/feature/terms/model/service/terms_service.dart';
-import 'package:iamhere/feature/terms/view/widget/term_requirement_badge.dart';
-import 'package:iamhere/feature/terms/viewmodel/term_detail_provider.dart';
+import 'package:iamhere/feature/setting/view/widget/term_requirement_badge.dart';
+import 'package:iamhere/feature/setting/viewmodel/term_detail_provider.dart';
 
 class TermDetailPage extends ConsumerWidget {
   final TermsService termsService;
@@ -22,36 +22,26 @@ class TermDetailPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: Column(
-        children: [
-          ImHereTopBar(
-            title: '약관 상세',
-            onBack: () => Navigator.of(context).maybePop(),
-          ),
-          Expanded(
-            child: term.when(
-              loading: () => Center(
-                child: CircularProgressIndicator(color: colors.action),
-              ),
-              error: (_, __) => ImHereStatePanel(
+      // 상단은 앱 셸의 ImHere 로고 헤더만 쓴다.
+      body: term.when(
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: colors.action)),
+        error: (_, __) => ImHereStatePanel(
+          glyph: ImHereGlyph.close,
+          title: '약관을 불러오지 못했어요',
+          description: '연결을 확인하고 다시 시도해 주세요.',
+          actionLabel: '다시 시도',
+          onAction: () =>
+              ref.invalidate(termDetailProvider(termsService, termId)),
+          size: ImHereStateSize.large,
+        ),
+        data: (value) => value == null
+            ? const ImHereStatePanel(
                 glyph: ImHereGlyph.close,
-                title: '약관을 불러오지 못했어요',
-                description: '연결을 확인하고 다시 시도해 주세요.',
-                actionLabel: '다시 시도',
-                onAction: () =>
-                    ref.invalidate(termDetailProvider(termsService, termId)),
+                title: '약관을 찾을 수 없어요',
                 size: ImHereStateSize.large,
-              ),
-              data: (value) => value == null
-                  ? const ImHereStatePanel(
-                      glyph: ImHereGlyph.close,
-                      title: '약관을 찾을 수 없어요',
-                      size: ImHereStateSize.large,
-                    )
-                  : _TermDetail(term: value),
-            ),
-          ),
-        ],
+              )
+            : _TermDetail(term: value),
       ),
     );
   }

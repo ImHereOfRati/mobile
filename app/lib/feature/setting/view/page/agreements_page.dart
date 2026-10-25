@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/feature/terms/model/service/terms_service.dart';
-import 'package:iamhere/feature/terms/view/page/term_detail_page.dart';
-import 'package:iamhere/feature/terms/view/widget/term_requirement_badge.dart';
-import 'package:iamhere/feature/terms/viewmodel/agreements_view_model.dart';
+import 'package:iamhere/feature/setting/view/widget/term_requirement_badge.dart';
+import 'package:iamhere/feature/setting/viewmodel/agreements_view_model.dart';
 
 class AgreementsPage extends ConsumerWidget {
   final TermsService termsService;
@@ -18,36 +18,26 @@ class AgreementsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: Column(
-        children: [
-          ImHereTopBar(
-            title: '약관 동의 관리',
-            onBack: () => Navigator.of(context).maybePop(),
-          ),
-          Expanded(
-            child: agreements.when(
-              loading: () => Center(
-                child: CircularProgressIndicator(color: colors.action),
-              ),
-              error: (_, __) => ImHereStatePanel(
+      // 상단은 앱 셸의 ImHere 로고 헤더만 쓴다.
+      body: agreements.when(
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: colors.action)),
+        error: (_, __) => ImHereStatePanel(
+          glyph: ImHereGlyph.close,
+          title: '동의 내역을 불러오지 못했어요',
+          description: '연결을 확인하고 다시 시도해 주세요.',
+          actionLabel: '다시 시도',
+          onAction: () =>
+              ref.invalidate(agreementsViewModelProvider(termsService)),
+          size: ImHereStateSize.large,
+        ),
+        data: (items) => items.isEmpty
+            ? const ImHereStatePanel(
                 glyph: ImHereGlyph.close,
-                title: '동의 내역을 불러오지 못했어요',
-                description: '연결을 확인하고 다시 시도해 주세요.',
-                actionLabel: '다시 시도',
-                onAction: () =>
-                    ref.invalidate(agreementsViewModelProvider(termsService)),
+                title: '표시할 약관이 없어요',
                 size: ImHereStateSize.large,
-              ),
-              data: (items) => items.isEmpty
-                  ? const ImHereStatePanel(
-                      glyph: ImHereGlyph.close,
-                      title: '표시할 약관이 없어요',
-                      size: ImHereStateSize.large,
-                    )
-                  : _AgreementList(items: items, termsService: termsService),
-            ),
-          ),
-        ],
+              )
+            : _AgreementList(items: items, termsService: termsService),
       ),
     );
   }
@@ -83,7 +73,6 @@ class _AgreementList extends ConsumerWidget {
         for (final item in items) ...[
           _AgreementCard(
             item: item,
-            termsService: termsService,
             onChange: (action) => _change(context, ref, item.term, action),
           ),
           SizedBox(height: metrics.resolve(ImHereSpace.sm)),
@@ -126,14 +115,9 @@ enum _AgreementAction { agree, renew, withdraw }
 
 class _AgreementCard extends StatelessWidget {
   final TermAgreement item;
-  final TermsService termsService;
   final ValueChanged<_AgreementAction> onChange;
 
-  const _AgreementCard({
-    required this.item,
-    required this.termsService,
-    required this.onChange,
-  });
+  const _AgreementCard({required this.item, required this.onChange});
 
   @override
   Widget build(BuildContext context) {
@@ -167,14 +151,7 @@ class _AgreementCard extends StatelessWidget {
                 label: '약관 보기',
                 tone: ImHereButtonTone.ghost,
                 size: ImHereButtonSize.sm,
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => TermDetailPage(
-                      termsService: termsService,
-                      termId: term.id,
-                    ),
-                  ),
-                ),
+                onPressed: () => context.push('/setting/agreements/${term.id}'),
               ),
               const Spacer(),
               ?_action(),
@@ -183,7 +160,7 @@ class _AgreementCard extends StatelessWidget {
           if (item.isAgreed && term.isRequired) ...[
             SizedBox(height: metrics.resolve(ImHereSpace.xs)),
             Text(
-              '필수 약관은 서비스 이용에 필요해 철회할 수 없어요. 회원 탈퇴로만 동의를 거둘 수 있어요.',
+              '필수 약관은 서비스 이용에 필요해 철회할 수 없어요.\n회원 탈퇴로만 동의를 거둘 수 있어요.',
               style: textTheme.bodySmall?.copyWith(color: colors.textMuted),
             ),
           ],

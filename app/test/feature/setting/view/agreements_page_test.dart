@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/feature/terms/model/service/terms_service.dart';
-import 'package:iamhere/feature/terms/view/page/agreements_page.dart';
+import 'package:iamhere/feature/setting/view/page/agreements_page.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
 
 class _TermsServiceFake extends Fake implements TermsService {
@@ -76,7 +76,7 @@ void main() {
     await pump(tester, service);
 
     expect(
-      find.text('필수 약관은 서비스 이용에 필요해 철회할 수 없어요. 회원 탈퇴로만 동의를 거둘 수 있어요.'),
+      find.text('필수 약관은 서비스 이용에 필요해 철회할 수 없어요.\n회원 탈퇴로만 동의를 거둘 수 있어요.'),
       findsNWidgets(2),
     );
     expect(find.text('동의하기'), findsOneWidget);
