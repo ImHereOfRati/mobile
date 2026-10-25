@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/core/api_response/api_response.dart';
 import 'package:iamhere/core/network/instance/token_refresher.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 

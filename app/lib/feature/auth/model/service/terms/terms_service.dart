@@ -25,7 +25,7 @@ class Term {
   );
 }
 
-@lazySingleton
+@injectable
 class TermsService {
   final Dio _dio;
 

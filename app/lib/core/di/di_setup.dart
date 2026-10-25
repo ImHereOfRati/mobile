@@ -1,5 +1,6 @@
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:get_it/get_it.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:injectable/injectable.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
@@ -14,6 +15,12 @@ import 'package:iamhere/feature/record/service/record_service.dart';
 import 'di_setup.config.dart';
 
 final getIt = GetIt.instance;
+
+@module
+abstract class RiverpodModule {
+  @lazySingleton
+  ProviderContainer get providerContainer => ProviderContainer();
+}
 
 @InjectableInit(
   initializerName: 'init', // 초기화 함수 이름 (기본값 init)

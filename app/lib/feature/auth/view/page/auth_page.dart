@@ -6,21 +6,22 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/components/components.dart';
 import 'package:iamhere/core/util/app_logger.dart';
-import 'package:iamhere/feature/auth/model/oauth_provider.dart';
-import 'package:iamhere/feature/auth/presentation/flow/auth_flow_controller.dart';
-import 'package:iamhere/feature/auth/presentation/widget/auth_story.dart';
-import 'package:iamhere/feature/auth/presentation/widget/oauth_button.dart';
-import 'package:iamhere/feature/auth/presentation/widget/permission_disclosure_dialog.dart';
+import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
+import 'package:iamhere/feature/auth/viewmodel/sign_in_controller.dart';
+import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
+import 'package:iamhere/feature/auth/view/widget/auth_story.dart';
+import 'package:iamhere/feature/auth/view/widget/oauth_button.dart';
+import 'package:iamhere/feature/auth/view/widget/permission_disclosure_dialog.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
-  final AuthFlowDependencies dependencies;
+  final SocialLoginService authLoginCoordinator;
   final VoidCallback onAuthenticated;
   final Future<void> Function() requestLocationPermission;
   final Future<void> Function()? requestNotificationPermission;
 
   const AuthPage({
     super.key,
-    required this.dependencies,
+    required this.authLoginCoordinator,
     required this.onAuthenticated,
     required this.requestLocationPermission,
     this.requestNotificationPermission,
@@ -58,9 +59,11 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(authFlowControllerProvider(widget.dependencies));
-    final busy = state.status == AuthFlowStatus.loading;
-    final error = state.status == AuthFlowStatus.failure
+    final state = ref.watch(
+      signInControllerProvider(widget.authLoginCoordinator),
+    );
+    final busy = state.status == SignInStatus.loading;
+    final error = state.status == SignInStatus.failure
         ? state.errorMessage
         : null;
 
@@ -105,11 +108,13 @@ class _AuthPageState extends ConsumerState<AuthPage> {
           }
         }
         final next = await ref
-            .read(authFlowControllerProvider(widget.dependencies).notifier)
+            .read(
+              signInControllerProvider(widget.authLoginCoordinator).notifier,
+            )
             .signIn(provider);
         if (!context.mounted) return;
-        if (next == AuthFlowStatus.pending) context.go('/terms');
-        if (next == AuthFlowStatus.authenticated) {
+        if (next == SignInStatus.pending) context.go('/terms');
+        if (next == SignInStatus.authenticated) {
           widget.onAuthenticated();
         }
       } finally {

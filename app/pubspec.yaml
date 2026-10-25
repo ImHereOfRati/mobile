@@ -23,7 +23,7 @@ dependencies:
 
   injectable: ^2.7.1+2
   get_it: ^9.2.0
-  flutter_riverpod: ^2.6.1
+  flutter_riverpod: ^3.0.3
   go_router: ^15.1.2
 
   permission_handler: ^12.0.1
@@ -42,6 +42,7 @@ dependencies:
   share_plus: ^12.0.2
   webview_flutter: ^4.14.1
   workmanager: ^0.7.0
+  riverpod_annotation: ^3.0.3
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +55,7 @@ dev_dependencies:
   coverage: ^1.15.0
   mockito: ^5.5.0
   sqflite_common_ffi: ^2.3.4
+  riverpod_generator: ^3.0.3
 
 flutter:
   uses-material-design: true

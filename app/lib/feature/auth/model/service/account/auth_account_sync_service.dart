@@ -1,40 +1,40 @@
 import 'package:iamhere/core/util/app_logger.dart';
-import 'package:iamhere/feature/auth/model/invalid_auth_session_exception.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/model/exception/invalid_auth_state_exception.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/feature/setting/service/user_me_service_interface.dart';
 import 'package:injectable/injectable.dart';
 
-@lazySingleton
-class AuthSessionSyncService {
+@injectable
+class AuthAccountSyncService {
   final TokenStorageService _tokenStorage;
   final UserMeServiceInterface _userMeService;
 
-  AuthSessionSyncService(this._tokenStorage, this._userMeService);
+  AuthAccountSyncService(this._tokenStorage, this._userMeService);
 
   Future<bool> syncIfSignedIn() async {
     final accessToken = await _tokenStorage.getAccessToken();
     if (accessToken == null || accessToken.isEmpty) {
-      AppLogger.debug('AuthSessionSync: no access token -> skip');
+      AppLogger.debug('AuthAccountSync: no access token -> skip');
       return false;
     }
 
     // Newly authenticated users are intentionally PENDING until the WebView
     // collects terms consent. `/api/users/my` is active-user-only, so calling
-    // it here would return 403 and incorrectly clear a valid pending session.
+    // it here would return 403 and incorrectly clear a valid pending account.
     final storedUserStatus = await _tokenStorage.getUserStatus();
     if (storedUserStatus?.toUpperCase() == 'PENDING') {
       AppLogger.debug(
-        'AuthSessionSync: pending session -> skip active user sync',
+        'AuthAccountSync: pending account -> skip active user sync',
       );
       return true;
     }
 
-    AppLogger.debug('AuthSessionSync: syncing signed-in session');
+    AppLogger.debug('AuthAccountSync: syncing signed-in account');
 
     try {
       final myInfo = await _userMeService.fetchMyInfo();
       if (myInfo == null) {
-        AppLogger.warning('AuthSessionSync: /api/users/my returned null');
+        AppLogger.warning('AuthAccountSync: /api/users/my returned null');
         return false;
       }
 
@@ -45,7 +45,7 @@ class AuthSessionSyncService {
       final effectiveIsActive =
           myInfo.isActive ?? await _tokenStorage.getIsActive();
       AppLogger.debug(
-        'AuthSessionSync: myInfo.userStatus=${myInfo.userStatus} '
+        'AuthAccountSync: myInfo.userStatus=${myInfo.userStatus} '
         'myInfo.isActive=${myInfo.isActive} '
         'effectiveUserStatus=$effectiveUserStatus '
         'effectiveIsActive=$effectiveIsActive',
@@ -54,18 +54,18 @@ class AuthSessionSyncService {
         userStatus: effectiveUserStatus,
         isActive: effectiveIsActive,
       );
-      AppLogger.debug('AuthSessionSync: snapshot saved');
+      AppLogger.debug('AuthAccountSync: snapshot saved');
       return true;
-    } on InvalidAuthSessionException catch (error) {
+    } on InvalidAuthStateException catch (error) {
       // The account may have been deleted or the stored JWT may be revoked.
-      // Do not let the WebView observe the stale pending session on startup.
+      // Do not let the WebView observe the stale pending account on startup.
       await _tokenStorage.deleteAllTokens();
       AppLogger.warning(
-        'AuthSessionSync: invalid session (${error.statusCode}); local auth cleared',
+        'AuthAccountSync: invalid authentication state (${error.statusCode}); local auth cleared',
       );
       return false;
     } catch (e, st) {
-      AppLogger.error('인증 세션 동기화 실패', e, st);
+      AppLogger.error('Auth account state sync failed', e, st);
       return false;
     }
   }

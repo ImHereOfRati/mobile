@@ -1,14 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/core/result/result.dart';
-import 'package:iamhere/feature/auth/model/login_result.dart';
-import 'package:iamhere/feature/auth/model/oauth_provider.dart';
-import 'package:iamhere/feature/auth/presentation/flow/auth_flow_controller.dart';
-import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/feature/terms/service/terms_service.dart';
+import 'package:iamhere/feature/auth/model/type/login_result.dart';
+import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
+import 'package:iamhere/feature/auth/viewmodel/sign_in_controller.dart';
+import 'package:iamhere/feature/auth/viewmodel/terms_acceptance_controller.dart';
+import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
+import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
+import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
 import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 
-class _CoordinatorFake extends Fake implements AuthLoginCoordinator {
+class _CoordinatorFake extends Fake implements SocialLoginService {
   _CoordinatorFake(this.login);
 
   final Future<Result<MemberState>> Function() login;
@@ -65,34 +67,44 @@ void main() {
   test(
     'unexpected login errors leave loading and show a safe message',
     () async {
-      final controller = AuthFlowController(
-        _CoordinatorFake(() async => throw StateError('oauth secret')),
-        _AuthServiceFake((_) async {}),
-        analytics: _AnalyticsFake(),
+      final coordinator = _CoordinatorFake(
+        () async => throw StateError('oauth secret'),
       );
-      addTearDown(controller.dispose);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final controller = container.read(
+        signInControllerProvider(coordinator).notifier,
+      );
 
       final result = await controller.signIn(OauthProvider.kakao);
 
-      expect(result, AuthFlowStatus.failure);
-      expect(controller.state.status, AuthFlowStatus.failure);
+      expect(result, SignInStatus.failure);
+      expect(controller.state.status, SignInStatus.failure);
       expect(controller.state.errorMessage, contains('다시 시도'));
     },
   );
 
   test('analytics failure does not undo successful terms activation', () async {
     List<Map<String, Object?>>? submitted;
-    final controller = AuthFlowController(
-      _CoordinatorFake(() async => Success(MemberState.existingUser)),
-      _AuthServiceFake((consents) async => submitted = consents),
-      analytics: _AnalyticsFake(fail: true),
+    final authService = _AuthServiceFake(
+      (consents) async => submitted = consents,
     );
-    addTearDown(controller.dispose);
+    final container = ProviderContainer(
+      overrides: [
+        authAnalyticsReporterProvider.overrideWith(
+          (ref) => _AnalyticsFake(fail: true),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final controller = container.read(
+      termsAcceptanceControllerProvider(authService).notifier,
+    );
 
-    final result = await controller.acceptTerms(terms, {1});
+    final result = await controller.accept(terms, {1});
 
     expect(result, isTrue);
-    expect(controller.state.status, AuthFlowStatus.authenticated);
+    expect(controller.state.status, TermsAcceptanceStatus.completed);
     expect(submitted, [
       {'id': 1, 'agreed': true},
       {'id': 2, 'agreed': false},
@@ -102,17 +114,19 @@ void main() {
   test(
     'terms activation failure leaves loading and shows a safe message',
     () async {
-      final controller = AuthFlowController(
-        _CoordinatorFake(() async => Success(MemberState.existingUser)),
-        _AuthServiceFake((_) async => throw StateError('server detail')),
-        analytics: _AnalyticsFake(),
+      final authService = _AuthServiceFake(
+        (_) async => throw StateError('server detail'),
       );
-      addTearDown(controller.dispose);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final controller = container.read(
+        termsAcceptanceControllerProvider(authService).notifier,
+      );
 
-      final result = await controller.acceptTerms(terms, {1});
+      final result = await controller.accept(terms, {1});
 
       expect(result, isFalse);
-      expect(controller.state.status, AuthFlowStatus.failure);
+      expect(controller.state.status, TermsAcceptanceStatus.failure);
       expect(controller.state.errorMessage, contains('다시 시도'));
     },
   );

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:iamhere/core/api_response/api_response.dart';
 import 'package:iamhere/core/network/properties/http_status_code.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:injectable/injectable.dart';
 

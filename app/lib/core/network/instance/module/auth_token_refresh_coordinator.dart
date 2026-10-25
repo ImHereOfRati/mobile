@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamhere/feature/auth/viewmodel/auth_invalidation_notifier.dart';
 import 'package:iamhere/core/network/instance/module/pending_request.dart';
 import 'package:iamhere/core/network/instance/token_refresher.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -12,14 +13,14 @@ class AuthTokenRefreshCoordinator {
   final TokenStorageService _tokenStorage;
   final TokenRefresher _refresher;
   final RequestRetrier _retrier;
-  final AuthInvalidationNotifier _authInvalidationNotifier;
+  final ProviderContainer _providerContainer;
   bool _isRefreshing = false;
 
   AuthTokenRefreshCoordinator(
     this._tokenStorage,
     this._refresher,
     this._retrier,
-    this._authInvalidationNotifier,
+    this._providerContainer,
   );
 
   bool isRefreshRequest(String requestPath) {
@@ -59,7 +60,9 @@ class AuthTokenRefreshCoordinator {
     ErrorInterceptorHandler handler,
   ) async {
     await _tokenStorage.deleteAllTokens();
-    _authInvalidationNotifier.requestInvalidation();
+    _providerContainer
+        .read(authInvalidationProvider.notifier)
+        .requestInvalidation();
     _retrier.failAll(dioException);
     handler.reject(dioException);
   }

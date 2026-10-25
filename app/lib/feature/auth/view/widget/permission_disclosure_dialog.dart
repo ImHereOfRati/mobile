@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iamhere/components/components.dart';
-import 'package:iamhere/shell/view/background_location_disclosure_details.dart';
+import 'package:iamhere/feature/auth/view/widget/background_location_disclosure_details.dart';
 
 class LocationDisclosureDialog extends StatelessWidget {
   const LocationDisclosureDialog({super.key});

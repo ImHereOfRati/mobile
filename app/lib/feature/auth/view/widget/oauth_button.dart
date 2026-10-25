@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iamhere/components/components.dart';
-import 'package:iamhere/feature/auth/model/oauth_provider.dart';
+import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
 
 class OauthButton extends StatelessWidget {
   final OauthProvider provider;

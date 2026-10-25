@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/components/components.dart';
-import 'package:iamhere/feature/auth/presentation/flow/auth_flow_controller.dart';
-import 'package:iamhere/feature/auth/presentation/page/terms_page.dart';
-import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/feature/terms/service/terms_service.dart';
+import 'package:iamhere/feature/auth/viewmodel/active_terms_provider.dart';
+import 'package:iamhere/feature/auth/viewmodel/terms_acceptance_controller.dart';
+import 'package:iamhere/feature/auth/view/page/terms_page.dart';
+import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
+import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
 import 'package:iamhere/integration/firebase/analytics_reporter.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
-
-class _CoordinatorFake extends Fake implements AuthLoginCoordinator {}
 
 class _AuthServiceFake extends Fake implements AuthService {
   List<Map<String, Object?>>? submitted;
@@ -56,23 +54,19 @@ void main() {
     required VoidCallback onDone,
   }) async {
     final termsService = _TermsServiceFake();
-    final dependencies = AuthFlowDependencies(_CoordinatorFake(), authService);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           activeTermsProvider(termsService).overrideWith((ref) => loadTerms()),
-          authFlowControllerProvider(dependencies).overrideWith(
-            (ref) => AuthFlowController(
-              dependencies.coordinator,
-              dependencies.authService,
-              analytics: _AnalyticsFake(),
-            ),
-          ),
+          termsAcceptanceControllerProvider(
+            authService,
+          ).overrideWith(TermsAcceptanceController.new),
+          authAnalyticsReporterProvider.overrideWith((ref) => _AnalyticsFake()),
         ],
         child: MaterialApp(
           theme: ImHereAppTheme.light,
           home: TermsPage(
-            dependencies: dependencies,
+            authService: authService,
             termsService: termsService,
             onDone: onDone,
           ),

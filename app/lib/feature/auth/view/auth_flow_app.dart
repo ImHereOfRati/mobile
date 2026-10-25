@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iamhere/feature/auth/presentation/flow/auth_flow_controller.dart';
-import 'package:iamhere/feature/auth/presentation/page/auth_page.dart';
-import 'package:iamhere/feature/auth/presentation/page/terms_page.dart';
-import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/feature/terms/service/terms_service.dart';
+import 'package:iamhere/feature/auth/view/page/auth_page.dart';
+import 'package:iamhere/feature/auth/view/page/terms_page.dart';
+import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
+import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
+import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
 
 class AuthFlowApp extends StatefulWidget {
   final VoidCallback onAuthenticated;
   final String initialLocation;
-  final AuthLoginCoordinator authLoginCoordinator;
+  final SocialLoginService authLoginCoordinator;
   final AuthService authService;
   final TermsService termsService;
   final Future<void> Function() requestLocationPermission;
@@ -36,18 +35,13 @@ class AuthFlowApp extends StatefulWidget {
 }
 
 class _AuthFlowAppState extends State<AuthFlowApp> {
-  late final AuthFlowDependencies _authDependencies = AuthFlowDependencies(
-    widget.authLoginCoordinator,
-    widget.authService,
-  );
-
   late final GoRouter _router = GoRouter(
     initialLocation: widget.initialLocation,
     routes: [
       GoRoute(
         path: '/auth',
         builder: (_, __) => AuthPage(
-          dependencies: _authDependencies,
+          authLoginCoordinator: widget.authLoginCoordinator,
           onAuthenticated: widget.onAuthenticated,
           requestLocationPermission: widget.requestLocationPermission,
           requestNotificationPermission: widget.requestNotificationPermission,
@@ -56,7 +50,7 @@ class _AuthFlowAppState extends State<AuthFlowApp> {
       GoRoute(
         path: '/terms',
         builder: (_, __) => TermsPage(
-          dependencies: _authDependencies,
+          authService: widget.authService,
           termsService: widget.termsService,
           onDone: widget.onAuthenticated,
         ),

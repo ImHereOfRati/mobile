@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/core/network/instance/module/auth_token_refresh_coordinator.dart';
 import 'package:iamhere/core/network/instance/module/dio_auth_interceptor.dart';
 import 'package:mockito/annotations.dart';

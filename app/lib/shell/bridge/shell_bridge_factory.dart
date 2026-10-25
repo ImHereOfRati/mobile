@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamhere/core/util/app_logger.dart';
 import 'package:iamhere/core/result/result.dart';
-import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
-import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
-import 'package:iamhere/feature/auth/model/login_result.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/viewmodel/auth_invalidation_notifier.dart';
+import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
+import 'package:iamhere/feature/auth/model/service/account/auth_fcm_registration_service.dart';
+import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
+import 'package:iamhere/feature/auth/model/type/login_result.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/feature/friend/repository/contact_local_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_server_recipient_local_repository.dart';
@@ -33,8 +36,9 @@ class ShellBridgeFactory {
     required Future<void> Function(ThemeMode) saveTheme,
   }) {
     final tokenStorage = getIt<TokenStorageService>();
-    final authCoordinator = getIt<AuthLoginCoordinator>();
-    final authInvalidationNotifier = getIt<AuthInvalidationNotifier>();
+    final authCoordinator = getIt<SocialLoginService>();
+    final authFcmRegistrationService = getIt<AuthFcmRegistrationService>();
+    final providerContainer = getIt<ProviderContainer>();
     final auth = AuthBridgeHandlers(
       readAccessToken: tokenStorage.getAccessToken,
       readUserStatus: tokenStorage.getUserStatus,
@@ -45,14 +49,20 @@ class ShellBridgeFactory {
         if (response.data == null) throw StateError(response.message);
         return response.data;
       },
-      signInWithKakao: () =>
-          _loginAndSyncFcm(authCoordinator, authCoordinator.handleKakaoLogin),
-      signInWithGoogle: () =>
-          _loginAndSyncFcm(authCoordinator, authCoordinator.handleGoogleLogin),
-      activateWithTerms: authCoordinator.activateWithTerms,
+      signInWithKakao: () => _loginAndSyncFcm(
+        authFcmRegistrationService,
+        authCoordinator.handleKakaoLogin,
+      ),
+      signInWithGoogle: () => _loginAndSyncFcm(
+        authFcmRegistrationService,
+        authCoordinator.handleGoogleLogin,
+      ),
+      activateWithTerms: getIt<AuthService>().activateWithTerms,
       signOut: () async {
         await tokenStorage.deleteAllTokens();
-        authInvalidationNotifier.requestInvalidation();
+        providerContainer
+            .read(authInvalidationProvider.notifier)
+            .requestInvalidation();
       },
     );
     final permissions = PermissionBridgeHandlers(
@@ -105,7 +115,7 @@ class ShellBridgeFactory {
   }
 
   static Future<String> _loginAndSyncFcm(
-    AuthLoginCoordinator authCoordinator,
+    AuthFcmRegistrationService authFcmRegistrationService,
     Future<Result<MemberState>> Function() authenticate,
   ) async {
     final result = await authenticate();
@@ -114,7 +124,7 @@ class ShellBridgeFactory {
       failure: (message) => throw StateError(message),
     );
     if (state == MemberState.existingUser) {
-      await authCoordinator.requestFCMTokenAndSendToServer();
+      await authFcmRegistrationService.requestAndEnroll();
     } else {
       AppLogger.debug(
         'AuthBridge: pending/new user -> skip active-only FCM enrollment',

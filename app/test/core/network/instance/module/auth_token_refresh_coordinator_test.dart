@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iamhere/core/api_response/api_response.dart';
-import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/viewmodel/auth_invalidation_notifier.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/core/network/instance/module/auth_token_refresh_coordinator.dart';
 import 'package:iamhere/core/network/instance/module/pending_request.dart';
 import 'package:iamhere/core/network/instance/token_refresher.dart';
@@ -16,27 +17,28 @@ import 'auth_token_refresh_coordinator_test.mocks.dart';
   TokenRefresher,
   RequestRetrier,
   ErrorInterceptorHandler,
-  AuthInvalidationNotifier,
 ])
 void main() {
   late MockTokenStorageService mockStorage;
   late MockTokenRefresher mockRefresher;
   late MockRequestRetrier mockRetrier;
-  late MockAuthInvalidationNotifier mockAuthInvalidationNotifier;
+  late ProviderContainer providerContainer;
   late AuthTokenRefreshCoordinator coordinator;
 
   setUp(() {
     mockStorage = MockTokenStorageService();
     mockRefresher = MockTokenRefresher();
     mockRetrier = MockRequestRetrier();
-    mockAuthInvalidationNotifier = MockAuthInvalidationNotifier();
+    providerContainer = ProviderContainer();
     coordinator = AuthTokenRefreshCoordinator(
       mockStorage,
       mockRefresher,
       mockRetrier,
-      mockAuthInvalidationNotifier,
+      providerContainer,
     );
   });
+
+  tearDown(() => providerContainer.dispose());
 
   test('handleUnauthorized_토큰_갱신에_성공하면_대기중인_요청을_재시도한다', () async {
     final requestOptions = RequestOptions(path: '/api/friends');
@@ -136,12 +138,10 @@ void main() {
     final handler = MockErrorInterceptorHandler();
     final error = DioException(requestOptions: requestOptions);
     when(mockStorage.deleteAllTokens()).thenAnswer((_) async {});
-    when(mockAuthInvalidationNotifier.requestInvalidation()).thenReturn(null);
-
     await coordinator.forceLogout(error, handler);
 
     verify(mockStorage.deleteAllTokens()).called(1);
-    verify(mockAuthInvalidationNotifier.requestInvalidation()).called(1);
+    expect(providerContainer.read(authInvalidationProvider), 1);
     verify(mockRetrier.failAll(error)).called(1);
     verify(handler.reject(error)).called(1);
   });

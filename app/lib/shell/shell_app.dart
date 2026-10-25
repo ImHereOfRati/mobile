@@ -1,15 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:iamhere/core/util/app_logger.dart';
-import 'package:iamhere/feature/auth/service/auth_session_sync_service.dart';
-import 'package:iamhere/feature/auth/service/auth_invalidation_notifier.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
-import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/feature/terms/service/terms_service.dart';
-import 'package:iamhere/feature/auth/presentation/flow/auth_flow_app.dart';
+import 'package:iamhere/feature/auth/model/service/account/auth_account_sync_service.dart';
+import 'package:iamhere/feature/auth/viewmodel/auth_invalidation_notifier.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
+import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
+import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
+import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
+import 'package:iamhere/feature/auth/view/auth_flow_app.dart';
 import 'package:iamhere/feature/geofence/delivery/geofence_delivery_pipeline.dart';
 import 'package:iamhere/feature/geofence/background/geofence_retry_scheduler.dart';
 import 'package:iamhere/feature/geofence/repository/geofence_local_repository.dart';
@@ -55,13 +56,19 @@ class _ShellAppState extends State<ShellApp> {
   late Future<Uri?> _initialUrl;
   late final AppLifecycleListener _lifecycleListener;
   Timer? _deliveryRetryTimer;
+  late final ProviderSubscription<int> _authInvalidationSubscription;
   String _authInitialLocation = '/auth';
 
   @override
   void initState() {
     super.initState();
     _initialUrl = _prepareServiceUrl();
-    getIt<AuthInvalidationNotifier>().addListener(_handleAuthInvalidation);
+    _authInvalidationSubscription = getIt<ProviderContainer>().listen(
+      authInvalidationProvider,
+      (previous, next) {
+        if (previous != next) _handleAuthInvalidation();
+      },
+    );
     if (widget.enablePush) {
       setupShellMessageTapHandler(_pushPaths.add);
     }
@@ -70,14 +77,14 @@ class _ShellAppState extends State<ShellApp> {
       onResume: () {
         _startDeliveryRetryTimer();
         unawaited(_drainDeliveryQueue());
-        unawaited(_syncAuthSession());
+        unawaited(_syncAuthAccount());
         unawaited(_syncNativeGeofences());
       },
       onPause: _stopDeliveryRetryTimer,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_syncNativeGeofences());
-      unawaited(_syncAuthSession());
+      unawaited(_syncAuthAccount());
     });
   }
 
@@ -85,7 +92,7 @@ class _ShellAppState extends State<ShellApp> {
   void dispose() {
     widget.themeMode.dispose();
     _stopDeliveryRetryTimer();
-    getIt<AuthInvalidationNotifier>().removeListener(_handleAuthInvalidation);
+    _authInvalidationSubscription.close();
     _lifecycleListener.dispose();
     unawaited(_pushPaths.close());
     super.dispose();
@@ -114,12 +121,12 @@ class _ShellAppState extends State<ShellApp> {
     }
   }
 
-  Future<void> _syncAuthSession() async {
-    if (!getIt.isRegistered<AuthSessionSyncService>()) return;
+  Future<void> _syncAuthAccount() async {
+    if (!getIt.isRegistered<AuthAccountSyncService>()) return;
     try {
-      await getIt<AuthSessionSyncService>().syncIfSignedIn();
+      await getIt<AuthAccountSyncService>().syncIfSignedIn();
     } catch (error, stack) {
-      AppLogger.error('Auth session sync failed', error, stack);
+      AppLogger.error('Auth account sync failed', error, stack);
     }
   }
 
@@ -160,7 +167,7 @@ class _ShellAppState extends State<ShellApp> {
 
   Future<Uri?> _prepareServiceUrl() async {
     // Resolve the local auth snapshot first so the first screen is not blocked
-    // by the active-session network check. Auth sync continues in the
+    // by the active-account network check. Auth sync continues in the
     // background from the lifecycle/post-frame hooks.
     final storage = getIt<TokenStorageService>();
     final token = await storage.getAccessToken();
@@ -213,7 +220,7 @@ class _ShellAppState extends State<ShellApp> {
                 key: ValueKey(_authInitialLocation),
                 themeMode: themeMode,
                 initialLocation: _authInitialLocation,
-                authLoginCoordinator: getIt<AuthLoginCoordinator>(),
+                authLoginCoordinator: getIt<SocialLoginService>(),
                 authService: getIt<AuthService>(),
                 termsService: getIt<TermsService>(),
                 requestLocationPermission: () async {

@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/feature/auth/model/login_result.dart';
-import 'package:iamhere/feature/auth/model/oauth_provider.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
+import 'package:iamhere/feature/auth/model/repository/auth_repository.dart';
+import 'package:iamhere/feature/auth/model/type/login_result.dart';
+import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 
 class _FakeDio extends Fake implements Dio {
   final Map<String, Response<dynamic>> responses;
@@ -78,7 +79,7 @@ void main() {
   group('AuthService.sendIdTokenToServer - Input Validation', () {
     test('empty idToken 을 거부한다', () async {
       final dio = _FakeDio({});
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer('', nonce: nonce),
@@ -94,7 +95,7 @@ void main() {
 
     test('whitespace-only idToken 을 거부한다', () async {
       final dio = _FakeDio({});
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer('   ', nonce: nonce),
@@ -104,7 +105,7 @@ void main() {
 
     test('empty nonce 를 거부한다', () async {
       final dio = _FakeDio({});
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer(idToken, nonce: ''),
@@ -129,7 +130,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer(idToken, nonce: nonce),
@@ -152,7 +153,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer(idToken, nonce: nonce),
@@ -172,7 +173,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer(idToken, nonce: nonce),
@@ -192,7 +193,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer(idToken, nonce: nonce),
@@ -215,7 +216,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer(idToken, nonce: nonce),
@@ -235,7 +236,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       expect(
         () => authService.sendIdTokenToServer(idToken, nonce: nonce),
@@ -261,7 +262,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       final result = await authService.sendIdTokenToServer(
         idToken,
@@ -291,7 +292,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       final result = await authService.sendIdTokenToServer(
         idToken,
@@ -320,7 +321,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       final result = await authService.sendIdTokenToServer(
         idToken,
@@ -349,7 +350,7 @@ void main() {
           },
         ),
       });
-      final authService = AuthService(dio, tokenStorage);
+      final authService = AuthService(AuthRepository(dio), tokenStorage);
 
       final result = await authService.sendIdTokenToServer(
         idToken,
@@ -387,7 +388,7 @@ void main() {
         },
       ),
     });
-    final authService = AuthService(dio, tokenStorage);
+    final authService = AuthService(AuthRepository(dio), tokenStorage);
     tokenStorage.refreshToken = 'pending-refresh';
 
     await authService.activateWithTerms([

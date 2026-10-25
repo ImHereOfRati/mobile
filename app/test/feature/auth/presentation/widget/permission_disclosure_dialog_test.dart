@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/auth/presentation/widget/permission_disclosure_dialog.dart';
+import 'package:iamhere/feature/auth/view/widget/permission_disclosure_dialog.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
 
 void main() {
@@ -48,12 +48,14 @@ void main() {
       tester.getRect(find.text('위치 허용하기')).top,
       lessThan(tester.getRect(find.text('취소')).top),
     );
-    final smallTitleSize = tester.widget<Text>(
-      find.text('위치 권한이 필요해요'),
-    ).style!.fontSize!;
-    final smallBodySize = tester.widget<Text>(
-      find.text('앱을 닫아도 위치 정보를 수집해요.'),
-    ).style!.fontSize!;
+    final smallTitleSize = tester
+        .widget<Text>(find.text('위치 권한이 필요해요'))
+        .style!
+        .fontSize!;
+    final smallBodySize = tester
+        .widget<Text>(find.text('앱을 닫아도 위치 정보를 수집해요.'))
+        .style!
+        .fontSize!;
     tester.view.physicalSize = const Size(420, 800);
     await tester.pumpAndSettle();
     expect(

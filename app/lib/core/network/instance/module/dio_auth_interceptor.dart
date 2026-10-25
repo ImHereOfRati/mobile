@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:iamhere/feature/auth/service/token_storage_service.dart';
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart';
 import 'package:iamhere/core/network/properties/http_status_code.dart';
 
 import 'package:iamhere/core/result/error_analyst.dart';

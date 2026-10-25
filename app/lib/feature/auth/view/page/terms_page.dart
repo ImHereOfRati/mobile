@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iamhere/components/components.dart';
-import 'package:iamhere/feature/auth/presentation/flow/auth_flow_controller.dart';
-import 'package:iamhere/feature/terms/service/terms_service.dart';
+import 'package:iamhere/feature/auth/viewmodel/active_terms_provider.dart';
+import 'package:iamhere/feature/auth/viewmodel/terms_acceptance_controller.dart';
+import 'package:iamhere/feature/auth/model/service/login/auth_service.dart';
+import 'package:iamhere/feature/auth/model/service/terms/terms_service.dart';
 
 class TermsPage extends ConsumerStatefulWidget {
-  final AuthFlowDependencies dependencies;
+  final AuthService authService;
   final TermsService termsService;
   final VoidCallback onDone;
 
   const TermsPage({
     super.key,
-    required this.dependencies,
+    required this.authService,
     required this.termsService,
     required this.onDone,
   });
@@ -24,13 +26,12 @@ class TermsPage extends ConsumerStatefulWidget {
 class _TermsPageState extends ConsumerState<TermsPage> {
   final Set<int> _agreed = <int>{};
   final Set<int> _expandedTerms = <int>{};
-  bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
     final terms = ref.watch(activeTermsProvider(widget.termsService));
-    final authState = ref.watch(
-      authFlowControllerProvider(widget.dependencies),
+    final acceptanceState = ref.watch(
+      termsAcceptanceControllerProvider(widget.authService),
     );
     final colors = ImHereColors.of(context);
     final metrics = ImHereMetrics.of(context);
@@ -80,8 +81,7 @@ class _TermsPageState extends ConsumerState<TermsPage> {
           final requiredOk = requiredTerms.every(
             (term) => _agreed.contains(term.id),
           );
-          final busy =
-              _isSubmitting || authState.status == AuthFlowStatus.loading;
+          final busy = acceptanceState.status == TermsAcceptanceStatus.loading;
 
           return Column(
             children: [
@@ -157,7 +157,7 @@ class _TermsPageState extends ConsumerState<TermsPage> {
                   label: '동의하고 계속하기',
                   size: ImHereButtonSize.lg,
                   expand: true,
-                  loading: _isSubmitting,
+                  loading: busy,
                   onPressed: requiredOk && !busy ? () => _submit(items) : null,
                 ),
               ),
@@ -205,24 +205,21 @@ class _TermsPageState extends ConsumerState<TermsPage> {
   }
 
   Future<void> _submit(List<Term> items) async {
-    if (_isSubmitting) return;
-    setState(() => _isSubmitting = true);
+    final provider = termsAcceptanceControllerProvider(widget.authService);
+    if (ref.read(provider).status == TermsAcceptanceStatus.loading) return;
 
     final success = await ref
-        .read(authFlowControllerProvider(widget.dependencies).notifier)
-        .acceptTerms(items, Set<int>.of(_agreed));
+        .read(provider.notifier)
+        .accept(items, Set<int>.of(_agreed));
 
     if (!mounted) return;
-    setState(() => _isSubmitting = false);
 
     if (success) {
       widget.onDone();
       return;
     }
 
-    final message = ref
-        .read(authFlowControllerProvider(widget.dependencies))
-        .errorMessage;
+    final message = ref.read(provider).errorMessage;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message ?? '약관 동의 처리에 실패했어요.')));

@@ -9,7 +9,8 @@ import 'package:dio/dio.dart' as _i6;
 import 'package:dio/src/dio_mixin.dart' as _i2;
 import 'package:iamhere/core/network/instance/module/auth_token_refresh_coordinator.dart'
     as _i5;
-import 'package:iamhere/feature/auth/service/token_storage_service.dart' as _i3;
+import 'package:iamhere/feature/auth/model/service/account/token_storage_service.dart'
+    as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint

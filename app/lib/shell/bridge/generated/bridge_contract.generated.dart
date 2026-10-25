@@ -76,7 +76,9 @@ class HandshakeInfo {
       bridgeVersion: json['bridgeVersion'] as String,
       appVersion: json['appVersion'] as String,
       platform: BridgePlatform.values.byName(json['platform'] as String),
-      capabilities: (json['capabilities'] as List<Object?>).map((item) => item as String).toList(),
+      capabilities: (json['capabilities'] as List<Object?>)
+          .map((item) => item as String)
+          .toList(),
     );
   }
 
@@ -90,17 +92,10 @@ class HandshakeInfo {
   }
 }
 
-enum BridgePlatform {
-  android,
-  ios,
-  browser,
-}
+enum BridgePlatform { android, ios, browser }
 
 class AuthState {
-  const AuthState({
-    required this.authenticated,
-    required this.userStatus,
-  });
+  const AuthState({required this.authenticated, required this.userStatus});
 
   final bool authenticated;
   final UserStatus? userStatus;
@@ -108,7 +103,9 @@ class AuthState {
   factory AuthState.fromJson(Map<String, Object?> json) {
     return AuthState(
       authenticated: json['authenticated'] as bool,
-      userStatus: json['userStatus'] == null ? null : UserStatus.values.byName(json['userStatus'] as String),
+      userStatus: json['userStatus'] == null
+          ? null
+          : UserStatus.values.byName(json['userStatus'] as String),
     );
   }
 
@@ -120,24 +117,19 @@ class AuthState {
   }
 }
 
-enum UserStatus {
-  pending,
-  active,
-  inactive,
-}
+enum UserStatus { pending, active, inactive }
 
 class AccessToken {
-  const AccessToken({
-    required this.accessToken,
-    required this.expiresAt,
-  });
+  const AccessToken({required this.accessToken, required this.expiresAt});
 
   final String? accessToken;
   final String? expiresAt;
 
   factory AccessToken.fromJson(Map<String, Object?> json) {
     return AccessToken(
-      accessToken: json['accessToken'] == null ? null : json['accessToken'] as String,
+      accessToken: json['accessToken'] == null
+          ? null
+          : json['accessToken'] as String,
       expiresAt: json['expiresAt'] == null ? null : json['expiresAt'] as String,
     );
   }
@@ -151,10 +143,7 @@ class AccessToken {
 }
 
 class AuthSession {
-  const AuthSession({
-    required this.authState,
-    required this.token,
-  });
+  const AuthSession({required this.authState, required this.token});
 
   final AuthState authState;
   final AccessToken token;
@@ -175,15 +164,15 @@ class AuthSession {
 }
 
 class TermsActivationRequest {
-  const TermsActivationRequest({
-    required this.consents,
-  });
+  const TermsActivationRequest({required this.consents});
 
   final List<TermConsent> consents;
 
   factory TermsActivationRequest.fromJson(Map<String, Object?> json) {
     return TermsActivationRequest(
-      consents: (json['consents'] as List<Object?>).map((item) => TermConsent.fromJson(item as Map<String, Object?>)).toList(),
+      consents: (json['consents'] as List<Object?>)
+          .map((item) => TermConsent.fromJson(item as Map<String, Object?>))
+          .toList(),
     );
   }
 
@@ -195,10 +184,7 @@ class TermsActivationRequest {
 }
 
 class TermConsent {
-  const TermConsent({
-    required this.id,
-    required this.agreed,
-  });
+  const TermConsent({required this.id, required this.agreed});
 
   final int id;
   final bool agreed;
@@ -211,17 +197,12 @@ class TermConsent {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'id': id,
-      'agreed': agreed,
-    };
+    return <String, Object?>{'id': id, 'agreed': agreed};
   }
 }
 
 class PermissionRequest {
-  const PermissionRequest({
-    required this.permission,
-  });
+  const PermissionRequest({required this.permission});
 
   final PermissionType permission;
 
@@ -232,9 +213,7 @@ class PermissionRequest {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'permission': permission.name,
-    };
+    return <String, Object?>{'permission': permission.name};
   }
 }
 
@@ -247,10 +226,7 @@ enum PermissionType {
 }
 
 class PermissionResult {
-  const PermissionResult({
-    required this.permission,
-    required this.status,
-  });
+  const PermissionResult({required this.permission, required this.status});
 
   final PermissionType permission;
   final PermissionStatus status;
@@ -303,7 +279,9 @@ class AutoSendReadiness {
       locationService: json['locationService'] as bool,
       notification: json['notification'] as bool,
       batteryOptimization: json['batteryOptimization'] as bool,
-      missing: (json['missing'] as List<Object?>).map((item) => PermissionType.values.byName(item as String)).toList(),
+      missing: (json['missing'] as List<Object?>)
+          .map((item) => PermissionType.values.byName(item as String))
+          .toList(),
     );
   }
 
@@ -360,11 +338,17 @@ class GeofenceInput {
       radiusMeters: (json['radiusMeters'] as num).toInt(),
       eventType: GeofenceEventType.values.byName(json['eventType'] as String),
       repeatType: RepeatType.values.byName(json['repeatType'] as String),
-      customDaysBitmask: json['customDaysBitmask'] == null ? null : (json['customDaysBitmask'] as num).toInt(),
+      customDaysBitmask: json['customDaysBitmask'] == null
+          ? null
+          : (json['customDaysBitmask'] as num).toInt(),
       message: json['message'] as String,
       active: json['active'] as bool,
-      deviceContactIds: (json['deviceContactIds'] as List<Object?>).map((item) => item as String).toList(),
-      serverRecipients: (json['serverRecipients'] as List<Object?>).map((item) => ServerRecipient.fromJson(item as Map<String, Object?>)).toList(),
+      deviceContactIds: (json['deviceContactIds'] as List<Object?>)
+          .map((item) => item as String)
+          .toList(),
+      serverRecipients: (json['serverRecipients'] as List<Object?>)
+          .map((item) => ServerRecipient.fromJson(item as Map<String, Object?>))
+          .toList(),
     );
   }
 
@@ -382,24 +366,16 @@ class GeofenceInput {
       'message': message,
       'active': active,
       'deviceContactIds': deviceContactIds.map((item) => item).toList(),
-      'serverRecipients': serverRecipients.map((item) => item.toJson()).toList(),
+      'serverRecipients': serverRecipients
+          .map((item) => item.toJson())
+          .toList(),
     };
   }
 }
 
-enum GeofenceEventType {
-  arrival,
-  departure,
-  both,
-}
+enum GeofenceEventType { arrival, departure, both }
 
-enum RepeatType {
-  none,
-  daily,
-  weekday,
-  weekend,
-  custom,
-}
+enum RepeatType { none, daily, weekday, weekend, custom }
 
 class ServerRecipient {
   const ServerRecipient({
@@ -476,12 +452,18 @@ class Geofence {
       radiusMeters: (json['radiusMeters'] as num).toInt(),
       eventType: GeofenceEventType.values.byName(json['eventType'] as String),
       repeatType: RepeatType.values.byName(json['repeatType'] as String),
-      customDaysBitmask: json['customDaysBitmask'] == null ? null : (json['customDaysBitmask'] as num).toInt(),
+      customDaysBitmask: json['customDaysBitmask'] == null
+          ? null
+          : (json['customDaysBitmask'] as num).toInt(),
       message: json['message'] as String,
       active: json['active'] as bool,
       awaitingDeparture: json['awaitingDeparture'] as bool,
-      deviceContactIds: (json['deviceContactIds'] as List<Object?>).map((item) => item as String).toList(),
-      serverRecipients: (json['serverRecipients'] as List<Object?>).map((item) => ServerRecipient.fromJson(item as Map<String, Object?>)).toList(),
+      deviceContactIds: (json['deviceContactIds'] as List<Object?>)
+          .map((item) => item as String)
+          .toList(),
+      serverRecipients: (json['serverRecipients'] as List<Object?>)
+          .map((item) => ServerRecipient.fromJson(item as Map<String, Object?>))
+          .toList(),
     );
   }
 
@@ -500,36 +482,29 @@ class Geofence {
       'active': active,
       'awaitingDeparture': awaitingDeparture,
       'deviceContactIds': deviceContactIds.map((item) => item).toList(),
-      'serverRecipients': serverRecipients.map((item) => item.toJson()).toList(),
+      'serverRecipients': serverRecipients
+          .map((item) => item.toJson())
+          .toList(),
     };
   }
 }
 
 class GeofenceId {
-  const GeofenceId({
-    required this.id,
-  });
+  const GeofenceId({required this.id});
 
   final int id;
 
   factory GeofenceId.fromJson(Map<String, Object?> json) {
-    return GeofenceId(
-      id: (json['id'] as num).toInt(),
-    );
+    return GeofenceId(id: (json['id'] as num).toInt());
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'id': id,
-    };
+    return <String, Object?>{'id': id};
   }
 }
 
 class SetGeofenceActive {
-  const SetGeofenceActive({
-    required this.id,
-    required this.active,
-  });
+  const SetGeofenceActive({required this.id, required this.active});
 
   final int id;
   final bool active;
@@ -542,18 +517,12 @@ class SetGeofenceActive {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'id': id,
-      'active': active,
-    };
+    return <String, Object?>{'id': id, 'active': active};
   }
 }
 
 class UpdateGeofenceAddress {
-  const UpdateGeofenceAddress({
-    required this.id,
-    required this.address,
-  });
+  const UpdateGeofenceAddress({required this.id, required this.address});
 
   final int id;
   final String address;
@@ -566,10 +535,7 @@ class UpdateGeofenceAddress {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'id': id,
-      'address': address,
-    };
+    return <String, Object?>{'id': id, 'address': address};
   }
 }
 
@@ -584,8 +550,12 @@ class GeofenceSyncResult {
 
   factory GeofenceSyncResult.fromJson(Map<String, Object?> json) {
     return GeofenceSyncResult(
-      registeredIds: (json['registeredIds'] as List<Object?>).map((item) => (item as num).toInt()).toList(),
-      skippedIds: (json['skippedIds'] as List<Object?>).map((item) => (item as num).toInt()).toList(),
+      registeredIds: (json['registeredIds'] as List<Object?>)
+          .map((item) => (item as num).toInt())
+          .toList(),
+      skippedIds: (json['skippedIds'] as List<Object?>)
+          .map((item) => (item as num).toInt())
+          .toList(),
     );
   }
 
@@ -598,10 +568,7 @@ class GeofenceSyncResult {
 }
 
 class NativeGeofenceState {
-  const NativeGeofenceState({
-    required this.id,
-    required this.registered,
-  });
+  const NativeGeofenceState({required this.id, required this.registered});
 
   final int id;
   final bool registered;
@@ -614,18 +581,12 @@ class NativeGeofenceState {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'id': id,
-      'registered': registered,
-    };
+    return <String, Object?>{'id': id, 'registered': registered};
   }
 }
 
 class PageRequest {
-  const PageRequest({
-    this.cursor,
-    required this.limit,
-  });
+  const PageRequest({this.cursor, required this.limit});
 
   final String? cursor;
   final int limit;
@@ -646,18 +607,19 @@ class PageRequest {
 }
 
 class GeofencePage {
-  const GeofencePage({
-    required this.items,
-    this.nextCursor,
-  });
+  const GeofencePage({required this.items, this.nextCursor});
 
   final List<Geofence> items;
   final String? nextCursor;
 
   factory GeofencePage.fromJson(Map<String, Object?> json) {
     return GeofencePage(
-      items: (json['items'] as List<Object?>).map((item) => Geofence.fromJson(item as Map<String, Object?>)).toList(),
-      nextCursor: json['nextCursor'] == null ? null : json['nextCursor'] as String,
+      items: (json['items'] as List<Object?>)
+          .map((item) => Geofence.fromJson(item as Map<String, Object?>))
+          .toList(),
+      nextCursor: json['nextCursor'] == null
+          ? null
+          : json['nextCursor'] as String,
     );
   }
 
@@ -670,18 +632,19 @@ class GeofencePage {
 }
 
 class DeliveryRecordPage {
-  const DeliveryRecordPage({
-    required this.items,
-    this.nextCursor,
-  });
+  const DeliveryRecordPage({required this.items, this.nextCursor});
 
   final List<DeliveryRecord> items;
   final String? nextCursor;
 
   factory DeliveryRecordPage.fromJson(Map<String, Object?> json) {
     return DeliveryRecordPage(
-      items: (json['items'] as List<Object?>).map((item) => DeliveryRecord.fromJson(item as Map<String, Object?>)).toList(),
-      nextCursor: json['nextCursor'] == null ? null : json['nextCursor'] as String,
+      items: (json['items'] as List<Object?>)
+          .map((item) => DeliveryRecord.fromJson(item as Map<String, Object?>))
+          .toList(),
+      nextCursor: json['nextCursor'] == null
+          ? null
+          : json['nextCursor'] as String,
     );
   }
 
@@ -738,18 +701,21 @@ class DeliveryRecord {
 }
 
 class NotificationPage {
-  const NotificationPage({
-    required this.items,
-    this.nextCursor,
-  });
+  const NotificationPage({required this.items, this.nextCursor});
 
   final List<BridgeNotification> items;
   final String? nextCursor;
 
   factory NotificationPage.fromJson(Map<String, Object?> json) {
     return NotificationPage(
-      items: (json['items'] as List<Object?>).map((item) => BridgeNotification.fromJson(item as Map<String, Object?>)).toList(),
-      nextCursor: json['nextCursor'] == null ? null : json['nextCursor'] as String,
+      items: (json['items'] as List<Object?>)
+          .map(
+            (item) => BridgeNotification.fromJson(item as Map<String, Object?>),
+          )
+          .toList(),
+      nextCursor: json['nextCursor'] == null
+          ? null
+          : json['nextCursor'] as String,
     );
   }
 
@@ -784,7 +750,9 @@ class BridgeNotification {
       title: json['title'] as String,
       body: json['body'] as String,
       path: json['path'] == null ? null : json['path'] as String,
-      senderAlias: json['senderAlias'] == null ? null : json['senderAlias'] as String,
+      senderAlias: json['senderAlias'] == null
+          ? null
+          : json['senderAlias'] as String,
       createdAt: json['createdAt'] as String,
     );
   }
@@ -802,22 +770,16 @@ class BridgeNotification {
 }
 
 class RecordId {
-  const RecordId({
-    required this.id,
-  });
+  const RecordId({required this.id});
 
   final int id;
 
   factory RecordId.fromJson(Map<String, Object?> json) {
-    return RecordId(
-      id: (json['id'] as num).toInt(),
-    );
+    return RecordId(id: (json['id'] as num).toInt());
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'id': id,
-    };
+    return <String, Object?>{'id': id};
   }
 }
 
@@ -836,7 +798,9 @@ class DeviceContact {
     return DeviceContact(
       id: json['id'] as String,
       displayName: json['displayName'] as String,
-      phoneNumbers: (json['phoneNumbers'] as List<Object?>).map((item) => item as String).toList(),
+      phoneNumbers: (json['phoneNumbers'] as List<Object?>)
+          .map((item) => item as String)
+          .toList(),
     );
   }
 
@@ -850,10 +814,7 @@ class DeviceContact {
 }
 
 class UpdateDeviceContact {
-  const UpdateDeviceContact({
-    required this.id,
-    required this.displayName,
-  });
+  const UpdateDeviceContact({required this.id, required this.displayName});
 
   final String id;
   final String displayName;
@@ -866,30 +827,21 @@ class UpdateDeviceContact {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'id': id,
-      'displayName': displayName,
-    };
+    return <String, Object?>{'id': id, 'displayName': displayName};
   }
 }
 
 class DeviceContactId {
-  const DeviceContactId({
-    required this.id,
-  });
+  const DeviceContactId({required this.id});
 
   final String id;
 
   factory DeviceContactId.fromJson(Map<String, Object?> json) {
-    return DeviceContactId(
-      id: json['id'] as String,
-    );
+    return DeviceContactId(id: json['id'] as String);
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'id': id,
-    };
+    return <String, Object?>{'id': id};
   }
 }
 
@@ -926,9 +878,7 @@ class Position {
 }
 
 class LocationServiceStatus {
-  const LocationServiceStatus({
-    required this.status,
-  });
+  const LocationServiceStatus({required this.status});
 
   final LocationServiceState status;
 
@@ -939,17 +889,11 @@ class LocationServiceStatus {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'status': status.name,
-    };
+    return <String, Object?>{'status': status.name};
   }
 }
 
-enum LocationServiceState {
-  enabled,
-  disabled,
-  unknown,
-}
+enum LocationServiceState { enabled, disabled, unknown }
 
 class AppInfo {
   const AppInfo({
@@ -987,37 +931,24 @@ class AppInfo {
   }
 }
 
-enum BridgeTheme {
-  light,
-  dark,
-  system,
-}
+enum BridgeTheme { light, dark, system }
 
 class ExternalUrlRequest {
-  const ExternalUrlRequest({
-    required this.url,
-  });
+  const ExternalUrlRequest({required this.url});
 
   final String url;
 
   factory ExternalUrlRequest.fromJson(Map<String, Object?> json) {
-    return ExternalUrlRequest(
-      url: json['url'] as String,
-    );
+    return ExternalUrlRequest(url: json['url'] as String);
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'url': url,
-    };
+    return <String, Object?>{'url': url};
   }
 }
 
 class ShareRequest {
-  const ShareRequest({
-    required this.text,
-    this.title,
-  });
+  const ShareRequest({required this.text, this.title});
 
   final String text;
   final String? title;
@@ -1030,17 +961,12 @@ class ShareRequest {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'text': text,
-      if (title != null) 'title': title!,
-    };
+    return <String, Object?>{'text': text, if (title != null) 'title': title!};
   }
 }
 
 class HapticRequest {
-  const HapticRequest({
-    required this.style,
-  });
+  const HapticRequest({required this.style});
 
   final HapticStyle style;
 
@@ -1051,23 +977,14 @@ class HapticRequest {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'style': style.name,
-    };
+    return <String, Object?>{'style': style.name};
   }
 }
 
-enum HapticStyle {
-  light,
-  medium,
-  heavy,
-  selection,
-}
+enum HapticStyle { light, medium, heavy, selection }
 
 class StatusBarRequest {
-  const StatusBarRequest({
-    required this.style,
-  });
+  const StatusBarRequest({required this.style});
 
   final StatusBarStyle style;
 
@@ -1078,21 +995,14 @@ class StatusBarRequest {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'style': style.name,
-    };
+    return <String, Object?>{'style': style.name};
   }
 }
 
-enum StatusBarStyle {
-  light,
-  dark,
-}
+enum StatusBarStyle { light, dark }
 
 class ThemeRequest {
-  const ThemeRequest({
-    required this.theme,
-  });
+  const ThemeRequest({required this.theme});
 
   final BridgeTheme theme;
 
@@ -1103,37 +1013,26 @@ class ThemeRequest {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'theme': theme.name,
-    };
+    return <String, Object?>{'theme': theme.name};
   }
 }
 
 class AnalyticsConsent {
-  const AnalyticsConsent({
-    required this.granted,
-  });
+  const AnalyticsConsent({required this.granted});
 
   final bool granted;
 
   factory AnalyticsConsent.fromJson(Map<String, Object?> json) {
-    return AnalyticsConsent(
-      granted: json['granted'] as bool,
-    );
+    return AnalyticsConsent(granted: json['granted'] as bool);
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'granted': granted,
-    };
+    return <String, Object?>{'granted': granted};
   }
 }
 
 class AnalyticsEvent {
-  const AnalyticsEvent({
-    required this.name,
-    this.parameters,
-  });
+  const AnalyticsEvent({required this.name, this.parameters});
 
   final String name;
   final Object? parameters;
@@ -1189,7 +1088,9 @@ class ConnectivityChangedEvent {
   factory ConnectivityChangedEvent.fromJson(Map<String, Object?> json) {
     return ConnectivityChangedEvent(
       connected: json['connected'] as bool,
-      connectionType: ConnectivityType.values.byName(json['connectionType'] as String),
+      connectionType: ConnectivityType.values.byName(
+        json['connectionType'] as String,
+      ),
     );
   }
 
@@ -1201,31 +1102,19 @@ class ConnectivityChangedEvent {
   }
 }
 
-enum ConnectivityType {
-  wifi,
-  mobile,
-  ethernet,
-  none,
-  other,
-}
+enum ConnectivityType { wifi, mobile, ethernet, none, other }
 
 class PushOpenedEvent {
-  const PushOpenedEvent({
-    required this.path,
-  });
+  const PushOpenedEvent({required this.path});
 
   final String path;
 
   factory PushOpenedEvent.fromJson(Map<String, Object?> json) {
-    return PushOpenedEvent(
-      path: json['path'] as String,
-    );
+    return PushOpenedEvent(path: json['path'] as String);
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'path': path,
-    };
+    return <String, Object?>{'path': path};
   }
 }
 
@@ -1258,9 +1147,7 @@ class GeofenceTriggeredEvent {
 }
 
 class ThemeChangedEvent {
-  const ThemeChangedEvent({
-    required this.theme,
-  });
+  const ThemeChangedEvent({required this.theme});
 
   final BridgeTheme theme;
 
@@ -1271,8 +1158,6 @@ class ThemeChangedEvent {
   }
 
   Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'theme': theme.name,
-    };
+    return <String, Object?>{'theme': theme.name};
   }
 }

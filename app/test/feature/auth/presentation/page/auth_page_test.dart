@@ -1,25 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iamhere/feature/auth/presentation/flow/auth_flow_controller.dart';
-import 'package:iamhere/feature/auth/presentation/page/auth_page.dart';
-import 'package:iamhere/feature/auth/service/auth_login_coordinator.dart';
-import 'package:iamhere/feature/auth/service/auth_service.dart';
-import 'package:iamhere/integration/firebase/analytics_reporter.dart';
+import 'package:iamhere/feature/auth/viewmodel/sign_in_controller.dart';
+import 'package:iamhere/feature/auth/view/page/auth_page.dart';
+import 'package:iamhere/feature/auth/model/service/login/social_login_service.dart';
 import 'package:iamhere/theme/imhere_theme.dart';
 import 'package:mockito/mockito.dart';
 
-class _AuthLoginCoordinatorMock extends Mock implements AuthLoginCoordinator {}
-
-class _AuthServiceMock extends Mock implements AuthService {}
-
-class _NoopAnalyticsReporter implements AnalyticsReporter {
-  @override
-  Future<void> logEvent(String name, {Map<String, Object>? parameters}) async {}
-
-  @override
-  Future<void> setConsent(bool granted) async {}
-}
+class _SocialLoginServiceMock extends Mock implements SocialLoginService {}
 
 void main() {
   Future<void> pumpAuthPage(
@@ -32,20 +20,13 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final dependencies = AuthFlowDependencies(
-      _AuthLoginCoordinatorMock(),
-      _AuthServiceMock(),
-    );
+    final coordinator = _SocialLoginServiceMock();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          authFlowControllerProvider(dependencies).overrideWith(
-            (ref) => AuthFlowController(
-              dependencies.coordinator,
-              dependencies.authService,
-              analytics: _NoopAnalyticsReporter(),
-            ),
-          ),
+          signInControllerProvider(
+            coordinator,
+          ).overrideWith(SignInController.new),
         ],
         child: MaterialApp(
           theme: ImHereAppTheme.light,
@@ -56,7 +37,7 @@ void main() {
             child: child!,
           ),
           home: AuthPage(
-            dependencies: dependencies,
+            authLoginCoordinator: coordinator,
             onAuthenticated: () {},
             requestLocationPermission: () async {},
           ),

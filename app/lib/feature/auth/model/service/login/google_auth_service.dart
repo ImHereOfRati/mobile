@@ -3,12 +3,18 @@ import 'package:iamhere/core/config/app_env.dart';
 import 'package:iamhere/core/result/result.dart';
 import 'package:iamhere/core/result/result_message.dart';
 import 'package:iamhere/core/util/app_logger.dart';
+import 'package:iamhere/feature/auth/model/service/login/abstract_oauth_service.dart';
+import 'package:iamhere/feature/auth/model/type/oauth_provider.dart';
 import 'package:injectable/injectable.dart';
 
-@lazySingleton
-class GoogleAuthService {
+@injectable
+class GoogleAuthService extends OAuthAuthService {
   static const _serverClientIdKey = 'GOOGLE_SERVER_CLIENT_ID';
 
+  @override
+  OauthProvider get provider => OauthProvider.google;
+
+  @override
   Future<Result<String?>> login({required String nonce}) async {
     try {
       final serverClientId = AppEnv.maybe(_serverClientIdKey);
